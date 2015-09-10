@@ -1,0 +1,59 @@
+#include <iostream>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/filesystem.hpp>
+
+#include <cstdlib>
+
+#include <Helium.hpp>
+#include <Config.hpp>
+#include <cmd/CommentRemover.hpp>
+#include <cmd/Splitter.hpp>
+#include <ArgParser.hpp>
+
+#include <spdlog/spdlog.h>
+
+namespace fs = boost::filesystem;
+
+int main(int argc, char* argv[]) {
+  const char *helium_home_env = std::getenv("HELIUM_HOME");
+  spdlog::stdout_logger_mt("console");
+  if(!helium_home_env) {
+    std::cout<<"Please set env variable HELIUM_HOME"<<std::endl;
+    return 1;
+  }
+  fs::path helium_home(helium_home_env);
+  ArgParser *arg_parser = new ArgParser(argc, argv);
+  std::string folder = arg_parser->GetString("folder");
+  fs::path project_folder(folder);
+  if (arg_parser->HasCmdUtils()) {
+    if (arg_parser->Has("split")) {
+      Splitter(folder).Run();
+    } else if (arg_parser->Has("remove-comment")) {
+      CommentRemover(folder).Run();
+    } else if (arg_parser->Has("ctags")) {
+      std::string cmd = "ctags -f ";
+      cmd += (project_folder / "tags").string();
+      cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_out -R ";
+      cmd += folder;
+      std::cout<<cmd<<std::endl;
+      std::system(cmd.c_str());
+    }
+  } else {
+    fs::path config_file;
+    if (arg_parser->Has("build-rate")) {
+      config_file =  helium_home / "buildrate.xml";
+    } else if (arg_parser->Has("equivalence")) {
+      config_file = helium_home / "equivalence.xml";
+    } else if (arg_parser->Has("change")) {
+      config_file = helium_home / "change.xml";
+    } else {
+      config_file = helium_home / "helium.xml";
+    }
+    Config config;
+    config.Load(config_file.string());
+    new Helium(folder, config);
+  }
+  return 0;
+}

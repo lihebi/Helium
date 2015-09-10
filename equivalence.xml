@@ -1,0 +1,37 @@
+<helium>
+  <output_folder>helium_out</output_folder>
+  <segment>
+    <include>gzip.c</include>
+    <exclude>gzip.c</exclude>
+    <code_selection>loop</code_selection>
+    <max_segment_size>50</max_segment_size>
+  </segment>
+  <context>
+    <context_search>linear</context_search>
+    <max_linear_search_value>10</max_linear_search_value>
+  </context>
+  <build>
+    <handle_struct>true</handle_struct>
+    <handle_array>true</handle_array>
+    <instruments>
+      <instrument>
+        <position>loop</position>
+        <type>count</type>
+      </instrument>
+      <instrument>
+        <position>post</position>
+        <type>variable</type>
+      </instrument>
+    </instruments>
+  </build>
+  <test>
+    <test_generation>random</test_generation>
+    <run_test>true</run_test>
+    <test_number>10</test_number>
+    <time_out>100</time_out>
+  </test>
+  <analyze>
+    <run_analyze>true</run_analyze>
+    <analyzer>invariant</analyzer>
+  </analyze>
+</helium>
