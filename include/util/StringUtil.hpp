@@ -6,6 +6,7 @@
 #include <functional>
 #include <cctype>
 #include <locale>
+#include <vector>
 
 class StringUtil {
 public:
@@ -23,6 +24,16 @@ public:
 
   static bool EndsWith(const std::string &s, const std::string &pattern);
   static bool StartsWith(const std::string &s, const std::string &pattern);
+  // from the begin to the first occurence of c
+  static std::string SubStringIfFind(const std::string& s, const char c);
+  static std::string SubStringIfFind(const std::string& s, const std::string pattern);
+
+  static std::vector<std::string> &Split(
+    const std::string &s,
+    char delim,
+    std::vector<std::string> &elems
+  );
+  static std::vector<std::string> Split(const std::string &s, char delim);
 };
 
 #endif
