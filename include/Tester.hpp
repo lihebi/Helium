@@ -4,23 +4,22 @@
 #include <string>
 #include <vector>
 
-#include <IOVariable.hpp>
-#include <Config.hpp>
-#include <TestResult.hpp>
-#include "SegmentUnit.hpp"
+#include "Variable.hpp"
+#include "Config.hpp"
+#include "TestResult.hpp"
+#include "segment/SegmentProcessUnit.hpp"
 
 class Tester {
 public:
-  Tester (const std::string &executable, const SegmentUnit &seg_unit, const Config &config);
+  Tester (const std::string &executable, std::shared_ptr<SegmentProcessUnit> seg_unit);
   virtual ~Tester ();
   bool Success();
   TestResult GetOutput();
 
 private:
   std::string m_executable;
-  std::vector<IOVariable> m_inv;
-  std::vector<IOVariable> m_outv;
-  Config m_config;
+  std::vector<Variable> m_inv;
+  std::vector<Variable> m_outv;
   TestResult m_test_result;
 };
 

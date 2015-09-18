@@ -5,13 +5,14 @@
 
 class EnumType : public Type {
 public:
-  EnumType();
+  EnumType(const std::string& name);
   virtual ~EnumType();
-  virtual void GetInputCode();
-  virtual void GetOutputCode();
+  virtual std::string GetInputCode(const std::string& var) const;
+  virtual std::string GetOutputCode(const std::string& var) const;
   virtual void GetInputSpecification();
   virtual void GetOutputSpecification();
 private:
+  std::string m_name;
 };
 
 #endif

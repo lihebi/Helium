@@ -16,7 +16,8 @@ ArgParser::ArgParser(int argc, char** argv)
   experiments.add_options()
     ("build-rate", "run build rate experiment")
     ("equivalence", "run equivalence checking experiment")
-    ("change", "run change experiment");
+    ("change", "run change experiment")
+    ("config", po::value<std::string>(), "config file");
   po::options_description hidden("Hidden options");
   hidden.add_options()
     ("folder", "project folder");

@@ -11,18 +11,33 @@ enum snippet_type {
   VARIABLE,
   DEFINE
 };
+
+/*
+ * Snippet Type
+ *  f: function
+ *  s: structure
+ *  g: enumerators
+ *  u: union
+ *  d: define
+ *  v: variabl
+ *  e: enumerator values
+ *  t: typedef
+ *  c: constant/classes
+ *  m: class/struct/union members
+ */
+
+
 class Snippet {
 public:
-  Snippet();
-  ~Snippet();
-  virtual void GetName();
-  virtual void GetCode();
-  virtual void GetDependence();
+  Snippet() {}
+  ~Snippet() {}
+  std::string GetName() {return m_name;}
+  char GetType() {return m_type;}
+  std::string GetCode() {return m_code;}
 private:
   std::string m_code;
   std::string m_name;
-  enum snippet_type m_type;
-  std::vector<std::string> dependence;
+  char m_type;
 };
 
 #endif

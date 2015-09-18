@@ -22,8 +22,20 @@ public:
     return ltrim(rtrim(s));
   }
 
-  static bool EndsWith(const std::string &s, const std::string &pattern);
-  static bool StartsWith(const std::string &s, const std::string &pattern);
+  static bool EndsWith(const std::string &s, const std::string &pattern) {
+    if (s.length() >= pattern.length()) {
+      return (0 == s.compare (s.length() - pattern.length(), pattern.length(), pattern));
+    } else {
+      return false;
+    }
+  }
+  static bool StartsWith(const std::string &s, const std::string &pattern) {
+    if (s.length() >= pattern.length()) {
+      return (0 == s.compare (0, pattern.length(), pattern));
+    } else {
+      return false;
+    }
+  }
   // from the begin to the first occurence of c
   static std::string SubStringIfFind(const std::string& s, const char c);
   static std::string SubStringIfFind(const std::string& s, const std::string pattern);
@@ -34,6 +46,12 @@ public:
     std::vector<std::string> &elems
   );
   static std::vector<std::string> Split(const std::string &s, char delim);
+  // remove all currence of pattern from s
+  static void Remove(std::string& s, const std::string& pattern) {
+    while (s.find(pattern) != -1) {
+      s.erase(s.find(pattern), pattern.length());
+    }
+  }
 };
 
 #endif

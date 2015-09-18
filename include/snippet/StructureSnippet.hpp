@@ -5,11 +5,8 @@
 
 class StructureSnippet : public Snippet {
 public:
-  StructureSnippet();
-  virtual ~StructureSnippet();
-  virtual void GetCode();
-  virtual void GetName();
-  virtual void GetDependence();
+  StructureSnippet(const std::string& code) {}
+  virtual ~StructureSnippet() {}
 private:
 };
 

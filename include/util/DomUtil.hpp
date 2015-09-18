@@ -14,6 +14,9 @@ public:
   static pugi::xml_node GetParentASTElement(pugi::xml_node node);
   static pugi::xml_node GetFunctionCall(pugi::xml_node node);
   static std::string GetTextContent(pugi::xml_node node);
+
+  // test if node is within <level> levels inside a <tagname>
+  static bool InNode(pugi::xml_node node, std::string tagname, int level);
 };
 
 #endif

@@ -66,3 +66,14 @@ std::string DomUtil::GetTextContent(pugi::xml_node node) {
   node.traverse(walker);
   return walker.text;
 }
+
+bool
+DomUtil::InNode(pugi::xml_node node, std::string tagname, int level) {
+  while (node.parent() && level>0) {
+    node = node.parent();
+    level--;
+    if (node.type() != pugi::node_element) return false;
+    if (node.name() == tagname) return true;
+  }
+  return false;
+}

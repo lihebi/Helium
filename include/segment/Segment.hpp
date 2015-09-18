@@ -12,7 +12,8 @@ public:
   void PushFront(pugi::xml_node node);
   void Clear();
   void Print();
-  std::vector<pugi::xml_node> GetNodes();
+  std::vector<pugi::xml_node> GetNodes() const;
+  std::string GetText();
 private:
   std::vector<pugi::xml_node> m_nodes;
 };

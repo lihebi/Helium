@@ -22,6 +22,17 @@ public:
     std::vector<std::string>& vs, // output
     const std::vector<std::string>& extension // extension
   );
+  static std::string GetBlock(const std::string& filename, int line, char type);
+
+  // IO helper
+  static void Write(
+    const std::string& file,
+    const std::string& content
+  );
+
+  // folders
+  static void RemoveFolder(const std::string& folder);
+  static void CreateFolder(const std::string& folder);
 };
 
 #endif

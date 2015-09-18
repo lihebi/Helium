@@ -13,6 +13,9 @@
 #include <ArgParser.hpp>
 
 #include <spdlog/spdlog.h>
+#include "resolver/Ctags.hpp"
+
+#include "util/FileUtil.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -27,6 +30,7 @@ int main(int argc, char* argv[]) {
   ArgParser *arg_parser = new ArgParser(argc, argv);
   std::string folder = arg_parser->GetString("folder");
   fs::path project_folder(folder);
+  std::string tagfile = (project_folder / "tags").string();
   if (arg_parser->HasCmdUtils()) {
     if (arg_parser->Has("split")) {
       Splitter(folder).Run();
@@ -34,7 +38,7 @@ int main(int argc, char* argv[]) {
       CommentRemover(folder).Run();
     } else if (arg_parser->Has("ctags")) {
       std::string cmd = "ctags -f ";
-      cmd += (project_folder / "tags").string();
+      cmd += tagfile;
       cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_out -R ";
       cmd += folder;
       std::cout<<cmd<<std::endl;
@@ -48,12 +52,18 @@ int main(int argc, char* argv[]) {
       config_file = helium_home / "equivalence.xml";
     } else if (arg_parser->Has("change")) {
       config_file = helium_home / "change.xml";
+    } else if (arg_parser->Has("config")) {
+      config_file = arg_parser->GetString("config");
     } else {
       config_file = helium_home / "helium.xml";
     }
-    Config config;
-    config.Load(config_file.string());
-    new Helium(folder, config);
+    Config *config = Config::Instance();
+    config->Load(config_file.string());
+    Ctags::Instance()->Load(tagfile);
+    std::string output_folder = config->GetOutputFolder();
+    FileUtil::RemoveFolder(output_folder);
+    FileUtil::CreateFolder(output_folder);
+    new Helium(folder);
   }
   return 0;
 }

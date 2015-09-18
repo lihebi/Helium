@@ -17,7 +17,7 @@ SPIKE_SRCS := $(shell find $(SPIKE_DIR) -type f -name *.$(SRCEXT))
 SPIKE_OBJECTS := $(patsubst $(SPIKE_DIR)/%,$(BIN_DIR)/%,$(SPIKE_SRCS:.$(SRCEXT)=))
 CFLAGS := -g -Wall --std=c++11
 # -pthread
-LIB := -lboost_program_options -lboost_system -lboost_filesystem -lpugi
+LIB := -lboost_program_options -lboost_system -lboost_filesystem -lpugi -lctags
 INC := -I include
 
 $(TARGET): $(OBJECTS)

@@ -2,7 +2,7 @@
 #include <boost/filesystem.hpp>
 
 int main(int argc, char** argv) {
-  boost::filesystem::path dir("user");
+  boost::filesystem::path dir("user/hello/world");
   boost::filesystem::path file("foo.txt");
   boost::filesystem::path full = dir / file;
   std::cout<<full<<std::endl;
@@ -13,10 +13,10 @@ int main(int argc, char** argv) {
   std::cout<<full.string()<<std::endl;
   // std::cout<<full.generic_string()<<std::endl;
   // decomposition
-  // std::cout<<full.root_name()<<std::endl;
-  // std::cout<<full.root_directory()<<std::endl;
-  // std::cout<<full.relative_path()<<std::endl;
-  // std::cout<<full.parent_path()<<std::endl;
+  std::cout<<full.root_name()<<std::endl;
+  std::cout<<full.root_directory()<<std::endl;
+  std::cout<<full.relative_path()<<std::endl;
+  std::cout<<full.parent_path()<<std::endl;
   // @return type
   std::cout<<full.filename()<<std::endl; // foo.txt
   std::cout<<full.stem()<<std::endl; // foo

@@ -1,8 +1,11 @@
 #include "util/FileUtil.hpp"
+#include "util/StringUtil.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 
 namespace fs = boost::filesystem;
 
@@ -52,5 +55,143 @@ void FileUtil::GetFilesByExtension(
         }
       }
     }
+  }
+}
+
+// from line, match a {}
+std::string
+extract_forward(const std::vector<std::string>& vs, int line_number) {
+  std::string s = "";
+  int open_brace_count = 0;
+  int close_brace_count = 0;
+  for (int i=line_number;i<vs.size();i++) {
+    s += vs[i]+'\n';
+    open_brace_count += std::count(vs[i].begin(), vs[i].end(), '{');
+    close_brace_count += std::count(vs[i].begin(), vs[i].end(), '}');
+    if (open_brace_count == close_brace_count && open_brace_count > 0) break;
+  }
+  return s;
+}
+
+// extract backward for a match {}
+std::string
+extract_backward(const std::vector<std::string>& vs, int line_number) {
+  std::string s;
+  int open_brace_count = 0;
+  int close_brace_count = 0;
+  for (int i=line_number;i>0;i--) {
+    s = vs[i] + '\n' + s;
+    open_brace_count += std::count(vs[i].begin(), vs[i].end(), '{');
+    close_brace_count += std::count(vs[i].begin(), vs[i].end(), '}');
+    if (open_brace_count == close_brace_count && open_brace_count > 0) break;
+  }
+  return s;
+}
+
+// from line, match until doesn't ends with `\`
+std::string
+extract_define(const std::vector<std::string>& vs, int line_number) {
+  std::string s;
+  for (int i=line_number;i<vs.size();i++) {
+    s += vs[i] + '\n';
+    if (vs[i].back() != '\\') break;
+  }
+  return s;
+}
+// until ends with ;
+std::string
+extract_statement(const std::vector<std::string>& vs, int line_number) {
+  std::string s;
+  for (int i=line_number; i<vs.size();i++) {
+    s += vs[i] + '\n';
+    if (vs[i].back() == ';') break;
+  }
+  return s;
+}
+// from middle, extract double direction until { and }
+std::string
+extract_double(const std::vector<std::string>& vs, int line_number) {
+  int i;
+  for (i=line_number;i>0;i--) {
+    if (vs[i].find('{') != -1) break;
+  }
+  std::string s;
+  for (;i<vs.size();i++) {
+    s += vs[i] + '\n';
+    if (vs[i].find('}') != -1) break;
+  }
+  return s;
+}
+// if start with 'typedef', return this line_number
+// otherwise backward
+std::string
+extract_typedef(const std::vector<std::string>& vs, int line_number) {
+  if (StringUtil::StartsWith(vs[line_number], "typedef")) {
+    return vs[line_number];
+  } else {
+    return extract_backward(vs, line_number);
+  }
+}
+
+
+std::string
+FileUtil::GetBlock(const std::string& filename, int line, char type) {
+  line--; // vector index from 0, but file line from 1
+  std::ifstream is;
+  std::vector<std::string> lines;
+  is.open(filename);
+  if (is.is_open()) {
+    std::string line;
+    while (getline(is, line)) {
+      StringUtil::trim(line);
+      lines.push_back(line);
+    }
+    is.close();
+  }
+  switch(type) {
+    case 'f':
+    case 's':
+    case 'g':
+    case 'u': return extract_forward(lines, line); break;
+    case 'd': return extract_define(lines, line); break;
+    case 'v': return extract_statement(lines, line); break;
+    case 'e': return extract_double(lines, line); break;
+    case 't': return extract_typedef(lines, line); break;
+    default: return "";
+  }
+}
+
+
+void
+FileUtil::Write(
+  const std::string& file,
+  const std::string& content
+) {
+  fs::path file_path(file);
+  fs::path dir = file_path.parent_path();
+  if (!fs::exists(dir)) {
+    fs::create_directories(dir);
+  }
+  std::ofstream os;
+  os.open(file_path.string());
+  if (os.is_open()) {
+    os << content;
+    os.close();
+  }
+}
+
+void
+FileUtil::RemoveFolder(const std::string& folder) {
+  fs::path folder_path(folder);
+  if (fs::exists(folder_path)) {
+    fs::remove_all(folder_path);
+  }
+}
+
+void
+FileUtil::CreateFolder(const std::string& folder) {
+  fs::path folder_path(folder);
+  if (!fs::exists(folder_path)) {
+    fs::create_directories(folder_path);
   }
 }

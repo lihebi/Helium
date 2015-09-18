@@ -1,6 +1,7 @@
-#include "Segment.hpp"
-#include <iostream>
+#include "segment/Segment.hpp"
 #include "util/DomUtil.hpp"
+
+#include <iostream>
 
 Segment::Segment () {}
 Segment::~Segment () {}
@@ -15,7 +16,7 @@ void Segment::Clear() {
   m_nodes.clear();
 }
 
-std::vector<pugi::xml_node> Segment::GetNodes() {
+std::vector<pugi::xml_node> Segment::GetNodes() const {
   return m_nodes;
 }
 
@@ -25,4 +26,13 @@ void Segment::Print() {
     // it->print(std::cout);
     std::cout<<DomUtil::GetTextContent(*it)<<std::endl;
   }
+}
+
+std::string
+Segment::GetText() {
+  std::string s;
+  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
+    s += DomUtil::GetTextContent(*it) + '\n';
+  }
+  return s;
 }

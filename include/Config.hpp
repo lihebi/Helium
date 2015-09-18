@@ -5,34 +5,99 @@
 #include <vector>
 #include <set>
 
-struct Config {
+struct Instrument {
+  std::string position;
+  std::string type;
+};
+
+class Config {
+public:
+  static Config* Instance();
   void Load(const std::string& filename);
-  void Save();
-  struct _Instrument {
-    std::string position;
-    std::string type;
-  };
-  std::string filename;
-  std::string output_folder;
+
+  // General config
+  const std::string& GetFilename() const {
+    return m_filename;
+  }
+  const std::string& GetOutputFolder() const {
+    return m_output_folder;
+  }
+  // build config
+  const std::string& GetCodeSelectionMethod() const {
+    return m_code_selection;
+  }
+  int GetMaxSegmentSize() const {
+    return m_max_segment_size;
+  }
+  const std::string& GetContextSearchMethod() const {
+    return m_context_search;
+  }
+  const int GetMaxLinearSearchValue() const {
+    return m_max_linear_search_value;
+  }
+  const std::vector<Instrument>& GetInstruments() const {
+    return m_instruments;
+  }
+  // test config
+  bool WillRunTest() const {
+    return m_run_test;
+  }
+  const std::string& GetTestGenerationMethod() const {
+    return m_test_generation;
+  }
+  int GetTestNumber() const {
+    return m_test_number;
+  }
+  int GetTestTimeout() const {
+    return m_time_out;
+  }
+  // analyzer config
+  bool WillRunAnalyze() const {
+    return m_run_analyze;
+  }
+  const std::string& GetAnalyer() const {
+    return m_analyzer;
+  }
+  // debug
+  bool WillShowCompileError() const {
+    return m_show_compile_error;
+  }
+  // interact
+  bool WillInteractCompile() const {
+    return m_interact_compile;
+  }
+  bool WillInteractCompileError() const {
+    return m_interact_compile_error;
+  }
+
+private:
+  Config() {}
+  ~Config() {}
+  static Config *m_instance;
+
+  std::string m_filename;
+  std::string m_output_folder;
   // segment
-  std::set<std::string> excludes;
-  std::string code_selection;
-  int max_segment_size;
+  std::string m_code_selection;
+  int m_max_segment_size;
   // context
-  std::string context_search;
-  int max_linear_search_value;
+  std::string m_context_search;
+  int m_max_linear_search_value;
   // build option
-  bool handle_struct;
-  bool handle_array;
-  std::vector<_Instrument> instruments;
+  std::vector<Instrument> m_instruments;
   // test
-  bool run_test;
-  std::string test_generation;
-  int test_number;
-  int time_out;
+  bool m_run_test;
+  std::string m_test_generation;
+  int m_test_number;
+  int m_time_out;
   // analyze
-  bool run_analyze;
-  std::string analyzer;
+  bool m_run_analyze;
+  std::string m_analyzer;
+  // debug
+  bool m_show_compile_error;
+  // interact
+  bool m_interact_compile;
+  bool m_interact_compile_error;
 };
 
 #endif

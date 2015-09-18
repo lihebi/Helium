@@ -5,11 +5,8 @@
 
 class FunctionSnippet : public Snippet {
 public:
-  FunctionSnippet();
-  virtual ~FunctionSnippet();
-  void GetName();
-  void GetCode();
-  void GetDependence();
+  FunctionSnippet(const std::string& code) {}
+  virtual ~FunctionSnippet() {}
 private:
 };
 

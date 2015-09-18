@@ -13,6 +13,24 @@ std::string ThreadUtil::Exec(const char* cmd) {
   pclose(pipe);
   return result;
 }
+int
+ThreadUtil::ExecExit(const char* cmd) {
+  FILE *pipe = popen(cmd, "r");
+  if (!pipe) return -1;
+  // has to have the full story to make it run
+  char buffer[128];
+  std::string result = "";
+  while(!feof(pipe)) {
+    if(fgets(buffer, 128, pipe) != NULL) {
+      result += buffer;
+    }
+  }
+  return pclose(pipe);
+}
+int
+ThreadUtil::ExecExit(const std::string& cmd) {
+  return ExecExit(cmd.c_str());
+}
 
 std::string ThreadUtil::Exec(const std::string& cmd) {
   return Exec(cmd.c_str());

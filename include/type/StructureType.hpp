@@ -5,14 +5,15 @@
 
 class StructureType : public Type {
 public:
-  StructureType();
+  StructureType(const std::string& name);
   virtual ~StructureType();
-  virtual void GetInputCode();
-  virtual void GetOutputCode();
+  virtual std::string GetInputCode(const std::string& var) const;
+  virtual std::string GetOutputCode(const std::string& var) const;
   virtual void GetInputSpecification();
   virtual void GetOutputSpecification();
 private:
   void simplifyCode();
+  std::string m_name;
 };
 
 #endif

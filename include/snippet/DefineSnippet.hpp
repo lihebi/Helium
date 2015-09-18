@@ -5,11 +5,8 @@
 
 class DefineSnippet : public Snippet {
 public:
-  DefineSnippet();
-  virtual ~DefineSnippet();
-  virtual void GetCode();
-  virtual void GetName();
-  virtual void GetDependence();
+  DefineSnippet(const std::string& code) {}
+  virtual ~DefineSnippet() {}
 private:
 };
 

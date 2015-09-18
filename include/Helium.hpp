@@ -8,15 +8,11 @@
 
 class Helium {
 public:
-  Helium(const std::string &folder, const Config &config);
+  Helium(const std::string &folder);
   virtual ~Helium();
 private:
-  void getFiles();
-
   std::string m_folder;
-  Config m_config;
   std::vector<std::string> m_files;
-
 };
 
 #endif

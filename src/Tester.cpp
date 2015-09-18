@@ -1,7 +1,7 @@
 #include <Tester.hpp>
 
-Tester::Tester(const std::string &executable, const SegmentUnit &seg_unit, const Config &config)
-: m_executable(executable), m_config(config) {
+Tester::Tester(const std::string &executable, std::shared_ptr<SegmentProcessUnit> seg_unit)
+: m_executable(executable) {
 // generate input
 // run program
 // get output

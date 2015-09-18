@@ -1,11 +1,7 @@
 <!-- Default Config -->
 <helium>
-  <output_folder>helium_out</output_folder>
+  <output_folder>helium_result</output_folder>
   <segment>
-    <excludes>
-      <exclude>generate.c</exclude>
-      <exclude>support.h</exclude>
-    </excludes>
     <code_selection>loop</code_selection>
     <max_segment_size>50</max_segment_size>
   </segment>
@@ -37,4 +33,11 @@
     <run_analyze>true</run_analyze>
     <analyzer>invariant</analyzer>
   </analyze>
+  <debug>
+    <show_compile_error>true</show_compile_error>
+  </debug>
+  <interact>
+    <compile>false</compile>
+    <compile_error>true</compile_error>
+  </interact>
 </helium>

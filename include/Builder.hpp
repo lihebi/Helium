@@ -3,24 +3,27 @@
 
 #include <Config.hpp>
 #include <vector>
-#include <IOVariable.hpp>
-#include <Segment.hpp>
-#include <Support.hpp>
-#include "SegmentUnit.hpp"
+#include "segment/Segment.hpp"
+#include "segment/SegmentProcessUnit.hpp"
 
 class Builder {
 public:
-  Builder(const SegmentUnit &seg_unit, const Config &config);
+  Builder(std::shared_ptr<SegmentProcessUnit> seg_unit);
   virtual ~Builder();
+  void Build();
+  void Compile();
   bool Success();
   std::string GetExecutable();
 private:
-  std::vector<IOVariable> m_inv;
-  std::vector<IOVariable> m_outv;
-  Segment m_context;
-  Support m_support;
-  Config m_config;
+  void writeMain();
+  void writeSupport();
+  void writeMakefile();
+  std::shared_ptr<SegmentProcessUnit> m_seg_unit;
+  // Segment m_context;
   std::string m_executable;
+  std::string m_main;
+  std::string m_support;
+  std::string m_makefile;
 };
 
 #endif

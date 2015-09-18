@@ -5,11 +5,8 @@
 
 class EnumSnippet : public Snippet {
 public:
-  EnumSnippet();
-  virtual ~EnumSnippet();
-  virtual void GetCode();
-  virtual void GetName();
-  virtual void GetDependence();
+  EnumSnippet(const std::string& code) {}
+  virtual ~EnumSnippet() {}
 private:
 };
 
