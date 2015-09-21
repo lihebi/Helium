@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Variable.hpp"
+#include "variable/Variable.hpp"
 #include "Config.hpp"
 #include "TestResult.hpp"
 #include "segment/SegmentProcessUnit.hpp"

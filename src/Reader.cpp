@@ -7,7 +7,7 @@
 
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
-  std::cout<<"[Reader][Constructor]"<<std::endl;
+  std::cout<<"[Reader][Constructor]"<<filename<<std::endl;
   m_doc = std::make_shared<pugi::xml_document>();
   SrcmlUtil::FileToXML(m_filename, *m_doc);
   getSegments();

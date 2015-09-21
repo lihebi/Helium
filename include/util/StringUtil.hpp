@@ -46,6 +46,8 @@ public:
     std::vector<std::string> &elems
   );
   static std::vector<std::string> Split(const std::string &s, char delim);
+  static std::vector<std::string> Split(const std::string &s);
+
   // remove all currence of pattern from s
   static void Remove(std::string& s, const std::string& pattern) {
     while (s.find(pattern) != -1) {

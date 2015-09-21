@@ -1,5 +1,7 @@
 #include "resolver/IOResolver.hpp"
 #include "util/DomUtil.hpp"
+#include "variable/VariableFactory.hpp"
+#include <iostream>
 
 IOResolver::IOResolver() {}
 
@@ -10,27 +12,27 @@ IOResolver::~IOResolver() {}
  * Will search for `decl_stmt` or `params`
  * Return type name if found.
  */
-Variable
+std::shared_ptr<Variable>
 IOResolver::ResolveLocalVar(
   const std::string& name,
   pugi::xml_node node
 ) {
-  while (node || node.previous_sibling()) {
+  // std::cout<<"[IOResolver::ResolveLocalVar] "<<name<<std::endl;
+  while (node && node.previous_sibling()) {
     node = node.previous_sibling();
     if (node.type() == pugi::node_element) {
       // won't search beyond function. That will resolved as global variable
       if (strcmp(node.name(), "function") == 0) {
-        return Variable(false);
+        return NULL;
       } else if (strcmp(node.name(), "decl_stmt") == 0) {
-        Variable v(node);
-        if (v.GetName() == name) {
+        std::shared_ptr<Variable> v = VariableFactory::FromDeclStmt(node);
+        if (v && v->GetName() == name) {
           return v;
         }
       } else if (strcmp(node.name(), "parameter_list") == 0) {
-        std::vector<Variable> vv;
-        Variable::FromParamList(node, vv);
+        std::vector<std::shared_ptr<Variable> > vv = VariableFactory::FromParamList(node);
         for (auto it=vv.begin();it!=vv.end();it++) {
-          if (it->GetName() == name) {
+          if ((*it)->GetName() == name) {
             return *it;
           }
         }
@@ -40,25 +42,27 @@ IOResolver::ResolveLocalVar(
   if (node && node.parent()) {
     return ResolveLocalVar(name, node.parent());
   } else {
-    return Variable(false);
+    return NULL;
   }
 }
 /*
  * Resolve all alive vars at this node.
  */
-void IOResolver::ResolveAliveVars(pugi::xml_node node, std::set<Variable>& resolved) {
+void IOResolver::ResolveAliveVars(
+  pugi::xml_node node,
+  std::set<std::shared_ptr<Variable> >& resolved
+) {
   if (node && node.previous_sibling()) {
     // go to previous sibling if any
     node = node.previous_sibling();
     if (node.type() == pugi::node_element) {
       if (strcmp(node.name(), "decl_stmt") == 0) {
-        Variable v(node);
-        resolved.insert(node);
+        std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
+        resolved.insert(vp);
       } else if (strcmp(node.name(), "parameter_list") == 0) {
-        std::vector<Variable> vv;
-        Variable::FromParamList(node, vv);
+        std::vector<std::shared_ptr<Variable> > vv = VariableFactory::FromParamList(node);
         for (auto it=vv.begin();it!=vv.end();it++) {
-          resolved.insert(node);
+          resolved.insert(*it);
         }
       }
     }
@@ -72,12 +76,38 @@ void IOResolver::ResolveAliveVars(pugi::xml_node node, std::set<Variable>& resol
   ResolveAliveVars(node, resolved);
 }
 
-
+void
+simplify_variable_name(std::string& s) {
+  s = s.substr(0, s.find('['));
+  s = s.substr(0, s.find("->"));
+  s = s.substr(0, s.find('.'));
+  // TODO wiki the erase-remove-idiom
+  s.erase(std::remove(s.begin(), s.end(), '('), s.end());
+  s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
+  s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
+  s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
+  // s.erase(
+  //   std::remove(
+  //     s.begin(), s.end(),
+  //     [](char x) {
+  //       if (x=='(' || x==')' || x=='*' || x=='&') return true;
+  //       else return false;
+  //     }
+  //   ),
+  //   s.end()
+  // );
+}
 // return name used in <expr>
 std::vector<std::string>
 parseExpr(pugi::xml_node node) {
+  std::vector<std::string> vs;
   if (node && node.type() == pugi::node_element && strcmp(node.name(), "expr") == 0) {
-    // TODO
+    for (pugi::xml_node n : node.children("name")) {
+      std::string s = DomUtil::GetTextContent(n);
+      simplify_variable_name(s);
+      vs.push_back(s);
+    }
+    return vs;
   }
   return std::vector<std::string>();
 }
@@ -85,13 +115,13 @@ parseExpr(pugi::xml_node node) {
 void
 IOResolver::visit(
   pugi::xml_node node,
-  std::set<Variable>& resolved,
-  std::set<Variable>& defined
+  std::set<std::shared_ptr<Variable> >& resolved,
+  std::set<std::shared_ptr<Variable> >& defined
 ) {
   if (node.type() == pugi::node_element) {
     if (strcmp(node.name(), "decl_stmt") == 0) {
-      Variable v(node);
-      defined.insert(v);
+      std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
+      defined.insert(vp);
     } else if (strcmp(node.name(), "expr") == 0) {
       // in #ifdef, there may be `#elif defined(__sun)`
       // TODO even if __sun is identified as undefined,
@@ -103,8 +133,10 @@ IOResolver::visit(
       }
       std::vector<std::string> vs = parseExpr(node); // the name used in <expr>
       for (auto it=vs.begin();it!=vs.end();it++) {
-        Variable v = ResolveLocalVar(*it, node);
-        resolved.insert(v);
+        std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
+        if (vp) {
+          resolved.insert(vp);
+        }
       }
     } else if (strcmp(node.name(), "for") == 0) {
       pugi::xml_node decl_node = node.child("init").child("decl");
@@ -113,55 +145,51 @@ IOResolver::visit(
       // for (auto it=vv.begin();it!=vv.end();it++) {
       //   defined.insert(*it);
       // }
-      Variable v(decl_node);
-      defined.insert(v);
+      std::shared_ptr<Variable> vp = VariableFactory::FromDecl(decl_node);
+      defined.insert(vp);
     }
   }
 }
-void
-IOResolver::resolveUndefinedVars(
-  std::vector<pugi::xml_node> vn,
-  std::set<Variable>& resolved,
-  std::set<Variable>& defined
-) {
-  for (auto it=vn.begin();it!=vn.end();it++) {
-    visit(*it, resolved, defined);
-    resolveUndefinedVars(*it, resolved, defined);
-  }
-}
-void
-IOResolver::resolveUndefinedVars(
-  pugi::xml_node node,
-  std::set<Variable>& resolved,
-  std::set<Variable>& defined
-) {
-  std::set<Variable> defined_back = defined;
-  for (pugi::xml_node n : node.children()) {
-    visit(n, resolved, defined);
-    resolveUndefinedVars(n, resolved, defined);
-  }
-  defined = defined_back;
-}
 
 void
-IOResolver::ResolveUndefinedVars(
-  const Segment& segment,
-  std::set<Variable>& resolved
+IOResolver::resolveUndefinedVars(
+  std::vector<pugi::xml_node> nodes,
+  std::set<std::shared_ptr<Variable> >& resolved,
+  std::set<std::shared_ptr<Variable> > defined // copy!
 ) {
-  std::set<Variable> defined;
-  std::vector<pugi::xml_node> vn = segment.GetNodes();
-  for (auto it=vn.begin();it!=vn.end();it++) {
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    visit(*it, resolved, defined);
+    std::vector<pugi::xml_node> vn;
+    for (pugi::xml_node n : it->children()) {
+      vn.push_back(n);
+    }
     resolveUndefinedVars(vn, resolved, defined);
   }
 }
 
-void
+std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
-  pugi::xml_node node,
-  std::set<Variable>& resolved
+  const Segment& segment
 ) {
-  std::set<Variable> defined;
-  resolveUndefinedVars(node, resolved, defined);
+  std::cout<<"[IOResolver::ResolveUndefinedVars]"<<std::endl;
+  std::set<std::shared_ptr<Variable> > resolved;
+  std::set<std::shared_ptr<Variable> > defined;
+  std::vector<pugi::xml_node> vn = segment.GetNodes();
+  resolveUndefinedVars(vn, resolved, defined);
+  return resolved;
+}
+
+std::set<std::shared_ptr<Variable> >
+IOResolver::ResolveUndefinedVars(
+  pugi::xml_node node
+) {
+  std::cout<<"[IOResolver::ResolveUndefinedVars]"<<std::endl;
+  std::set<std::shared_ptr<Variable> > resolved;
+  std::set<std::shared_ptr<Variable> > defined;
+  std::vector<pugi::xml_node> vn;
+  vn.push_back(node);
+  resolveUndefinedVars(vn, resolved, defined);
+  return resolved;
 }
 // get the variable name only
 void

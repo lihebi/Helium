@@ -7,7 +7,7 @@
 #include "segment/Segment.hpp"
 #include "Config.hpp"
 #include "snippet/Snippet.hpp"
-#include "Variable.hpp"
+#include "variable/Variable.hpp"
 
 class SegmentProcessUnit {
 public:
@@ -38,8 +38,8 @@ private:
 
   std::shared_ptr<Segment> m_segment;
   std::shared_ptr<Segment> m_context;
-  std::set<Variable> m_inv;
-  std::set<Variable> m_outv;
+  std::set<std::shared_ptr<Variable> > m_inv;
+  std::set<std::shared_ptr<Variable> > m_outv;
   std::set<Snippet*> m_snippets;
 
   std::vector<pugi::xml_node> m_functions;

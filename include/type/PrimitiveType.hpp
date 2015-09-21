@@ -16,6 +16,7 @@ public:
   virtual std::string GetOutputCode(const std::string& var) const;
   virtual void GetInputSpecification();
   virtual void GetOutputSpecification();
+  virtual std::string GetName() const {return m_name;}
 
 private:
   std::string getIntInputCode(const std::string& var) const;

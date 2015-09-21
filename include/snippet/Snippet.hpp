@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 enum snippet_type {
   FUNCTION,
@@ -30,14 +31,12 @@ enum snippet_type {
 class Snippet {
 public:
   Snippet() {}
-  ~Snippet() {}
-  std::string GetName() {return m_name;}
-  char GetType() {return m_type;}
-  std::string GetCode() {return m_code;}
+  virtual ~Snippet() {}
+  virtual std::string GetName() = 0;
+  virtual char GetType() = 0;
+  virtual std::string GetCode() = 0;
+  virtual std::set<std::string> GetKeywords() = 0;
 private:
-  std::string m_code;
-  std::string m_name;
-  char m_type;
 };
 
 #endif

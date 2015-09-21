@@ -22,14 +22,22 @@ public:
   std::set<Snippet*> GetDependence(Snippet* snippet);
   // recursively get dependence
   std::set<Snippet*> GetAllDependence(Snippet* snippet);
+  std::set<Snippet*> GetAllDependence(std::set<Snippet*> snippets);
   // add(or lookup) snippet, and return the pointer
-  Snippet* Add(const std::string& code);
-  Snippet* Add(const std::string& code, char type);
-  void AddDependence(Snippet *from, Snippet *to);
-  void AddDependence(Snippet *from, std::set<Snippet*> to);
-  Snippet* CreateSnippet(const std::string& code, char type);
+  // this is public API.
+  // add any code snippet will resolve the dependence
+  // add will look up first to ensure there's no duplicate
+  Snippet* Add(const std::string& code, char type, const std::string& id);
+
+
 
 private:
+  Snippet* createSnippet(const std::string& code, char type, const std::string& id);
+  // Can not add dependence outside the class
+  void addDependence(Snippet *from, Snippet *to);
+  void addDependence(Snippet *from, std::set<Snippet*> to);
+  void resolveDependence(Snippet *s);
+  void add(Snippet *s);
   SnippetRegistry() {}
   // resolve dependence
   static SnippetRegistry* m_instance;

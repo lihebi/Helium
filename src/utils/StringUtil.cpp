@@ -5,6 +5,16 @@ std::string StringUtil::SubStringIfFind(const std::string& s, const char c) {
   return s.substr(0, s.find(c));
 }
 
+std::vector<std::string>
+StringUtil::Split(const std::string &s) {
+  std::istringstream iss(s);
+  std::vector<std::string> tokens{
+    std::istream_iterator<std::string>{iss},
+    std::istream_iterator<std::string>{}
+  };
+  return tokens;
+}
+
 std::vector<std::string> &StringUtil::Split(
   const std::string &s,
   char delim,

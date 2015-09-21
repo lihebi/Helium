@@ -1,6 +1,7 @@
 #include "type/PrimitiveType.hpp"
 #include "type/TypeFactory.hpp"
 
+// Deprecated
 PrimitiveType::PrimitiveType(const std::string& name)
 : m_name(name) {
   ;

@@ -3,6 +3,7 @@
 #include "resolver/IOResolver.hpp"
 #include "resolver/Resolver.hpp"
 #include "snippet/SnippetRegistry.hpp"
+#include "resolver/Ctags.hpp"
 
 SegmentProcessUnit::SegmentProcessUnit()
 : m_segment(std::make_shared<Segment>()),
@@ -60,9 +61,14 @@ bool SegmentProcessUnit::IncreaseContext() {
 }
 
 void SegmentProcessUnit::resolveInput() {
+  std::cout<<"[SegmentProcessUnit::resolveInput]"<<std::endl;
   // std::set<Variable> vv;
   m_inv.clear();
-  IOResolver::ResolveUndefinedVars(*m_segment, m_inv);
+  m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
+  for (auto it=m_inv.begin();it!=m_inv.end();it++) {
+    std::cout << "[SegmentprocessUnit::resolveInput] "
+    << (*it)->GetName() << " : " << (*it)->GetType()->GetName() << std::endl;
+  }
 }
 void SegmentProcessUnit::resolveOutput() {
   // std::set<Variable> vv;
@@ -73,10 +79,14 @@ void SegmentProcessUnit::resolveSnippets() {
   std::cout<<"[SegmentProcessUnit][resolveSnippets]"<<std::endl;
   m_snippets.clear();
   std::string code = m_context->GetText();
-  Resolver resolver = Resolver(code);
-  resolver.Resolve();
-  m_snippets = resolver.GetSnippets();
-  // TODO
+  std::set<std::string> ss = Resolver::ExtractToResolve(code);
+  // std::cout << "size of to resolve: " << ss.size() << std::endl;
+  for (auto it=ss.begin();it!=ss.end();it++) {
+    std::cout << "[SegmentProcessUnit::resolveSnippets] " << *it << std::endl;
+    std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it);
+    m_snippets.insert(snippets.begin(), snippets.end());
+  }
+  std::cout<<"[SegmentProcessUnit][resolveSnippets] size: " << m_snippets.size() <<std::endl;
 }
 
 // true if s1 is direct dep of s2
@@ -128,7 +138,8 @@ std::string
 SegmentProcessUnit::getInputCode() {
   std::string s;
   for (auto it=m_inv.begin();it!=m_inv.end();it++) {
-    s += it->GetInputCode();
+    std::cout<<"[SegmentProcessUnit::getInputCode]"<<(*it)->GetName()<<std::endl;
+    s += (*it)->GetInputCode();
   }
   return s;
 }
@@ -160,33 +171,17 @@ SegmentProcessUnit::GetMain() {
 
 std::string
 SegmentProcessUnit::GetSupport() {
-  return "";
+  std::cout << "[SegmentProcessUnit::GetSupport]" << std::endl;
   // prepare the containers
   std::set<Snippet*> all_snippets;
-  std::set<Snippet*> to_resolve;
-  for (auto it=m_snippets.begin();it!=m_snippets.end();it++) {
-     all_snippets.insert(*it);
-     to_resolve.insert(*it);
-  }
-  // get all snippets
-  while (!to_resolve.empty()) {
-    Snippet *tmp = *(to_resolve.begin());
-    to_resolve.erase(tmp);
-    all_snippets.insert(tmp);
-    std::set<Snippet*> dep = SnippetRegistry::Instance()->GetDependence(tmp);
-    for (auto it=dep.begin();it!=dep.end();it++) {
-      if (all_snippets.find(*it) == all_snippets.end()) {
-        // not found, new snippet
-        to_resolve.insert(*it);
-      }
-    }
-  }
+  all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
+  std::cout << "[SegmentProcessUnit::GetSupport] all snippets: " << all_snippets.size() << std::endl;
   // sort the snippets
   std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
   // return the snippet code
   std::string code = "";
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    code += (*it)->GetCode();
+    code += (*it)->GetCode() + '\n';
   }
   return code;
 }

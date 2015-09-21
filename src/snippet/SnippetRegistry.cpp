@@ -8,6 +8,13 @@
 #include "snippet/UnionSnippet.hpp"
 #include "snippet/VariableSnippet.hpp"
 
+#include "resolver/Ctags.hpp"
+#include "resolver/Resolver.hpp"
+#include "util/FileUtil.hpp"
+#include "util/StringUtil.hpp"
+
+#include <iostream>
+
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
 /**************************
@@ -63,67 +70,166 @@ SnippetRegistry::GetDependence(Snippet* snippet) {
 // recursively get dependence
 std::set<Snippet*>
 SnippetRegistry::GetAllDependence(Snippet* snippet) {
-  std::set<Snippet*> all;
-  std::set<Snippet*> to;
-  to.insert(snippet);
-  while (!to.empty()) {
-    Snippet *s = *(to.begin());
-    to.erase(s);
-    all.insert(s);
-    if (m_dependence_map.find(s) != m_dependence_map.end()) {
-      std::set<Snippet*> vs = m_dependence_map[s];
-      for (auto it=vs.begin();it!=vs.end();it++) {
-        if (all.find(*it) == all.end() && to.find(*it) == to.end()) {
-          to.insert(*it);
-        }
+  std::set<Snippet*> snippets;
+  snippets.insert(snippet);
+  return GetAllDependence(snippets);
+}
+
+/*
+ * Get all snippets dependence
+ * return including the params
+ */
+std::set<Snippet*>
+SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
+  std::set<Snippet*> all_snippets;
+  std::set<Snippet*> to_resolve;
+  for (auto it=snippets.begin();it!=snippets.end();it++) {
+     all_snippets.insert(*it);
+     to_resolve.insert(*it);
+  }
+  while (!to_resolve.empty()) {
+    Snippet *tmp = *(to_resolve.begin());
+    to_resolve.erase(tmp);
+    all_snippets.insert(tmp);
+    std::set<Snippet*> dep = GetDependence(tmp);
+    for (auto it=dep.begin();it!=dep.end();it++) {
+      if (all_snippets.find(*it) == all_snippets.end()) {
+        // not found, new snippet
+        to_resolve.insert(*it);
       }
     }
   }
-  return all;
+  return all_snippets;
 }
 
 /**************************
  ********** Add ***********
  **************************/
 
-// add(or lookup) snippet, and return the pointer
 Snippet*
-SnippetRegistry::Add(const std::string& code) {
-  // do not use this method.
-  // always add some code with correct type
-  return NULL;
-}
-
-Snippet*
-SnippetRegistry::Add(const std::string& code, char type) {
-  Snippet *s = CreateSnippet(code, type);
-  // TODO look up for duplicate
-  m_snippets.insert(s);
+SnippetRegistry::Add(const std::string& code, char type, const std::string& id) {
+  std::cout << "[SnippetRegistry::Add]" << std::endl;
+  Snippet *s = createSnippet(code, type, id);
+  if (!s) return NULL;
+  // lookup to remove duplicate
+  std::set<std::string> keywords = s->GetKeywords();
+  for (auto it=keywords.begin();it!=keywords.end();it++) {
+    Snippet *s_tmp = LookUp(*it, type);
+    if (s_tmp) return s_tmp;
+  }
+  // insert
+  add(s);
+  resolveDependence(s);
   return s;
 }
 
 void
-SnippetRegistry::AddDependence(Snippet *from, Snippet *to) {}
+SnippetRegistry::resolveDependence(Snippet *s) {
+  // std::cout << "[SnippetRegistry::resolveDependence]" << std::endl;
+  std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
+  // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
+  for (auto it=ss.begin();it!=ss.end();it++) {
+    if (!LookUp(*it).empty()) {
+      // already resolved. Just add dependence
+      addDependence(s, LookUp(*it));
+    } else {
+      // resolve by ctags
+      std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
+      if (!vc.empty()) {
+        for (auto it2=vc.begin();it2!=vc.end();it2++) {
+          std::string code = FileUtil::GetBlock(it2->GetFileName(), it2->GetLineNumber(), it2->GetType());
+          Snippet *snew = createSnippet(code, it2->GetType(), *it);
+          if (snew) {
+            add(snew);
+            addDependence(s, snew);
+            resolveDependence(snew);
+          }
+        }
+      }
+    }
+  }
+}
+
+// this is the only way to add snippets to SnippetRegistry, aka m_snippets
+void
+SnippetRegistry::add(Snippet *s) {
+  std::cout << "[SnippetRegistry::add]" << std::endl;
+  std::cout << "\tType: " << s->GetType() << std::endl;
+  std::cout << "\tName: " << s->GetName() << std::endl;
+  std::cout << "\tKeywords: ";
+  m_snippets.insert(s);
+  std::set<std::string> keywords = s->GetKeywords();
+  for (auto it=keywords.begin();it!=keywords.end();it++) {
+    std::cout << *it << " ";
+    if (m_id_map.find(*it) == m_id_map.end()) {
+      m_id_map[*it] = std::set<Snippet*>();
+    }
+    m_id_map[*it].insert(s);
+  }
+  std::cout<<std::endl;
+}
 
 void
-SnippetRegistry::AddDependence(Snippet *from, std::set<Snippet*> to) {}
+SnippetRegistry::addDependence(Snippet *from, Snippet *to) {
+  if (m_dependence_map.find(from) == m_dependence_map.end()) {
+    m_dependence_map[from] = std::set<Snippet*>();
+  }
+  m_dependence_map[from].insert(to);
+}
+
+void
+SnippetRegistry::addDependence(Snippet *from, std::set<Snippet*> to) {
+  for (auto it=to.begin();it!=to.end();it++) {
+    addDependence(from, *it);
+  }
+}
+
+static std::regex structure_reg("^typedef\\s+struct(\\s+\\w+)?\\s*{");
+static std::regex enum_reg("^typedef\\s+enum(\\s+\\w+)?\\s*{");
+static std::regex union_reg("^typedef\\s+union(\\s+\\w+)?\\s*{");
+bool is_structure(const std::string& code) {
+  if (std::regex_search(code, structure_reg)) return true;
+  else return false;
+}
+bool is_enum(const std::string& code) {
+  if (std::regex_search(code, enum_reg)) return true;
+  else return false;
+}
+bool is_union(const std::string& code) {
+  if (std::regex_search(code, union_reg)) return true;
+  else return false;
+}
 
 Snippet*
-SnippetRegistry::CreateSnippet(const std::string& code, char type) {
+SnippetRegistry::createSnippet(const std::string& code, char type, const std::string &id) {
+  // std::cout << "[SnippetRegistry::createSnippet] " << id << " " << type << std::endl;
   Snippet *s;
+  std::string trimed_code = code;
+  StringUtil::trim(trimed_code);
   switch (type) {
-    case 'f': s = new FunctionSnippet(code); return s; break;
-    case 's': s = new StructureSnippet(code); return s; break;
+    case 'f': s = new FunctionSnippet(trimed_code); return s; break;
+    case 's': s = new StructureSnippet(trimed_code); return s; break;
     case 'e':
-    case 'g': s = new EnumSnippet(code); return s; break;
-    case 'u': s = new UnionSnippet(code); return s; break;
-    case 'd': s = new DefineSnippet(code); return s; break;
-    case 'v': s = new VariableSnippet(code); return s; break;
-    // case 'c':
-    // case 'm':
+    case 'g': s = new EnumSnippet(trimed_code); return s; break;
+    case 'u': s = new UnionSnippet(trimed_code); return s; break;
+    case 'd': s = new DefineSnippet(trimed_code); return s; break;
+    case 'v': s = new VariableSnippet(trimed_code, id); return s; break;
+    // do not consider the following two cases
+    // case 'c': constant
+    // case 'm': member fields of a structure
     case 't': {
-      // TODO typedef may be struct or other types, functions, etc.
-      Snippet *s = new TypedefSnippet(code); return s; break;
+      Snippet *s;
+      if (is_structure(trimed_code)) {
+        s = new StructureSnippet(trimed_code);
+      } else if (is_enum(trimed_code)) {
+        s = new EnumSnippet(trimed_code);
+      } else if (is_union(trimed_code)) {
+        s = new UnionSnippet(trimed_code);
+      } else {
+        s = new TypedefSnippet(trimed_code);
+      }
+      return s;
+      break;
     }
     default: return NULL;
   }

@@ -1,7 +1,7 @@
 #ifndef __READER_HPP__
 #define __READER_HPP__
 
-#include "Variable.hpp"
+#include "variable/Variable.hpp"
 #include "segment/Segment.hpp"
 #include "Config.hpp"
 #include "segment/SegmentProcessUnit.hpp"

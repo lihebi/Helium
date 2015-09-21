@@ -51,9 +51,9 @@ public:
   std::vector<CtagsEntry> Parse(const std::string& name, const std::string& type);
   Snippet* ResolveSimple(const std::string& name);
   // not just get the CtagsEntry, but get the code block of <name>
-  std::vector<Snippet*> Resolve(const std::string& name);
+  std::set<Snippet*> Resolve(const std::string& name);
   // resolve by type
-  std::vector<Snippet*> Resolve(const std::string& name, const std::string& type);
+  std::set<Snippet*> Resolve(const std::string& name, const std::string& type);
 private:
   Ctags() {}
   ~Ctags() {}
