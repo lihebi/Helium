@@ -25,7 +25,6 @@ private:
   pugi::xml_node m_node; // the node where the variable is declared
   std::shared_ptr<Type> m_type;
   std::string m_name;
-  int dimension;
 };
 
 #endif

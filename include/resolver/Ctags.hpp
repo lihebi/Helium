@@ -14,12 +14,18 @@ public:
   CtagsEntry(const char* file, int line, char type)
   : m_file(file), m_line(line), m_type(type), m_valid(true) {}
   CtagsEntry(bool valid) : m_valid(valid) {}
+  // construct by pattern
+  CtagsEntry(const char* file, const char* pattern, char type)
+  : m_file(file), m_pattern(pattern), m_type(type), m_valid(true) {}
   ~CtagsEntry() {}
   std::string GetFileName() const {
     return m_file;
   }
   int GetLineNumber() const {
     return m_line;
+  }
+  std::string GetPattern() const {
+    return m_pattern;
   }
   char GetType() const {
     return m_type;
@@ -29,6 +35,7 @@ public:
   }
 private:
   std::string m_file;
+  std::string m_pattern;
   int m_line;
   char m_type;
   bool m_valid;

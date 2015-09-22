@@ -27,50 +27,23 @@ extern uint8_t BOOL_MASK;
 extern uint8_t STRUCT_MASK;
 extern uint8_t ENUM_MASK;
 
-extern std::regex
-// modifier
-const_regex,
-static_regex,
-extern_regex,
-volatile_regex,
-// length
-unsigned_regex,
-signed_regex,
-long_regex,
-short_regex,
-// primitive
-int_regex,
-char_regex,
-float_regex,
-double_regex,
-bool_regex,
-// keyword
-struct_regex,
-enum_regex;
-
 
 class TypeFactory {
 public:
-  static TypeFactory* Instance() {
-    if (m_instance == 0) {
-      m_instance = new TypeFactory();
-    }
-    return m_instance;
-  }
-  std::shared_ptr<Type> CreateType(const std::string& type_name);
-private:
-  TypeFactory()
-  : m_modifier(0), m_length(0), m_primitive(0), m_keyword(0)
-  {}
-  ~TypeFactory();
+  TypeFactory(const std::string& name);
+  ~TypeFactory() {}
 
+  std::shared_ptr<Type> CreateType();
+  bool IsPrimitiveType();
+  bool IsEnumType();
+  bool IsStructureType();
+  bool IsSystemType();
+private:
   void clear();
   void decomposite(std::string name);
-  bool isPrimitiveType();
-  bool isEnumType();
-  bool isStructureType();
-  bool isSystemType();
-  static TypeFactory *m_instance;
+
+
+  std::string m_name;
   uint8_t m_modifier;
   uint8_t m_length;
   uint8_t m_primitive;

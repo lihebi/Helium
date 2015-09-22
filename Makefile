@@ -51,6 +51,17 @@ lib:
 # 	$(CC) $(CFLAGS) spikes/testpath.cpp $(INC) $(LIB) -o bin/path
 spike: $(SPIKE_OBJECTS)
 
+systype.tags:
+	ctags -f systype.tags --exclude=boost\
+		--exclude=llvm\
+		--exclude=c++\
+		--exclude=linux\
+		--exclude=xcb\
+		--exclude=X11\
+		--exclude=openssl\
+		--exclude=xorg\
+		-R /usr/include/ /usr/local/include
+
 $(BIN_DIR)/%: $(SPIKE_DIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< $(INC) $(LIB) -o $@

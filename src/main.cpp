@@ -16,6 +16,7 @@
 #include "resolver/Ctags.hpp"
 
 #include "util/FileUtil.hpp"
+#include "resolver/SystemResolver.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -60,6 +61,7 @@ int main(int argc, char* argv[]) {
     Config *config = Config::Instance();
     config->Load(config_file.string());
     Ctags::Instance()->Load(tagfile);
+    SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
     std::string output_folder = config->GetOutputFolder();
     FileUtil::RemoveFolder(output_folder);
     FileUtil::CreateFolder(output_folder);

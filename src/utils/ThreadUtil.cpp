@@ -37,16 +37,20 @@ std::string ThreadUtil::Exec(const std::string& cmd) {
 }
 
 std::string ThreadUtil::Exec(const char* cmd, const char* input) {
+  std::cout << "[ThreadUtil::Exec]" << std::endl;
   FILE *pipe = popen(cmd, "r+");
   if (!pipe) return "ERROR";
   fputs(input, pipe);
   char buffer[128];
   std::string result = "";
   while(!feof(pipe)) {
+    std::cout << "...." << std::endl;
     if (fgets(buffer, 128, pipe) != NULL) {
       result += buffer;
     }
+    std::cout << "/* message */" << std::endl;
   }
+  std::cout << "////" << std::endl;
   pclose(pipe);
   return result;
 }

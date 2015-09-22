@@ -7,7 +7,14 @@ class StructureSnippet : public Snippet {
 public:
   StructureSnippet(const std::string& code);
   virtual ~StructureSnippet() {}
-  virtual std::string GetName() {return m_name;}
+  // this name should be legal to define a variable
+  virtual std::string GetName() {
+    if (m_name.empty()) {
+      return m_alias;
+    } else {
+      return "struct " + m_name;
+    }
+  }
   virtual char GetType() {return m_type;}
   virtual std::string GetCode() {return m_code;}
   virtual std::set<std::string> GetKeywords() {return m_keywords;}

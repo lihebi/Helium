@@ -4,30 +4,29 @@
 #include "type/SystemType.hpp"
 #include "type/StructureType.hpp"
 #include "util/StringUtil.hpp"
+#include "resolver/SystemResolver.hpp"
 #include <iostream>
 
-TypeFactory* TypeFactory::m_instance = 0;
-
-std::regex
+static std::regex
 // modifier
-const_regex("\\bconst\\b"),
-static_regex("\\bstatic\\b"),
-extern_regex("\\bextern\\b"),
+const_regex   ("\\bconst\\b"),
+static_regex  ("\\bstatic\\b"),
+extern_regex  ("\\bextern\\b"),
 volatile_regex("\\bvolatile\\b"),
 // length
-unsigned_regex("\\bsigned\\b"),
-signed_regex("\\bunsigned\\b"),
-long_regex("\\blong\\b"),
-short_regex("\\bshort\\b"),
+unsigned_regex("\\bunsigned\\b"),
+signed_regex  ("\\bsigned\\b"),
+long_regex    ("\\blong\\b"),
+short_regex   ("\\bshort\\b"),
 // primitive
-int_regex("\\bint\\b"),
-char_regex("\\bchar\\b"),
-float_regex("\\bfloat\\b"),
-double_regex("\\bdouble\\b"),
-bool_regex("\\bbool\\b"),
+int_regex     ("\\bint\\b"),
+char_regex    ("\\bchar\\b"),
+float_regex   ("\\bfloat\\b"),
+double_regex  ("\\bdouble\\b"),
+bool_regex    ("\\bbool\\b"),
 // keyword
-struct_regex("\\bstruct\\b"),
-enum_regex("\\benum\\b");
+struct_regex  ("\\bstruct\\b"),
+enum_regex    ("\\benum\\b");
 
 uint8_t CONST_MASK = 0x01;
 uint8_t STATIC_MASK = 0x01 << 1;
@@ -48,42 +47,57 @@ uint8_t BOOL_MASK = 0x01 << 4;
 uint8_t STRUCT_MASK = 0x01;
 uint8_t ENUM_MASK = 0x01 << 1;
 
+TypeFactory::TypeFactory(const std::string& name)
+: m_name(name), m_modifier(0), m_length(0), m_primitive(0), m_keyword(0) {
+  decomposite(m_name);
+}
+
 bool
-TypeFactory::isPrimitiveType() {
+TypeFactory::IsPrimitiveType() {
   if (m_length || m_primitive) return true;
   else return false;
 }
 bool
-TypeFactory::isEnumType() {
+TypeFactory::IsEnumType() {
   if (m_keyword & ENUM_MASK) return true;
   else return false;
 }
 bool
-TypeFactory::isSystemType() {
-  // TODO system type resolve
-  return false;
+TypeFactory::IsSystemType() {
+  if (SystemResolver::Instance()->Has(m_identifier)) return true;
+  else return false;
 }
 bool
-TypeFactory::isStructureType() {
-  // TODO structure resolve
-  return false;
+TypeFactory::IsStructureType() {
+  // TODO better granularity
+  if (Ctags::Instance()->Parse(m_identifier).empty()) return false;
+  else return true;
 }
 
-// TODO free the pointer
 std::shared_ptr<Type>
-TypeFactory::CreateType(const std::string& name) {
-  decomposite(name);
+TypeFactory::CreateType() {
   std::shared_ptr<Type> type;
-  if (isPrimitiveType()) {
+  if (IsPrimitiveType()) {
     type = std::make_shared<PrimitiveType>(m_length, m_primitive);
-  } else if (isEnumType()) {
+  } else if (IsEnumType()) {
     type = std::make_shared<EnumType>(m_identifier);
-  } else if (isSystemType()) {
-    type = std::make_shared<SystemType>(m_identifier);
-  } else if (isStructureType()) {
+  } else if (IsStructureType()) {
     type = std::make_shared<StructureType>(m_identifier);
+  } else if (IsSystemType()) {
+    // std::cout << m_identifier << std::endl;
+    std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
+    if (prim_type.empty()) {
+      // TODO detail of system type
+      type = std::make_shared<SystemType>(m_identifier);
+    } else {
+      // std::cout << "Resolved from " << m_identifier << " to Primitive: \033[32m" << prim_type << "\033[0m" << std::endl;
+      std::string new_name = m_name;
+      new_name.replace(new_name.find(m_identifier), m_identifier.length(), prim_type);
+      // FIXME this should be a primitive type
+      return TypeFactory(new_name).CreateType();
+    }
   } else {
-    std::cout << "\033[33m [Warning] Not supported type: " << name << "\033[0m" << std::endl;
+    std::cout << "\033[33m [Warning] Not supported type: " << m_identifier << "\033[0m" << std::endl;
     return NULL;
   }
   type->SetPointerLevel(m_pointer_level);

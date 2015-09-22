@@ -7,18 +7,11 @@
 
 #include "type/Type.hpp"
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
+
 /*
  * Check if an identifier is a system function or type.
  */
-
-class Header {
-public:
-  std::string GetPath() {return m_path;}
-  std::string GetFlag() {return m_flag;}
-private:
-  std::string m_path;
-  std::string m_flag;
-};
 
 class SystemResolver {
 public:
@@ -28,16 +21,17 @@ public:
     }
     return m_instance;
   }
+  // load the systype.tags file
   void Load(const std::string& filename);
-  // check whether id can be resolved
-  // modify m_headers and m_flags
-  bool Check(const std::string& id);
   // resolve to primitive type
-  static Type ResolveType(const std::string& type);
+  std::string ResolveType(const std::string& type);
+  std::vector<CtagsEntry> Parse(const std::string& name) ;
+  std::vector<CtagsEntry> Parse(const std::string& name, const std::string& type);
+  bool Has(const std::string& name);
 private:
   SystemResolver() {}
   ~SystemResolver() {}
-  std::vector<Header> m_headers; // header files used
+  // std::vector<Header> m_headers; // header files used
   static SystemResolver* m_instance;
   tagFile *m_tagfile;
   tagEntry *m_entry;

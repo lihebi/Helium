@@ -1,6 +1,8 @@
 #include "type/SystemType.hpp"
+#include <iostream>
 
 SystemType::SystemType(const std::string& name) : m_name(name) {
+  std::cout << "[SystemType::SystemType] " << m_name << std::endl;
 }
 SystemType::~SystemType() {
 }

@@ -112,6 +112,13 @@ parseExpr(pugi::xml_node node) {
   return std::vector<std::string>();
 }
 
+bool
+var_in_set(const std::string& name, std::set<std::shared_ptr<Variable> >& s) {
+  for (auto it=s.begin();it!=s.end();it++) {
+    if ((*it)->GetName() == name) return true;
+  }
+  return false;
+}
 void
 IOResolver::visit(
   pugi::xml_node node,
@@ -133,18 +140,18 @@ IOResolver::visit(
       }
       std::vector<std::string> vs = parseExpr(node); // the name used in <expr>
       for (auto it=vs.begin();it!=vs.end();it++) {
+        // check if in resolved or defined
+        if (var_in_set(*it, resolved) || var_in_set(*it, defined)) {
+          continue;
+        }
         std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
         if (vp) {
+          std::cout << "[IOResolver::visit] resolved: " << vp->GetName() << " : " << vp->GetType()->GetName() << std::endl;
           resolved.insert(vp);
         }
       }
     } else if (strcmp(node.name(), "for") == 0) {
       pugi::xml_node decl_node = node.child("init").child("decl");
-      // std::vector<Variable> vv;
-      // Variable::FromForInit(init_node, vv);
-      // for (auto it=vv.begin();it!=vv.end();it++) {
-      //   defined.insert(*it);
-      // }
       std::shared_ptr<Variable> vp = VariableFactory::FromDecl(decl_node);
       defined.insert(vp);
     }
