@@ -4,6 +4,7 @@
 #include "snippet/Snippet.hpp"
 #include <map>
 #include <set>
+#include "resolver/Ctags.hpp"
 
 class SnippetRegistry {
 public:
@@ -27,12 +28,12 @@ public:
   // this is public API.
   // add any code snippet will resolve the dependence
   // add will look up first to ensure there's no duplicate
-  Snippet* Add(const std::string& code, char type, const std::string& id);
+  Snippet* Add(const CtagsEntry& ce);
 
 
 
 private:
-  Snippet* createSnippet(const std::string& code, char type, const std::string& id);
+  Snippet* createSnippet(const CtagsEntry& ce);
   // Can not add dependence outside the class
   void addDependence(Snippet *from, Snippet *to);
   void addDependence(Snippet *from, std::set<Snippet*> to);

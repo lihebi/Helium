@@ -17,6 +17,7 @@
 
 #include "util/FileUtil.hpp"
 #include "resolver/SystemResolver.hpp"
+#include "resolver/HeaderSorter.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -62,6 +63,7 @@ int main(int argc, char* argv[]) {
     config->Load(config_file.string());
     Ctags::Instance()->Load(tagfile);
     SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
+    HeaderSorter::Instance()->Load(project_folder.string());
     std::string output_folder = config->GetOutputFolder();
     FileUtil::RemoveFolder(output_folder);
     FileUtil::CreateFolder(output_folder);

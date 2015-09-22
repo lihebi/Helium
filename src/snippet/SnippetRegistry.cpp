@@ -107,14 +107,14 @@ SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
  **************************/
 
 Snippet*
-SnippetRegistry::Add(const std::string& code, char type, const std::string& id) {
-  std::cout << "[SnippetRegistry::Add]" << std::endl;
-  Snippet *s = createSnippet(code, type, id);
+SnippetRegistry::Add(const CtagsEntry& ce) {
+
+  Snippet *s = createSnippet(ce);
   if (!s) return NULL;
   // lookup to remove duplicate
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    Snippet *s_tmp = LookUp(*it, type);
+    Snippet *s_tmp = LookUp(*it, ce.GetType());
     if (s_tmp) return s_tmp;
   }
   // insert
@@ -137,8 +137,8 @@ SnippetRegistry::resolveDependence(Snippet *s) {
       std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
       if (!vc.empty()) {
         for (auto it2=vc.begin();it2!=vc.end();it2++) {
-          std::string code = FileUtil::GetBlock(it2->GetFileName(), it2->GetLineNumber(), it2->GetType());
-          Snippet *snew = createSnippet(code, it2->GetType(), *it);
+          // std::string code = FileUtil::GetBlock(it2->GetFileName(), it2->GetLineNumber(), it2->GetType());
+          Snippet *snew = createSnippet(*it2);
           if (snew) {
             add(snew);
             addDependence(s, snew);
@@ -201,32 +201,38 @@ bool is_union(const std::string& code) {
 }
 
 Snippet*
-SnippetRegistry::createSnippet(const std::string& code, char type, const std::string &id) {
+SnippetRegistry::createSnippet(const CtagsEntry& ce) {
   // std::cout << "[SnippetRegistry::createSnippet] " << id << " " << type << std::endl;
   Snippet *s;
+  std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
   std::string trimed_code = code;
   StringUtil::trim(trimed_code);
-  switch (type) {
-    case 'f': s = new FunctionSnippet(trimed_code); return s; break;
-    case 's': s = new StructureSnippet(trimed_code); return s; break;
+  std::string filename = ce.GetFileName();
+  // only the last component of filename. Used for dependence resolving
+  filename = filename.substr(filename.rfind("/"));
+  int line_number = ce.GetLineNumber();
+  std::string id = ce.GetName();
+  switch (ce.GetType()) {
+    case 'f': s = new FunctionSnippet(trimed_code, filename, line_number); return s; break;
+    case 's': s = new StructureSnippet(trimed_code, filename, line_number); return s; break;
     case 'e':
-    case 'g': s = new EnumSnippet(trimed_code); return s; break;
-    case 'u': s = new UnionSnippet(trimed_code); return s; break;
-    case 'd': s = new DefineSnippet(trimed_code); return s; break;
-    case 'v': s = new VariableSnippet(trimed_code, id); return s; break;
+    case 'g': s = new EnumSnippet(trimed_code, filename, line_number); return s; break;
+    case 'u': s = new UnionSnippet(trimed_code, filename, line_number); return s; break;
+    case 'd': s = new DefineSnippet(trimed_code, filename, line_number); return s; break;
+    case 'v': s = new VariableSnippet(trimed_code, id, filename, line_number); return s; break;
     // do not consider the following two cases
     // case 'c': constant
     // case 'm': member fields of a structure
     case 't': {
       Snippet *s;
       if (is_structure(trimed_code)) {
-        s = new StructureSnippet(trimed_code);
+        s = new StructureSnippet(trimed_code, filename, line_number);
       } else if (is_enum(trimed_code)) {
-        s = new EnumSnippet(trimed_code);
+        s = new EnumSnippet(trimed_code, filename, line_number);
       } else if (is_union(trimed_code)) {
-        s = new UnionSnippet(trimed_code);
+        s = new UnionSnippet(trimed_code, filename, line_number);
       } else {
-        s = new TypedefSnippet(trimed_code);
+        s = new TypedefSnippet(trimed_code, filename, line_number);
       }
       return s;
       break;

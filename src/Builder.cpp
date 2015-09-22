@@ -65,6 +65,10 @@ Builder::Compile() {
   } else {
     std::cout<<"[Builder][Compile]"<<"\033[32m"<<"compile success"<<"\033[0m"<<std::endl;
   }
+  if (Config::Instance()->WillInteractCompile()) {
+    std::cout<<"> Enter to continue ..."<<std::endl;
+    getchar();
+  }
 }
 
 bool Builder::Success() {

@@ -4,8 +4,8 @@
 static std::regex name_reg("union\\s+(\\w+)");
 static std::regex alias_reg("(\\w+)\\s*;\\s*");
 
-UnionSnippet::UnionSnippet(const std::string& code)
-: m_code(code), m_type('u') {
+UnionSnippet::UnionSnippet(const std::string& code, const std::string& filename, int line_number)
+: m_code(code), m_type('u'), m_filename(filename), m_line_number(line_number) {
   std::smatch name_match;
   std::smatch alias_match;
   std::string tmp = code.substr(0, code.find('{'));

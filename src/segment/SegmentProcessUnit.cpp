@@ -4,6 +4,7 @@
 #include "resolver/Resolver.hpp"
 #include "snippet/SnippetRegistry.hpp"
 #include "resolver/Ctags.hpp"
+#include "resolver/HeaderSorter.hpp"
 
 SegmentProcessUnit::SegmentProcessUnit()
 : m_segment(std::make_shared<Segment>()),
@@ -62,6 +63,7 @@ bool SegmentProcessUnit::IncreaseContext() {
 
 void SegmentProcessUnit::resolveInput() {
   std::cout<<"[SegmentProcessUnit::resolveInput]"<<std::endl;
+  // TODO input variable type may be structure. These structure should appear in support.h
   // std::set<Variable> vv;
   m_inv.clear();
   m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
@@ -93,13 +95,17 @@ void SegmentProcessUnit::resolveSnippets() {
 bool
 isDirectDep(Snippet* s1, Snippet* s2) {
   std::set<Snippet*> dep = SnippetRegistry::Instance()->GetDependence(s2);
-  if (dep.find(s1) == dep.end()) return false;
-  else return true;
+  if (dep.find(s1) == dep.end()) return true;
+  else return false;
 }
 
 // return true if have something changed
 bool
 sortOneRound(std::vector<Snippet*> &sorted) {
+  std::cout << "sortOneRound" << std::endl;
+  for (auto it=sorted.begin();it!=sorted.end();it++) {
+    std::cout << "\t" << (*it)->GetName() << std::endl;
+  }
   bool changed = false;
   for (int i=0;i<sorted.size();i++) {
     for (int j=i+1;j<sorted.size();j++) {
@@ -121,6 +127,53 @@ sortSnippets(std::set<Snippet*> ss) {
     sorted.push_back(*it);
   }
   while (sortOneRound(sorted)) ;
+  return sorted;
+}
+
+bool
+compare(const Snippet* s1, const Snippet* s2) {
+  return (s1->GetLineNumber() < s2->GetLineNumber());
+}
+
+// use HeaderSorter
+std::vector<Snippet*>
+sortSnippets2(std::set<Snippet*> all) {
+  // std::cout << "sortSnippets2" << std::endl;
+  std::vector<Snippet*> sorted;
+  // prepare containers
+  // std::cout << "prepare containers" << std::endl;
+  std::set<std::string> all_files;
+  std::map<std::string, std::vector<Snippet*> > file_to_snippet_map;
+  for (auto it=all.begin();it!=all.end();it++) {
+    std::string filename = (*it)->GetFilename();
+    all_files.insert(filename);
+    if (file_to_snippet_map.find(filename) == file_to_snippet_map.end()) {
+      file_to_snippet_map[filename] = std::vector<Snippet*>();
+    }
+    file_to_snippet_map[filename].push_back(*it);
+  }
+  // sort the file_to_snippet_map
+  for (auto it=file_to_snippet_map.begin();it!=file_to_snippet_map.end();it++) {
+    std::sort(it->second.begin(), it->second.end(), compare);
+  }
+
+  // to make the c files always at the bottom
+  std::set<std::string> all_h_files;
+  std::set<std::string> all_c_files;
+  for (auto it=all_files.begin();it!=all_files.end();it++) {
+    if ((*it).back() == 'c') {all_c_files.insert(*it);}
+    else if ((*it).back() == 'h') {all_h_files.insert(*it);}
+    else {std::cout << "[sortSnippets2] Warning: not c or h file" << std::endl;}
+  }
+
+  // sort file names
+  std::vector<std::string> sorted_files = HeaderSorter::Instance()->Sort(all_h_files);
+  std::copy(all_c_files.begin(), all_c_files.end(), std::back_inserter(sorted_files));
+  for (auto it=sorted_files.begin();it!=sorted_files.end();it++) {
+    for (auto it2=file_to_snippet_map[*it].begin();it2!=file_to_snippet_map[*it].end();it2++) {
+      sorted.push_back(*it2);
+    }
+  }
   return sorted;
 }
 
@@ -170,6 +223,31 @@ SegmentProcessUnit::GetMain() {
 }
 
 std::string
+get_headers() {
+  std::vector<std::string> headers{
+    "stdio.h",
+    "stdlib.h",
+    "stdint.h",
+    "sys/types.h",
+    "assert.h",
+    "pthread.h",
+    "string.h",
+    "signal.h",
+    "errno.h",
+    "unistd.h",
+    "fcntl.h",
+    "ctype.h",
+    "sys/wait.h",
+    "time.h"
+  };
+  std::string code;
+  for (int i=0;i<headers.size();i++) {
+    code += "#include \"" + headers[i] + "\"\n";
+  }
+  return code;
+}
+
+std::string
 SegmentProcessUnit::GetSupport() {
   std::cout << "[SegmentProcessUnit::GetSupport]" << std::endl;
   // prepare the containers
@@ -177,11 +255,16 @@ SegmentProcessUnit::GetSupport() {
   all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
   std::cout << "[SegmentProcessUnit::GetSupport] all snippets: " << all_snippets.size() << std::endl;
   // sort the snippets
-  std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
+  // FIXME sort snippets by header dependence
+  std::vector<Snippet*> sorted_all_snippets = sortSnippets2(all_snippets);
+  std::cout << "after sort snippet: " << sorted_all_snippets.size() << std::endl;
   // return the snippet code
   std::string code = "";
+  code += get_headers();
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    code += (*it)->GetCode() + '\n';
+    code +=
+    "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
+    + "\n" + (*it)->GetCode() + '\n';
   }
   return code;
 }

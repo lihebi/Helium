@@ -37,7 +37,7 @@
     <show_compile_error>true</show_compile_error>
   </debug>
   <interact>
-    <compile>false</compile>
+    <compile>true</compile>
     <compile_error>true</compile_error>
   </interact>
 </helium>

@@ -9,15 +9,18 @@
 // we need: 1. file path 2. line number 3. type
 class CtagsEntry {
 public:
-  CtagsEntry(const std::string& file, int line, char type)
-  : m_file(file), m_line(line), m_type(type), m_valid(true) {}
-  CtagsEntry(const char* file, int line, char type)
-  : m_file(file), m_line(line), m_type(type), m_valid(true) {}
+  CtagsEntry(const std::string& name, const std::string& file, int line, char type)
+  : m_name(name), m_file(file), m_line(line), m_type(type), m_valid(true) {}
+  CtagsEntry(const std::string& name, const char* file, int line, char type)
+  : m_name(name), m_file(file), m_line(line), m_type(type), m_valid(true) {}
   CtagsEntry(bool valid) : m_valid(valid) {}
   // construct by pattern
-  CtagsEntry(const char* file, const char* pattern, char type)
-  : m_file(file), m_pattern(pattern), m_type(type), m_valid(true) {}
+  CtagsEntry(const std::string& name, const char* file, const char* pattern, char type)
+  : m_name(name), m_file(file), m_pattern(pattern), m_type(type), m_valid(true) {}
   ~CtagsEntry() {}
+  std::string GetName() const {
+    return m_name;
+  }
   std::string GetFileName() const {
     return m_file;
   }
@@ -34,6 +37,7 @@ public:
     return m_valid;
   }
 private:
+  std::string m_name;
   std::string m_file;
   std::string m_pattern;
   int m_line;

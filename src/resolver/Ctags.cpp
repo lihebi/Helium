@@ -21,7 +21,7 @@ Ctags::ParseSimple(const std::string& name) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind) {
-      return CtagsEntry(m_entry->file, m_entry->address.lineNumber, *(m_entry->kind));
+      return CtagsEntry(name, m_entry->file, m_entry->address.lineNumber, *(m_entry->kind));
     }
     result = tagsFindNext(m_tagfile, m_entry);
   }
@@ -34,7 +34,7 @@ Ctags::Parse(const std::string& name) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind) {
-      vc.push_back(CtagsEntry(m_entry->file, m_entry->address.lineNumber, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.lineNumber, *(m_entry->kind)));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);
@@ -48,7 +48,7 @@ Ctags::Parse(const std::string& name, const std::string& type) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind && type.find(*(m_entry->kind)) != -1) {
-      vc.push_back(CtagsEntry(m_entry->file, m_entry->address.lineNumber, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.lineNumber, *(m_entry->kind)));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);
@@ -61,7 +61,7 @@ Ctags::ResolveSimple(const std::string& name) {
   CtagsEntry ce = ParseSimple(name);
   if (ce) {
     std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
-    Snippet *snippet = SnippetRegistry::Instance()->Add(code, ce.GetType(), name);
+    Snippet *snippet = SnippetRegistry::Instance()->Add(ce);
     return snippet;
   }
   return NULL;
@@ -77,7 +77,7 @@ Ctags::Resolve(const std::string& name) {
   std::set<Snippet*> vsp;
   for (auto it=vc.begin();it!=vc.end();it++) {
     std::string code = FileUtil::GetBlock(it->GetFileName(), it->GetLineNumber(), it->GetType());
-    Snippet *snippet = SnippetRegistry::Instance()->Add(code, it->GetType(), name);
+    Snippet *snippet = SnippetRegistry::Instance()->Add(*it);
     if (snippet) {
       vsp.insert(snippet);
     }
@@ -90,7 +90,7 @@ Ctags::Resolve(const std::string& name, const std::string& type) {
   std::set<Snippet*> vsp;
   for (auto it=vc.begin();it!=vc.end();it++) {
     std::string code = FileUtil::GetBlock(it->GetFileName(), it->GetLineNumber(), it->GetType());
-    Snippet *snippet = SnippetRegistry::Instance()->Add(code, it->GetType(), name);
+    Snippet *snippet = SnippetRegistry::Instance()->Add(*it);
     vsp.insert(snippet);
   }
   return vsp;

@@ -54,7 +54,7 @@ SystemResolver::Parse(const std::string& name) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind) {
-      vc.push_back(CtagsEntry(m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);
@@ -69,7 +69,7 @@ SystemResolver::Parse(const std::string& name, const std::string& type) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind && type.find(*(m_entry->kind)) != -1) {
-      vc.push_back(CtagsEntry(m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);

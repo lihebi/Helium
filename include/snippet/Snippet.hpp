@@ -36,6 +36,8 @@ public:
   virtual char GetType() = 0;
   virtual std::string GetCode() = 0;
   virtual std::set<std::string> GetKeywords() = 0;
+  virtual std::string GetFilename() const = 0;
+  virtual int GetLineNumber() const = 0;
 private:
 };
 
