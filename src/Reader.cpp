@@ -9,7 +9,7 @@ Reader::Reader(const std::string &filename)
 : m_filename(filename) {
   std::cout<<"[Reader][Constructor]"<<filename<<std::endl;
   m_doc = std::make_shared<pugi::xml_document>();
-  SrcmlUtil::FileToXML(m_filename, *m_doc);
+  SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
   std::cout<<"[Reader] Total segment in this file: "<<m_seg_units.size()<<std::endl;
 }

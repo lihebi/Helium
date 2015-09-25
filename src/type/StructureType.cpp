@@ -59,7 +59,7 @@ StructureType::parseFields() {
   std::cout << "[StructureType::parseFields]" << std::endl;
   pugi::xml_document doc;
   std::cout << "/* message */" << std::endl;
-  SrcmlUtil::StringToXML(m_snippet->GetCode(), doc);
+  SrcmlUtil::String2XML(m_snippet->GetCode(), doc);
   std::cout << "/* message */" << std::endl;
   pugi::xml_node struct_node = doc.first_element_by_path("//struct");
   // pugi::xml_node name_node = struct_node.child("name");

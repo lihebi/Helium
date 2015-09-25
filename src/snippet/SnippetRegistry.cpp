@@ -137,6 +137,7 @@ SnippetRegistry::resolveDependence(Snippet *s) {
   std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
   // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
+    // FIXME if it is enum member, this can never hit ...
     if (!LookUp(*it).empty()) {
       // already resolved. Just add dependence
       addDependence(s, LookUp(*it));
@@ -145,7 +146,6 @@ SnippetRegistry::resolveDependence(Snippet *s) {
       std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
       if (!vc.empty()) {
         for (auto it2=vc.begin();it2!=vc.end();it2++) {
-          // std::string code = FileUtil::GetBlock(it2->GetFileName(), it2->GetLineNumber(), it2->GetType());
           Snippet *snew = createSnippet(*it2);
           if (snew) {
             add(snew);
@@ -168,7 +168,7 @@ SnippetRegistry::add(Snippet *s) {
   m_snippets.insert(s);
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    std::cout << *it << " ";
+    std::cout << *it << ", ";
     if (m_id_map.find(*it) == m_id_map.end()) {
       m_id_map[*it] = std::set<Snippet*>();
     }
@@ -210,7 +210,7 @@ bool is_union(const std::string& code) {
 
 Snippet*
 SnippetRegistry::createSnippet(const CtagsEntry& ce) {
-  // std::cout << "[SnippetRegistry::createSnippet] " << id << " " << type << std::endl;
+  std::cout << "[SnippetRegistry::createSnippet] " << ce.GetName() << " " << ce.GetType() << std::endl;
   Snippet *s;
   std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
   std::string trimed_code = code;

@@ -49,7 +49,7 @@ void Splitter::Run() {
   for (auto it=m_files.begin();it!=m_files.end();it++) {
     std::cout<<"[Splitter][Run][Debug]"<<*it<<std::endl;
     pugi::xml_document doc;
-    SrcmlUtil::FileToXML(*it, doc);
+    SrcmlUtil::File2XML(*it, doc);
     pugi::xml_node root = doc.document_element();
     pugi::xpath_node_set decl_stmts = root.select_nodes("//decl_stmt");
     int change_count = 0;

@@ -18,7 +18,7 @@ void CommentRemover::Run() {
   for (auto it=m_files.begin();it!=m_files.end();it++) {
     std::cout<<"[CommentRemover][Run][Debug]"<<*it<<std::endl;
     pugi::xml_document doc;
-    SrcmlUtil::FileToXML(*it, doc);
+    SrcmlUtil::File2XML(*it, doc);
     pugi::xml_node root = doc.document_element();
     pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
     for (int i=0;i<comment_nodes.size();i++) {
