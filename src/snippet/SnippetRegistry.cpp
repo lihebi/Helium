@@ -114,8 +114,6 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
   // lookup to remove duplicate
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    // std::cout << *it << std::endl;
-    // std::cout << ce.GetType() << std::endl;
     // Snippet *s_tmp = LookUp(*it, ce.GetType());
     // the ce.GetType() maybe 't', but actually the snippet is a structure.
     // so use the global one?
@@ -123,7 +121,12 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
     if (!snippets.empty()) {
       return *snippets.begin();
     }
-    // if (s_tmp) return s_tmp;
+    for (auto jt=snippets.begin();jt!=snippets.end();jt++) {
+      // consider duplicate only if the snippet type also matches
+      if ((*jt)->GetType() == s->GetType()) {
+        return (*jt);
+      }
+    }
   }
   // insert
   add(s);
@@ -137,12 +140,12 @@ SnippetRegistry::resolveDependence(Snippet *s) {
   std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
   // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
-    // FIXME if it is enum member, this can never hit ...
     if (!LookUp(*it).empty()) {
       // already resolved. Just add dependence
       addDependence(s, LookUp(*it));
     } else {
       // resolve by ctags
+      // FIXME These are duplicate code. And possibly wrong because miss many checks
       std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
       if (!vc.empty()) {
         for (auto it2=vc.begin();it2!=vc.end();it2++) {
@@ -192,9 +195,9 @@ SnippetRegistry::addDependence(Snippet *from, std::set<Snippet*> to) {
   }
 }
 
-static std::regex structure_reg("^typedef\\s+struct(\\s+\\w+)?\\s*{");
-static std::regex enum_reg("^typedef\\s+enum(\\s+\\w+)?\\s*{");
-static std::regex union_reg("^typedef\\s+union(\\s+\\w+)?\\s*{");
+static std::regex structure_reg("^typedef\\s+struct(\\s+\\w+)?\\s*\\{");
+static std::regex enum_reg("^typedef\\s+enum(\\s+\\w+)?\\s*\\{");
+static std::regex union_reg("^typedef\\s+union(\\s+\\w+)?\\s*\\{");
 bool is_structure(const std::string& code) {
   if (std::regex_search(code, structure_reg)) return true;
   else return false;
