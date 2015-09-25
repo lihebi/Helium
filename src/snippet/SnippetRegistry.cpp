@@ -108,14 +108,22 @@ SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
 
 Snippet*
 SnippetRegistry::Add(const CtagsEntry& ce) {
-
+  std::cout << "[SnippetRegistry::Add]" << std::endl;
   Snippet *s = createSnippet(ce);
   if (!s) return NULL;
   // lookup to remove duplicate
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    Snippet *s_tmp = LookUp(*it, ce.GetType());
-    if (s_tmp) return s_tmp;
+    // std::cout << *it << std::endl;
+    // std::cout << ce.GetType() << std::endl;
+    // Snippet *s_tmp = LookUp(*it, ce.GetType());
+    // the ce.GetType() maybe 't', but actually the snippet is a structure.
+    // so use the global one?
+    std::set<Snippet*> snippets = LookUp(*it);
+    if (!snippets.empty()) {
+      return *snippets.begin();
+    }
+    // if (s_tmp) return s_tmp;
   }
   // insert
   add(s);

@@ -72,6 +72,7 @@ Ctags::ResolveSimple(const std::string& name) {
 std::set<Snippet*>
 Ctags::Resolve(const std::string& name) {
   // std::cout << "[Ctags::Resolve] " << name << std::endl;
+  // TODO look up first
   std::vector<CtagsEntry> vc = Parse(name);
   // std::cout << "[Ctags::Resolve] parsed size: " << vc.size() << std::endl;
   std::set<Snippet*> vsp;
