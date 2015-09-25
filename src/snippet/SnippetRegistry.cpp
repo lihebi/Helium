@@ -223,7 +223,7 @@ SnippetRegistry::createSnippet(const CtagsEntry& ce) {
   int line_number = ce.GetLineNumber();
   std::string id = ce.GetName();
   switch (ce.GetType()) {
-    case 'f': s = new FunctionSnippet(trimed_code, filename, line_number); return s; break;
+    case 'f': s = new FunctionSnippet(trimed_code, id, filename, line_number); return s; break;
     case 's': s = new StructureSnippet(trimed_code, filename, line_number); return s; break;
     case 'e':
     case 'g': s = new EnumSnippet(trimed_code, filename, line_number); return s; break;
