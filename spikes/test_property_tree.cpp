@@ -15,3 +15,5 @@ struct config
     void load(const std::string &filename);
     void save(const std::string &filename);
 };
+
+int main() {}
