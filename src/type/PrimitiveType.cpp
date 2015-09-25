@@ -40,14 +40,38 @@ PrimitiveType::getIntInputCode(const std::string& var) const {
 }
 
 std::string
+get_allocate_code(const std::string& type_name, const std::string& var_name, int pointer_level) {
+  std::string code;
+  std::string var_tmp = var_name + "_tmp";
+  code += type_name + "* " + var_tmp + " = (" + type_name + "*)malloc(sizeof(" + type_name + "));\n";
+  code += type_name + std::string(pointer_level, '*')+ " " + var_name
+  + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
+  return code;
+}
+
+std::string
+PrimitiveType::getCharInputCode(const std::string& var) const {
+  std::string code;
+  std::string assign;
+  if (m_pointer_level > 0) {
+    code += get_allocate_code("char", var, m_pointer_level);
+    assign = std::string(m_pointer_level-1, '*');
+  } else {
+    code += "char "+var+";\n";
+    assign = "&";
+  }
+  code += "scanf(\"%c\", "+assign+var+");\n";
+  return code;
+}
+
+std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
   std::string s;
   if (m_type) {
     if (m_type & INT_MASK) {
       return getIntInputCode(var);
     } else if (m_type & CHAR_MASK) {
-      s += "char "+var+";\n";
-      s += "scanf(\"%c\", &"+var+");\n";
+      return getCharInputCode(var);
     } else if (m_type & FLOAT_MASK) {
       s += "float " + var + ";\n";
       s += "scanf(\"%f\", &"+var+");\n";

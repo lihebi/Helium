@@ -22,6 +22,7 @@ public:
 private:
 
   std::string getIntInputCode(const std::string& var) const;
+  std::string getCharInputCode(const std::string& var) const;
 
   int m_dimension;
   int m_pointer_level;

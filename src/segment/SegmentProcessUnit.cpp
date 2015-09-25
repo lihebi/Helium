@@ -238,7 +238,26 @@ get_headers() {
     "fcntl.h",
     "ctype.h",
     "sys/wait.h",
-    "time.h"
+    "time.h",
+    // linux
+    "errno.h",
+    // network
+    "sys/socket.h",
+    "sys/un.h",
+    "netinet/in.h",
+    "netinet/tcp.h",
+    "arpa/inet.h",
+    // unfamiliar
+    "sys/stat.h",
+    "sys/uio.h",
+    "sys/param.h",
+    "sys/mman.h",
+    "netdb.h",
+    "sys/stat.h",
+    "sys/param.h",
+    "sys/resource.h",
+    "sys/uio.h",
+    "stddef.h"
   };
   std::string code;
   for (int i=0;i<headers.size();i++) {

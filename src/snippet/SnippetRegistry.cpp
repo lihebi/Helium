@@ -209,7 +209,9 @@ SnippetRegistry::createSnippet(const CtagsEntry& ce) {
   StringUtil::trim(trimed_code);
   std::string filename = ce.GetFileName();
   // only the last component of filename. Used for dependence resolving
-  filename = filename.substr(filename.rfind("/"));
+  if (filename.find("/") != -1) {
+    filename = filename.substr(filename.rfind("/")+1);
+  }
   int line_number = ce.GetLineNumber();
   std::string id = ce.GetName();
   switch (ce.GetType()) {
