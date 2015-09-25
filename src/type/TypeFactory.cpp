@@ -97,7 +97,9 @@ TypeFactory::CreateType() {
       return TypeFactory(new_name).CreateType();
     }
   } else {
-    std::cout << "\033[33m [Warning] Not supported type: " << m_identifier << "\033[0m" << std::endl;
+    std::cout << "\033[33m[TypeFactory::CreateType][Warning] Not supported type: "
+    << m_identifier << "\033[0m"
+    << " in: " << m_name << std::endl;
     return NULL;
   }
   type->SetPointerLevel(m_pointer_level);

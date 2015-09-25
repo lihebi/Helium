@@ -216,7 +216,9 @@ SegmentProcessUnit::GetMain() {
   std::string s;
   s += getHeader();
   s += "int main() {\n";
+  s += "// Input\n";
   s += getInputCode();
+  s += "// Context\n";
   s += m_context->GetText();
   s += "\n}";
   return s;

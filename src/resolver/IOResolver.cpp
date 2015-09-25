@@ -128,7 +128,7 @@ IOResolver::visit(
   if (node.type() == pugi::node_element) {
     if (strcmp(node.name(), "decl_stmt") == 0) {
       std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
-      defined.insert(vp);
+      if (vp) defined.insert(vp);
     } else if (strcmp(node.name(), "expr") == 0) {
       // in #ifdef, there may be `#elif defined(__sun)`
       // TODO even if __sun is identified as undefined,
@@ -153,7 +153,7 @@ IOResolver::visit(
     } else if (strcmp(node.name(), "for") == 0) {
       pugi::xml_node decl_node = node.child("init").child("decl");
       std::shared_ptr<Variable> vp = VariableFactory::FromDecl(decl_node);
-      defined.insert(vp);
+      if (vp) defined.insert(vp);
     }
   }
 }
