@@ -242,7 +242,7 @@ SnippetRegistry::createSnippet(const CtagsEntry& ce) {
       } else if (is_union(trimed_code)) {
         s = new UnionSnippet(trimed_code, filename, line_number);
       } else {
-        s = new TypedefSnippet(trimed_code, filename, line_number);
+        s = new TypedefSnippet(trimed_code, id, filename, line_number);
       }
       return s;
       break;
