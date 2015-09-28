@@ -5,7 +5,7 @@
 
 class DefineSnippet : public Snippet {
 public:
-  DefineSnippet(const std::string& code, const std::string& filename, int line_number);
+  DefineSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number);
   virtual ~DefineSnippet() {}
   virtual std::string GetName() {return m_name;}
   virtual char GetType() {return m_type;}

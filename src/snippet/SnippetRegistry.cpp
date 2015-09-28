@@ -228,7 +228,7 @@ SnippetRegistry::createSnippet(const CtagsEntry& ce) {
     case 'e':
     case 'g': s = new EnumSnippet(trimed_code, filename, line_number); return s; break;
     case 'u': s = new UnionSnippet(trimed_code, filename, line_number); return s; break;
-    case 'd': s = new DefineSnippet(trimed_code, filename, line_number); return s; break;
+    case 'd': s = new DefineSnippet(trimed_code, id, filename, line_number); return s; break;
     case 'v': s = new VariableSnippet(trimed_code, id, filename, line_number); return s; break;
     // do not consider the following two cases
     // case 'c': constant
