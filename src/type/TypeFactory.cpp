@@ -24,6 +24,7 @@ char_regex    ("\\bchar\\b"),
 float_regex   ("\\bfloat\\b"),
 double_regex  ("\\bdouble\\b"),
 bool_regex    ("\\bbool\\b"),
+void_regex    ("\\bvoid\\b"),
 // keyword
 struct_regex  ("\\bstruct\\b"),
 enum_regex    ("\\benum\\b");
@@ -43,6 +44,7 @@ uint8_t CHAR_MASK = 0x01 << 1;
 uint8_t FLOAT_MASK = 0x01 << 2;
 uint8_t DOUBLE_MASK = 0x01 << 3;
 uint8_t BOOL_MASK = 0x01 << 4;
+uint8_t VOID_MASK = 0x01 << 5;
 // keyword
 uint8_t STRUCT_MASK = 0x01;
 uint8_t ENUM_MASK = 0x01 << 1;
@@ -157,6 +159,7 @@ TypeFactory::decomposite(std::string name) {
   if (search_and_remove(name, float_regex)) m_primitive |= FLOAT_MASK;
   if (search_and_remove(name, double_regex)) m_primitive |= DOUBLE_MASK;
   if (search_and_remove(name, bool_regex)) m_primitive |= BOOL_MASK;
+  if (search_and_remove(name, void_regex)) m_primitive |= VOID_MASK;
   // other
   if (search_and_remove(name, struct_regex)) m_keyword |= STRUCT_MASK;
   if (search_and_remove(name, enum_regex)) m_keyword |= ENUM_MASK;

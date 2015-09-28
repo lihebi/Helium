@@ -19,6 +19,7 @@ PrimitiveType::PrimitiveType(uint8_t length, uint8_t type)
   if (type & FLOAT_MASK) m_name += "float ";
   if (type & DOUBLE_MASK) m_name += "double ";
   if (type & BOOL_MASK) m_name += "bool ";
+  if (type & VOID_MASK) m_name += "void";
   m_name.pop_back();
   // std::cout << "[PrimitiveType::PrimitiveType] " << m_name << std::endl;
 }
@@ -65,6 +66,18 @@ PrimitiveType::getCharInputCode(const std::string& var) const {
 }
 
 std::string
+PrimitiveType::getVoidInputCode(const std::string& var) const {
+  if (m_pointer_level > 0) {
+    // allocate
+    return "void " + std::string(m_pointer_level, '*') + " " + var+";\n";
+  } else {
+    // for void type, it is always ...
+    std::cout << "[PrimitiveType::getVoidInputCode] Critical Error, void xxx; exiting .." << std::endl;
+    exit(1);
+  }
+}
+
+std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
   std::string s;
   if (m_type) {
@@ -81,6 +94,8 @@ PrimitiveType::GetInputCode(const std::string& var) const {
     } else if (m_type & BOOL_MASK) {
       s += "bool " + var + ";\n";
       s += "scanf(\"%d\", &"+var+");\n";
+    } else if (m_type & VOID_MASK) {
+      return getVoidInputCode(var);
     }
   } else {
     // int

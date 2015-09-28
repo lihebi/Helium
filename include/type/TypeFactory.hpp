@@ -23,6 +23,7 @@ extern uint8_t CHAR_MASK;
 extern uint8_t FLOAT_MASK;
 extern uint8_t DOUBLE_MASK;
 extern uint8_t BOOL_MASK;
+extern uint8_t VOID_MASK;
 // keyword
 extern uint8_t STRUCT_MASK;
 extern uint8_t ENUM_MASK;
