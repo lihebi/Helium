@@ -16,6 +16,12 @@ public:
   virtual void SetDimension(int d) {}
   virtual void SetPointerLevel(int l) {}
 
+  static std::string GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level);
+  static std::string GetArrayCode(const std::string& type_name, const std::string& var_name, int dimension);
+
+
+
+
 private:
 };
 

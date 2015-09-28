@@ -80,7 +80,9 @@ void SegmentProcessUnit::resolveOutput() {
 void SegmentProcessUnit::resolveSnippets() {
   std::cout<<"[SegmentProcessUnit][resolveSnippets]"<<std::endl;
   m_snippets.clear();
+  // the initial code to resolve is: context + input variable(input code)
   std::string code = m_context->GetText();
+  code += getInputCode();
   std::set<std::string> ss = Resolver::ExtractToResolve(code);
   // std::cout << "size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {

@@ -23,18 +23,17 @@ StructureType::~StructureType() {
 std::string
 StructureType::GetInputCode(const std::string& var) const {
   std::string code;
-  if (m_pointer_level>0) {
-    // allocate memory
-    // int **a;
-    // int *a_tmp1 = (int*)malloc(sizeof(int));
-    // a = &a_tmp1;
-    std::string var_tmp = var + "_tmp";
-    code += m_name + "* " + var_tmp + " = (" + m_name + "*)malloc(sizeof(" + m_name + "));\n";
-    code += m_name + std::string(m_pointer_level, '*')+ " " + var
-    + " = " + std::string(m_pointer_level-1, '&') + var_tmp + ";\n";
-  }
   if (m_dimension>0) {
-    // TODO array
+    return Type::GetArrayCode(m_name, var, m_dimension);
+  }
+  if (m_pointer_level>0) {
+    // std::string var_tmp = var + "_tmp";
+    // code += m_name + "* " + var_tmp + " = (" + m_name + "*)malloc(sizeof(" + m_name + "));\n";
+    // code += m_name + std::string(m_pointer_level, '*')+ " " + var
+    // + " = " + std::string(m_pointer_level-1, '&') + var_tmp + ";\n";
+    return Type::GetAllocateCode(m_name, var, m_pointer_level);
+  } else {
+    code += m_name + " " + var + ";\n";
   }
   // fields init
   for (auto it=m_fields.begin();it!=m_fields.end();it++) {

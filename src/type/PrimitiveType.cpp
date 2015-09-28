@@ -26,36 +26,47 @@ PrimitiveType::PrimitiveType(uint8_t length, uint8_t type)
 
 PrimitiveType::~PrimitiveType() {}
 
-std::string
-PrimitiveType::getIntInputCode(const std::string& var) const {
-  if (m_length & UNSIGNED_MASK) {
-    // unsigned int
-  } else if (m_length & SHORT_MASK) {
-    // short
-  } else if (m_length & LONG_MASK) {
-    // long
-  }
-  std::string s = "int "+var+";\n";
-  s += "scanf(\"%d\", &"+var+");\n";
-  return s;
-}
+
 
 std::string
-get_allocate_code(const std::string& type_name, const std::string& var_name, int pointer_level) {
+PrimitiveType::getIntInputCode(const std::string& var) const {
   std::string code;
-  std::string var_tmp = var_name + "_tmp";
-  code += type_name + "* " + var_tmp + " = (" + type_name + "*)malloc(sizeof(" + type_name + "));\n";
-  code += type_name + std::string(pointer_level, '*')+ " " + var_name
-  + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
+  if (m_dimension>0) {
+    return Type::GetArrayCode("int", var, m_dimension);
+  }
+  std::string assign;
+  if (m_pointer_level > 0) {
+    code += Type::GetAllocateCode("int", var, m_pointer_level);
+    assign = std::string(m_pointer_level-1, '*');
+  } else {
+    code += "int " + var + ";\n";
+    assign = "&";
+  }
+  code += "scanf(\"%d\", " + assign +var+");\n";
+  // TODO
+  // if (m_length & UNSIGNED_MASK) {
+  //   // unsigned int
+  // } else if (m_length & SHORT_MASK) {
+  //   // short
+  // } else if (m_length & LONG_MASK) {
+  //   // long
+  // }
+
   return code;
 }
+
 
 std::string
 PrimitiveType::getCharInputCode(const std::string& var) const {
   std::string code;
+  // TODO array of pointers?
+  if (m_dimension > 0) {
+    return Type::GetArrayCode("char", var, m_dimension);
+  }
+  // pointer or not
   std::string assign;
   if (m_pointer_level > 0) {
-    code += get_allocate_code("char", var, m_pointer_level);
+    code += Type::GetAllocateCode("char", var, m_pointer_level);
     assign = std::string(m_pointer_level-1, '*');
   } else {
     code += "char "+var+";\n";
