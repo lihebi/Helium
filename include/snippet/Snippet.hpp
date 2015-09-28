@@ -38,6 +38,7 @@ public:
   virtual std::set<std::string> GetKeywords() = 0;
   virtual std::string GetFilename() const = 0;
   virtual int GetLineNumber() const = 0;
+  virtual std::string GetDecl() {return "";}
 private:
 };
 

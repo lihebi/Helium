@@ -13,6 +13,7 @@ public:
   virtual std::set<std::string> GetKeywords() {return m_keywords;}
   virtual std::string GetFilename() const {return m_filename;}
   virtual int GetLineNumber() const {return m_line_number;}
+  virtual std::string GetDecl();
 private:
   std::string m_code;
   std::string m_name;

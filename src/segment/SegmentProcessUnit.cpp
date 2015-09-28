@@ -259,13 +259,31 @@ get_headers() {
     "sys/param.h",
     "sys/resource.h",
     "sys/uio.h",
-    "stddef.h"
+    "stddef.h",
+    // FIXME 3rd party. Need to install first!!!
+    "event.h"
   };
   std::string code;
   for (int i=0;i<headers.size();i++) {
     code += "#include \"" + headers[i] + "\"\n";
   }
   return code;
+}
+
+std::string
+get_head() {
+  return std::string()
+  + "#ifndef __SUPPORT_H__\n"
+  + "#define __SUPPORT_H__\n"
+  + "typedef int bool;\n"
+  + "#define true 1\n"
+  + "#define false 0\n";
+}
+
+std::string
+get_foot() {
+  return std::string()
+  + "\n#endif\n";
 }
 
 std::string
@@ -281,12 +299,30 @@ SegmentProcessUnit::GetSupport() {
   std::cout << "after sort snippet: " << sorted_all_snippets.size() << std::endl;
   // return the snippet code
   std::string code = "";
+  // head
+  code += get_head();
   code += get_headers();
+  // snippets
+  std::string code_func_decl;
+  std::string code_func;
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    code +=
-    "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
-    + "\n" + (*it)->GetCode() + '\n';
+    if ((*it)->GetType() == 'f') {
+      // functions
+      code_func_decl += (*it)->GetDecl();
+      code_func += (*it)->GetCode();
+    } else {
+      // all other codes
+      code +=
+      "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
+      + "\n" + (*it)->GetCode() + '\n';
+    }
   }
+  code += "\n// function declarations\n";
+  code += code_func_decl;
+  code += "\n// functions\n";
+  code += code_func;
+  // foot
+  code += get_foot();
   return code;
 }
 
@@ -295,7 +331,8 @@ SegmentProcessUnit::GetMakefile() {
   std::string makefile;
   makefile = makefile + "a.out: generate.c\n"
   // makefile += "\tcc -std=c99 generate.c " + compile_option +"\n"
-  + "\tcc -std=c99 generate.c " + "\n"
+  // FIXME The -levent is 3rd party! Need to install first!
+  + "\tcc -std=c99 generate.c " + "-levent" + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;

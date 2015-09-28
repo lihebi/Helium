@@ -14,3 +14,10 @@ FunctionSnippet::FunctionSnippet(const std::string& code, const std::string& id,
   m_name = id;
   m_keywords.insert(m_name);
 }
+
+std::string
+FunctionSnippet::GetDecl() {
+  std::string decl = m_code.substr(0, m_code.find('{')) + ";";
+  if (std::count(decl.begin(), decl.end(), ';') > 1) return "";
+  else return decl;
+}

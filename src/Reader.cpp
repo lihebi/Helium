@@ -4,6 +4,7 @@
 #include "Tester.hpp"
 #include "Analyzer.hpp"
 #include "util/SrcmlUtil.hpp"
+#include "Logger.hpp"
 
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
@@ -19,6 +20,7 @@ void
 Reader::Read() {
   std::cout<<"[Reader][Read]"<<std::endl;
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
+    Logger::Instance()->Log("a new segment");
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
     (*it)->Process();
