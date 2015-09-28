@@ -118,9 +118,6 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
     // the ce.GetType() maybe 't', but actually the snippet is a structure.
     // so use the global one?
     std::set<Snippet*> snippets = LookUp(*it);
-    if (!snippets.empty()) {
-      return *snippets.begin();
-    }
     for (auto jt=snippets.begin();jt!=snippets.end();jt++) {
       // consider duplicate only if the snippet type also matches
       if ((*jt)->GetType() == s->GetType()) {

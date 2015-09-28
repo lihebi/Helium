@@ -294,7 +294,6 @@ SegmentProcessUnit::GetSupport() {
   all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
   std::cout << "[SegmentProcessUnit::GetSupport] all snippets: " << all_snippets.size() << std::endl;
   // sort the snippets
-  // FIXME sort snippets by header dependence
   std::vector<Snippet*> sorted_all_snippets = sortSnippets2(all_snippets);
   std::cout << "after sort snippet: " << sorted_all_snippets.size() << std::endl;
   // return the snippet code
