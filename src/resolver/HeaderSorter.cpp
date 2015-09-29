@@ -1,5 +1,6 @@
 #include "resolver/HeaderSorter.hpp"
 #include "util/FileUtil.hpp"
+#include "Logger.hpp"
 #include <fstream>
 #include <regex>
 #include <iostream>
@@ -19,7 +20,7 @@ HeaderSorter::Load(const std::string& folder) {
     std::ifstream is;
     std::string filename = *it;
     // get only the last component(i.e. filename) in the file path
-    filename = filename.substr(filename.rfind("/"));
+    filename = filename.substr(filename.rfind("/")+1);
     is.open(*it);
     if (is.is_open()) {
       std::string line;
@@ -30,7 +31,7 @@ HeaderSorter::Load(const std::string& folder) {
           std::string new_file = match[1];
           // the filename part of including
           if (new_file.find("/") != -1) {
-            new_file = new_file.substr(new_file.rfind("/"));
+            new_file = new_file.substr(new_file.rfind("/")+1);
           }
           // add the dependence
           // FIXME if the include is in the middle of the header file,
@@ -45,7 +46,7 @@ HeaderSorter::Load(const std::string& folder) {
 
 void
 HeaderSorter::addDependence(const std::string& lhs, const std::string& rhs) {
-  if (m_dependence_map.find(lhs) != m_dependence_map.end()) {
+  if (m_dependence_map.find(lhs) == m_dependence_map.end()) {
     m_dependence_map[lhs] = std::set<std::string>();
   }
   m_dependence_map[lhs].insert(rhs);
@@ -55,7 +56,7 @@ bool
 HeaderSorter::isDependOn(const std::string& lhs, const std::string& rhs) {
   if (m_dependence_map.find(lhs) != m_dependence_map.end()) {
     std::set<std::string> ss = m_dependence_map[lhs];
-    if (ss.find(rhs) == ss.end()) {
+    if (ss.find(rhs) != ss.end()) {
       return true;
     }
   }
