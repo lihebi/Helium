@@ -35,6 +35,7 @@
   </analyze>
   <debug>
     <show_compile_error>true</show_compile_error>
+    <skip_segment>10</skip_segment>
   </debug>
   <interact>
     <compile>false</compile>

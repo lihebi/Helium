@@ -96,7 +96,7 @@ ThreadUtil::Exec(const char* cmd, const char* input) {
   // fork
   pid = fork();
   if (pid<0) {
-    std::cerr << "fork failed" << std::endl;
+    perror("fork");
     exit(1);
   }
   if (pid == 0) {

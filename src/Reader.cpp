@@ -19,10 +19,15 @@ Reader::~Reader() {}
 void
 Reader::Read() {
   std::cout<<"[Reader][Read]"<<std::endl;
-  int count = 10;
+  // int count = 20;
+  int count = Config::Instance()->GetSkipSegment();
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
-    if (count-- > 0) continue;
-    Logger::Instance()->Log("a new segment");
+    if (count-- > 0) {
+      Logger::Instance()->Log("skip this segment: " + m_filename);
+      continue;
+    } else {
+      Logger::Instance()->Log("a new segment" + m_filename);
+    }
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
     (*it)->Process();

@@ -59,16 +59,11 @@ public:
     return m_analyzer;
   }
   // debug
-  bool WillShowCompileError() const {
-    return m_show_compile_error;
-  }
+  bool WillShowCompileError() const {return m_show_compile_error;}
+  int GetSkipSegment() const {return m_skip_segment;}
   // interact
-  bool WillInteractCompile() const {
-    return m_interact_compile;
-  }
-  bool WillInteractCompileError() const {
-    return m_interact_compile_error;
-  }
+  bool WillInteractCompile() const {return m_interact_compile;}
+  bool WillInteractCompileError() const {return m_interact_compile_error;}
 
 private:
   Config() {}
@@ -95,6 +90,7 @@ private:
   std::string m_analyzer;
   // debug
   bool m_show_compile_error;
+  int m_skip_segment;
   // interact
   bool m_interact_compile;
   bool m_interact_compile_error;
