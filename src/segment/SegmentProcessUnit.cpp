@@ -305,8 +305,8 @@ SegmentProcessUnit::GetSupport() {
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
     if ((*it)->GetType() == 'f') {
       // functions
-      code_func_decl += (*it)->GetDecl();
-      code_func += (*it)->GetCode();
+      code_func_decl += (*it)->GetDecl()+"\n";
+      code_func += (*it)->GetCode()+"\n";
     } else {
       // all other codes
       code +=
