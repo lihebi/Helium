@@ -65,6 +65,21 @@ std::string ThreadUtil::Exec(const std::string& cmd, const std::string& input) {
   return Exec(cmd.c_str(), input.c_str());
 }
 
+int split(const char *scon, char** &argv) {
+  char *s = strdup(scon);
+  char *tok = strtok(s, " ");
+  argv = (char**)malloc(10*sizeof(char*));
+  int argc = 0;
+  while (tok) {
+    argv[argc] = (char*)malloc(strlen(tok)+1);
+    strcpy(argv[argc], tok);
+    tok = strtok(NULL, " ");
+    argc++;
+  }
+  argv[argc] = NULL;
+  return argc;
+}
+
 std::string
 ThreadUtil::Exec(const char* cmd, const char* input) {
   // cmd should not exceed BUFSIZ
@@ -82,6 +97,7 @@ ThreadUtil::Exec(const char* cmd, const char* input) {
   pid = fork();
   if (pid<0) {
     std::cerr << "fork failed" << std::endl;
+    exit(1);
   }
   if (pid == 0) {
     // children
@@ -94,14 +110,11 @@ ThreadUtil::Exec(const char* cmd, const char* input) {
     close(pipeout[0]);
     close(pipeout[1]);
     // prepare the command
-    char *args;
-    args = strchr(cmd_buf, ' ');
-    if (args) {
-      *args = '\0';
-      args++;
-    }
-    execlp(cmd_buf, cmd_buf, args);
-    perror(cmd_buf);
+    char **argv = NULL;
+    // the argv is malloc-ed, but anyway the process will exit, it will be released
+    split(cmd, argv);
+    execvp(argv[0], argv);
+    perror("execvp");
     exit(1);
   }
   // parent
@@ -111,15 +124,12 @@ ThreadUtil::Exec(const char* cmd, const char* input) {
   write(pipein[1], input, strlen(input));
   close(pipein[1]);
   char buf[BUFSIZ];
-  while (1) {
-    // read from child's output
-    int nread = read(pipeout[0], buf, sizeof(buf));
+  int nread;
+  while ((nread = read(pipeout[0], buf, sizeof(buf))) != 0) {
     if (nread == -1) {
-      // error
-    } else if (nread == 0) {
-      break;
+      perror("read");
     } else {
-      result += buf;
+      result.append(buf, nread);
     }
   }
   close(pipeout[0]);
