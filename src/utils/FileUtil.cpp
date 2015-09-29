@@ -131,16 +131,18 @@ extract_double(const std::vector<std::string>& vs, int line_number) {
 // otherwise backward
 std::string
 extract_typedef(const std::vector<std::string>& vs, int line_number) {
-  if (StringUtil::StartsWith(vs[line_number], "typedef")) {
+  std::string tmp = vs[line_number];
+  StringUtil::trim(tmp);
+  if (StringUtil::StartsWith(tmp, "typedef")) {
     // this is the head of typedef. May contain multiple lines. Match until ;
-    std::string line = vs[line_number];
-    StringUtil::trim(line);
+    tmp = vs[line_number];
+    StringUtil::trim(tmp);
     std::string code;
-    while (line.back() != ';') {
+    while (tmp.back() != ';') {
       code += vs[line_number] + "\n";
       line_number++;
-      line = vs[line_number];
-      StringUtil::trim(line);
+      tmp = vs[line_number];
+      StringUtil::trim(tmp);
     }
     code += vs[line_number] + "\n";
     return code;
