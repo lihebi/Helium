@@ -19,7 +19,9 @@ Reader::~Reader() {}
 void
 Reader::Read() {
   std::cout<<"[Reader][Read]"<<std::endl;
+  int count = 7;
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
+    if (count-- > 15) continue;
     Logger::Instance()->Log("a new segment");
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve

@@ -67,10 +67,6 @@ void SegmentProcessUnit::resolveInput() {
   // std::set<Variable> vv;
   m_inv.clear();
   m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
-  for (auto it=m_inv.begin();it!=m_inv.end();it++) {
-    std::cout << "[SegmentprocessUnit::resolveInput] "
-    << (*it)->GetName() << " : " << (*it)->GetType()->GetName() << std::endl;
-  }
 }
 void SegmentProcessUnit::resolveOutput() {
   // std::set<Variable> vv;
@@ -86,7 +82,6 @@ void SegmentProcessUnit::resolveSnippets() {
   std::set<std::string> ss = Resolver::ExtractToResolve(code);
   // std::cout << "size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
-    std::cout << "[SegmentProcessUnit::resolveSnippets] " << *it << std::endl;
     std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it);
     m_snippets.insert(snippets.begin(), snippets.end());
   }
@@ -193,7 +188,6 @@ std::string
 SegmentProcessUnit::getInputCode() {
   std::string s;
   for (auto it=m_inv.begin();it!=m_inv.end();it++) {
-    std::cout<<"[SegmentProcessUnit::getInputCode]"<<(*it)->GetName()<<std::endl;
     s += (*it)->GetInputCode();
   }
   return s;

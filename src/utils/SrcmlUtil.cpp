@@ -8,7 +8,6 @@ void SrcmlUtil::File2XML(const std::string &filename, pugi::xml_document& doc) {
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
 }
 void SrcmlUtil::String2XML(const std::string &code, pugi::xml_document& doc) {
-  std::cout << "[SrcmlUtil::StringToXML]" << std::endl;
   std::string cmd = "src2srcml -lC";
   std::string xml = ThreadUtil::Exec(cmd, code);
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);

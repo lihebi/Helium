@@ -10,7 +10,6 @@
 #include <cassert>
 
 StructureType::StructureType(const std::string& name) : m_name(name) {
-  std::cout << "[StructureType::StructureType] " << m_name << std::endl;
   Snippet *s = SnippetRegistry::Instance()->LookUp(name, 't');
   // FIXME may not be the first match
   m_snippet = s;
@@ -27,10 +26,6 @@ StructureType::GetInputCode(const std::string& var) const {
     return Type::GetArrayCode(m_name, var, m_dimension);
   }
   if (m_pointer_level>0) {
-    // std::string var_tmp = var + "_tmp";
-    // code += m_name + "* " + var_tmp + " = (" + m_name + "*)malloc(sizeof(" + m_name + "));\n";
-    // code += m_name + std::string(m_pointer_level, '*')+ " " + var
-    // + " = " + std::string(m_pointer_level-1, '&') + var_tmp + ";\n";
     return Type::GetAllocateCode(m_name, var, m_pointer_level);
   } else {
     code += m_name + " " + var + ";\n";

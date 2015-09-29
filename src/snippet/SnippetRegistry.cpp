@@ -108,7 +108,6 @@ SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
 
 Snippet*
 SnippetRegistry::Add(const CtagsEntry& ce) {
-  std::cout << "[SnippetRegistry::Add]" << std::endl;
   Snippet *s = createSnippet(ce);
   if (!s) return NULL;
   // lookup to remove duplicate
@@ -210,7 +209,6 @@ bool is_union(const std::string& code) {
 
 Snippet*
 SnippetRegistry::createSnippet(const CtagsEntry& ce) {
-  std::cout << "[SnippetRegistry::createSnippet] " << ce.GetName() << " " << ce.GetType() << std::endl;
   Snippet *s;
   std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
   std::string trimed_code = code;

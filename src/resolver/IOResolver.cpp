@@ -146,7 +146,6 @@ IOResolver::visit(
         }
         std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
         if (vp) {
-          std::cout << "[IOResolver::visit] resolved: " << vp->GetName() << " : " << vp->GetType()->GetName() << std::endl;
           resolved.insert(vp);
         }
       }

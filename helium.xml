@@ -38,6 +38,6 @@
   </debug>
   <interact>
     <compile>false</compile>
-    <compile_error>true</compile_error>
+    <compile_error>false</compile_error>
   </interact>
 </helium>
