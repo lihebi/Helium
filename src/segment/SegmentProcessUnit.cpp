@@ -6,8 +6,9 @@
 #include "resolver/Ctags.hpp"
 #include "resolver/HeaderSorter.hpp"
 
-SegmentProcessUnit::SegmentProcessUnit()
-: m_segment(std::make_shared<Segment>()),
+SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
+: m_filename(filename),
+m_segment(std::make_shared<Segment>()),
 m_context(std::make_shared<Segment>()),
 m_linear_search_value(0) {
   std::cout<<"[SegmentProcessUnit][Constructor]"<<std::endl;
@@ -215,6 +216,7 @@ SegmentProcessUnit::GetMain() {
   s += "// Input\n";
   s += getInputCode();
   s += "// Context\n";
+  s += "// " + m_filename + "\n";
   s += m_context->GetText();
   s += "\n}";
   return s;

@@ -19,9 +19,9 @@ Reader::~Reader() {}
 void
 Reader::Read() {
   std::cout<<"[Reader][Read]"<<std::endl;
-  int count = 7;
+  int count = 10;
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
-    if (count-- > 15) continue;
+    if (count-- > 0) continue;
     Logger::Instance()->Log("a new segment");
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
@@ -55,7 +55,7 @@ void Reader::getLoopSegments() {
   if (!loop_nodes.empty()) {
     for (auto it=loop_nodes.begin();it!=loop_nodes.end();it++) {
       // every node is a loop segment!
-      std::shared_ptr<SegmentProcessUnit> su = std::make_shared<SegmentProcessUnit>();
+      std::shared_ptr<SegmentProcessUnit> su = std::make_shared<SegmentProcessUnit>(m_filename);
       su->AddNode(it->node());
       m_seg_units.push_back(su);
     }

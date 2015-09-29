@@ -94,7 +94,9 @@ extract_define(const std::vector<std::string>& vs, int line_number) {
   std::string s;
   for (int i=line_number;i<vs.size();i++) {
     s += vs[i] + '\n';
-    if (vs[i].back() != '\\') break;
+    std::string tmp = vs[i];
+    StringUtil::trim(tmp);
+    if (tmp.back() != '\\') break;
   }
   return s;
 }
@@ -104,7 +106,10 @@ extract_statement(const std::vector<std::string>& vs, int line_number) {
   std::string s;
   for (int i=line_number; i<vs.size();i++) {
     s += vs[i] + '\n';
-    if (vs[i].back() == ';') break;
+    // FIXME this may be expensive
+    std::string tmp = vs[i];
+    StringUtil::trim(tmp);
+    if (tmp.back() == ';') break;
   }
   return s;
 }
@@ -127,8 +132,21 @@ extract_double(const std::vector<std::string>& vs, int line_number) {
 std::string
 extract_typedef(const std::vector<std::string>& vs, int line_number) {
   if (StringUtil::StartsWith(vs[line_number], "typedef")) {
-    return vs[line_number];
+    // this is the head of typedef. May contain multiple lines. Match until ;
+    std::string line = vs[line_number];
+    StringUtil::trim(line);
+    std::string code;
+    while (line.back() != ';') {
+      code += vs[line_number] + "\n";
+      line_number++;
+      line = vs[line_number];
+      StringUtil::trim(line);
+    }
+    code += vs[line_number] + "\n";
+    return code;
   } else {
+    // this is at the end of typedef, the alias
+    // FIXME maybe typedef xxx \n xxx alias;
     return extract_backward(vs, line_number);
   }
 }
@@ -143,7 +161,6 @@ FileUtil::GetBlock(const std::string& filename, int line, char type) {
   if (is.is_open()) {
     std::string line;
     while (getline(is, line)) {
-      StringUtil::trim(line);
       lines.push_back(line);
     }
     is.close();

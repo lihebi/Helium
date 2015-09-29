@@ -11,7 +11,7 @@
 
 class SegmentProcessUnit {
 public:
-  SegmentProcessUnit();
+  SegmentProcessUnit(const std::string& filename);
   ~SegmentProcessUnit();
   // Reader functions
   void SetSegment(const Segment &s);
@@ -35,6 +35,8 @@ private:
 
   // builder function
   std::string getInputCode();
+
+  std::string m_filename;
 
   std::shared_ptr<Segment> m_segment;
   std::shared_ptr<Segment> m_context;
