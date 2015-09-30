@@ -6,6 +6,7 @@
 #include "util/StringUtil.hpp"
 #include "resolver/SystemResolver.hpp"
 #include <iostream>
+#include <cassert>
 
 static std::regex
 // modifier
@@ -54,38 +55,76 @@ TypeFactory::TypeFactory(const std::string& name)
   decomposite(m_name);
 }
 
+static bool
+is_primitive_type(uint8_t length, uint8_t primitive) {
+  if (length || primitive) return true;
+  else return false;
+}
+
 bool
 TypeFactory::IsPrimitiveType() {
-  if (m_length || m_primitive) return true;
+  return is_primitive_type(m_length, m_primitive);
+}
+
+static bool
+is_enum_type(uint8_t keyword) {
+  if (keyword & ENUM_MASK) return true;
   else return false;
 }
-bool
-TypeFactory::IsEnumType() {
-  if (m_keyword & ENUM_MASK) return true;
+
+static bool
+is_system_type(const std::string& identifier) {
+  if (SystemResolver::Instance()->Has(identifier)) return true;
   else return false;
 }
-bool
-TypeFactory::IsSystemType() {
-  if (SystemResolver::Instance()->Has(m_identifier)) return true;
-  else return false;
-}
-bool
-TypeFactory::IsStructureType() {
-  // TODO better granularity
-  if (Ctags::Instance()->Parse(m_identifier).empty()) return false;
+
+static bool
+is_local_type(const std::string& identifier) {
+  if (Ctags::Instance()->Parse(identifier).empty()) return false;
   else return true;
 }
+
 
 std::shared_ptr<Type>
 TypeFactory::CreateType() {
   std::shared_ptr<Type> type;
-  if (IsPrimitiveType()) {
+  if (is_primitive_type(m_length, m_primitive)) {
     type = std::make_shared<PrimitiveType>(m_length, m_primitive);
-  } else if (IsEnumType()) {
+  } else if (is_enum_type(m_keyword)) {
     type = std::make_shared<EnumType>(m_identifier);
-  } else if (IsStructureType()) {
-    type = std::make_shared<StructureType>(m_identifier);
-  } else if (IsSystemType()) {
+  } else if (is_local_type(m_identifier)) {
+    // need to know the code for local type
+    // only handle structure or typedef
+    std::set<Snippet*> snippets = Ctags::Instance()->Resolve(m_identifier);
+    for (auto it=snippets.begin();it!=snippets.end();it++) {
+      if ((*it)->GetType() == 's') {
+        // just create the structure
+        type = std::make_shared<StructureType>(m_identifier);
+        break;
+      } else if ((*it)->GetType() == 't') {
+        // extract the to_type, and recursively create type.
+        std::string code = (*it)->GetCode();
+        code = code.substr(code.find("typedef"));
+        code = code.substr(0, code.rfind(';'));
+        std::vector<std::string> vs = StringUtil::Split(code);
+        // FIXME may not be the middle
+        // to_type is the middle part of split
+        std::string to_type;
+        for (int i=1;i<vs.size()-1;i++) {
+          to_type += vs[i]+' ';
+        }
+        std::string new_name = m_name;
+        new_name.replace(new_name.find(m_identifier), m_identifier.length(), to_type);
+        // CAUSION this may or may not be a primitive type
+        // FIXME may infinite loop?
+        type = TypeFactory(new_name).CreateType();
+        break;
+      }
+    }
+    // type should contains something.
+    // or it may be NULL. So if it fails, do not necessarily means a bug
+    assert(type);
+  } else if (is_system_type(m_identifier)) {
     // std::cout << m_identifier << std::endl;
     std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
     if (prim_type.empty()) {
@@ -96,7 +135,7 @@ TypeFactory::CreateType() {
       std::string new_name = m_name;
       new_name.replace(new_name.find(m_identifier), m_identifier.length(), prim_type);
       // FIXME this should be a primitive type
-      return TypeFactory(new_name).CreateType();
+      type = TypeFactory(new_name).CreateType();
     }
   } else {
     std::cout << "\033[33m[TypeFactory::CreateType][Warning] Not supported type: "
