@@ -10,9 +10,18 @@ const std::set<std::string> c_common_keyword = {
 "define", "undef", "ifdef", "ifndef",
 "main",  "include",
 // control branch keyword
-"if", "else", "while", "break",
-// modifier
-"static", "const", "volatile"
+"if", "else", "switch", "case", "default", "for", "do", "while", "break", "goto", "break", "continue",
+// type
+"bool", "true", "false"
+// storage class specifier
+"auto", "register", "static", "extern", "typedef",
+// type specifier
+"void", "char", "short", "int", "long", "float", "double", "signed", "unsigned",
+"struct", "enum",
+// type qualifier
+"const", "volatile",
+// undefined
+"sizeof", "return", "asm"
 };
 
 static std::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
