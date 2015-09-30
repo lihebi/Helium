@@ -2,10 +2,12 @@
 #define __ENUM_SNIPPET_HPP__
 
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
 
 class EnumSnippet : public Snippet {
 public:
   EnumSnippet(const std::string& code, const std::string& filename, int line_number);
+  EnumSnippet(const CtagsEntry& ce);
   virtual ~EnumSnippet() {}
   virtual std::string GetName() {return m_name;}
   virtual char GetType() {return m_type;}

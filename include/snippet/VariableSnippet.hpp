@@ -2,10 +2,12 @@
 #define __VARIABLE_SNIPPET_HPP__
 
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
 
 class VariableSnippet : public Snippet {
 public:
   VariableSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number);
+  VariableSnippet(const CtagsEntry& ce);
   virtual ~VariableSnippet() {}
   virtual std::string GetName() {return m_name;}
   virtual char GetType() {return m_type;}

@@ -2,10 +2,12 @@
 #define __FUNCTION_SNIPPET_HPP__
 
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
 
 class FunctionSnippet : public Snippet {
 public:
   FunctionSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number);
+  FunctionSnippet(const CtagsEntry& ce);
   virtual ~FunctionSnippet() {}
   virtual std::string GetName() {return m_name;}
   virtual char GetType() {return m_type;}

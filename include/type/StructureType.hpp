@@ -28,6 +28,8 @@ private:
   int m_pointer_level;
   std::string m_name;
   std::string m_alias;
+  // available name for type name. either "struct $m_name" or "$m_alias"
+  std::string m_avail_name;
   Snippet* m_snippet;
 };
 

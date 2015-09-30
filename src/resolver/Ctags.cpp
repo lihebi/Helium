@@ -15,19 +15,6 @@ Ctags::Load(const std::string& tagfile) {
   m_entry = (tagEntry*)malloc(sizeof(tagEntry));
 }
 
-
-CtagsEntry
-Ctags::ParseSimple(const std::string& name) {
-  tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
-  while (result == TagSuccess) {
-    if (m_entry->kind) {
-      return CtagsEntry(name, m_entry->file, m_entry->address.lineNumber, *(m_entry->kind));
-    }
-    result = tagsFindNext(m_tagfile, m_entry);
-  }
-  return CtagsEntry(false);
-}
-
 std::vector<CtagsEntry>
 Ctags::Parse(const std::string& name) {
   std::vector<CtagsEntry> vc;
@@ -56,17 +43,6 @@ Ctags::Parse(const std::string& name, const std::string& type) {
   return vc;
 }
 
-Snippet*
-Ctags::ResolveSimple(const std::string& name) {
-  CtagsEntry ce = ParseSimple(name);
-  if (ce) {
-    std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
-    Snippet *snippet = SnippetRegistry::Instance()->Add(ce);
-    return snippet;
-  }
-  return NULL;
-}
-
 // load and register in SnippetRegistry
 // return Snippet*
 std::set<Snippet*>
@@ -77,7 +53,6 @@ Ctags::Resolve(const std::string& name) {
   // std::cout << "[Ctags::Resolve] parsed size: " << vc.size() << std::endl;
   std::set<Snippet*> vsp;
   for (auto it=vc.begin();it!=vc.end();it++) {
-    std::string code = FileUtil::GetBlock(it->GetFileName(), it->GetLineNumber(), it->GetType());
     Snippet *snippet = SnippetRegistry::Instance()->Add(*it);
     if (snippet) {
       vsp.insert(snippet);
@@ -90,7 +65,6 @@ Ctags::Resolve(const std::string& name, const std::string& type) {
   std::vector<CtagsEntry> vc = Parse(name, type);
   std::set<Snippet*> vsp;
   for (auto it=vc.begin();it!=vc.end();it++) {
-    std::string code = FileUtil::GetBlock(it->GetFileName(), it->GetLineNumber(), it->GetType());
     Snippet *snippet = SnippetRegistry::Instance()->Add(*it);
     vsp.insert(snippet);
   }

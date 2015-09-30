@@ -2,10 +2,12 @@
 #define __STRUCTURE_SNIPPET_HPP__
 
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
 
 class StructureSnippet : public Snippet {
 public:
   StructureSnippet(const std::string& code, const std::string& filename, int line_number);
+  StructureSnippet(const CtagsEntry& ce);
   virtual ~StructureSnippet() {}
   // this name should be legal to define a variable
   virtual std::string GetName() {
@@ -22,7 +24,7 @@ public:
   virtual int GetLineNumber() const {return m_line_number;}
 private:
   std::string m_code;
-  // name is only something that can print out as debug information
+  // m_name for structuresnippet should be the true name
   std::string m_name;
   std::string m_alias;
   char m_type;

@@ -36,9 +36,6 @@ public:
 
   std::shared_ptr<Type> CreateType();
   bool IsPrimitiveType();
-  bool IsEnumType();
-  bool IsStructureType();
-  bool IsSystemType();
 private:
   void clear();
   void decomposite(std::string name);

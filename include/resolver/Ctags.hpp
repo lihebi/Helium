@@ -10,13 +10,24 @@
 class CtagsEntry {
 public:
   CtagsEntry(const std::string& name, const std::string& file, int line, char type)
-  : m_name(name), m_file(file), m_line(line), m_type(type), m_valid(true) {}
+  : m_name(name), m_file(file), m_line(line), m_type(type) {
+    if (m_file.find("/") != -1) {
+      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
+    }
+  }
   CtagsEntry(const std::string& name, const char* file, int line, char type)
-  : m_name(name), m_file(file), m_line(line), m_type(type), m_valid(true) {}
-  CtagsEntry(bool valid) : m_valid(valid) {}
+  : m_name(name), m_file(file), m_line(line), m_type(type) {
+    if (m_file.find("/") != -1) {
+      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
+    }
+  }
   // construct by pattern
   CtagsEntry(const std::string& name, const char* file, const char* pattern, char type)
-  : m_name(name), m_file(file), m_pattern(pattern), m_type(type), m_valid(true) {}
+  : m_name(name), m_file(file), m_pattern(pattern), m_type(type) {
+    if (m_file.find("/") != -1) {
+      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
+    }
+  }
   ~CtagsEntry() {}
   std::string GetName() const {
     return m_name;
@@ -24,6 +35,7 @@ public:
   std::string GetFileName() const {
     return m_file;
   }
+  std::string GetSimpleFileName() const { return m_simple_filename;}
   int GetLineNumber() const {
     return m_line;
   }
@@ -33,16 +45,13 @@ public:
   char GetType() const {
     return m_type;
   }
-  operator bool() const {
-    return m_valid;
-  }
 private:
   std::string m_name;
   std::string m_file;
+  std::string m_simple_filename;
   std::string m_pattern;
   int m_line;
   char m_type;
-  bool m_valid;
 };
 
 class Ctags {

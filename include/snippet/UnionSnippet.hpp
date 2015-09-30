@@ -2,10 +2,12 @@
 #define __UNION_SNIPPET_HPP__
 
 #include "snippet/Snippet.hpp"
+#include "resolver/Ctags.hpp"
 
 class UnionSnippet : public Snippet {
 public:
   UnionSnippet(const std::string& code, const std::string& filename, int line_number);
+  UnionSnippet(const CtagsEntry& ce);
   virtual ~UnionSnippet() {}
   virtual std::string GetName() {return m_name;}
   virtual char GetType() {return m_type;}

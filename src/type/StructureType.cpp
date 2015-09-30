@@ -9,11 +9,24 @@
 #include "resolver/Ctags.hpp"
 #include <cassert>
 
-StructureType::StructureType(const std::string& name) : m_name(name) {
-  Snippet *s = SnippetRegistry::Instance()->LookUp(name, 't');
-  // FIXME may not be the first match
-  m_snippet = s;
-  // TODO
+StructureType::StructureType(const std::string& name) {
+  // need to resolve instead of looking up registry,
+  // because the resolving snippet phase
+  // is far behind current phase of resolve IO variables.
+  std::set<Snippet*> snippets = Ctags::Instance()->Resolve(name);
+  for (auto it=snippets.begin();it!=snippets.end();it++) {
+    if ((*it)->GetType() == 's') {
+      m_snippet = *it;
+      if ((*it)->GetName() == name) {
+        m_name = name;
+        m_avail_name = "struct " + m_name;
+      } else {
+        m_alias = name;
+        m_avail_name = m_alias;
+      }
+    }
+  }
+  assert(!m_avail_name.empty());
   // parseFields();
 }
 StructureType::~StructureType() {
@@ -23,10 +36,10 @@ std::string
 StructureType::GetInputCode(const std::string& var) const {
   std::string code;
   if (m_dimension>0) {
-    return Type::GetArrayCode(m_name, var, m_dimension);
+    return Type::GetArrayCode(m_avail_name, var, m_dimension);
   }
   if (m_pointer_level>0) {
-    return Type::GetAllocateCode(m_name, var, m_pointer_level);
+    return Type::GetAllocateCode(m_avail_name, var, m_pointer_level);
   } else {
     code += m_name + " " + var + ";\n";
   }
