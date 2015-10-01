@@ -202,6 +202,9 @@ SnippetRegistry::addDependence(Snippet *from, std::set<Snippet*> to) {
 
 Snippet*
 SnippetRegistry::createSnippet(const CtagsEntry& ce) {
+  // some exceptional: htonll is a macro, if redefined, perhaps as a function,
+  // it will fail compiling
+  if (ce.GetName() == "htonll") return NULL;
   Snippet *s;
   char t = get_true_type(ce);
   switch (t) {
