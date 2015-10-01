@@ -1,13 +1,13 @@
-#ifndef __ENUM_TYPE_HPP__
-#define __ENUM_TYPE_HPP__
+#ifndef __UNION_TYPE_HPP__
+#define __UNION_TYPE_HPP__
 
 #include "type/Type.hpp"
 #include "snippet/Snippet.hpp"
 
-class EnumType : public Type {
+class UnionType : public Type {
 public:
-  EnumType(const std::string& name);
-  virtual ~EnumType();
+  UnionType(const std::string& name);
+  virtual ~UnionType();
   virtual std::string GetInputCode(const std::string& var) const;
   virtual std::string GetOutputCode(const std::string& var) const;
   virtual void GetInputSpecification();

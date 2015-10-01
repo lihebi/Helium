@@ -3,6 +3,7 @@
 #include "type/EnumType.hpp"
 #include "type/SystemType.hpp"
 #include "type/StructureType.hpp"
+#include "type/UnionType.hpp"
 #include "util/StringUtil.hpp"
 #include "resolver/SystemResolver.hpp"
 #include <iostream>
@@ -96,34 +97,50 @@ TypeFactory::CreateType() {
     // need to know the code for local type
     // only handle structure or typedef
     std::set<Snippet*> snippets = Ctags::Instance()->Resolve(m_identifier);
+    // scan for the first pass, for 's' or 'g' snippets
     for (auto it=snippets.begin();it!=snippets.end();it++) {
       if ((*it)->GetType() == 's') {
         // just create the structure
         type = std::make_shared<StructureType>(m_identifier);
         break;
-      } else if ((*it)->GetType() == 't') {
-        // extract the to_type, and recursively create type.
-        std::string code = (*it)->GetCode();
-        code = code.substr(code.find("typedef"));
-        code = code.substr(0, code.rfind(';'));
-        std::vector<std::string> vs = StringUtil::Split(code);
-        // FIXME may not be the middle
-        // to_type is the middle part of split
-        std::string to_type;
-        for (int i=1;i<vs.size()-1;i++) {
-          to_type += vs[i]+' ';
+      } else if ((*it)->GetType() == 'g') {
+        // this is the typedef enum
+        type = std::make_shared<EnumType>(m_identifier);
+      } else if ((*it)->GetType() == 'u') {
+        type = std::make_shared<UnionType>(m_identifier);
+      }
+    }
+    if (!type) {
+      // separate 't' with 'gs' to fix the bug: typedef struct conn conn
+      for (auto it=snippets.begin();it!=snippets.end();it++) {
+        if ((*it)->GetType() == 't') {
+          // extract the to_type, and recursively create type.
+          std::string code = (*it)->GetCode();
+          code = code.substr(code.find("typedef"));
+          code = code.substr(0, code.rfind(';'));
+          std::vector<std::string> vs = StringUtil::Split(code);
+          // FIXME may not be the middle
+          // to_type is the middle part of split
+          std::string to_type;
+          for (int i=1;i<vs.size()-1;i++) {
+            to_type += vs[i]+' ';
+          }
+          std::string new_name = m_name;
+          new_name.replace(new_name.find(m_identifier), m_identifier.length(), to_type);
+          // CAUSION this may or may not be a primitive type
+          // FIXME may infinite loop?
+          // YES, by typedef struct conn conn
+          type = TypeFactory(new_name).CreateType();
+          break;
         }
-        std::string new_name = m_name;
-        new_name.replace(new_name.find(m_identifier), m_identifier.length(), to_type);
-        // CAUSION this may or may not be a primitive type
-        // FIXME may infinite loop?
-        type = TypeFactory(new_name).CreateType();
-        break;
       }
     }
     // type should contains something.
     // or it may be NULL. So if it fails, do not necessarily means a bug
-    assert(type);
+    if (!type) {
+      std::cout << "[TypeFactory::CreateType]" << "\033[31m" << "the type is local, but is not s or t: " << m_identifier << std::endl;
+      exit(1);
+    }
   } else if (is_system_type(m_identifier)) {
     // std::cout << m_identifier << std::endl;
     std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
