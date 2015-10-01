@@ -6,6 +6,7 @@
 #include "util/SrcmlUtil.hpp"
 #include "Logger.hpp"
 
+int Reader::m_skip_segment = -1;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
   std::cout<<"[Reader][Constructor]"<<filename<<std::endl;
@@ -13,16 +14,18 @@ Reader::Reader(const std::string &filename)
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
   std::cout<<"[Reader] Total segment in this file: "<<m_seg_units.size()<<std::endl;
+  if (m_skip_segment == -1) {
+    m_skip_segment = Config::Instance()->GetSkipSegment();
+  }
 }
 Reader::~Reader() {}
 
 void
 Reader::Read() {
   std::cout<<"[Reader][Read]"<<std::endl;
-  // int count = 20;
-  int count = Config::Instance()->GetSkipSegment();
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
-    if (count-- > 0) {
+    if (m_skip_segment > 0) {
+      m_skip_segment--;
       Logger::Instance()->Log("skip this segment: " + m_filename);
       continue;
     } else {

@@ -22,6 +22,7 @@ private:
   std::vector<std::shared_ptr<SegmentProcessUnit> > m_seg_units;
   std::shared_ptr<pugi::xml_document> m_doc;
   std::string m_filename;
+  static int m_skip_segment;
 };
 
 
