@@ -19,8 +19,8 @@ SnippetRegistry* SnippetRegistry::m_instance = 0;
 
 
 static std::regex structure_reg("^typedef\\s+struct(\\s+\\w+)?\\s*\\{");
-static std::regex enum_reg("^typedef\\s+enum(\\s+\\w+)?\\s*\\{");
-static std::regex union_reg("^typedef\\s+union(\\s+\\w+)?\\s*\\{");
+static std::regex enum_reg     ("^typedef\\s+enum(\\s+\\w+)?\\s*\\{");
+static std::regex union_reg    ("^typedef\\s+union(\\s+\\w+)?\\s*\\{");
 
 static char
 get_true_type(const CtagsEntry& ce) {
@@ -28,9 +28,9 @@ get_true_type(const CtagsEntry& ce) {
     std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
     std::string trimed_code = code;
     StringUtil::trim(trimed_code);
-    if (std::regex_search(trimed_code, structure_reg)) return 's';
-    else if (std::regex_search(code, enum_reg)) return 'g';
-    else if (std::regex_search(code, union_reg)) return 'u';
+    if      (std::regex_search(trimed_code, structure_reg)) return 's';
+    else if (std::regex_search(trimed_code, enum_reg)) return 'g';
+    else if (std::regex_search(trimed_code, union_reg)) return 'u';
     else return 't';
   } else if (ce.GetType() == 'e') return 'g';
   else return ce.GetType();
