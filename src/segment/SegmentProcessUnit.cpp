@@ -256,7 +256,6 @@ get_headers() {
     "sys/stat.h",
     "sys/param.h",
     "sys/resource.h",
-    "sys/uio.h",
     "stddef.h",
     // FIXME 3rd party. Need to install first!!!
     "event.h"

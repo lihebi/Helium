@@ -1,5 +1,5 @@
 #include "type/Type.hpp"
-
+#include <iostream>
 
 std::string
 Type::GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
@@ -24,4 +24,21 @@ Type::GetArrayCode(const std::string& type_name, const std::string& var_name, in
   // code += "for (int i=0;i<" + size_var + ";i++) {\n";
   // code += "   scanf()"
   return code;
+}
+
+void
+Type::SetDimension(int d) {
+  m_dimension = d;
+}
+int
+Type::GetDimension() const {
+  return m_dimension;
+}
+void
+Type::SetPointerLevel(int l) {
+  m_pointer_level = l;
+}
+int
+Type::GetPointerLevel() const {
+  return m_pointer_level;
 }

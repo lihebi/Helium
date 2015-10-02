@@ -1,73 +1,62 @@
 #include "type/PrimitiveType.hpp"
 #include "type/TypeFactory.hpp"
 #include <iostream>
+#include <cassert>
 
-// Deprecated
-PrimitiveType::PrimitiveType(const std::string& name)
-: m_name(name) {
-  ;
-}
-
-PrimitiveType::PrimitiveType(uint8_t length, uint8_t type)
-: m_length(length), m_type(type) {
-  if (length & UNSIGNED_MASK) m_name += "unsigned ";
-  if (length & SIGNED_MASK) m_name += "signed ";
-  if (length & SHORT_MASK) m_name += "short ";
-  if (length & LONG_MASK) m_name += "long ";
-  if (type & INT_MASK) m_name += "int ";
-  if (type & CHAR_MASK) m_name += "char ";
-  if (type & FLOAT_MASK) m_name += "float ";
-  if (type & DOUBLE_MASK) m_name += "double ";
-  if (type & BOOL_MASK) m_name += "bool ";
-  if (type & VOID_MASK) m_name += "void";
+PrimitiveType::PrimitiveType(const struct type_specifier& specifier)
+: m_specifier(specifier) {
+  // m_name only as a printable name
+  if (specifier.is_signed)   m_name += "signed ";
+  if (specifier.is_unsigned) m_name += "unsigned ";
+  if (specifier.is_short)    m_name += "short ";
+  if (specifier.is_long)     m_name += "long ";
+  if (specifier.is_int)      m_name += "int ";
+  if (specifier.is_char)     m_name += "char ";
+  if (specifier.is_float)    m_name += "float ";
+  if (specifier.is_double)   m_name += "double ";
+  if (specifier.is_bool)     m_name += "bool ";
+  if (specifier.is_void)     m_name += "void ";
+  // should at least have some specifier
+  assert(!m_name.empty());
   m_name.pop_back();
-  // std::cout << "[PrimitiveType::PrimitiveType] " << m_name << std::endl;
 }
 
 PrimitiveType::~PrimitiveType() {}
 
-
-
-std::string
-PrimitiveType::getIntInputCode(const std::string& var) const {
+static std::string
+get_input(
+  const std::string& type, const std::string& formatter,
+  const std::string& var,
+  int pointer_level, int dimension
+) {
   std::string code;
-  if (m_dimension>0) {
-    return Type::GetArrayCode("int", var, m_dimension);
+  if (dimension>0) {
+    return Type::GetArrayCode(type.c_str(), var, dimension);
   }
   std::string assign;
-  if (m_pointer_level > 0) {
-    code += Type::GetAllocateCode("int", var, m_pointer_level);
-    assign = std::string(m_pointer_level-1, '*');
+  if (pointer_level > 0) {
+    code += Type::GetAllocateCode(type, var, pointer_level);
+    assign = std::string(pointer_level-1, '*');
   } else {
-    code += "int " + var + ";\n";
+    code += type + " " + var + ";\n";
     assign = "&";
   }
-  code += "scanf(\"%d\", " + assign +var+");\n";
-  // TODO
-  // if (m_length & UNSIGNED_MASK) {
-  //   // unsigned int
-  // } else if (m_length & SHORT_MASK) {
-  //   // short
-  // } else if (m_length & LONG_MASK) {
-  //   // long
-  // }
-
+  code += "scanf(\"%" + formatter + "\", " + assign + var + ");\n";
   return code;
 }
 
-
-std::string
-PrimitiveType::getCharInputCode(const std::string& var) const {
+static std::string
+get_char_input(const std::string& var, int pointer_level, int dimension) {
   std::string code;
   // TODO array of pointers?
-  if (m_dimension > 0) {
-    return Type::GetArrayCode("char", var, m_dimension);
+  if (dimension > 0) {
+    return Type::GetArrayCode("char", var, dimension);
   }
   // pointer or not
   std::string assign;
-  if (m_pointer_level > 0) {
-    code += Type::GetAllocateCode("char", var, m_pointer_level);
-    assign = std::string(m_pointer_level-1, '*');
+  if (pointer_level > 0) {
+    code += Type::GetAllocateCode("char", var, pointer_level);
+    assign = std::string(pointer_level-1, '*');
   } else {
     code += "char "+var+";\n";
     assign = "&";
@@ -77,42 +66,26 @@ PrimitiveType::getCharInputCode(const std::string& var) const {
 }
 
 std::string
-PrimitiveType::getVoidInputCode(const std::string& var) const {
-  if (m_pointer_level > 0) {
-    // allocate
-    return "void " + std::string(m_pointer_level, '*') + " " + var+";\n";
+get_void_input(const std::string& var, int pointer_level, int dimension) {
+  if (pointer_level > 0) {
+    return "void " + std::string(pointer_level, '*') + " " + var+" = NULL;\n";
   } else {
-    // for void type, it is always ...
-    std::cout << "[PrimitiveType::getVoidInputCode] Critical Error, void xxx; exiting .." << std::endl;
+    std::cout << "[PrimitiveType::getVoidInputCode]"
+    << "\033[31m" << "void should always be pointers" << "\033[0m" << std::endl;
     exit(1);
   }
 }
 
 std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
-  std::string s;
-  if (m_type) {
-    if (m_type & INT_MASK) {
-      return getIntInputCode(var);
-    } else if (m_type & CHAR_MASK) {
-      return getCharInputCode(var);
-    } else if (m_type & FLOAT_MASK) {
-      s += "float " + var + ";\n";
-      s += "scanf(\"%f\", &"+var+");\n";
-    } else if (m_type & DOUBLE_MASK) {
-      s += "double " + var + ";\n";
-      s += "scanf(\"%lf\", &"+var+");\n";
-    } else if (m_type & BOOL_MASK) {
-      s += "bool " + var + ";\n";
-      s += "scanf(\"%d\", &"+var+");\n";
-    } else if (m_type & VOID_MASK) {
-      return getVoidInputCode(var);
-    }
-  } else {
-    // int
-    return getIntInputCode(var);
-  }
-  return s;
+  if (m_specifier.is_char) return get_char_input(var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_float) return get_input("float", "f", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_double) return get_input("double", "lf", var, GetPointerLevel(), GetDimension());
+  // will not constrain bool here, but in input specification
+  if (m_specifier.is_bool) return get_input("bool", "d", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_void) return get_void_input(var, GetPointerLevel(), GetDimension());
+  // rest is int
+  return get_input("int", "d", var, GetPointerLevel(), GetDimension());
 }
 
 std::string

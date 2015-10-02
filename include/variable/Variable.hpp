@@ -8,10 +8,8 @@
 
 class Variable {
 public:
-  Variable();
-  Variable(std::shared_ptr<Type> type, const std::string& name)
-  : m_type(type), m_name(name) {}
-  ~Variable();
+  Variable(std::shared_ptr<Type> type, const std::string& name);
+  ~Variable() {}
   const std::string& GetName() const {
     return m_name;
   }

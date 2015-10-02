@@ -35,18 +35,18 @@ StructureType::~StructureType() {
 std::string
 StructureType::GetInputCode(const std::string& var) const {
   std::string code;
-  if (m_dimension>0) {
-    return Type::GetArrayCode(m_avail_name, var, m_dimension);
+  if (GetDimension()>0) {
+    return Type::GetArrayCode(m_avail_name, var, GetDimension());
   }
-  if (m_pointer_level>0) {
-    return Type::GetAllocateCode(m_avail_name, var, m_pointer_level);
+  if (GetPointerLevel()>0) {
+    return Type::GetAllocateCode(m_avail_name, var, GetPointerLevel());
   } else {
     code += m_name + " " + var + ";\n";
   }
   // fields init
   for (auto it=m_fields.begin();it!=m_fields.end();it++) {
     std::string field_name = it->second;
-    field_name = std::string(m_pointer_level-1, '&') + var + "." + field_name;
+    field_name = std::string(GetPointerLevel()-1, '&') + var + "." + field_name;
     code += it->first->GetInputCode(field_name) + "\n";
   }
   return code;

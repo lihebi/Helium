@@ -6,27 +6,41 @@
 
 #include "type/Type.hpp"
 
-// Why using const will result in warning: unused variable?
-// modifier
-extern uint8_t CONST_MASK;
-extern uint8_t STATIC_MASK;
-extern uint8_t EXTERN_MASK;
-extern uint8_t VOLATILE_MASK;
-// length
-extern uint8_t UNSIGNED_MASK;
-extern uint8_t SIGNED_MASK;
-extern uint8_t SHORT_MASK;
-extern uint8_t LONG_MASK;
-// primitive
-extern uint8_t INT_MASK;
-extern uint8_t CHAR_MASK;
-extern uint8_t FLOAT_MASK;
-extern uint8_t DOUBLE_MASK;
-extern uint8_t BOOL_MASK;
-extern uint8_t VOID_MASK;
-// keyword
-extern uint8_t STRUCT_MASK;
-extern uint8_t ENUM_MASK;
+struct storage_specifier {
+  unsigned int is_auto     : 1;
+  unsigned int is_register : 1;
+  unsigned int is_static   : 1;
+  unsigned int is_extern   : 1;
+  unsigned int is_typedef  : 1; // not used
+};
+struct type_specifier {
+  unsigned int is_void     : 1;
+  unsigned int is_char     : 1;
+  unsigned int is_short    : 1;
+  unsigned int is_int      : 1;
+  unsigned int is_long     : 1; // do not support long long
+  unsigned int is_float    : 1;
+  unsigned int is_double   : 1;
+  unsigned int is_signed   : 1;
+  unsigned int is_unsigned : 1;
+  unsigned int is_bool     : 1; // not in C standard
+};
+struct type_qualifier {
+  unsigned int is_const    : 1;
+  unsigned int is_volatile : 1;
+};
+struct struct_specifier {
+  unsigned int is_struct   : 1;
+  unsigned int is_union    : 1;
+  unsigned int is_enum     : 1;
+};
+
+struct type_component {
+  struct storage_specifier storage_specifier;
+  struct type_specifier type_specifier;
+  struct type_qualifier type_qualifier;
+  struct struct_specifier struct_specifier;
+};
 
 
 class TypeFactory {
@@ -42,10 +56,7 @@ private:
 
 
   std::string m_name;
-  uint8_t m_modifier;
-  uint8_t m_length;
-  uint8_t m_primitive;
-  uint8_t m_keyword;
+  struct type_component m_component;
   int m_dimension;
   int m_pointer_level;
   std::string m_identifier;

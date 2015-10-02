@@ -9,68 +9,77 @@
 #include <iostream>
 #include <cassert>
 
-static std::regex
-// modifier
-const_regex   ("\\bconst\\b"),
-static_regex  ("\\bstatic\\b"),
-extern_regex  ("\\bextern\\b"),
-volatile_regex("\\bvolatile\\b"),
-// length
-unsigned_regex("\\bunsigned\\b"),
-signed_regex  ("\\bsigned\\b"),
-long_regex    ("\\blong\\b"),
-short_regex   ("\\bshort\\b"),
-// primitive
-int_regex     ("\\bint\\b"),
-char_regex    ("\\bchar\\b"),
-float_regex   ("\\bfloat\\b"),
-double_regex  ("\\bdouble\\b"),
-bool_regex    ("\\bbool\\b"),
-void_regex    ("\\bvoid\\b"),
-// keyword
-struct_regex  ("\\bstruct\\b"),
-enum_regex    ("\\benum\\b");
-
-uint8_t CONST_MASK = 0x01;
-uint8_t STATIC_MASK = 0x01 << 1;
-uint8_t EXTERN_MASK = 0x01 << 2;
-uint8_t VOLATILE_MASK = 0x01 << 3;
-// length
-uint8_t UNSIGNED_MASK = 0x01;
-uint8_t SIGNED_MASK = 0x01 << 1;
-uint8_t SHORT_MASK = 0x01 << 2;
-uint8_t LONG_MASK = 0x01 << 3;
-// primitive
-uint8_t INT_MASK = 0x01;
-uint8_t CHAR_MASK = 0x01 << 1;
-uint8_t FLOAT_MASK = 0x01 << 2;
-uint8_t DOUBLE_MASK = 0x01 << 3;
-uint8_t BOOL_MASK = 0x01 << 4;
-uint8_t VOID_MASK = 0x01 << 5;
-// keyword
-uint8_t STRUCT_MASK = 0x01;
-uint8_t ENUM_MASK = 0x01 << 1;
-
-TypeFactory::TypeFactory(const std::string& name)
-: m_name(name), m_modifier(0), m_length(0), m_primitive(0), m_keyword(0) {
-  decomposite(m_name);
+static bool
+search_and_remove(std::string &s, std::regex reg) {
+  if (std::regex_search(s, reg)) {
+    s = std::regex_replace(s, reg, "");
+    return true;
+  }
+  return false;
 }
 
-static bool
-is_primitive_type(uint8_t length, uint8_t primitive) {
-  if (length || primitive) return true;
-  else return false;
+static int
+count_and_remove(std::string &s, char c) {
+  int count = std::count(s.begin(), s.end(), c);
+  if (count) {
+    s.erase(std::remove(s.begin(), s.end(), c), s.end());
+  }
+  return count;
+}
+
+static void
+fill_storage_specifier(std::string& name, struct storage_specifier& specifier) {
+  specifier.is_auto     = search_and_remove(name, std::regex("\\bauto\\b"))     ? 1 : 0;
+  specifier.is_register = search_and_remove(name, std::regex("\\bregister\\b")) ? 1 : 0;
+  specifier.is_static   = search_and_remove(name, std::regex("\\bstatic\\b"))   ? 1 : 0;
+  specifier.is_extern   = search_and_remove(name, std::regex("\\bextern\\b"))   ? 1 : 0;
+  // specifier.is_typedef     = search_and_remove(name, typedef_regex)     ? 1 : 0;
+}
+
+static void
+fill_type_specifier(std::string& name, struct type_specifier& specifier) {
+  specifier.is_void     = search_and_remove(name, std::regex("\\bvoid\\b"))     ? 1 : 0;
+  specifier.is_char     = search_and_remove(name, std::regex("\\bchar\\b"))     ? 1 : 0;
+  specifier.is_short    = search_and_remove(name, std::regex("\\bshort\\b"))    ? 1 : 0;
+  specifier.is_int      = search_and_remove(name, std::regex("\\bint\\b"))      ? 1 : 0;
+  specifier.is_long     = search_and_remove(name, std::regex("\\blong\\b"))     ? 1 : 0;
+  specifier.is_float    = search_and_remove(name, std::regex("\\bfloat\\b"))    ? 1 : 0;
+  specifier.is_double   = search_and_remove(name, std::regex("\\bdouble\\b"))   ? 1 : 0;
+  specifier.is_signed   = search_and_remove(name, std::regex("\\bsigned\\b"))   ? 1 : 0;
+  specifier.is_unsigned = search_and_remove(name, std::regex("\\bunsigned\\b")) ? 1 : 0;
+  specifier.is_bool     = search_and_remove(name, std::regex("\\bbool\\b"))     ? 1 : 0;
+}
+static void
+fill_type_qualifier(std::string& name, struct type_qualifier& qualifier) {
+  qualifier.is_const    = search_and_remove(name, std::regex("\\bconst\\b"))    ? 1 : 0;
+  qualifier.is_volatile = search_and_remove(name, std::regex("\\bvolatile\\b")) ? 1 : 0;
+}
+
+static void
+fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
+  specifier.is_struct = search_and_remove(name, std::regex("\\bstruct\\b")) ? 1 : 0;
+  specifier.is_enum   = search_and_remove(name, std::regex("\\benum\\b"))   ? 1 : 0;
+  specifier.is_union  = search_and_remove(name, std::regex("\\bunion\\b"))  ? 1 : 0;
+}
+
+TypeFactory::TypeFactory(const std::string& name)
+: m_name(name), m_dimension(0), m_pointer_level(0) {
+  std::string name_tmp = m_name;
+  if (name_tmp.find('[') != -1) {
+    m_dimension = std::count(name_tmp.begin(), name_tmp.end(), '[');
+    name_tmp = name_tmp.substr(0, name_tmp.find('['));
+  }
+  m_pointer_level = count_and_remove(name_tmp, '*');
+  fill_storage_specifier(name_tmp, m_component.storage_specifier);
+  fill_type_specifier(name_tmp, m_component.type_specifier);
+  fill_type_qualifier(name_tmp, m_component.type_qualifier);
+  fill_struct_specifier(name_tmp, m_component.struct_specifier);
+  m_identifier = StringUtil::trim(name_tmp);
 }
 
 bool
 TypeFactory::IsPrimitiveType() {
-  return is_primitive_type(m_length, m_primitive);
-}
-
-static bool
-is_enum_type(uint8_t keyword) {
-  if (keyword & ENUM_MASK) return true;
-  else return false;
+  return m_identifier.empty();
 }
 
 static bool
@@ -89,10 +98,8 @@ is_local_type(const std::string& identifier) {
 std::shared_ptr<Type>
 TypeFactory::CreateType() {
   std::shared_ptr<Type> type;
-  if (is_primitive_type(m_length, m_primitive)) {
-    type = std::make_shared<PrimitiveType>(m_length, m_primitive);
-  } else if (is_enum_type(m_keyword)) {
-    type = std::make_shared<EnumType>(m_identifier);
+  if (IsPrimitiveType()) {
+    type = std::make_shared<PrimitiveType>(m_component.type_specifier);
   } else if (is_local_type(m_identifier)) {
     // need to know the code for local type
     // only handle structure or typedef
@@ -163,62 +170,4 @@ TypeFactory::CreateType() {
   type->SetPointerLevel(m_pointer_level);
   type->SetDimension(m_dimension);
   return type;
-}
-
-bool search_and_remove(std::string &s, std::regex reg) {
-  if (std::regex_search(s, reg)) {
-    s = std::regex_replace(s, reg, "");
-    return true;
-  }
-  return false;
-}
-
-int count_and_remove(std::string &s, char c) {
-  int count = std::count(s.begin(), s.end(), c);
-  if (count) {
-    s.erase(std::remove(s.begin(), s.end(), c), s.end());
-  }
-  return count;
-}
-
-void
-TypeFactory::clear() {
-  m_modifier = 0;
-  m_length = 0;
-  m_primitive = 0;
-  m_keyword = 0;
-  m_identifier = "";
-  m_dimension = 0;
-  m_pointer_level = 0;
-}
-void
-TypeFactory::decomposite(std::string name) {
-  clear();
-  if (name.find('[') != -1) {
-    m_dimension = std::count(name.begin(), name.end(), '[');
-    name = name.substr(0, name.find('['));
-  }
-  m_pointer_level = count_and_remove(name, '*');
-  // modifier
-  if (search_and_remove(name, const_regex)) m_modifier |= CONST_MASK;
-  if (search_and_remove(name, static_regex)) m_modifier |= STATIC_MASK;
-  if (search_and_remove(name, extern_regex)) m_modifier |= EXTERN_MASK;
-  if (search_and_remove(name, volatile_regex)) m_modifier |= VOLATILE_MASK;
-  // length
-  if (search_and_remove(name, unsigned_regex)) m_length |= UNSIGNED_MASK;
-  if (search_and_remove(name, signed_regex)) m_length |= SIGNED_MASK;
-  if (search_and_remove(name, long_regex)) m_length |= LONG_MASK;
-  if (search_and_remove(name, short_regex)) m_length |= SHORT_MASK;
-  // primitive
-  if (search_and_remove(name, int_regex)) m_primitive |= INT_MASK;
-  if (search_and_remove(name, char_regex)) m_primitive |= CHAR_MASK;
-  if (search_and_remove(name, float_regex)) m_primitive |= FLOAT_MASK;
-  if (search_and_remove(name, double_regex)) m_primitive |= DOUBLE_MASK;
-  if (search_and_remove(name, bool_regex)) m_primitive |= BOOL_MASK;
-  if (search_and_remove(name, void_regex)) m_primitive |= VOID_MASK;
-  // other
-  if (search_and_remove(name, struct_regex)) m_keyword |= STRUCT_MASK;
-  if (search_and_remove(name, enum_regex)) m_keyword |= ENUM_MASK;
-
-  m_identifier = StringUtil::trim(name);
 }
