@@ -25,7 +25,16 @@ std::string
 UnionType::GetInputCode(const std::string& var) const {
   // TODO parse fields
   // TODO input from outside
-  return m_avail_name + " " + var + ";\n";
+  std::string code;
+  if (GetDimension()>0) {
+    code = Type::GetArrayCode(m_avail_name.c_str(), var, GetDimension());
+  }
+  if (GetPointerLevel() > 0) {
+    code = Type::GetAllocateCode(m_avail_name, var, GetPointerLevel());
+  } else {
+    code = m_avail_name + " " + var + ";\n";
+  }
+  return code;
 }
 std::string UnionType::GetOutputCode(const std::string& var) const {
   return "";

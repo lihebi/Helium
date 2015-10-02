@@ -153,7 +153,7 @@ TypeFactory::CreateType() {
     std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
     if (prim_type.empty()) {
       // TODO detail of system type
-      type = std::make_shared<SystemType>(m_identifier);
+      type = std::make_shared<SystemType>(m_identifier, m_component.struct_specifier);
     } else {
       // std::cout << "Resolved from " << m_identifier << " to Primitive: \033[32m" << prim_type << "\033[0m" << std::endl;
       std::string new_name = m_name;
