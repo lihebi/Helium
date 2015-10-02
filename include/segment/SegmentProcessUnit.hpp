@@ -19,13 +19,12 @@ public:
   void Process();
   bool IncreaseContext();
   // builder functions
-  std::string InstrumentIO();
-  std::string GetContext();
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();
 
 private:
+  std::string getContext();
   void contextSearch();
   void linearSearch(int value);
 

@@ -175,14 +175,11 @@ sortSnippets2(std::set<Snippet*> all) {
   return sorted;
 }
 
-
 std::string
-SegmentProcessUnit::InstrumentIO() {
-  return "";
-}
-std::string
-SegmentProcessUnit::GetContext() {
-  return "";
+SegmentProcessUnit::getContext() {
+  std::string context = m_context->GetText();
+  std::regex return_regex("\\breturn\\b[^;]*;");
+  return std::regex_replace(context, return_regex, "//replaced return\n");
 }
 
 std::string
@@ -217,7 +214,8 @@ SegmentProcessUnit::GetMain() {
   s += getInputCode();
   s += "// Context\n";
   s += "// " + m_filename + "\n";
-  s += m_context->GetText();
+  // s += m_context->GetText();
+  s += getContext();
   s += "\n}";
   return s;
 }

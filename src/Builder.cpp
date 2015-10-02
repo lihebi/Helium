@@ -33,8 +33,6 @@ Builder::writeMakefile() {
 void
 Builder::Build() {
   std::cout<<"[Builder][Build]"<<std::endl;
-  m_seg_unit->InstrumentIO();
-  // m_seg_unit->GetContext();
   m_main = m_seg_unit->GetMain();
   m_support = m_seg_unit->GetSupport();
   m_makefile = m_seg_unit->GetMakefile();
