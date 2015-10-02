@@ -267,12 +267,17 @@ get_headers() {
 
 std::string
 get_head() {
-  return std::string()
-  + "#ifndef __SUPPORT_H__\n"
-  + "#define __SUPPORT_H__\n"
-  + "typedef int bool;\n"
-  + "#define true 1\n"
-  + "#define false 0\n";
+  return
+  "#ifndef __SUPPORT_H__\n"
+  "#define __SUPPORT_H__\n"
+  "typedef int bool;\n"
+  "#define true 1\n"
+  "#define false 0\n"
+  // some code will config to have this variable.
+  // Should not just define it randomly, but this is the best I can do to make it compile ...
+  "#define VERSION \"1\"\n"
+  "#define PACKAGE \"helium\"\n"
+  ;
 }
 
 std::string
