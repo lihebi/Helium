@@ -20,6 +20,16 @@ std::vector<pugi::xml_node> Segment::GetNodes() const {
   return m_nodes;
 }
 
+pugi::xml_node
+Segment::GetFirstNode() const {
+  if (m_nodes.empty()) {
+    // this should be a node_null
+    return pugi::xml_node();
+  } else {
+    return m_nodes[0];
+  }
+}
+
 void Segment::Print() {
   std::cout<<"=======Segment======="<<std::endl;
   for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {

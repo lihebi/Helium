@@ -13,6 +13,7 @@ public:
   void Clear();
   void Print();
   std::vector<pugi::xml_node> GetNodes() const;
+  pugi::xml_node GetFirstNode() const;
   std::string GetText();
 private:
   std::vector<pugi::xml_node> m_nodes;

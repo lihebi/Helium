@@ -67,6 +67,9 @@ std::string DomUtil::GetTextContent(pugi::xml_node node) {
   return walker.text;
 }
 
+/*
+ * Test if node is in a <tagname> within <level> levels
+ */
 bool
 DomUtil::InNode(pugi::xml_node node, std::string tagname, int level) {
   while (node.parent() && level>0) {

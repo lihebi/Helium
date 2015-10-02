@@ -29,6 +29,31 @@ void SegmentProcessUnit::Process() {
   resolveSnippets();
 }
 
+bool
+SegmentProcessUnit::IsValid() {
+  // check if valid
+  // check if the segment is in a funciton prototype that contains enum parameter or return type
+  // if the parameter of function is used, I cannot resolve its type.
+  // The segment must be inside a function.
+  // FIXME maybe the segment itself is not in a enum function,
+  // but when doing context search, it may go into a interprocedure that is in enum function
+  // So check m_context every time doing context search should be complete solution.
+  pugi::xml_node node = m_segment->GetFirstNode();
+  if (node && DomUtil::InNode(node, "function", 100)) {
+    return true;
+  } else {
+    // TODO the segment not in function(the function prototype has enum)
+    // may also be able to analyze if it doesn't use the function parameters.
+    // But, sorry I don't care about you.
+    std::cout << "[SegmentProcessUnit::Valid]"
+    << "\033[33m"
+    << "segment not valid because it is not in a function"
+    << "\033[0m"
+    << std::endl;
+    return false;
+  }
+}
+
 bool SegmentProcessUnit::IncreaseContext() {
   std::cout<<"[SegmentProcessUnit][IncreaseContext]"<<std::endl;
   m_linear_search_value++;
@@ -46,8 +71,12 @@ bool SegmentProcessUnit::IncreaseContext() {
     if (!tmp) return false;
     if (strcmp(tmp.name(), "function") == 0) {
       // interprocedure
+      // TODO function should be in generate.c
+      // TODO segment should be recognized(kept)
+      std::cout << "\033[32m" << "interprocedure context search" << "\033[0m" << std::endl;
       m_functions.push_back(tmp);
       tmp = DomUtil::GetFunctionCall(tmp);
+      if (!tmp) return false;
       m_context->Clear();
       m_context->PushBack(tmp);
     } else {

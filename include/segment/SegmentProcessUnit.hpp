@@ -22,6 +22,7 @@ public:
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();
+  bool IsValid();
 
 private:
   std::string getContext();

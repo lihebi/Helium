@@ -65,7 +65,9 @@ void Reader::getLoopSegments() {
       // every node is a loop segment!
       std::shared_ptr<SegmentProcessUnit> su = std::make_shared<SegmentProcessUnit>(m_filename);
       su->AddNode(it->node());
-      m_seg_units.push_back(su);
+      if (su->IsValid()) {
+        m_seg_units.push_back(su);
+      }
     }
   }
 
