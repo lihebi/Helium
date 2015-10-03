@@ -6,18 +6,22 @@ ArgParser::ArgParser(int argc, char** argv)
   po::options_description options("Arguments");
   options.add_options()
     ("help", "produce help message")
-    ("log-level", po::value<int>()->default_value(5), "log level");
+    ("log-level", po::value<int>()->default_value(5), "log level")
+    ;
   po::options_description cmd_utils("Utils");
   cmd_utils.add_options()
     ("split", "split declaration")
     ("remove-comment", "remove comment")
-    ("ctags", "create ctags");
+    ("ctags", "create ctags")
+    ("cond-comp", "conditional compile")
+    ;
   po::options_description experiments("Experiments");
   experiments.add_options()
     ("build-rate", "run build rate experiment")
     ("equivalence", "run equivalence checking experiment")
     ("change", "run change experiment")
-    ("config", po::value<std::string>(), "config file");
+    ("config", po::value<std::string>(), "config file")
+    ;
   po::options_description hidden("Hidden options");
   hidden.add_options()
     ("folder", "project folder");
@@ -67,7 +71,7 @@ bool ArgParser::validate() {
 }
 
 bool ArgParser::HasCmdUtils() {
-  if (Has("split") || Has("remove-comment") || Has("ctags")) {
+  if (Has("split") || Has("remove-comment") || Has("ctags") || Has("cond-comp")) {
     return true;
   } else {
     return false;

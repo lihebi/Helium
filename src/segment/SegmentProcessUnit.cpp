@@ -306,6 +306,13 @@ get_head() {
   // Should not just define it randomly, but this is the best I can do to make it compile ...
   "#define VERSION \"1\"\n"
   "#define PACKAGE \"helium\"\n"
+  // GNU Standard
+  "#define PACKAGE_NAME \"helium\"\n"
+  "#define PACKAGE_BUGREPORT \"xxx@xxx.com\"\n"
+  "#define PACKAGE_STRING \"helium 0.1\"\n"
+  "#define PACKAGE_TARNAME \"helium\"\n"
+  "#define PACKAGE_URL \"\"\n"
+  "#define PACKAGE_VERSION \"0.1\"\n"
   ;
 }
 

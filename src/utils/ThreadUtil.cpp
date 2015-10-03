@@ -2,7 +2,7 @@
 
 std::string ThreadUtil::Exec(const char* cmd) {
   FILE* pipe = popen(cmd, "r");
-  if (!pipe) return "ERROR";
+  if (!pipe) return "[ThreadUtil::Exec] ERROR";
   char buffer[128];
   std::string result = "";
   while(!feof(pipe)) {

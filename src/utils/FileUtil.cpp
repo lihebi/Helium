@@ -199,6 +199,21 @@ FileUtil::Write(
   }
 }
 
+std::string
+FileUtil::Read(const std::string& file) {
+  std::ifstream is;
+  is.open(file);
+  std::string code;
+  if (is.is_open()) {
+    std::string line;
+    while(getline(is, line)) {
+      code += line+"\n";
+    }
+    is.close();
+  }
+  return code;
+}
+
 void
 FileUtil::RemoveFolder(const std::string& folder) {
   fs::path folder_path(folder);

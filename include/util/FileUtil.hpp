@@ -29,6 +29,7 @@ public:
     const std::string& file,
     const std::string& content
   );
+  static std::string Read(const std::string& file);
 
   // folders
   static void RemoveFolder(const std::string& folder);

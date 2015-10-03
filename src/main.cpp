@@ -6,11 +6,11 @@
 
 #include <cstdlib>
 
-#include <Helium.hpp>
-#include <Config.hpp>
-#include <cmd/CommentRemover.hpp>
-#include <cmd/Splitter.hpp>
-#include <ArgParser.hpp>
+#include "Helium.hpp"
+#include "Config.hpp"
+#include "cmd/CommentRemover.hpp"
+#include "cmd/Splitter.hpp"
+#include "ArgParser.hpp"
 
 #include <spdlog/spdlog.h>
 #include "resolver/Ctags.hpp"
@@ -18,6 +18,7 @@
 #include "util/FileUtil.hpp"
 #include "resolver/SystemResolver.hpp"
 #include "resolver/HeaderSorter.hpp"
+#include "cmd/CondComp.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -33,6 +34,7 @@ int main(int argc, char* argv[]) {
   std::string folder = arg_parser->GetString("folder");
   fs::path project_folder(folder);
   std::string tagfile = (project_folder / "tags").string();
+  // utils
   if (arg_parser->HasCmdUtils()) {
     if (arg_parser->Has("split")) {
       Splitter(folder).Run();
@@ -45,8 +47,11 @@ int main(int argc, char* argv[]) {
       cmd += folder;
       std::cout<<cmd<<std::endl;
       std::system(cmd.c_str());
+    } else if (arg_parser->Has("cond-comp")) {
+      CondComp(folder).Run();
     }
   } else {
+    // main
     fs::path config_file;
     if (arg_parser->Has("build-rate")) {
       config_file =  helium_home / "buildrate.xml";

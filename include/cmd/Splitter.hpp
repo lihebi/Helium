@@ -12,7 +12,6 @@ public:
 private:
   std::string m_folder;
   std::vector<std::string> m_files;
-  std::vector<std::string> m_stringcache;
 };
 
 #endif
