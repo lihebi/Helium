@@ -22,6 +22,16 @@
 
 namespace fs = boost::filesystem;
 
+static void
+create_ctags(const std::string& folder) {
+  std::string cmd = "ctags -f ";
+  cmd += folder + "/tags";
+  cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
+  cmd += folder;
+  std::cout<< "create_ctags: " << cmd <<std::endl;
+  std::system(cmd.c_str());
+}
+
 int main(int argc, char* argv[]) {
   const char *helium_home_env = std::getenv("HELIUM_HOME");
   spdlog::stdout_logger_mt("console");
@@ -32,8 +42,7 @@ int main(int argc, char* argv[]) {
   fs::path helium_home(helium_home_env);
   ArgParser *arg_parser = new ArgParser(argc, argv);
   std::string folder = arg_parser->GetString("folder");
-  fs::path project_folder(folder);
-  std::string tagfile = (project_folder / "tags").string();
+  while (folder.back() == '/') folder.pop_back();
   // utils
   if (arg_parser->HasCmdUtils()) {
     if (arg_parser->Has("split")) {
@@ -41,14 +50,14 @@ int main(int argc, char* argv[]) {
     } else if (arg_parser->Has("remove-comment")) {
       CommentRemover(folder).Run();
     } else if (arg_parser->Has("ctags")) {
-      std::string cmd = "ctags -f ";
-      cmd += tagfile;
-      cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_out -R ";
-      cmd += folder;
-      std::cout<<cmd<<std::endl;
-      std::system(cmd.c_str());
+      create_ctags(folder);
     } else if (arg_parser->Has("cond-comp")) {
       CondComp(folder).Run();
+    } else if (arg_parser->Has("pre")) {
+      CommentRemover(folder).Run();
+      Splitter(folder).Run();
+      CondComp(folder).Run();
+      create_ctags(folder);
     }
   } else {
     // main
@@ -66,9 +75,9 @@ int main(int argc, char* argv[]) {
     }
     Config *config = Config::Instance();
     config->Load(config_file.string());
-    Ctags::Instance()->Load(tagfile);
+    Ctags::Instance()->Load(folder + "/tags");
     SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
-    HeaderSorter::Instance()->Load(project_folder.string());
+    HeaderSorter::Instance()->Load(folder);
     std::string output_folder = config->GetOutputFolder();
     FileUtil::RemoveFolder(output_folder);
     FileUtil::CreateFolder(output_folder);

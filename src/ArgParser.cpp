@@ -14,6 +14,7 @@ ArgParser::ArgParser(int argc, char** argv)
     ("remove-comment", "remove comment")
     ("ctags", "create ctags")
     ("cond-comp", "conditional compile")
+    ("pre", "preprocess")
     ;
   po::options_description experiments("Experiments");
   experiments.add_options()
@@ -71,7 +72,7 @@ bool ArgParser::validate() {
 }
 
 bool ArgParser::HasCmdUtils() {
-  if (Has("split") || Has("remove-comment") || Has("ctags") || Has("cond-comp")) {
+  if (Has("split") || Has("remove-comment") || Has("ctags") || Has("cond-comp") || Has("pre")) {
     return true;
   } else {
     return false;
