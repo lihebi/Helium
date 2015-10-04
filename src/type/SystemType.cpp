@@ -5,9 +5,10 @@ SystemType::SystemType(
   const std::string& name, const struct struct_specifier& specifier
 ) : m_name(name), m_specifier(specifier) {
   std::cout << "[SystemType::SystemType] " << m_name << std::endl;
-  if (m_specifier.is_struct) m_type = "struct " + m_name;
-  if (m_specifier.is_enum) m_type = "enum " + m_name;
-  if (m_specifier.is_union) m_type = "union " + m_name;
+  if (m_specifier.is_struct)     m_type = "struct " + m_name;
+  else if (m_specifier.is_enum)  m_type = "enum " + m_name;
+  else if (m_specifier.is_union) m_type = "union " + m_name;
+  else                           m_type = m_name;
 }
 SystemType::~SystemType() {
 }
