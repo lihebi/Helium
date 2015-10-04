@@ -8,6 +8,7 @@
 #include "resolver/SystemResolver.hpp"
 #include <iostream>
 #include <cassert>
+#include "snippet/TypedefSnippet.hpp"
 
 static bool
 search_and_remove(std::string &s, std::regex reg) {
@@ -94,80 +95,97 @@ is_local_type(const std::string& identifier) {
   else return true;
 }
 
-
 std::shared_ptr<Type>
-TypeFactory::CreateType() {
+TypeFactory::createLocalType() {
   std::shared_ptr<Type> type;
-  if (IsPrimitiveType()) {
-    type = std::make_shared<PrimitiveType>(m_component.type_specifier);
-  } else if (is_local_type(m_identifier)) {
-    // need to know the code for local type
-    // only handle structure or typedef
-    std::set<Snippet*> snippets = Ctags::Instance()->Resolve(m_identifier);
-    // scan for the first pass, for 's' or 'g' snippets
-    for (auto it=snippets.begin();it!=snippets.end();it++) {
-      if ((*it)->GetType() == 's') {
-        // just create the structure
-        type = std::make_shared<StructureType>(m_identifier);
-        break;
-      } else if ((*it)->GetType() == 'g') {
-        // this is the typedef enum
-        type = std::make_shared<EnumType>(m_identifier);
-      } else if ((*it)->GetType() == 'u') {
-        type = std::make_shared<UnionType>(m_identifier);
-      }
+  // need to know the code for local type
+  // only handle structure or typedef
+  std::set<Snippet*> snippets = Ctags::Instance()->Resolve(m_identifier);
+  // scan for the first pass, for 's' or 'g' snippets
+  for (auto it=snippets.begin();it!=snippets.end();it++) {
+    if ((*it)->GetType() == 's') {
+      // just create the structure
+      type = std::make_shared<StructureType>(m_identifier);
+      break;
+    } else if ((*it)->GetType() == 'g') {
+      // this is the typedef enum
+      type = std::make_shared<EnumType>(m_identifier);
+    } else if ((*it)->GetType() == 'u') {
+      type = std::make_shared<UnionType>(m_identifier);
     }
-    if (!type) {
-      // separate 't' with 'gs' to fix the bug: typedef struct conn conn
-      for (auto it=snippets.begin();it!=snippets.end();it++) {
-        if ((*it)->GetType() == 't') {
-          // extract the to_type, and recursively create type.
-          std::string code = (*it)->GetCode();
-          code = code.substr(code.find("typedef"));
-          code = code.substr(0, code.rfind(';'));
-          std::vector<std::string> vs = StringUtil::Split(code);
-          // FIXME may not be the middle
-          // to_type is the middle part of split
-          std::string to_type;
-          for (int i=1;i<vs.size()-1;i++) {
-            to_type += vs[i]+' ';
-          }
+  }
+  if (!type) {
+    // separate 't' with 'gs' to fix the bug: typedef struct conn conn
+    // resolve conn as the true code struct conn {} first possible, so that no recursive
+    for (auto it=snippets.begin();it!=snippets.end();it++) {
+      if ((*it)->GetType() == 't') {
+        if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_TYPE) {
+          std::string to_type = ((TypedefSnippet*)*it)->GetToType();
           std::string new_name = m_name;
           new_name.replace(new_name.find(m_identifier), m_identifier.length(), to_type);
           // CAUSION this may or may not be a primitive type
           // FIXME may infinite loop?
           // YES, by typedef struct conn conn
           type = TypeFactory(new_name).CreateType();
-          break;
+        } else if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_FUNC_POINTER) {
+          std::cout << "[TypeFactory::CreateType]"
+          << "\033[33m" << "typedef" + m_identifier + "is function pointer" << "\033[0m"
+          << std::endl;
         }
+        break;
       }
     }
-    // type should contains something.
-    // or it may be NULL. So if it fails, do not necessarily means a bug
-    if (!type) {
-      std::cout << "[TypeFactory::CreateType]" << "\033[31m" << "the type is local, but is not s or t: " << m_identifier << std::endl;
-      exit(1);
-    }
+  }
+  // type should contains something.
+  // or it may be NULL. So if it fails, do not necessarily means a bug
+  if (!type) {
+    std::cout << "[TypeFactory::CreateType]"
+    << "\033[31m"
+    << "the type is local, but is not s or t: " << m_identifier
+    << "\033[0m" << std::endl;
+    // getchar();
+    return NULL;
+  }
+  return type;
+}
+
+std::shared_ptr<Type>
+TypeFactory::createSystemType() {
+  std::shared_ptr<Type> type;
+  // std::cout << m_identifier << std::endl;
+  std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
+  if (prim_type.empty()) {
+    // TODO detail of system type
+    type = std::make_shared<SystemType>(m_identifier, m_component.struct_specifier);
+  } else {
+    // std::cout << "Resolved from " << m_identifier << " to Primitive: \033[32m" << prim_type << "\033[0m" << std::endl;
+    std::string new_name = m_name;
+    new_name.replace(new_name.find(m_identifier), m_identifier.length(), prim_type);
+    // FIXME this should be a primitive type
+    type = TypeFactory(new_name).CreateType();
+  }
+  return type;
+}
+
+std::shared_ptr<Type>
+TypeFactory::CreateType() {
+  // std::cout << "[TypeFactory::CreateType]" << m_name << std::endl;
+  std::shared_ptr<Type> type;
+  if (IsPrimitiveType()) {
+    type = std::make_shared<PrimitiveType>(m_component.type_specifier);
+  } else if (is_local_type(m_identifier)) {
+    type = createLocalType();
   } else if (is_system_type(m_identifier)) {
-    // std::cout << m_identifier << std::endl;
-    std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
-    if (prim_type.empty()) {
-      // TODO detail of system type
-      type = std::make_shared<SystemType>(m_identifier, m_component.struct_specifier);
-    } else {
-      // std::cout << "Resolved from " << m_identifier << " to Primitive: \033[32m" << prim_type << "\033[0m" << std::endl;
-      std::string new_name = m_name;
-      new_name.replace(new_name.find(m_identifier), m_identifier.length(), prim_type);
-      // FIXME this should be a primitive type
-      type = TypeFactory(new_name).CreateType();
-    }
+    type = createSystemType();
   } else {
     std::cout << "\033[33m[TypeFactory::CreateType][Warning] Not supported type: "
     << m_identifier << "\033[0m"
     << " in: " << m_name << std::endl;
     return NULL;
   }
-  type->SetPointerLevel(m_pointer_level);
-  type->SetDimension(m_dimension);
+  if (type) {
+    type->SetPointerLevel(m_pointer_level);
+    type->SetDimension(m_dimension);
+  }
   return type;
 }

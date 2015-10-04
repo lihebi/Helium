@@ -51,7 +51,8 @@ public:
   std::shared_ptr<Type> CreateType();
   bool IsPrimitiveType();
 private:
-  void clear();
+  std::shared_ptr<Type> createLocalType();
+  std::shared_ptr<Type> createSystemType();
   void decomposite(std::string name);
 
 

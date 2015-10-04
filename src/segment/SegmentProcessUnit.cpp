@@ -73,7 +73,9 @@ bool SegmentProcessUnit::IncreaseContext() {
       // interprocedure
       // TODO function should be in generate.c
       // TODO segment should be recognized(kept)
-      std::cout << "\033[32m" << "interprocedure context search" << "\033[0m" << std::endl;
+      std::cout << "SegmentProcessUnit::IncreaseContext"
+      << "\033[36m" << "interprocedure context search" << "\033[0m"
+      << std::endl;
       m_functions.push_back(tmp);
       tmp = DomUtil::GetFunctionCall(tmp);
       if (!tmp) return false;
