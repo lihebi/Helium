@@ -56,7 +56,11 @@ void Splitter::Run() {
     for (int i=0;i<decl_stmts.size();i++) {
       pugi::xml_node decl_stmt_node = decl_stmts[i].node();
       pugi::xpath_node_set decls = decl_stmt_node.select_nodes("./decl");
-      if (decls.size()>1) {
+      // int a=0,b; will not have two <decl>, but a <decl><type><name><init><name></decl>
+      if (decls.size() == 0) continue;
+      pugi::xml_node decl_node = decls[0].node();
+      pugi::xpath_node_set decl_names = decl_node.select_nodes("./name");
+      if (decls.size()>1 || decl_names.size() > 1) {
         // needs split
         change_count++;
         std::string content = DomUtil::GetTextContent(decl_stmt_node);
