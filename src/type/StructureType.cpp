@@ -16,7 +16,6 @@ StructureType::StructureType(const std::string& name) {
   std::cout << "[StructureType::StructureType]" << name << std::endl;
   std::set<Snippet*> snippets = Ctags::Instance()->Resolve(name);
   for (auto it=snippets.begin();it!=snippets.end();it++) {
-    std::cout << (*it)->GetType() << std::endl;
     if ((*it)->GetType() == 's') {
       m_snippet = *it;
       m_name = m_snippet->GetName();

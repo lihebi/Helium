@@ -144,20 +144,27 @@ SnippetRegistry::resolveDependence(Snippet *s) {
   // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
     if (!LookUp(*it).empty()) {
-      // already resolved. Just add dependence
+      // this will success if any snippet for a string is added.
+      // So add all snippets for one string, then call this function recursively.
       addDependence(s, LookUp(*it));
     } else {
-      // resolve by ctags
-      // FIXME These are duplicate code. And possibly wrong because miss many checks
       std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
       if (!vc.empty()) {
-        for (auto it2=vc.begin();it2!=vc.end();it2++) {
-          Snippet *snew = createSnippet(*it2);
+        std::set<Snippet*> added_snippets;
+        // first: create and add, remove duplicate if possible
+        for (auto jt=vc.begin();jt!=vc.end();jt++) {
+          Snippet *s = LookUp(jt->GetName(), get_true_type(*jt));
+          if (s) continue;
+          Snippet *snew = createSnippet(*jt);
           if (snew) {
             add(snew);
-            addDependence(s, snew);
-            resolveDependence(snew);
+            added_snippets.insert(snew);
           }
+        }
+        // then: add dependence adn resolve dependence
+        addDependence(s, added_snippets);
+        for (auto jt=added_snippets.begin();jt!=added_snippets.end();jt++) {
+          resolveDependence(*jt);
         }
       }
     }
