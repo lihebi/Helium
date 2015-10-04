@@ -64,10 +64,10 @@ void Splitter::Run() {
         split(content);
         // std::cout<<"[Splitter][FROM]\033[31m"<<DomUtil::GetTextContent(decl_stmt_node)<<"\033[0m"<<std::endl;
         // std::cout<<"[Splitter][To]\033[32m"<<content<<"\033[0m"<<std::endl;
-        for (pugi::xml_node node : decl_stmt_node.children()) {
-          decl_stmt_node.remove_child(node);
-        }
-        decl_stmt_node.append_child(pugi::node_pcdata).set_value(content.c_str());
+        pugi::xml_node parent = decl_stmt_node.parent();
+        pugi::xml_node new_node = parent.insert_child_after("decl_stmt", decl_stmt_node);
+        new_node.append_child(pugi::node_pcdata).set_value(content.c_str());
+        parent.remove_child(decl_stmt_node);
       }
     }
     // write back
