@@ -13,6 +13,8 @@ SystemResolver::ResolveType(const std::string& name) {
   std::vector<CtagsEntry> entries = Parse(name, "t");
   for (auto it=entries.begin();it!=entries.end();it++) {
     std::string pattern = it->GetPattern();
+    // /^} FILE;$/
+    if (pattern.find("typedef") == -1 || pattern.rfind(';') == -1) continue;
     pattern = pattern.substr(pattern.find("typedef"));
     pattern = pattern.substr(0, pattern.rfind(';'));
     // FIXME typedef xxx xxx yyy ;

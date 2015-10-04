@@ -50,7 +50,6 @@ VariableFactory::FromDecl(pugi::xml_node node) {
     name_str = name_str.substr(0, name_str.find('['));
     std::shared_ptr<Type> type = TypeFactory(type_str).CreateType();
     if (type) {
-      // TODO pointer, reference, array
       return std::make_shared<Variable>(type, name_str);
     }
 

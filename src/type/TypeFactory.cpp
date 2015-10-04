@@ -152,7 +152,6 @@ TypeFactory::createLocalType() {
 std::shared_ptr<Type>
 TypeFactory::createSystemType() {
   std::shared_ptr<Type> type;
-  // std::cout << m_identifier << std::endl;
   std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
   if (prim_type.empty()) {
     // TODO detail of system type
