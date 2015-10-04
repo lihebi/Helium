@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cassert>
 #include <stack>
+#include "Config.hpp"
 
 CondComp::CondComp(const std::string &folder) : m_folder(folder) {
   std::vector<std::string> extension {"c", "h"};
@@ -14,6 +15,40 @@ CondComp::CondComp(const std::string &folder) : m_folder(folder) {
   getUsedMacros();
   getDefinedMacros();
   // m_defined_macros = m_macros;
+  std::string s = Config::Instance()->GetCondCompMacros();
+  if (!s.empty()) {
+    std::string path = std::string(std::getenv("HELIUM_HOME")) + "/" + s;
+    parseFile(path);
+  }
+  // print out
+  std::cout << "Used Macros:" << std::endl;
+  for (auto it=m_macros.begin();it!=m_macros.end();it++) {
+    std::cout << "\t" << *it << std::endl;
+  }
+  std::cout << "Defined Macros:" << std::endl;
+  for (auto it=m_defined_macros.begin();it!=m_defined_macros.end();it++) {
+    std::cout << "\t" << *it << std::endl;
+  }
+}
+
+void
+CondComp::parseFile(const std::string& file) {
+  std::cout << "[CondComp::parseFile]" << file << std::endl;
+  std::ifstream is;
+  is.open(file);
+  std::string line;
+  if (is.is_open()) {
+    while (std::getline(is, line)) {
+      StringUtil::trim(line);
+      // only support // at the beginning
+      if (line.find("//") == 0) continue;
+      // now only support #undef
+      if (line.find("#undef") == 0) {
+        m_macros.insert(StringUtil::Split(line)[1]);
+      }
+    }
+    is.close();
+  }
 }
 
 std::string
@@ -43,11 +78,6 @@ CondComp::getUsedMacros() {
     if (it->find("HAVE") == 0) {
       m_macros.insert(it->substr(0, it->find(' ')));
     }
-  }
-  // print out
-  std::cout << "Used Macros:" << std::endl;
-  for (auto it=m_macros.begin();it!=m_macros.end();it++) {
-    std::cout << "\t" << *it << std::endl;
   }
 }
 
@@ -83,10 +113,6 @@ CondComp::getDefinedMacros() {
       }
       is.close();
     }
-  }
-  std::cout << "Defined Macros:" << std::endl;
-  for (auto it=m_defined_macros.begin();it!=m_defined_macros.end();it++) {
-    std::cout << "\t" << *it << std::endl;
   }
 }
 

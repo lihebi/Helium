@@ -65,6 +65,8 @@ public:
   bool WillInteractReadSegment() const {return m_interact_read_segment;}
   bool WillInteractCompile() const {return m_interact_compile;}
   bool WillInteractCompileError() const {return m_interact_compile_error;}
+  // cmd
+  std::string GetCondCompMacros() const {return m_cond_comp_macros;}
 
 private:
   Config() {}
@@ -96,6 +98,8 @@ private:
   bool m_interact_read_segment;
   bool m_interact_compile;
   bool m_interact_compile_error;
+  // cmd
+  std::string m_cond_comp_macros;
 };
 
 #endif

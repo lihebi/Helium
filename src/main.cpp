@@ -43,6 +43,20 @@ int main(int argc, char* argv[]) {
   ArgParser *arg_parser = new ArgParser(argc, argv);
   std::string folder = arg_parser->GetString("folder");
   while (folder.back() == '/') folder.pop_back();
+  fs::path config_file;
+  if (arg_parser->Has("build-rate")) {
+    config_file =  helium_home / "buildrate.xml";
+  } else if (arg_parser->Has("equivalence")) {
+    config_file = helium_home / "equivalence.xml";
+  } else if (arg_parser->Has("change")) {
+    config_file = helium_home / "change.xml";
+  } else if (arg_parser->Has("config")) {
+    config_file = arg_parser->GetString("config");
+  } else {
+    config_file = helium_home / "helium.xml";
+  }
+  Config *config = Config::Instance();
+  config->Load(config_file.string());
   // utils
   if (arg_parser->HasCmdUtils()) {
     if (arg_parser->Has("split")) {
@@ -61,20 +75,6 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // main
-    fs::path config_file;
-    if (arg_parser->Has("build-rate")) {
-      config_file =  helium_home / "buildrate.xml";
-    } else if (arg_parser->Has("equivalence")) {
-      config_file = helium_home / "equivalence.xml";
-    } else if (arg_parser->Has("change")) {
-      config_file = helium_home / "change.xml";
-    } else if (arg_parser->Has("config")) {
-      config_file = arg_parser->GetString("config");
-    } else {
-      config_file = helium_home / "helium.xml";
-    }
-    Config *config = Config::Instance();
-    config->Load(config_file.string());
     Ctags::Instance()->Load(folder + "/tags");
     SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
     HeaderSorter::Instance()->Load(folder);

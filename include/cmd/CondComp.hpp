@@ -13,6 +13,7 @@ public:
 private:
   void getUsedMacros();
   void getDefinedMacros();
+  void parseFile(const std::string& file);
   int getAction(const std::string& line);
   int query(const std::string& id);
   bool process(std::vector<std::string>& lines);

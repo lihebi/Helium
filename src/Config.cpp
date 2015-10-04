@@ -75,4 +75,6 @@ void Config::Load(const std::string& filename) {
   } else {
     m_interact_compile_error = false;
   }
+  // cmd
+  m_cond_comp_macros = tree.get("helium.cmd.cond_comp_macros", "");
 }

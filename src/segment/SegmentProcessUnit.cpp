@@ -222,7 +222,9 @@ std::string
 SegmentProcessUnit::getContext() {
   std::string context = m_context->GetText();
   std::regex return_regex("\\breturn\\b[^;]*;");
-  return std::regex_replace(context, return_regex, "//replaced return\n");
+  context = std::regex_replace(context, return_regex, "//replaced return\n");
+  // FIXME when doing context search, break may appear, while we don't have the outside loop
+  return context;
 }
 
 std::string
@@ -359,7 +361,9 @@ SegmentProcessUnit::GetSupport() {
     if ((*it)->GetType() == 'f') {
       // functions
       code_func_decl += (*it)->GetDecl()+"\n";
-      code_func += (*it)->GetCode()+"\n";
+      code_func +=
+      "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
+      + "\n" + (*it)->GetCode() + '\n';
     } else {
       // all other codes
       code +=
@@ -382,7 +386,9 @@ SegmentProcessUnit::GetMakefile() {
   makefile = makefile + "a.out: generate.c\n"
   // makefile += "\tcc -std=c99 generate.c " + compile_option +"\n"
   // FIXME The -levent is 3rd party! Need to install first!
-  + "\tcc -std=c99 generate.c " + "-levent" + "\n"
+  // FIXME library should be changed according to CondComp
+  // TODO configurable include paths
+  + "\tcc -std=c99 generate.c " + "-levent -lsasl2" + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;
