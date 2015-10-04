@@ -86,16 +86,6 @@ simplify_variable_name(std::string& s) {
   s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
   s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
   s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
-  // s.erase(
-  //   std::remove(
-  //     s.begin(), s.end(),
-  //     [](char x) {
-  //       if (x=='(' || x==')' || x=='*' || x=='&') return true;
-  //       else return false;
-  //     }
-  //   ),
-  //   s.end()
-  // );
 }
 // return name used in <expr>
 std::vector<std::string>
@@ -163,6 +153,11 @@ IOResolver::resolveUndefinedVars(
   std::set<std::shared_ptr<Variable> >& resolved,
   std::set<std::shared_ptr<Variable> > defined // copy!
 ) {
+  // caution: this is a performance bottle neck.
+  // to limit the segment size may help
+  // static int count = 0;
+  // count++;
+  // std::cout << "[IOResolver::resolveUndefinedVars] " << count << std::endl;
   for (auto it=nodes.begin();it!=nodes.end();it++) {
     visit(*it, resolved, defined);
     std::vector<pugi::xml_node> vn;

@@ -38,6 +38,7 @@
     <skip_segment>10</skip_segment>
   </debug>
   <interact>
+    <read_segment>false</read_segment>
     <compile>false</compile>
     <compile_error>true</compile_error>
   </interact>

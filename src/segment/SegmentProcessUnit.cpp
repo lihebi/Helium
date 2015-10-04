@@ -32,6 +32,18 @@ void SegmentProcessUnit::Process() {
 bool
 SegmentProcessUnit::IsValid() {
   // check if valid
+  // check segment size
+  std::string content = m_segment->GetText();
+  int size = std::count(content.begin(), content.end(), '\n');
+  if (size > Config::Instance()->GetMaxSegmentSize()) {
+    std::cout << "[SegmentProcessUnit::IsValid]"
+    << "\033[33m"
+    << "segment not valid because its size: " << size
+    << " is larger than max: " << Config::Instance()->GetMaxSegmentSize()
+    << "\033[0m"
+    << std::endl;
+    return false;
+  }
   // check if the segment is in a funciton prototype that contains enum parameter or return type
   // if the parameter of function is used, I cannot resolve its type.
   // The segment must be inside a function.

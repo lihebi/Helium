@@ -62,6 +62,7 @@ public:
   bool WillShowCompileError() const {return m_show_compile_error;}
   int GetSkipSegment() const {return m_skip_segment;}
   // interact
+  bool WillInteractReadSegment() const {return m_interact_read_segment;}
   bool WillInteractCompile() const {return m_interact_compile;}
   bool WillInteractCompileError() const {return m_interact_compile_error;}
 
@@ -92,6 +93,7 @@ private:
   bool m_show_compile_error;
   int m_skip_segment;
   // interact
+  bool m_interact_read_segment;
   bool m_interact_compile;
   bool m_interact_compile_error;
 };

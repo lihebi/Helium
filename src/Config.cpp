@@ -60,6 +60,11 @@ void Config::Load(const std::string& filename) {
   }
   m_skip_segment = tree.get("helium.debug.skip_segment", 0);
   // interact
+  if (tree.get("helium.interact.read_segment", "false").compare("true") == 0) {
+    m_interact_read_segment = true;
+  } else {
+    m_interact_read_segment = false;
+  }
   if (tree.get("helium.interact.compile", "false").compare("true") == 0) {
     m_interact_compile = true;
   } else {

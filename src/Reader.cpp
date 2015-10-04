@@ -14,6 +14,10 @@ Reader::Reader(const std::string &filename)
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
   std::cout<<"[Reader] Total segment in this file: "<<m_seg_units.size()<<std::endl;
+  if (m_seg_units.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
+    std::cout << "[Reader::Reader] Done reading segment" << std::endl;
+    getchar();
+  }
   if (m_skip_segment == -1) {
     m_skip_segment = Config::Instance()->GetSkipSegment();
   }
