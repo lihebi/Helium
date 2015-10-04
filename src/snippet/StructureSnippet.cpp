@@ -42,4 +42,14 @@ StructureSnippet::StructureSnippet(const CtagsEntry& ce) {
   m_line_number = ce.GetLineNumber();
   m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
   get_keywords(m_code, m_name, m_alias, m_keywords);
+  // print();
+}
+
+void
+StructureSnippet::print() {
+  std::cout << "[StructureSnippet::print]" << std::endl;
+  std::cout << "\tname: " << m_name << std::endl;
+  std::cout << "\talias: " << m_alias << std::endl;
+  std::cout << "\tfilename: " << m_filename << std::endl;
+  std::cout << "\tline number: " << m_line_number << std::endl;
 }

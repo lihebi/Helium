@@ -13,20 +13,17 @@ StructureType::StructureType(const std::string& name) {
   // need to resolve instead of looking up registry,
   // because the resolving snippet phase
   // is far behind current phase of resolve IO variables.
+  std::cout << "[StructureType::StructureType]" << name << std::endl;
   std::set<Snippet*> snippets = Ctags::Instance()->Resolve(name);
   for (auto it=snippets.begin();it!=snippets.end();it++) {
+    std::cout << (*it)->GetType() << std::endl;
     if ((*it)->GetType() == 's') {
       m_snippet = *it;
-      if ((*it)->GetName() == name) {
-        m_name = name;
-        m_avail_name = "struct " + m_name;
-      } else {
-        m_alias = name;
-        m_avail_name = m_alias;
-      }
+      m_name = m_snippet->GetName();
+      break;
     }
   }
-  assert(!m_avail_name.empty());
+  assert(!m_name.empty());
   // parseFields();
 }
 StructureType::~StructureType() {
@@ -36,10 +33,10 @@ std::string
 StructureType::GetInputCode(const std::string& var) const {
   std::string code;
   if (GetDimension()>0) {
-    return Type::GetArrayCode(m_avail_name, var, GetDimension());
+    return Type::GetArrayCode(m_name, var, GetDimension());
   }
   if (GetPointerLevel()>0) {
-    return Type::GetAllocateCode(m_avail_name, var, GetPointerLevel());
+    return Type::GetAllocateCode(m_name, var, GetPointerLevel());
   } else {
     code += m_name + " " + var + ";\n";
   }

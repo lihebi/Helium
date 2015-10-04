@@ -22,6 +22,12 @@ IOResolver::ResolveLocalVar(
     node = node.previous_sibling();
     if (node.type() == pugi::node_element) {
       // won't search beyond function. That will resolved as global variable
+      // FIXME: slabs_clsid in slabs.c in memcached will skip the <function> ...
+      // if (name == "slabclass") {
+      //   std::cout << "\033[32m" << "slab class" << "\033[0m" << std::endl;
+      //   std::cout << node.name() << std::endl;
+      //   std::cout << DomUtil::GetTextContent(node) << std::endl;
+      // }
       if (strcmp(node.name(), "function") == 0) {
         return NULL;
       } else if (strcmp(node.name(), "decl_stmt") == 0) {

@@ -23,6 +23,7 @@ public:
   virtual std::string GetFilename() const {return m_filename;}
   virtual int GetLineNumber() const {return m_line_number;}
 private:
+  void print();
   std::string m_code;
   // m_name for structuresnippet should be the true name
   std::string m_name;
