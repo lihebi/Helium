@@ -14,6 +14,7 @@ private:
   void getUsedMacros();
   void getDefinedMacros();
   int getAction(const std::string& line);
+  int query(const std::string& id);
   bool process(std::vector<std::string>& lines);
   std::string m_folder;
   std::vector<std::string> m_files;

@@ -91,31 +91,103 @@ CondComp::getDefinedMacros() {
 }
 
 /*
+ * #elif HASH_BIG_ENDIAN == 1
+ * #if 0
+ * #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
+ */
+std::vector<std::string>
+get_tokens(const char *s_const) {
+  char *s = strdup(s_const);
+  std::vector<std::string> tokens;
+  char *token = strtok(s, " ");
+  while (token) {
+    if (strcmp(token, "#if") == 0) {
+      // tokens.push_back("#if");
+    } else if (strcmp(token, "#ifdef") == 0) {
+      // tokens.push_back("#ifdef");
+    } else if (strcmp(token, "#ifndef") == 0) {
+      // tokens.push_back("#ifndef");
+      tokens.push_back("!");
+    } else if (strcmp(token, "#elif") == 0) {
+      // tokens.push_back("#elif");
+    } else if (strcmp(token, "!") == 0) {
+      tokens.push_back("!");
+    } else if (strncmp(token, "defined", strlen("defined")) == 0) {
+      // tokens.push_back("defined");
+      if (strlen(token) > strlen("defined") + 1) {
+        std::string tmp(token+strlen("defined("));
+        if (tmp.back() == ')') tmp.pop_back();
+        tokens.push_back(tmp);
+      }
+    } else if (strncmp(token, "!defined", strlen("!defined")) == 0) {
+      tokens.push_back("!");
+      // tokens.push_back("defined")
+      if (strlen(token) > strlen("!defined") + 1) {
+        std::string tmp(token+strlen("!defined("));
+        if (tmp.back() == ')') tmp.pop_back();
+        tokens.push_back(tmp);
+      }
+    } else if (strcmp(token, "&&") == 0) {
+      // FIXME what if #if defined(xx)&&defined xx
+      tokens.push_back("&&");
+    } else if (strcmp(token, "||") == 0) {
+      tokens.push_back("||");
+    } else {
+      // macros
+      tokens.push_back(token);
+    }
+    token = strtok(NULL, " ");
+  }
+  free(s);
+  return tokens;
+}
+
+int
+CondComp::query(const std::string& id) {
+  if (m_macros.find(id) == m_macros.end()) return 0;
+  if (m_defined_macros.find(id) == m_defined_macros.end()) return -1;
+  return 1;
+}
+
+/*
  * -1: delete
  *  0: ignore
  *  1: keep
  */
 int
 CondComp::getAction(const std::string& line) {
-  assert(StringUtil::Split(line).size() > 1);
-  std::string id = StringUtil::Split(line)[1];
-  if (m_macros.find(id) != m_macros.end()) {
-    // found the macro. need process
-    bool positive = true;
-    if (m_defined_macros.find(id) == m_defined_macros.end()) {
+  // std::cout << "[CondComp::getAction] " << line << std::endl;
+  // #if defined(HAVE_GETPAGESIZES) && defined(HAVE_MEMCNTL)
+  // we do not handle #if (defined() && defined()), i.e. do not use () to change precedence
+  bool positive = true; // the current ! ifn status
+  bool is_and = true; // the current && or || status
+  int result = 0;
+  std::vector<std::string> tokens = get_tokens(line.c_str());
+  for (auto it=tokens.begin();it!=tokens.end();it++) {
+    if (*it == "!") {
       positive = !positive;
-    }
-    if (line.find("#ifn") == 0) {
-      positive = !positive;
-    }
-    if (positive) {
-      return 1;
+    } else if (*it == "&&") {
+      positive = true;
+      is_and = true;
+    } else if (*it == "||") {
+      positive = true;
+      is_and = false;
     } else {
-      return -1;
+      // macro
+      // std::cout << "\033[32m"<<"token: " << *it <<"\033[0m"<< std::endl;
+      int tmp = query(*it);
+      if (!positive) tmp = -tmp;
+      if (tmp != 0) {
+        if (result == 0) result = tmp;
+        else {
+          if (is_and) result = (result == 1 && tmp == 1) ? 1 : -1;
+          else result = (result == 1 || tmp == 1) ? 1 : -1;
+        }
+      }
+      // std::cout << "\033[33m" << "result: " << result << "\033[0m" << std::endl;
     }
-  } else {
-    return 0;
   }
+  return result;
 }
 
 bool

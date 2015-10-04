@@ -297,6 +297,7 @@ get_headers() {
     "sys/stat.h",
     "sys/param.h",
     "sys/resource.h",
+    "sasl/sasl.h", // TODO this should be changed according to CondComp
     "stddef.h",
     // FIXME 3rd party. Need to install first!!!
     "event.h"
