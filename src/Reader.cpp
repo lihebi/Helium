@@ -4,6 +4,7 @@
 #include "Tester.hpp"
 #include "Analyzer.hpp"
 #include "util/SrcmlUtil.hpp"
+#include "util/DomUtil.hpp"
 #include "Logger.hpp"
 
 int Reader::m_skip_segment = -1;
@@ -77,5 +78,28 @@ void Reader::getLoopSegments() {
 
 }
 void Reader::getAnnotationSegments() {
-  ;
+  std::cout << "[Reader::getAnnotationSegments]" << std::endl;
+  pugi::xml_node root = m_doc->document_element();
+  pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
+  for (auto it=comment_nodes.begin();it!=comment_nodes.end();it++) {
+    pugi::xml_node node = it->node();
+    std::string comment_text = DomUtil::GetTextContent(node);
+    if (comment_text.find("@HeliumStart") != -1) {
+      std::shared_ptr<SegmentProcessUnit> su = std::make_shared<SegmentProcessUnit>(m_filename);
+      su->AddNode(node);
+      while (node.next_sibling()) {
+        node = node.next_sibling();
+        su->AddNode(node);
+        if (node.type() == pugi::node_element && strcmp(node.name(), "comment") == 0) {
+          std::string comment_text = DomUtil::GetTextContent(node);
+          if (comment_text.find("@HeliumStop") != -1) {
+            break;
+          }
+        }
+      }
+      if (su->IsValid()) {
+        m_seg_units.push_back(su);
+      }
+    }
+  }
 }
