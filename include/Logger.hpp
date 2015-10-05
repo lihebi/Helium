@@ -13,6 +13,7 @@ public:
     return m_instance;
   }
   void Log(const std::string& content);
+  void Log(const std::string& filename, const std::string& content);
 private:
   Logger();
   ~Logger() {}
