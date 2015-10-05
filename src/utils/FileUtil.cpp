@@ -79,11 +79,16 @@ extract_backward(const std::vector<std::string>& vs, int line_number) {
   std::string s;
   int open_brace_count = 0;
   int close_brace_count = 0;
-  for (int i=line_number;i>0;i--) {
+  int i;
+  for (i=line_number;i>0;i--) {
     s = vs[i] + '\n' + s;
     open_brace_count += std::count(vs[i].begin(), vs[i].end(), '{');
     close_brace_count += std::count(vs[i].begin(), vs[i].end(), '}');
     if (open_brace_count == close_brace_count && open_brace_count > 0) break;
+  }
+  // the { is the beginning of the line. Add one more line
+  if (i > 0 && StringUtil::trimed(vs[i]).find('{') == 0) {
+    s = vs[i-1] + '\n' + s;
   }
   return s;
 }
@@ -119,6 +124,10 @@ extract_double(const std::vector<std::string>& vs, int line_number) {
   int i;
   for (i=line_number;i>0;i--) {
     if (vs[i].find('{') != -1) break;
+  }
+  // the { is the beginning of the line. Add one more line
+  if (i > 0 && StringUtil::trimed(vs[i]).find('{') == 0) {
+    i--;
   }
   std::string s;
   for (;i<vs.size();i++) {

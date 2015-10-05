@@ -21,6 +21,11 @@ public:
   static inline std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
   }
+  static inline std::string trimed(const std::string& s) {
+    std::string tmp = s;
+    trim(tmp);
+    return tmp;
+  }
 
   static bool EndsWith(const std::string &s, const std::string &pattern) {
     if (s.length() >= pattern.length()) {

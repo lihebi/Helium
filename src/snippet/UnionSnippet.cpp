@@ -16,8 +16,8 @@ get_keywords(
   std::regex_search(tmp, name_match, name_reg);
   if (!name_match.empty()) {
     name = name_match[1];
-    name += "union "+name;
     keywords.insert(name);
+    name = "union "+name;
   }
 
   tmp = code.substr(code.rfind('}'));
