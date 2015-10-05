@@ -26,17 +26,29 @@ Logger::Log(const std::string& content) {
 
 void
 Logger::Log(const std::string& filename, const std::string& content) {
-  fs::path file_path(filename);
-  fs::path dir = file_path.parent_path();
-  if (!fs::exists(dir)) {
-    fs::create_directories(dir);
-  }
-  std::ofstream os;
-  os.open(filename, std::ios::app);
-  if (os.is_open()) {
-    os << content << std::endl;
+  FILE *logger = getLogger(filename);
+  fputs(content.c_str(), logger);
+  fputc('\n', logger);
+  fflush(logger);
+}
+
+FILE*
+Logger::getLogger(const std::string& name) {
+  if (m_loggers.find(name) != m_loggers.end()) {
+    return m_loggers[name];
   } else {
-    std::cerr << "Unable to create log file: " << filename << std::endl;
-    exit(1);
+    fs::path file_path(name);
+    fs::path dir = file_path.parent_path();
+    if (!fs::exists(dir)) {
+      fs::create_directories(dir);
+    }
+    FILE *fp = fopen(name.c_str(), "w");
+    if (fp) {
+      m_loggers[name] = fp;
+      return fp;
+    } else {
+      std::cerr << "Unable to create log file: " << name << std::endl;
+      exit(1);
+    }
   }
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <map>
 
 class Logger {
 public:
@@ -17,8 +18,10 @@ public:
 private:
   Logger();
   ~Logger() {}
+  FILE* getLogger(const std::string& name);
   static Logger* m_instance;
   std::ofstream m_logger;
+  std::map<std::string, FILE*> m_loggers;
 };
 
 #endif
