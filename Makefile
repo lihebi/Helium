@@ -51,6 +51,9 @@ lib:
 # 	$(CC) $(CFLAGS) spikes/testpath.cpp $(INC) $(LIB) -o bin/path
 spike: $(SPIKE_OBJECTS)
 
+doc:
+	doxygen
+
 systype.tags:
 	ctags -f systype.tags --exclude=boost\
 		--exclude=llvm\
@@ -69,4 +72,4 @@ $(BIN_DIR)/%: $(SPIKE_DIR)/%.$(SRCEXT)
 BOOST_INCLUDE := filesystem system program_options
 BOOST_INCLUDE_PATH := $(addprefix /usr/local/include/boost/, $(BOOST_INCLUDE))
 
-.PHONY: clean
+.PHONY: clean doc
