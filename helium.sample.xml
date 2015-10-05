@@ -3,6 +3,8 @@
   <output_folder>helium_result</output_folder>
   <segment>
     <code_selection>loop</code_selection>
+    <!-- <code_selection>annotation</code_selection> -->
+    <!-- <code_selection>assert</code_selection> -->
     <max_segment_size>50</max_segment_size>
   </segment>
   <context>
@@ -10,8 +12,6 @@
     <max_linear_search_value>10</max_linear_search_value>
   </context>
   <build>
-    <handle_struct>true</handle_struct>
-    <handle_array>true</handle_array>
     <instruments>
       <instrument>
         <position>loop</position>
