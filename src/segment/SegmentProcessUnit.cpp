@@ -112,11 +112,71 @@ void SegmentProcessUnit::resolveInput() {
   m_inv.clear();
   m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
 }
-void SegmentProcessUnit::resolveOutput() {
-  // std::set<Variable> vv;
-  // IOResolver::ResolveAliveVars(*m_context, vv);
-  // TODO point of interest
+
+pugi::xml_node
+get_outmost_loop_node(std::shared_ptr<Segment> segment) {
+  std::vector<pugi::xml_node> nodes = segment->GetNodes();
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    if (strcmp(it->name(), "for") == 0 || strcmp(it->name(), "while") == 0) {
+      return *it;
+    }
+  }
+  return pugi::xml_node();
 }
+
+void
+SegmentProcessUnit::instrument() {
+  std::string instrument_position = Config::Instance()->GetInstrumentPosition();
+  std::string instrument_type = Config::Instance()->GetInstrumentType();
+  if (instrument_position.empty() || instrument_type.empty()) return;
+  if (instrument_position == "loop") {
+    pugi::xml_node loop_node = get_outmost_loop_node(m_segment);
+    pugi::xml_node block_node = loop_node.child("block");
+    if (block_node) {
+      // create only <helium_instrument> node, for latter remove
+      pugi::xml_node new_node = block_node.insert_child_before(
+        "helium_instrument", block_node.last_child()
+      );
+      new_node.append_child(pugi::node_pcdata).set_value("\n// @Output\n");
+      m_output_node = new_node;
+    }
+  }
+}
+
+void
+SegmentProcessUnit::uninstrument() {
+  // pugi::xml_node seg_parent_node = m_segment->GetFirstNode().parent();
+  // pugi::xpath_node_set helium_instruments = seg_parent_node.select_nodes("//helium_instrument");
+  // for (auto it=helium_instruments.begin();it!=helium_instruments.end();it++) {
+  //   pugi::xml_node tmp = it->parent();
+  //   tmp.remove_child(it->node());
+  // }
+  if (m_output_node) {
+    pugi::xml_node tmp = m_output_node.parent();
+    tmp.remove_child(m_output_node);
+    m_output_node = pugi::xml_node();
+  }
+}
+
+void SegmentProcessUnit::resolveOutput() {
+  std::cout << "[SegmentProcessUnit::resolveOutput]" << std::endl;
+  // std::set<Variable> vv;
+  // TODO point of interest
+  uninstrument();
+  instrument();
+  m_outv.clear();
+  if (m_output_node) {
+    // IOResolver::ResolveAliveVars(m_output_node, m_outv);
+    // TODO resolveAliveVars
+    // TODO until a node(the segment start node)
+    m_outv = m_inv;
+    for (auto it=m_outv.begin();it!=m_outv.end();it++) {
+      pugi::xml_node node = m_output_node.append_child("outv");
+      node.append_child(pugi::node_pcdata).set_value((*it)->GetOutputCode().c_str());
+    }
+  }
+}
+
 void SegmentProcessUnit::resolveSnippets() {
   std::cout<<"[SegmentProcessUnit][resolveSnippets]"<<std::endl;
   m_snippets.clear();

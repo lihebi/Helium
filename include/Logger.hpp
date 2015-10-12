@@ -15,6 +15,7 @@ public:
   }
   void Log(const std::string& content);
   void Log(const std::string& filename, const std::string& content);
+  void Logln(const std::string& filename, const std::string& content);
 private:
   Logger();
   ~Logger() {}

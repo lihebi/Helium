@@ -5,11 +5,6 @@
 #include <vector>
 #include <set>
 
-struct Instrument {
-  std::string position;
-  std::string type;
-};
-
 class Config {
 public:
   static Config* Instance();
@@ -22,22 +17,23 @@ public:
   const std::string& GetOutputFolder() const {
     return m_output_folder;
   }
-  // build config
+  // segment
   const std::string& GetCodeSelectionMethod() const {
     return m_code_selection;
   }
   int GetMaxSegmentSize() const {
     return m_max_segment_size;
   }
+  // context
   const std::string& GetContextSearchMethod() const {
     return m_context_search;
   }
   const int GetMaxLinearSearchValue() const {
     return m_max_linear_search_value;
   }
-  const std::vector<Instrument>& GetInstruments() const {
-    return m_instruments;
-  }
+  // build config
+  const std::string& GetInstrumentPosition() const {return m_instrument_position;}
+  const std::string& GetInstrumentType() const {return m_instrument_type;}
   // test config
   bool WillRunTest() const {
     return m_run_test;
@@ -82,7 +78,8 @@ private:
   std::string m_context_search;
   int m_max_linear_search_value;
   // build option
-  std::vector<Instrument> m_instruments;
+  std::string m_instrument_position;
+  std::string m_instrument_type;
   // test
   bool m_run_test;
   std::string m_test_generation;

@@ -28,6 +28,13 @@ void
 Logger::Log(const std::string& filename, const std::string& content) {
   FILE *logger = getLogger(filename);
   fputs(content.c_str(), logger);
+  fflush(logger);
+}
+
+void
+Logger::Logln(const std::string& filename, const std::string& content) {
+  FILE *logger = getLogger(filename);
+  fputs(content.c_str(), logger);
   fputc('\n', logger);
   fflush(logger);
 }

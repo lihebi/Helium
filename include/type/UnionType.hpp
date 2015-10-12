@@ -10,8 +10,8 @@ public:
   virtual ~UnionType();
   virtual std::string GetInputCode(const std::string& var) const;
   virtual std::string GetOutputCode(const std::string& var) const;
-  virtual void GetInputSpecification();
-  virtual void GetOutputSpecification();
+  virtual std::string GetInputSpecification();
+  virtual std::string GetOutputSpecification();
   virtual std::string GetName() const { return m_name;}
 private:
   std::string m_name;

@@ -30,7 +30,11 @@ EnumType::GetInputCode(const std::string& var) const {
 std::string EnumType::GetOutputCode(const std::string& var) const {
   return "";
 }
-void EnumType::GetInputSpecification() {
+std::string
+EnumType::GetInputSpecification() {
+  return "";
 }
-void EnumType::GetOutputSpecification() {
+std::string
+EnumType::GetOutputSpecification() {
+  return "";
 }

@@ -30,12 +30,8 @@ void Config::Load(const std::string& filename) {
   m_context_search = tree.get("helium.context.context_search", "linear");
   m_max_linear_search_value = tree.get("helium.context.max_linear_search_value", 0);
   // build option
-  BOOST_FOREACH(pt::ptree::value_type &v, tree.get_child("helium.build.instruments")) {
-    Instrument instrument;
-    instrument.position = v.second.get<std::string>("position");
-    instrument.type = v.second.get<std::string>("type");
-    m_instruments.push_back(instrument);
-  }
+  m_instrument_position = tree.get("helium.build.instrument_position", "");
+  m_instrument_type = tree.get("helium.build.instrument_type", "");
   // test
   if (tree.get("helium.test.run_test", "false").compare("true") == 0) {
     m_run_test = true;

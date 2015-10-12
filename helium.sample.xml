@@ -12,16 +12,8 @@
     <max_linear_search_value>10</max_linear_search_value>
   </context>
   <build>
-    <instruments>
-      <instrument>
-        <position>loop</position>
-        <type>count</type>
-      </instrument>
-      <instrument>
-        <position>post</position>
-        <type>variable</type>
-      </instrument>
-    </instruments>
+    <instrument_position>loop</instrument_position>
+    <instrument_type>variable</instrument_type>
   </build>
   <test>
     <test_generation>random</test_generation>

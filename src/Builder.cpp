@@ -4,7 +4,7 @@
 #include "Logger.hpp"
 
 Builder::Builder(std::shared_ptr<SegmentProcessUnit> seg_unit)
-: m_seg_unit(seg_unit) {
+: m_seg_unit(seg_unit), m_success(false) {
 }
 Builder::~Builder() {}
 
@@ -57,14 +57,15 @@ Builder::Compile() {
   int return_code = ThreadUtil::ExecExit(cmd);
   if (return_code != 0) {
     std::cout<<"[Builder][Compile]"<<"\033[31m"<<"compile error"<<"\033[0m"<<std::endl;
-    Logger::Instance()->Log("/tmp/helium_buildrate.txt", "compile error");
+    Logger::Instance()->Logln("/tmp/helium_buildrate.txt", "compile error");
     if (Config::Instance()->WillInteractCompileError()) {
       std::cout<<"> Enter to continue ..."<<std::endl;
       getchar();
     }
   } else {
     std::cout<<"[Builder][Compile]"<<"\033[32m"<<"compile success"<<"\033[0m"<<std::endl;
-    Logger::Instance()->Log("/tmp/helium_buildrate.txt", "compile success");
+    Logger::Instance()->Logln("/tmp/helium_buildrate.txt", "compile success");
+    m_success = true;
   }
   if (Config::Instance()->WillInteractCompile()) {
     std::cout<<"> Enter to continue ..."<<std::endl;
@@ -72,9 +73,6 @@ Builder::Compile() {
   }
 }
 
-bool Builder::Success() {
-  return false;
-}
 std::string Builder::GetExecutable() {
-  return m_executable;
+  return Config::Instance()->GetOutputFolder() + "/a.out";
 }

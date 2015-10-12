@@ -46,6 +46,32 @@ get_input(
 }
 
 static std::string
+get_output(
+  const std::string& type, const std::string& formatter,
+  const std::string& var,
+  int pointer_level, int dimension
+) {
+  std::string code;
+  if (dimension > 0) {
+    // code += "for (int _i=0;_i<"+var+"_size;_i++) {\n"
+    //         "\tprintf(\"%" + formatter + "\\n\", " + var + "[_i]);\n}\n";
+    // return code;
+    // if it is array, we don't output anything
+    return "";
+  }
+  if (pointer_level >0) {
+    // if it is a pointer, only print if it is null
+    // TODO print the value
+    // This will pose difficulty on output specification.
+    // This will also pose difficulty on run rate, because may cause buffer overflow
+    return "printf(\"%d\\n\", ("+var+"==NULL));\n";
+  }
+  // code += "printf(\"%" + formatter + "\\n\", " + std::string(pointer_level, '*') + var + ");\n";
+  code += "printf(\"%" + formatter + "\\n\", " + var + ");\n";
+  return code;
+}
+
+static std::string
 get_char_input(const std::string& var, int pointer_level, int dimension) {
   std::string code;
   // TODO array of pointers?
@@ -77,6 +103,18 @@ get_void_input(const std::string& var, int pointer_level, int dimension) {
 }
 
 std::string
+get_void_output(const std::string& var, int pointer_level, int dimension) {
+  if (pointer_level>0) {
+    return "printf(\"%d\\n\", ("+var+"==NULL));\n";
+  } else {
+    // this should never happen, because already exit in get_void_input
+    std::cout << "[PrimitiveType::getVoidOutputCode]"
+    << "\033[31m" << "void should always be pointers" << "\033[0m" << std::endl;
+    exit(1);
+  }
+}
+
+std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
   if (m_specifier.is_char) return get_char_input(var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_float) return get_input("float", "f", var, GetPointerLevel(), GetDimension());
@@ -90,13 +128,49 @@ PrimitiveType::GetInputCode(const std::string& var) const {
 
 std::string
 PrimitiveType::GetOutputCode(const std::string& var) const {
-  return "";
+  // TODO char output
+  // if (m_specifier.is_char) return get_char_output(var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_float) return get_output("float", "f", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_double) return get_output("double", "lf", var, GetPointerLevel(), GetDimension());
+  // will not constrain bool here, but in output specification
+  if (m_specifier.is_bool) return get_output("bool", "d", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_void) return get_void_output(var, GetPointerLevel(), GetDimension());
+  // rest is int
+  return get_output("int", "d", var, GetPointerLevel(), GetDimension());
 }
 
-void
+std::string
 PrimitiveType::GetInputSpecification() {
+  std::cout << "[PrimitiveType::GetInputSpecification]" << std::endl;
+  std::string spec;
+
+  if (m_specifier.is_char) spec += "50_70,";
+  else if (m_specifier.is_float) spec += "0_100,";
+  else if (m_specifier.is_double) spec += "0_100,";
+  else if (m_specifier.is_bool) spec += "0_1,";
+  else if (m_specifier.is_void) ;
+  else {
+    spec += "0_255,";
+  }
+  if (GetDimension()>0) {
+    // spec = "size," + spec + "endsize";
+    // we only support one dimension, as well as no nested size
+    spec = "size," + spec;
+  }
+  if (spec.back() == ',') spec.pop_back();
+  return spec;
 }
 
-void
+std::string
 PrimitiveType::GetOutputSpecification() {
+  std::cout << "[PrimitiveType::GetOutputSpecification]" << std::endl;
+  if (GetDimension()>0) return "";
+  else if (GetPointerLevel()>0) {return "NULL";}
+  else {
+    if (m_specifier.is_char) return "char";
+    else if (m_specifier.is_float) return "float";
+    else if (m_specifier.is_double) return "double";
+    else if (m_specifier.is_bool) return "bool";
+    else return "int";
+  }
 }

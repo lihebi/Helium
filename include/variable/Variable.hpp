@@ -16,8 +16,8 @@ public:
   const std::shared_ptr<Type> GetType() const { return m_type;}
   std::string GetInputCode() const;
   std::string GetOutputCode() const;
-  void GetInputSpecification() const;
-  void GetOutputSpecification() const;
+  std::string GetInputSpecification() const;
+  std::string GetOutputSpecification() const;
 
 private:
   pugi::xml_node m_node; // the node where the variable is declared

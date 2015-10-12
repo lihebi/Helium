@@ -24,6 +24,9 @@ public:
   std::string GetMakefile();
   bool IsValid();
 
+  std::set<std::shared_ptr<Variable> > GetInputVariables() const {return m_inv;}
+  std::set<std::shared_ptr<Variable> > GetOutputVariables() const {return m_outv;}
+
 private:
   std::string getContext();
   void contextSearch();
@@ -32,6 +35,9 @@ private:
   void resolveInput();
   void resolveOutput();
   void resolveSnippets();
+
+  void instrument();
+  void uninstrument();
 
   // builder function
   std::string getInputCode();
@@ -42,6 +48,7 @@ private:
   std::shared_ptr<Segment> m_context;
   std::set<std::shared_ptr<Variable> > m_inv;
   std::set<std::shared_ptr<Variable> > m_outv;
+  pugi::xml_node m_output_node;
   std::set<Snippet*> m_snippets;
 
   std::vector<pugi::xml_node> m_functions;

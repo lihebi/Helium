@@ -12,7 +12,7 @@ public:
   virtual ~Builder();
   void Build();
   void Compile();
-  bool Success();
+  bool Success() {return m_success;}
   std::string GetExecutable();
 private:
   void writeMain();
@@ -20,10 +20,10 @@ private:
   void writeMakefile();
   std::shared_ptr<SegmentProcessUnit> m_seg_unit;
   // Segment m_context;
-  std::string m_executable;
   std::string m_main;
   std::string m_support;
   std::string m_makefile;
+  bool m_success;
 };
 
 #endif

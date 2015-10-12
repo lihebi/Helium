@@ -31,7 +31,11 @@ std::string
 SystemType::GetOutputCode(const std::string& var) const {
   return "";
 }
-void SystemType::GetInputSpecification() {
+std::string
+SystemType::GetInputSpecification() {
+  return "";
 }
-void SystemType::GetOutputSpecification() {
+std::string
+SystemType::GetOutputSpecification() {
+  return "";
 }

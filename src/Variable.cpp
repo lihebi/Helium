@@ -14,11 +14,13 @@ std::string Variable::GetInputCode() const {
   return m_type->GetInputCode(m_name);
 }
 std::string Variable::GetOutputCode() const {
-  return "";
+  return m_type->GetOutputCode(m_name);
 }
-void Variable::GetInputSpecification() const {
-  ;
+std::string
+Variable::GetInputSpecification() const {
+  return m_type->GetInputSpecification();
 }
-void Variable::GetOutputSpecification() const {
-  ;
+std::string
+Variable::GetOutputSpecification() const {
+  return m_name + ":" + m_type->GetOutputSpecification();
 }

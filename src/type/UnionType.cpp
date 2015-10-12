@@ -39,7 +39,11 @@ UnionType::GetInputCode(const std::string& var) const {
 std::string UnionType::GetOutputCode(const std::string& var) const {
   return "";
 }
-void UnionType::GetInputSpecification() {
+std::string
+UnionType::GetInputSpecification() {
+  return "";
 }
-void UnionType::GetOutputSpecification() {
+std::string
+UnionType::GetOutputSpecification() {
+  return "";
 }

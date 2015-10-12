@@ -10,8 +10,8 @@ public:
   virtual ~Type() {}
   virtual std::string GetInputCode(const std::string& var) const = 0;
   virtual std::string GetOutputCode(const std::string& var) const = 0;
-  virtual void GetInputSpecification() = 0;
-  virtual void GetOutputSpecification() = 0;
+  virtual std::string GetInputSpecification() = 0;
+  virtual std::string GetOutputSpecification() = 0;
   virtual std::string GetName() const = 0;
 
   static std::string GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level);

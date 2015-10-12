@@ -3,6 +3,18 @@
 #include "util/FileUtil.hpp"
 #include <iostream>
 
+/*
+FIXME
+typedef struct _IO_STATUS_BLOCK {
+	union {
+		NTSTATUS Status;
+		PVOID Pointer;
+	} DUMMYUNIONNAME;
+
+	ULONG_PTR Information;
+} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+*/
+
 static std::regex name_reg("struct\\s+(\\w+)");
 static std::regex alias_reg("(\\w+)\\s*;\\s*");
 
@@ -22,6 +34,9 @@ get_keywords(
 
   tmp = code.substr(code.rfind('}'));
   std::regex_search(tmp, alias_match, alias_reg);
+  // std::smatch keyword_match;
+  // std::regex_search(tmp, keyword_match, std::regex("\\b(\\w+)\\b"))
+
 
   if (!alias_match.empty()) {
     alias = alias_match[1];

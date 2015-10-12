@@ -52,9 +52,13 @@ std::string
 StructureType::GetOutputCode(const std::string& var) const {
   return "";
 }
-void StructureType::GetInputSpecification() {
+std::string
+StructureType::GetInputSpecification() {
+  return "";
 }
-void StructureType::GetOutputSpecification() {
+std::string
+StructureType::GetOutputSpecification() {
+  return "";
 }
 
 void
