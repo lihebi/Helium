@@ -6,7 +6,7 @@
 #include "Config.hpp"
 #include "segment/SegmentProcessUnit.hpp"
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <vector>
 
 class Reader {

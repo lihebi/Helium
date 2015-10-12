@@ -1,7 +1,7 @@
 #ifndef __VARIABLE_HPP__
 #define __VARIABLE_HPP__
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <vector>
 
 #include "type/Type.hpp"

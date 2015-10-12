@@ -1,7 +1,7 @@
 #ifndef __SEGMENT_HPP__
 #define __SEGMENT_HPP__
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <vector>
 
 class Segment {

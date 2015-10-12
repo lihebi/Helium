@@ -2,8 +2,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-#include <pugixml/pugixml.hpp>
-
+#include <pugixml.hpp>
 #include "cmd/Splitter.hpp"
 #include "util/FileUtil.hpp"
 #include "util/StringUtil.hpp"

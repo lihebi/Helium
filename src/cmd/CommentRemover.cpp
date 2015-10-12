@@ -2,7 +2,7 @@
 #include "util/FileUtil.hpp"
 #include "util/DomUtil.hpp"
 #include "util/SrcmlUtil.hpp"
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <fstream>
 #include <iostream>
 

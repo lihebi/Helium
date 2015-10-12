@@ -1,7 +1,7 @@
 #ifndef __SRCML_UTIL_HPP__
 #define __SRCML_UTIL_HPP__
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <string>
 
 class SrcmlUtil {

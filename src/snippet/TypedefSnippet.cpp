@@ -2,7 +2,7 @@
 #include <regex>
 #include <iostream>
 #include "util/FileUtil.hpp"
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include "util/SrcmlUtil.hpp"
 #include "util/DomUtil.hpp"
 

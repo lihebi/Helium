@@ -1,7 +1,7 @@
 #ifndef __IO_RESOLVER_HPP__
 #define __IO_RESOLVER_HPP__
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <vector>
 #include <set>
 

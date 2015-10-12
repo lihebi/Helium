@@ -1,5 +1,5 @@
 #include "type/StructureType.hpp"
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include "util/SrcmlUtil.hpp"
 #include <set>
 #include "snippet/SnippetRegistry.hpp"

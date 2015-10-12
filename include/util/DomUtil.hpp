@@ -1,7 +1,7 @@
 #ifndef __DOM_UTIL_HPP__
 #define __DOM_UTIL_HPP__
 
-#include <pugixml/pugixml.hpp>
+#include <pugixml.hpp>
 #include <string>
 
 class DomUtil {
