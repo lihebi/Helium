@@ -3,7 +3,6 @@
 
 #include <string>
 #include <Config.hpp>
-#include <spdlog/spdlog.h>
 #include <vector>
 
 class Helium {

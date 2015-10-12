@@ -12,7 +12,6 @@
 #include "cmd/Splitter.hpp"
 #include "ArgParser.hpp"
 
-#include <spdlog/spdlog.h>
 #include "resolver/Ctags.hpp"
 
 #include "util/FileUtil.hpp"
@@ -34,7 +33,6 @@ create_ctags(const std::string& folder) {
 
 int main(int argc, char* argv[]) {
   const char *helium_home_env = std::getenv("HELIUM_HOME");
-  spdlog::stdout_logger_mt("console");
   if(!helium_home_env) {
     std::cout<<"Please set env variable HELIUM_HOME"<<std::endl;
     return 1;
