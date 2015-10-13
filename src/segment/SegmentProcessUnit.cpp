@@ -283,7 +283,7 @@ std::string
 SegmentProcessUnit::getContext() {
   std::string context = m_context->GetText();
   std::regex return_regex("\\breturn\\b[^;]*;");
-  context = std::regex_replace(context, return_regex, ";//replaced return\n");
+  context = std::regex_replace<std::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
   // FIXME when doing context search, break may appear, while we don't have the outside loop
   return context;
 }

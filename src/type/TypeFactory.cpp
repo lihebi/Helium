@@ -13,7 +13,7 @@
 static bool
 search_and_remove(std::string &s, std::regex reg) {
   if (std::regex_search(s, reg)) {
-    s = std::regex_replace(s, reg, "");
+    s = std::regex_replace<std::regex_traits<char>, char>(s, reg, "");
     return true;
   }
   return false;
