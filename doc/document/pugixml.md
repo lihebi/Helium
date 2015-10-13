@@ -12,5 +12,5 @@ On Unix:
 
 ```sh
 g++ -Wall -fPIC -c *.c
-g++ -shared -W1,-soname,libpugi.so.1 -o libpugi.so.1.0 *.o
+g++ -shared -Wl,-soname,libpugi.so.1 -o libpugi.so.1.0 *.o
 ```
