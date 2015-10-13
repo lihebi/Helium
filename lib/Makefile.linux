@@ -1,4 +1,4 @@
-all: libpugi.so.1.0
+all: libctags.so.1.0
 
 libctags.so.1.0:
 	cc -Wall -fPIC -c readtags.c
