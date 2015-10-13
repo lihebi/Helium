@@ -1,4 +1,5 @@
-#include <Reader.hpp>
+#include <cstring>
+#include "Reader.hpp"
 #include "util/ThreadUtil.hpp"
 #include "Builder.hpp"
 #include "Tester.hpp"
@@ -86,7 +87,7 @@ void Reader::getAnnotationSegments() {
   for (auto it=comment_nodes.begin();it!=comment_nodes.end();it++) {
     pugi::xml_node node = it->node();
     std::string comment_text = DomUtil::GetTextContent(node);
-    if (comment_text.find("@HeliumStart") != -1) {
+    if (comment_text.find("@HeliumStart") != std::string::npos) {
       std::shared_ptr<SegmentProcessUnit> su = std::make_shared<SegmentProcessUnit>(m_filename);
       su->AddNode(node);
       while (node.next_sibling()) {
@@ -94,7 +95,7 @@ void Reader::getAnnotationSegments() {
         su->AddNode(node);
         if (node.type() == pugi::node_element && strcmp(node.name(), "comment") == 0) {
           std::string comment_text = DomUtil::GetTextContent(node);
-          if (comment_text.find("@HeliumStop") != -1) {
+          if (comment_text.find("@HeliumStop") != std::string::npos) {
             break;
           }
         }
