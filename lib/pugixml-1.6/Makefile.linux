@@ -1,0 +1,10 @@
+all: libpugi.so.1.0
+
+libpugi.so.1.0:
+	g++ -Wall -fPIC -c pugixml.cpp
+	g++ -shared -Wl,-soname,libpugi.so.1 -o libpugi.so.1.0 pugixml.o
+
+install: libpugi.so.1.0
+	cp libpugi.so.1.0 /usr/local/lib
+	cp pugixml.hpp /usr/local/include
+	cp pugiconfig.hpp /usr/local/include
