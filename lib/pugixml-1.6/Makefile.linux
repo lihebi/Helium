@@ -1,10 +1,22 @@
-all: libpugi.so.1.0
+SRC=pugixml.cpp
+OBJ=pugixml.o
+HEADERS=pugixml.hpp pugiconfig.hpp
+REAL_NAME=libpugi.so.1
+SO_NAME=libpugi.so
+CC=g++
+all: $(REAL_NAME)
 
-libpugi.so.1.0:
-	g++ -Wall -fPIC -c pugixml.cpp
-	g++ -shared -Wl,-soname,libpugi.so.1 -o libpugi.so.1.0 pugixml.o
+$(REAL_NAME):
+	$(CC) -Wall -fPIC -c $(SRC)
+	$(CC) -shared -Wl,-soname,$(SO_NAME) -o $(REAL_NAME) $(OBJ)
 
-install: libpugi.so.1.0
-	cp libpugi.so.1.0 /usr/local/lib
-	cp pugixml.hpp /usr/local/include
-	cp pugiconfig.hpp /usr/local/include
+install: $(REAL_NAME)
+	cp $(REAL_NAME) /usr/local/lib
+	cp $(HEADERS) /usr/local/include
+
+clean:
+	rm -rf *.o
+	rm -rf *.so
+	rm -rf $(REAL_NAME)
+
+.PHONY: all clean install

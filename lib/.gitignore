@@ -1,5 +1,6 @@
 Makefile
 makefile
 *.dylib
+*.so
 *.so.*
 *.o
