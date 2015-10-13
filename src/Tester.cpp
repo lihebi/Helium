@@ -35,7 +35,7 @@ get_input_by_spec(std::string spec) {
   }
   for (int i=0;i<size;i++) {
     for (auto it=specs.begin();it!=specs.end();it++) {
-      if (it->find("_") == -1) continue;
+      if (it->find("_") == std::string::npos) continue;
       int low = atoi(it->substr(0, it->find("_")).c_str());
       int high = atoi(it->substr(it->find("_")+1).c_str());
       text += std::to_string(myrand(low, high)) + " ";

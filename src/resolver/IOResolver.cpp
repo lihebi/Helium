@@ -2,6 +2,8 @@
 #include "util/DomUtil.hpp"
 #include "variable/VariableFactory.hpp"
 #include <iostream>
+#include <cstring>
+#include <algorithm>
 
 IOResolver::IOResolver() {}
 

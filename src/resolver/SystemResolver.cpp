@@ -14,14 +14,14 @@ SystemResolver::ResolveType(const std::string& name) {
   for (auto it=entries.begin();it!=entries.end();it++) {
     std::string pattern = it->GetPattern();
     // /^} FILE;$/
-    if (pattern.find("typedef") == -1 || pattern.rfind(';') == -1) continue;
+    if (pattern.find("typedef") == std::string::npos || pattern.rfind(';') == std::string::npos) continue;
     pattern = pattern.substr(pattern.find("typedef"));
     pattern = pattern.substr(0, pattern.rfind(';'));
     // FIXME typedef xxx xxx yyy ;
     std::vector<std::string> vs = StringUtil::Split(pattern);
     // to_type is the middle part of split
     std::string to_type;
-    for (int i=1;i<vs.size()-1;i++) {
+    for (size_t i=1;i<vs.size()-1;i++) {
       to_type += vs[i]+' ';
     }
     to_type.pop_back();
@@ -70,7 +70,7 @@ SystemResolver::Parse(const std::string& name, const std::string& type) {
   std::vector<CtagsEntry> vc;
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
-    if (m_entry->kind && type.find(*(m_entry->kind)) != -1) {
+    if (m_entry->kind && type.find(*(m_entry->kind)) != std::string::npos) {
       vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
     }
     // find next

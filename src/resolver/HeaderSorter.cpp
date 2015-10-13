@@ -30,7 +30,7 @@ HeaderSorter::Load(const std::string& folder) {
         if (std::regex_search(line, match, include_reg)) {
           std::string new_file = match[1];
           // the filename part of including
-          if (new_file.find("/") != -1) {
+          if (new_file.find("/") != std::string::npos) {
             new_file = new_file.substr(new_file.rfind("/")+1);
           }
           // add the dependence
@@ -66,8 +66,8 @@ HeaderSorter::isDependOn(const std::string& lhs, const std::string& rhs) {
 bool
 HeaderSorter::sortOneRound(std::vector<std::string> &sorted) {
   bool changed = false;
-  for (int i=0;i<sorted.size();i++) {
-    for (int j=i+1;j<sorted.size();j++) {
+  for (size_t i=0;i<sorted.size();i++) {
+    for (size_t j=i+1;j<sorted.size();j++) {
       if (isDependOn(sorted[i], sorted[j])) {
         std::string tmp = sorted[i];
         sorted[i] = sorted[j];

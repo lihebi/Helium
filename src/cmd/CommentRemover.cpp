@@ -21,7 +21,7 @@ void CommentRemover::Run() {
     SrcmlUtil::File2XML(*it, doc);
     pugi::xml_node root = doc.document_element();
     pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
-    for (int i=0;i<comment_nodes.size();i++) {
+    for (size_t i=0;i<comment_nodes.size();i++) {
       comment_nodes[i].parent().remove_child(comment_nodes[i].node());
     }
     // TODO Other more efficient method?

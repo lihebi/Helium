@@ -11,20 +11,20 @@ class CtagsEntry {
 public:
   CtagsEntry(const std::string& name, const std::string& file, int line, char type)
   : m_name(name), m_file(file), m_line(line), m_type(type) {
-    if (m_file.find("/") != -1) {
+    if (m_file.find("/") != std::string::npos) {
       m_simple_filename = m_file.substr(m_file.rfind("/")+1);
     }
   }
   CtagsEntry(const std::string& name, const char* file, int line, char type)
   : m_name(name), m_file(file), m_line(line), m_type(type) {
-    if (m_file.find("/") != -1) {
+    if (m_file.find("/") != std::string::npos) {
       m_simple_filename = m_file.substr(m_file.rfind("/")+1);
     }
   }
   // construct by pattern
   CtagsEntry(const std::string& name, const char* file, const char* pattern, char type)
   : m_name(name), m_file(file), m_pattern(pattern), m_type(type) {
-    if (m_file.find("/") != -1) {
+    if (m_file.find("/") != std::string::npos) {
       m_simple_filename = m_file.substr(m_file.rfind("/")+1);
     }
   }
