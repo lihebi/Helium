@@ -4,6 +4,7 @@
 #include "util/FileUtil.hpp"
 
 #include <iostream>
+#include <boost/regex.hpp>
 
 const std::set<std::string> c_common_keyword = {
 // def, head
@@ -24,17 +25,15 @@ const std::set<std::string> c_common_keyword = {
 "sizeof", "return", "asm"
 };
 
-static std::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
+static boost::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
 
 std::set<std::string>
 Resolver::ExtractToResolve(const std::string& code) {
-  std::smatch match;
-  std::string tmp = "shitwhile while while";
-  // std::regex_search(tmp, match, id);
-  std::sregex_iterator begin(code.begin(), code.end(), id_reg);
-  std::sregex_iterator end = std::sregex_iterator();
+  boost::smatch match;
+  boost::sregex_iterator begin(code.begin(), code.end(), id_reg);
+  boost::sregex_iterator end = boost::sregex_iterator();
   std::set<std::string> ss;
-  for (std::sregex_iterator it=begin;it!=end;it++) {
+  for (boost::sregex_iterator it=begin;it!=end;it++) {
     std::string tmp = (*it).str();
     if (c_common_keyword.find(tmp) == c_common_keyword.end()) {
       ss.insert(tmp);

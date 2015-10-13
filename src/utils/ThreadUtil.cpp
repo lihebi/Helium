@@ -1,4 +1,6 @@
 #include "util/ThreadUtil.hpp"
+#include <cstring>
+#include <unistd.h>
 
 std::string ThreadUtil::Exec(const char* cmd) {
   FILE* pipe = popen(cmd, "r");

@@ -366,7 +366,7 @@ get_headers() {
     "event.h"
   };
   std::string code;
-  for (int i=0;i<headers.size();i++) {
+  for (size_t i=0;i<headers.size();i++) {
     code += "#include \"" + headers[i] + "\"\n";
   }
   return code;

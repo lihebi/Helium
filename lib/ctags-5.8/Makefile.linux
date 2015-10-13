@@ -6,3 +6,4 @@ libctags.so.1.0:
 
 install: libctags.so.1.0
 	cp libctags.so.1.0 /usr/local/lib
+	cp readtags.h /usr/local/include

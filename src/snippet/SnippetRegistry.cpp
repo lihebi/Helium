@@ -65,7 +65,7 @@ SnippetRegistry::LookUp(const std::string& name, const std::string& type) {
   if (m_id_map.find(name) != m_id_map.end()) {
     std::set<Snippet*> vs = m_id_map[name];
     for (auto it=vs.begin();it!=vs.end();it++) {
-      if (type.find((*it)->GetType()) == -1) {
+      if (type.find((*it)->GetType()) == std::string::npos) {
         vs.erase(it);
       }
     }

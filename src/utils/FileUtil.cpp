@@ -64,7 +64,7 @@ extract_forward(const std::vector<std::string>& vs, int line_number) {
   std::string s = "";
   int open_brace_count = 0;
   int close_brace_count = 0;
-  for (int i=line_number;i<vs.size();i++) {
+  for (size_t i=line_number;i<vs.size();i++) {
     s += vs[i]+'\n';
     open_brace_count += std::count(vs[i].begin(), vs[i].end(), '{');
     close_brace_count += std::count(vs[i].begin(), vs[i].end(), '}');
@@ -97,7 +97,7 @@ extract_backward(const std::vector<std::string>& vs, int line_number) {
 std::string
 extract_define(const std::vector<std::string>& vs, int line_number) {
   std::string s;
-  for (int i=line_number;i<vs.size();i++) {
+  for (size_t i=line_number;i<vs.size();i++) {
     s += vs[i] + '\n';
     std::string tmp = vs[i];
     StringUtil::trim(tmp);
@@ -109,7 +109,7 @@ extract_define(const std::vector<std::string>& vs, int line_number) {
 std::string
 extract_statement(const std::vector<std::string>& vs, int line_number) {
   std::string s;
-  for (int i=line_number; i<vs.size();i++) {
+  for (size_t i=line_number; i<vs.size();i++) {
     s += vs[i] + '\n';
     // FIXME this may be expensive
     std::string tmp = vs[i];
@@ -121,9 +121,9 @@ extract_statement(const std::vector<std::string>& vs, int line_number) {
 // from middle, extract double direction until { and }
 std::string
 extract_double(const std::vector<std::string>& vs, int line_number) {
-  int i;
+  size_t i;
   for (i=line_number;i>0;i--) {
-    if (vs[i].find('{') != -1) break;
+    if (vs[i].find('{') != std::string::npos) break;
   }
   // the { is the beginning of the line. Add one more line
   if (i > 0 && StringUtil::trimed(vs[i]).find('{') == 0) {
@@ -132,7 +132,7 @@ extract_double(const std::vector<std::string>& vs, int line_number) {
   std::string s;
   for (;i<vs.size();i++) {
     s += vs[i] + '\n';
-    if (vs[i].find('}') != -1) break;
+    if (vs[i].find('}') != std::string::npos) break;
   }
   return s;
 }

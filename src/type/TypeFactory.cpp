@@ -66,7 +66,7 @@ fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
 TypeFactory::TypeFactory(const std::string& name)
 : m_name(name), m_dimension(0), m_pointer_level(0) {
   std::string name_tmp = m_name;
-  if (name_tmp.find('[') != -1) {
+  if (name_tmp.find('[') != std::string::npos) {
     m_dimension = std::count(name_tmp.begin(), name_tmp.end(), '[');
     name_tmp = name_tmp.substr(0, name_tmp.find('['));
   }

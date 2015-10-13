@@ -76,7 +76,7 @@ StructureType::parseFields() {
     pugi::xml_node decl_node = decl_stmt_node.child("decl");
     std::string type_str = DomUtil::GetTextContent(decl_node.child("type"));
     std::string name_str = DomUtil::GetTextContent(decl_node.child("name"));
-    if (name_str.find('[') != -1) {
+    if (name_str.find('[') != std::string::npos) {
       type_str += name_str.substr(name_str.find('['));
     }
     name_str = name_str.substr(0, name_str.find('['));

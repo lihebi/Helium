@@ -2,6 +2,7 @@
 #include "type/TypeFactory.hpp"
 #include "util/DomUtil.hpp"
 #include <iostream>
+#include <cstring>
 
 std::vector<std::shared_ptr<Variable> >
 VariableFactory::FromParamList(pugi::xml_node node) {
@@ -44,7 +45,7 @@ VariableFactory::FromDecl(pugi::xml_node node) {
     // node.print(std::cout);
     std::string type_str = DomUtil::GetTextContent(node.child("type"));
     std::string name_str = DomUtil::GetTextContent(node.child("name"));
-    if (name_str.find('[') != -1) {
+    if (name_str.find('[') != std::string::npos) {
       type_str += name_str.substr(name_str.find('['));
     }
     name_str = name_str.substr(0, name_str.find('['));

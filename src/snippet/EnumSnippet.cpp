@@ -35,7 +35,7 @@ get_keywords(
   pugi::xml_node root_node = doc.document_element();
   pugi::xml_node enum_node = root_node.select_node("//enum").node();
   pugi::xpath_node_set name_nodes = enum_node.select_nodes("block/decl/name");
-  for (int i=0;i<name_nodes.size();i++) {
+  for (size_t i=0;i<name_nodes.size();i++) {
     std::string s = DomUtil::GetTextContent(name_nodes[i].node());
     // std::cout << "\t" << s << std::endl;
     // Add enum member names into keywords

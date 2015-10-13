@@ -1,5 +1,6 @@
 #include <util/DomUtil.hpp>
 #include <iostream>
+#include <cstring>
 
 void DomUtil::GetFirstChildByTagName(std::string) {}
 void DomUtil::GetFirstChildByTagNames(std::string) {}

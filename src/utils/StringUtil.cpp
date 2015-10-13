@@ -1,4 +1,5 @@
 #include "util/StringUtil.hpp"
+#include <iterator>
 #include <sstream>
 
 std::string StringUtil::SubStringIfFind(const std::string& s, const char c) {
