@@ -141,7 +141,7 @@ PrimitiveType::GetOutputCode(const std::string& var) const {
 
 std::string
 PrimitiveType::GetInputSpecification() {
-  std::cout << "[PrimitiveType::GetInputSpecification]" << std::endl;
+  // std::cout << "[PrimitiveType::GetInputSpecification]" << std::endl;
   std::string spec;
 
   if (m_specifier.is_char) spec += "50_70,";
@@ -163,7 +163,7 @@ PrimitiveType::GetInputSpecification() {
 
 std::string
 PrimitiveType::GetOutputSpecification() {
-  std::cout << "[PrimitiveType::GetOutputSpecification]" << std::endl;
+  // std::cout << "[PrimitiveType::GetOutputSpecification]" << std::endl;
   if (GetDimension()>0) return "";
   else if (GetPointerLevel()>0) {return "NULL";}
   else {

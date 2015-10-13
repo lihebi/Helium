@@ -24,6 +24,7 @@ public:
   int GetMaxSegmentSize() const {
     return m_max_segment_size;
   }
+  int GetSegmentTimeout() const {return m_segment_timeout;}
   // context
   const std::string& GetContextSearchMethod() const {
     return m_context_search;
@@ -45,7 +46,7 @@ public:
     return m_test_number;
   }
   int GetTestTimeout() const {
-    return m_time_out;
+    return m_test_timeout;
   }
   // analyzer config
   bool WillRunAnalyze() const {
@@ -54,6 +55,7 @@ public:
   const std::string& GetAnalyer() const {
     return m_analyzer;
   }
+  int GetAnalyzeTimeout() const {return m_analyze_timeout;}
   // debug
   bool WillShowCompileError() const {return m_show_compile_error;}
   int GetSkipSegment() const {return m_skip_segment;}
@@ -74,6 +76,7 @@ private:
   // segment
   std::string m_code_selection;
   int m_max_segment_size;
+  int m_segment_timeout;
   // context
   std::string m_context_search;
   int m_max_linear_search_value;
@@ -84,10 +87,11 @@ private:
   bool m_run_test;
   std::string m_test_generation;
   int m_test_number;
-  int m_time_out;
+  int m_test_timeout;
   // analyze
   bool m_run_analyze;
   std::string m_analyzer;
+  int m_analyze_timeout;
   // debug
   bool m_show_compile_error;
   int m_skip_segment;

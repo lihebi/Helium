@@ -44,13 +44,13 @@ Reader::Read() {
       std::shared_ptr<Builder> builder = std::make_shared<Builder>(*it);
       builder->Build();
       builder->Compile();
-      if (builder->Success()) {
-        // std::shared_ptr<Tester> tester = std::make_shared<Tester>(builder->GetExecutable(), *it);
-        // tester->Test();
-        // if (tester->Success()) {
-        //   std::shared_ptr<Analyzer> analyzer = std::make_shared<Analyzer>(tester->GetOutput());
-        //   analyzer->Analyze();
-        // }
+      if (builder->Success() && Config::Instance()->WillRunTest()) {
+        std::shared_ptr<Tester> tester = std::make_shared<Tester>(builder->GetExecutable(), *it);
+        tester->Test();
+        if (tester->Success() && Config::Instance()->WillRunAnalyze()) {
+          std::shared_ptr<Analyzer> analyzer = std::make_shared<Analyzer>(tester->GetOutput());
+          analyzer->Analyze();
+        }
       }
     } while ((*it)->IncreaseContext());
   }

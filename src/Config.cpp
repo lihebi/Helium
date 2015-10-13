@@ -26,6 +26,7 @@ void Config::Load(const std::string& filename) {
   m_output_folder = tree.get("helium.output_folder", "helium_out");
   m_code_selection = tree.get("helium.segment.code_selection", "loop");
   m_max_segment_size = tree.get("helium.segment.max_segment_size", 50);
+  m_segment_timeout = tree.get("helium.segment.timeout", 99999);
   // context
   m_context_search = tree.get("helium.context.context_search", "linear");
   m_max_linear_search_value = tree.get("helium.context.max_linear_search_value", 0);
@@ -40,7 +41,7 @@ void Config::Load(const std::string& filename) {
   }
   m_test_generation = tree.get("helium.test.test_generation", "random");
   m_test_number = tree.get("helium.test.test_number", 10);
-  m_time_out = tree.get("helium.test.time_out", 100);
+  m_test_timeout = tree.get("helium.test.timeout", 99999);
   // analyze
   if (tree.get("helium.analyze.run_analyze", "false").compare("true") == 0) {
     m_run_analyze = true;
@@ -48,6 +49,7 @@ void Config::Load(const std::string& filename) {
     m_run_analyze = false;
   }
   m_analyzer = tree.get("helium.analyze.analyzer", "invariant");
+  m_analyze_timeout = tree.get("helium.analyze.timeout", 99999);
   // debug
   if (tree.get("helium.debug.show_compile_error", "false").compare("true") == 0) {
     m_show_compile_error = true;

@@ -6,6 +6,8 @@
     <!-- <code_selection>annotation</code_selection> -->
     <!-- <code_selection>assert</code_selection> -->
     <max_segment_size>50</max_segment_size>
+    <!-- timeout for a segment(include context search) -->
+    <timeout>2000</timeout>
   </segment>
   <context>
     <context_search>linear</context_search>
@@ -16,14 +18,15 @@
     <instrument_type>variable</instrument_type>
   </build>
   <test>
-    <test_generation>random</test_generation>
     <run_test>true</run_test>
+    <test_generation>random</test_generation>
     <test_number>10</test_number>
-    <time_out>100</time_out>
+    <timeout>100</timeout>
   </test>
   <analyze>
     <run_analyze>true</run_analyze>
     <analyzer>invariant</analyzer>
+    <timeout>100</timeout>
   </analyze>
   <debug>
     <show_compile_error>true</show_compile_error>

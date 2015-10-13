@@ -57,14 +57,14 @@ std::string ThreadUtil::Exec(const std::string& cmd) {
 //   return result;
 // }
 
-std::string ThreadUtil::Exec(const char* cmd, const std::string& input) {
-  return Exec(cmd, input.c_str());
+std::string ThreadUtil::Exec(const char* cmd, const std::string& input, unsigned int timeout) {
+  return Exec(cmd, input.c_str(), timeout);
 }
-std::string ThreadUtil::Exec(const std::string& cmd, const char* input) {
-  return Exec(cmd.c_str(), input);
+std::string ThreadUtil::Exec(const std::string& cmd, const char* input, unsigned int timeout) {
+  return Exec(cmd.c_str(), input, timeout);
 }
-std::string ThreadUtil::Exec(const std::string& cmd, const std::string& input) {
-  return Exec(cmd.c_str(), input.c_str());
+std::string ThreadUtil::Exec(const std::string& cmd, const std::string& input, unsigned int timeout) {
+  return Exec(cmd.c_str(), input.c_str(), timeout);
 }
 
 int split(const char *scon, char** &argv) {
@@ -83,7 +83,7 @@ int split(const char *scon, char** &argv) {
 }
 
 std::string
-ThreadUtil::Exec(const char* cmd, const char* input) {
+ThreadUtil::Exec(const char* cmd, const char* input, unsigned int timeout) {
   // cmd should not exceed BUFSIZ
   char cmd_buf[BUFSIZ];
   strcpy(cmd_buf, cmd);
@@ -103,6 +103,7 @@ ThreadUtil::Exec(const char* cmd, const char* input) {
   }
   if (pid == 0) {
     // children
+    if (timeout>0) alarm(timeout);
     if (dup2(pipein[0], 0) == -1 || dup2(pipeout[1], 1) == -1) {
       perror("dup error");
       exit(1);

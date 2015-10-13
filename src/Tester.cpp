@@ -52,7 +52,7 @@ Tester::generateInput() {
   std::string text;
   for (auto it=inv.begin();it!=inv.end();it++) {
     std::string input_spec = (*it)->GetInputSpecification();
-    // std::cout << "input_spec: " << input_spec << std::endl;
+    std::cout << "input_spec: " << input_spec << std::endl;
     text += get_input_by_spec(input_spec);
   }
   // random & pair
@@ -68,7 +68,8 @@ Tester::Test() {
   std::cout << input << std::endl;
   // run program
   std::string cmd;
-  std::string result = ThreadUtil::Exec(m_executable, input);
+  // right now, hard code to timeout 2 seconds
+  std::string result = ThreadUtil::Exec(m_executable, input, 2);
   // std::cout << "result: " << std::endl;
   // std::cout << result << std::endl;
   // get output
