@@ -1,6 +1,7 @@
 #ifndef __VARIABLE_FACTORY_HPP__
 #define __VARIABLE_FACTORY_HPP__
 
+#include <memory>
 #include "variable/Variable.hpp"
 
 class VariableFactory {

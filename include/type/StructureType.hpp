@@ -3,6 +3,7 @@
 
 #include "type/Type.hpp"
 #include <vector>
+#include <memory>
 #include "snippet/Snippet.hpp"
 
 class StructureType : public Type {

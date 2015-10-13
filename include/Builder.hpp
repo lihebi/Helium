@@ -5,6 +5,7 @@
 #include <vector>
 #include "segment/Segment.hpp"
 #include "segment/SegmentProcessUnit.hpp"
+#include <memory>
 
 class Builder {
 public:

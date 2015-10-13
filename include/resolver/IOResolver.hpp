@@ -4,6 +4,7 @@
 #include <pugixml.hpp>
 #include <vector>
 #include <set>
+#include <memory>
 
 #include "variable/Variable.hpp"
 #include "segment/Segment.hpp"

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-
+#include <memory>
 #include "variable/Variable.hpp"
 #include "Config.hpp"
 #include "TestResult.hpp"

@@ -3,6 +3,7 @@
 
 #include <pugixml.hpp>
 #include <vector>
+#include <memory>
 
 #include "type/Type.hpp"
 

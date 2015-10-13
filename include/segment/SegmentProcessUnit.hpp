@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include "segment/Segment.hpp"
 #include "Config.hpp"

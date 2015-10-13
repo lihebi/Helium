@@ -3,7 +3,7 @@
 
 #include <string>
 #include <regex>
-
+#include <memory>
 #include "type/Type.hpp"
 
 struct storage_specifier {

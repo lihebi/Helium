@@ -55,7 +55,7 @@ public:
 
   // remove all currence of pattern from s
   static void Remove(std::string& s, const std::string& pattern) {
-    while (s.find(pattern) != -1) {
+    while (s.find(pattern) != std::string::npos) {
       s.erase(s.find(pattern), pattern.length());
     }
   }

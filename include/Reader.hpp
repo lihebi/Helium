@@ -8,6 +8,7 @@
 
 #include <pugixml.hpp>
 #include <vector>
+#include <memory>
 
 class Reader {
 public:
