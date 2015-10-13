@@ -4,6 +4,7 @@
 #include "util/FileUtil.hpp"
 
 #include <iostream>
+#include <regex>
 #include <boost/regex.hpp>
 
 const std::set<std::string> c_common_keyword = {

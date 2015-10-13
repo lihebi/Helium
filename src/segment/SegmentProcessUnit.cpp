@@ -6,6 +6,8 @@
 #include "resolver/Ctags.hpp"
 #include "resolver/HeaderSorter.hpp"
 #include <cstring>
+#include <algorithm>
+#include <regex>
 
 SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
 : m_filename(filename),

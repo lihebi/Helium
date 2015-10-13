@@ -14,6 +14,7 @@
 #include "util/StringUtil.hpp"
 
 #include <iostream>
+#include <regex>
 
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
