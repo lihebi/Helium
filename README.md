@@ -1,7 +1,7 @@
 # Helium
 
 ## Prerequisite
-* header files for pugixml
+* header files for pugixml(>=1.6)
 * [shared library for pugixml](doc/document/pugixml.md)
 * libctags: in ctags release,
   - prepare the `readtags.h`
