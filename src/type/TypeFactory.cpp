@@ -7,13 +7,14 @@
 #include "util/StringUtil.hpp"
 #include "resolver/SystemResolver.hpp"
 #include <iostream>
+#include <boost/regex.hpp>
 #include <cassert>
 #include "snippet/TypedefSnippet.hpp"
 
 static bool
-search_and_remove(std::string &s, std::regex reg) {
-  if (std::regex_search(s, reg)) {
-    s = std::regex_replace<std::regex_traits<char>, char>(s, reg, "");
+search_and_remove(std::string &s, boost::regex reg) {
+  if (boost::regex_search(s, reg)) {
+    s = boost::regex_replace<boost::regex_traits<char>, char>(s, reg, "");
     return true;
   }
   return false;
@@ -30,37 +31,37 @@ count_and_remove(std::string &s, char c) {
 
 static void
 fill_storage_specifier(std::string& name, struct storage_specifier& specifier) {
-  specifier.is_auto     = search_and_remove(name, std::regex("\\bauto\\b"))     ? 1 : 0;
-  specifier.is_register = search_and_remove(name, std::regex("\\bregister\\b")) ? 1 : 0;
-  specifier.is_static   = search_and_remove(name, std::regex("\\bstatic\\b"))   ? 1 : 0;
-  specifier.is_extern   = search_and_remove(name, std::regex("\\bextern\\b"))   ? 1 : 0;
+  specifier.is_auto     = search_and_remove(name, boost::regex("\\bauto\\b"))     ? 1 : 0;
+  specifier.is_register = search_and_remove(name, boost::regex("\\bregister\\b")) ? 1 : 0;
+  specifier.is_static   = search_and_remove(name, boost::regex("\\bstatic\\b"))   ? 1 : 0;
+  specifier.is_extern   = search_and_remove(name, boost::regex("\\bextern\\b"))   ? 1 : 0;
   // specifier.is_typedef     = search_and_remove(name, typedef_regex)     ? 1 : 0;
 }
 
 static void
 fill_type_specifier(std::string& name, struct type_specifier& specifier) {
-  specifier.is_void     = search_and_remove(name, std::regex("\\bvoid\\b"))     ? 1 : 0;
-  specifier.is_char     = search_and_remove(name, std::regex("\\bchar\\b"))     ? 1 : 0;
-  specifier.is_short    = search_and_remove(name, std::regex("\\bshort\\b"))    ? 1 : 0;
-  specifier.is_int      = search_and_remove(name, std::regex("\\bint\\b"))      ? 1 : 0;
-  specifier.is_long     = search_and_remove(name, std::regex("\\blong\\b"))     ? 1 : 0;
-  specifier.is_float    = search_and_remove(name, std::regex("\\bfloat\\b"))    ? 1 : 0;
-  specifier.is_double   = search_and_remove(name, std::regex("\\bdouble\\b"))   ? 1 : 0;
-  specifier.is_signed   = search_and_remove(name, std::regex("\\bsigned\\b"))   ? 1 : 0;
-  specifier.is_unsigned = search_and_remove(name, std::regex("\\bunsigned\\b")) ? 1 : 0;
-  specifier.is_bool     = search_and_remove(name, std::regex("\\bbool\\b"))     ? 1 : 0;
+  specifier.is_void     = search_and_remove(name, boost::regex("\\bvoid\\b"))     ? 1 : 0;
+  specifier.is_char     = search_and_remove(name, boost::regex("\\bchar\\b"))     ? 1 : 0;
+  specifier.is_short    = search_and_remove(name, boost::regex("\\bshort\\b"))    ? 1 : 0;
+  specifier.is_int      = search_and_remove(name, boost::regex("\\bint\\b"))      ? 1 : 0;
+  specifier.is_long     = search_and_remove(name, boost::regex("\\blong\\b"))     ? 1 : 0;
+  specifier.is_float    = search_and_remove(name, boost::regex("\\bfloat\\b"))    ? 1 : 0;
+  specifier.is_double   = search_and_remove(name, boost::regex("\\bdouble\\b"))   ? 1 : 0;
+  specifier.is_signed   = search_and_remove(name, boost::regex("\\bsigned\\b"))   ? 1 : 0;
+  specifier.is_unsigned = search_and_remove(name, boost::regex("\\bunsigned\\b")) ? 1 : 0;
+  specifier.is_bool     = search_and_remove(name, boost::regex("\\bbool\\b"))     ? 1 : 0;
 }
 static void
 fill_type_qualifier(std::string& name, struct type_qualifier& qualifier) {
-  qualifier.is_const    = search_and_remove(name, std::regex("\\bconst\\b"))    ? 1 : 0;
-  qualifier.is_volatile = search_and_remove(name, std::regex("\\bvolatile\\b")) ? 1 : 0;
+  qualifier.is_const    = search_and_remove(name, boost::regex("\\bconst\\b"))    ? 1 : 0;
+  qualifier.is_volatile = search_and_remove(name, boost::regex("\\bvolatile\\b")) ? 1 : 0;
 }
 
 static void
 fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
-  specifier.is_struct = search_and_remove(name, std::regex("\\bstruct\\b")) ? 1 : 0;
-  specifier.is_enum   = search_and_remove(name, std::regex("\\benum\\b"))   ? 1 : 0;
-  specifier.is_union  = search_and_remove(name, std::regex("\\bunion\\b"))  ? 1 : 0;
+  specifier.is_struct = search_and_remove(name, boost::regex("\\bstruct\\b")) ? 1 : 0;
+  specifier.is_enum   = search_and_remove(name, boost::regex("\\benum\\b"))   ? 1 : 0;
+  specifier.is_union  = search_and_remove(name, boost::regex("\\bunion\\b"))  ? 1 : 0;
 }
 
 TypeFactory::TypeFactory(const std::string& name)

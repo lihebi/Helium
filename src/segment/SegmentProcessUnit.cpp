@@ -7,7 +7,7 @@
 #include "resolver/HeaderSorter.hpp"
 #include <cstring>
 #include <algorithm>
-#include <regex>
+#include <boost/regex.hpp>
 
 SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
 : m_filename(filename),
@@ -284,8 +284,8 @@ sortSnippets2(std::set<Snippet*> all) {
 std::string
 SegmentProcessUnit::getContext() {
   std::string context = m_context->GetText();
-  std::regex return_regex("\\breturn\\b[^;]*;");
-  context = std::regex_replace<std::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
+  boost::regex return_regex("\\breturn\\b[^;]*;");
+  context = boost::regex_replace<boost::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
   // FIXME when doing context search, break may appear, while we don't have the outside loop
   return context;
 }

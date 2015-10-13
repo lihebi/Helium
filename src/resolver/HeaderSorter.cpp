@@ -2,12 +2,12 @@
 #include "util/FileUtil.hpp"
 #include "Logger.hpp"
 #include <fstream>
-#include <regex>
+#include <boost/regex.hpp>
 #include <iostream>
 
 HeaderSorter* HeaderSorter::m_instance = 0;
 
-static std::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");
+static boost::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");
 
 // load all the header files inside the folder recursively,
 // scan the #inlcude "" statement, and get dependence relations between them
@@ -26,8 +26,8 @@ HeaderSorter::Load(const std::string& folder) {
       std::string line;
       while(std::getline(is, line)) {
         // process line
-        std::smatch match;
-        if (std::regex_search(line, match, include_reg)) {
+        boost::smatch match;
+        if (boost::regex_search(line, match, include_reg)) {
           std::string new_file = match[1];
           // the filename part of including
           if (new_file.find("/") != std::string::npos) {

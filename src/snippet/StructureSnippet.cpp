@@ -1,5 +1,5 @@
 #include "snippet/StructureSnippet.hpp"
-#include <regex>
+#include <boost/regex.hpp>
 #include "util/FileUtil.hpp"
 #include <iostream>
 
@@ -15,27 +15,27 @@ typedef struct _IO_STATUS_BLOCK {
 } IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
 */
 
-static std::regex name_reg("struct\\s+(\\w+)");
-static std::regex alias_reg("(\\w+)\\s*;\\s*");
+static boost::regex name_reg("struct\\s+(\\w+)");
+static boost::regex alias_reg("(\\w+)\\s*;\\s*");
 
 static void
 get_keywords(
   const std::string& code,
   std::string& name, std::string& alias, std::set<std::string>& keywords
 ) {
-  std::smatch name_match;
-  std::smatch alias_match;
+  boost::smatch name_match;
+  boost::smatch alias_match;
   std::string tmp = code.substr(0, code.find('{'));
-  std::regex_search(tmp, name_match, name_reg);
+  boost::regex_search(tmp, name_match, name_reg);
   if (!name_match.empty()) {
     name = name_match[1];
     keywords.insert(name);
   }
 
   tmp = code.substr(code.rfind('}'));
-  std::regex_search(tmp, alias_match, alias_reg);
-  // std::smatch keyword_match;
-  // std::regex_search(tmp, keyword_match, std::regex("\\b(\\w+)\\b"))
+  boost::regex_search(tmp, alias_match, alias_reg);
+  // boost::smatch keyword_match;
+  // boost::regex_search(tmp, keyword_match, boost::regex("\\b(\\w+)\\b"))
 
 
   if (!alias_match.empty()) {

@@ -1,13 +1,12 @@
 #include "snippet/TypedefSnippet.hpp"
-#include <regex>
+#include <boost/regex.hpp>
 #include <iostream>
 #include "util/FileUtil.hpp"
 #include <pugixml.hpp>
 #include "util/SrcmlUtil.hpp"
 #include "util/DomUtil.hpp"
 
-// std::regex name_reg("struct\\s+(\\w+)");
-static std::regex alias_reg("(\\w+)\\s*;\\s*");
+static boost::regex alias_reg("(\\w+)\\s*;\\s*");
 
 TypedefSnippet::TypedefSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number)
 : m_code(code), m_type('t'), m_filename(filename), m_line_number(line_number) {

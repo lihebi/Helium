@@ -2,7 +2,6 @@
 #define __TYPE_FACTORY_HPP__
 
 #include <string>
-#include <regex>
 #include <memory>
 #include "type/Type.hpp"
 

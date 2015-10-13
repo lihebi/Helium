@@ -1,19 +1,19 @@
 #include "snippet/UnionSnippet.hpp"
 #include "util/FileUtil.hpp"
-#include <regex>
+#include <boost/regex.hpp>
 
-static std::regex name_reg("union\\s+(\\w+)");
-static std::regex alias_reg("(\\w+)\\s*;\\s*");
+static boost::regex name_reg("union\\s+(\\w+)");
+static boost::regex alias_reg("(\\w+)\\s*;\\s*");
 
 static void
 get_keywords(
   const std::string& code,
   std::string& name, std::string& alias, std::set<std::string>& keywords
 ) {
-  std::smatch name_match;
-  std::smatch alias_match;
+  boost::smatch name_match;
+  boost::smatch alias_match;
   std::string tmp = code.substr(0, code.find('{'));
-  std::regex_search(tmp, name_match, name_reg);
+  boost::regex_search(tmp, name_match, name_reg);
   if (!name_match.empty()) {
     name = name_match[1];
     keywords.insert(name);
@@ -21,7 +21,7 @@ get_keywords(
   }
 
   tmp = code.substr(code.rfind('}'));
-  std::regex_search(tmp, alias_match, alias_reg);
+  boost::regex_search(tmp, alias_match, alias_reg);
   if (!alias_match.empty()) {
     alias = alias_match[1];
     name += "alias "+alias;
