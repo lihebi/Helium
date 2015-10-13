@@ -34,7 +34,7 @@ Ctags::Parse(const std::string& name, const std::string& type) {
   std::vector<CtagsEntry> vc;
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
-    if (m_entry->kind && type.find(*(m_entry->kind)) != -1) {
+    if (m_entry->kind && type.find(*(m_entry->kind)) != std::string::npos) {
       vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.lineNumber, *(m_entry->kind)));
     }
     // find next

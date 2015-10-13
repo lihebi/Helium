@@ -52,7 +52,7 @@ void Splitter::Run() {
     pugi::xml_node root = doc.document_element();
     pugi::xpath_node_set decl_stmts = root.select_nodes("//decl_stmt");
     int change_count = 0;
-    for (int i=0;i<decl_stmts.size();i++) {
+    for (size_t i=0;i<decl_stmts.size();i++) {
       pugi::xml_node decl_stmt_node = decl_stmts[i].node();
       pugi::xpath_node_set decls = decl_stmt_node.select_nodes("./decl");
       // int a=0,b; will not have two <decl>, but a <decl><type><name><init><name></decl>
