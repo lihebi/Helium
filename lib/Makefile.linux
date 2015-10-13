@@ -1,0 +1,8 @@
+all: libpugi.so.1.0
+
+libctags.so.1.0:
+	cc -Wall -fPIC -c readtags.c
+	cc -shared -Wl,-soname,libctags.so.1 -o libctags.so.1.0 readtags.o
+
+install: libctags.so.1.0
+	cp libctags.so.1.0 /usr/local/lib
