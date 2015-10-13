@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <fstream>
 #include <cassert>
+#include <cstring>
 #include <stack>
 #include "Config.hpp"
 
@@ -221,7 +222,7 @@ CondComp::process(std::vector<std::string>& lines) {
   // std::cout << "[CondComp::process]" << std::endl;
   std::string line;
   std::stack<int> action_stack = std::stack<int>();
-  int level = 0;
+  unsigned int level = 0;
   action_stack.push(0);
   bool changed = false;
   for (auto it=lines.begin();it!=lines.end();it++) {
