@@ -5,6 +5,7 @@
 #include "snippet/SnippetRegistry.hpp"
 #include "resolver/Ctags.hpp"
 #include "resolver/HeaderSorter.hpp"
+#include <cstring>
 
 SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
 : m_filename(filename),
@@ -208,8 +209,8 @@ sortOneRound(std::vector<Snippet*> &sorted) {
     std::cout << "\t" << (*it)->GetName() << std::endl;
   }
   bool changed = false;
-  for (int i=0;i<sorted.size();i++) {
-    for (int j=i+1;j<sorted.size();j++) {
+  for (size_t i=0;i<sorted.size();i++) {
+    for (size_t j=i+1;j<sorted.size();j++) {
       if (isDirectDep(sorted[i], sorted[j])) {
         Snippet *tmp = sorted[i];
         sorted[i] = sorted[j];
