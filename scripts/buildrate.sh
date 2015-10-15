@@ -3,8 +3,12 @@
 for fname in $1/*
 do
   echo $fname
-  helium --pre $fname > /dev/null 2>&1
-  gtimeout 60 helium $fname > /dev/null 2>&1
+  # helium --pre $fname > /dev/null 2>&1
+  if [ `uname` == "Darwin" ] then
+    gtimeout 60 helium $fname > /dev/null 2>&1
+  else
+    timeout 60 helium $fname > /dev/null 2>&1
+  fi
   if [ $? == 0 ]; then
     echo "success";
   else
