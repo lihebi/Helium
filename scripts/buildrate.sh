@@ -16,6 +16,6 @@ do
   fi
   success_count=`cat /tmp/helium/log/rate.txt | grep success | wc -l`
   error_count=`cat /tmp/helium/log/rate.txt | grep error | wc -l`
-  buildrate=`echo "scale=2; $success_count/($success_count+$error_count)$" | bc`
+  buildrate=`echo "scale=2; $success_count/($success_count+$error_count)" | bc`
   echo SUCCESS: $success_count ERROR: $error_count RATE: $buildrate
 done
