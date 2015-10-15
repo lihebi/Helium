@@ -28,13 +28,18 @@ public:
   std::vector<CtagsEntry> Parse(const std::string& name) ;
   std::vector<CtagsEntry> Parse(const std::string& name, const std::string& type);
   bool Has(const std::string& name);
+  std::string GetHeaders() const;
+  std::string GetLibs() const;
 private:
-  SystemResolver() {}
+  SystemResolver();
   ~SystemResolver() {}
   // std::vector<Header> m_headers; // header files used
   static SystemResolver* m_instance;
   tagFile *m_tagfile;
   tagEntry *m_entry;
+  // headers that need to be included
+  std::set<std::string> m_headers;
+  std::set<std::string> m_libs; // library compilation flags
 };
 
 #endif

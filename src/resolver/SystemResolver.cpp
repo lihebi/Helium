@@ -2,8 +2,68 @@
 #include <iostream>
 #include "type/TypeFactory.hpp"
 #include "util/StringUtil.hpp"
+#include <cstring>
+#include <boost/filesystem.hpp>
+#include <fstream>
+#include "util/StringUtil.hpp"
+
+namespace fs = boost::filesystem;
 
 SystemResolver* SystemResolver::m_instance = 0;
+
+bool exists(const std::string header) {
+  fs::path p("/usr/include/"+header);
+  if (fs::exists(p)) return true;
+  p = "/usr/local/include/" + header;
+  if (fs::exists(p)) return true;
+  return false;
+}
+
+SystemResolver::SystemResolver() {
+  std::string s = getenv("HELIUM_HOME");
+  std::ifstream is;
+  is.open(s+"/headers.conf");
+  if (is.is_open()) {
+    std::string line;
+    std::string flag;
+    while (getline(is, line)) {
+      StringUtil::trim(line);
+      flag = "";
+      if (line.find(' ') != std::string::npos) {
+        std::vector<std::string> lines = StringUtil::Split(line);
+        line = lines[0];
+        flag = lines[1];
+      }
+      if (!line.empty() && line[0] != '#') {
+        if (exists(line)) {
+          m_headers.insert(line);
+          if (!flag.empty()) {
+            m_libs.insert(flag);
+          }
+        } else {
+        }
+      }
+    }
+  }
+}
+
+std::string
+SystemResolver::GetHeaders() const {
+  std::string code;
+  for (auto it=m_headers.begin();it!=m_headers.end();it++) {
+    code += "#include <" + *it + ">\n";
+  }
+  return code;
+}
+
+std::string
+SystemResolver::GetLibs() const {
+  std::string flags;
+  for (auto it=m_libs.begin();it!=m_libs.end();it++) {
+    flags += *it + " ";
+  }
+  return flags;
+}
 
 // resolve to primitive type
 // uint8_t => unsigned char"
@@ -38,8 +98,11 @@ SystemResolver::ResolveType(const std::string& name) {
 
 bool
 SystemResolver::Has(const std::string& name) {
-  if (Parse(name).empty()) return false;
-  else return true;
+  std::vector<CtagsEntry> entries = Parse(name);
+  if (entries.empty()) return false;
+  else {
+    return true;
+  }
 }
 
 void

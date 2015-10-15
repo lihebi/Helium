@@ -51,6 +51,11 @@ public:
     std::vector<std::string> &elems
   );
   static std::vector<std::string> Split(const std::string &s, char delim);
+
+  /*
+   * This is the split function that use any white space as delimiter
+   * Use completely different implementation from the other two
+   */
   static std::vector<std::string> Split(const std::string &s);
 
   // remove all currence of pattern from s

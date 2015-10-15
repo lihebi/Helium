@@ -5,6 +5,7 @@
 #include "snippet/SnippetRegistry.hpp"
 #include "resolver/Ctags.hpp"
 #include "resolver/HeaderSorter.hpp"
+#include "resolver/SystemResolver.hpp"
 #include <cstring>
 #include <algorithm>
 #include <boost/regex.hpp>
@@ -329,52 +330,6 @@ SegmentProcessUnit::GetMain() {
 }
 
 std::string
-get_headers() {
-  std::vector<std::string> headers{
-    "stdio.h",
-    "stdlib.h",
-    "stdint.h",
-    "sys/types.h",
-    "assert.h",
-    "pthread.h",
-    "string.h",
-    "signal.h",
-    "errno.h",
-    "unistd.h",
-    "fcntl.h",
-    "ctype.h",
-    "sys/wait.h",
-    "time.h",
-    // linux
-    "errno.h",
-    // network
-    "sys/socket.h",
-    "sys/un.h",
-    "netinet/in.h",
-    "netinet/tcp.h",
-    "arpa/inet.h",
-    // unfamiliar
-    "sys/stat.h",
-    "sys/uio.h",
-    "sys/param.h",
-    "sys/mman.h",
-    "netdb.h",
-    "sys/stat.h",
-    "sys/param.h",
-    "sys/resource.h",
-    "sasl/sasl.h", // TODO this should be changed according to CondComp
-    "stddef.h",
-    // FIXME 3rd party. Need to install first!!!
-    "event.h"
-  };
-  std::string code;
-  for (size_t i=0;i<headers.size();i++) {
-    code += "#include \"" + headers[i] + "\"\n";
-  }
-  return code;
-}
-
-std::string
 get_head() {
   return
   "#ifndef __SUPPORT_H__\n"
@@ -416,7 +371,7 @@ SegmentProcessUnit::GetSupport() {
   std::string code = "";
   // head
   code += get_head();
-  code += get_headers();
+  code += SystemResolver::Instance()->GetHeaders();
   // snippets
   std::string code_func_decl;
   std::string code_func;
@@ -451,7 +406,7 @@ SegmentProcessUnit::GetMakefile() {
   // FIXME The -levent is 3rd party! Need to install first!
   // FIXME library should be changed according to CondComp
   // TODO configurable include paths
-  + "\tcc -std=c99 generate.c " + "-levent -lsasl2" + "\n"
+  + "\tcc -std=c99 generate.c " + SystemResolver::Instance()->GetLibs() + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;
