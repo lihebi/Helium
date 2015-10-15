@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# preprocess all prjects in folder
+
 for fname in $1/*
 do
   echo $fname

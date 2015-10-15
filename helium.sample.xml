@@ -45,6 +45,7 @@
   <!-- output control -->
   <output>
     <!-- If commented out, use stdout -->
+    <debug>debug.txt</debug>
     <default>default.txt</default>
     <trace>trace.txt</trace>
     <compile>compile.txt</compile>

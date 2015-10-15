@@ -14,8 +14,8 @@ do
   else
     echo "timeout";
   fi
-  success_count=`cat /tmp/helium_buildrate.txt | grep success | wc -l`
-  all_count=`cat /tmp/helium_buildrate.txt | wc -l`
-  buildrate=`echo "scale=2; $success_count/$all_count" | bc`
-  echo $success_count/$all_count= $buildrate
+  success_count=`cat /tmp/helium/log/rate.txt | grep success | wc -l`
+  error_count=`cat /tmp/helium/log/rate.txt | grep error | wc -l`
+  buildrate=`echo "scale=2; $success_count/($success_count+$error_count)$" | bc`
+  echo SUCCESS: $success_count ERROR: $error_count RATE: $buildrate
 done

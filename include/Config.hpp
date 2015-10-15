@@ -44,6 +44,7 @@ public:
   const std::string& GetCondCompMacros() const {return m_cond_comp_macros;}
   // output
   const std::string& GetOutputDefault() const {return m_output_default;}
+  const std::string& GetOutputDebug() const {return m_output_debug;}
   const std::string& GetOutputTrace() const {return m_output_trace;}
   const std::string& GetOutputCompile() const {return m_output_compile;}
   const std::string& GetOutputData() const {return m_output_data;}
@@ -87,6 +88,7 @@ private:
   std::string m_cond_comp_macros;
   // output control option
   std::string m_output_default;
+  std::string m_output_debug;
   std::string m_output_trace;
   std::string m_output_compile;
   std::string m_output_data;

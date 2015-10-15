@@ -22,6 +22,7 @@ public:
   void LogCompile(const std::string& content);
   void LogData(const std::string& content);
   void LogRate(const std::string& content);
+  void LogDebug(const std::string& content);
 
   // log MyClass::MyMethod entries
   void LogTrace();
@@ -33,6 +34,7 @@ private:
   std::string m_log_folder;
   FILE* m_trace_logger;
   FILE* m_default_logger;
+  FILE* m_debug_logger;
   FILE* m_compile_logger;
   FILE* m_data_logger;
   FILE* m_rate_logger;

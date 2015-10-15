@@ -18,7 +18,7 @@ Config* Config::Instance() {
 }
 
 void Config::Load(const std::string& filename) {
-  std::cout<<"[Config::Load] "<<filename<<std::endl;
+  // std::cout<<"[Config::Load] "<<filename<<std::endl;
   m_filename = filename;
   pt::ptree tree;
   pt::read_xml(m_filename, tree);
@@ -78,6 +78,7 @@ void Config::Load(const std::string& filename) {
   m_cond_comp_macros = tree.get("helium.cmd.cond_comp_macros", "");
   // output
   m_output_default = tree.get("helium.output.default", "");
+  m_output_debug = tree.get("helium.output.debug", "");
   m_output_trace = tree.get("helium.output.trace", "");
   m_output_compile = tree.get("helium.output.compile", "");
   m_output_data = tree.get("helium.output.data", "");
