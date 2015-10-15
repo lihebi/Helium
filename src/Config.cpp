@@ -24,6 +24,7 @@ void Config::Load(const std::string& filename) {
   pt::read_xml(m_filename, tree);
   // segment
   m_output_folder = tree.get("helium.output_folder", "helium_out");
+  m_tmp_folder = tree.get("helium.tmp_folder", "/tmp/helium");
   m_code_selection = tree.get("helium.segment.code_selection", "loop");
   m_max_segment_size = tree.get("helium.segment.max_segment_size", 50);
   m_segment_timeout = tree.get("helium.segment.timeout", 99999);
@@ -75,4 +76,10 @@ void Config::Load(const std::string& filename) {
   }
   // cmd
   m_cond_comp_macros = tree.get("helium.cmd.cond_comp_macros", "");
+  // output
+  m_output_default = tree.get("helium.output.default", "");
+  m_output_trace = tree.get("helium.output.trace", "");
+  m_output_compile = tree.get("helium.output.compile", "");
+  m_output_data = tree.get("helium.output.data", "");
+  m_output_rate = tree.get("helium.output.rate", "");
 }

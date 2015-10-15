@@ -13,16 +13,30 @@ public:
     }
     return m_instance;
   }
+
+  // void Log(const std::string& filename, const std::string& content);
+  // void Logln(const std::string& filename, const std::string& content);
+  // predefined logger
   void Log(const std::string& content);
-  void Log(const std::string& filename, const std::string& content);
-  void Logln(const std::string& filename, const std::string& content);
+  void LogTrace(const std::string& content);
+  void LogCompile(const std::string& content);
+  void LogData(const std::string& content);
+  void LogRate(const std::string& rate);
+
+  // log MyClass::MyMethod entries
+  void LogTrace();
 private:
   Logger();
   ~Logger() {}
   FILE* getLogger(const std::string& name);
   static Logger* m_instance;
-  std::ofstream m_logger;
+  std::string m_log_folder;
   std::map<std::string, FILE*> m_loggers;
+  FILE* m_trace_logger;
+  FILE* m_default_logger;
+  FILE* m_compile_logger;
+  FILE* m_data_logger;
+  FILE* m_rate_logger;
 };
 
 #endif

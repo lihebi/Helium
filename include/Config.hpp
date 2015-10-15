@@ -11,50 +11,27 @@ public:
   void Load(const std::string& filename);
 
   // General config
-  const std::string& GetFilename() const {
-    return m_filename;
-  }
-  const std::string& GetOutputFolder() const {
-    return m_output_folder;
-  }
+  const std::string& GetFilename() const {return m_filename;}
+  const std::string& GetOutputFolder() const {return m_output_folder;}
+  const std::string& GetTmpFolder() const {return m_tmp_folder;}
   // segment
-  const std::string& GetCodeSelectionMethod() const {
-    return m_code_selection;
-  }
-  int GetMaxSegmentSize() const {
-    return m_max_segment_size;
-  }
+  const std::string& GetCodeSelectionMethod() const {return m_code_selection;}
+  int GetMaxSegmentSize() const {return m_max_segment_size;}
   int GetSegmentTimeout() const {return m_segment_timeout;}
   // context
-  const std::string& GetContextSearchMethod() const {
-    return m_context_search;
-  }
-  const int GetMaxLinearSearchValue() const {
-    return m_max_linear_search_value;
-  }
+  const std::string& GetContextSearchMethod() const {return m_context_search;}
+  const int GetMaxLinearSearchValue() const {return m_max_linear_search_value;}
   // build config
   const std::string& GetInstrumentPosition() const {return m_instrument_position;}
   const std::string& GetInstrumentType() const {return m_instrument_type;}
   // test config
-  bool WillRunTest() const {
-    return m_run_test;
-  }
-  const std::string& GetTestGenerationMethod() const {
-    return m_test_generation;
-  }
-  int GetTestNumber() const {
-    return m_test_number;
-  }
-  int GetTestTimeout() const {
-    return m_test_timeout;
-  }
+  bool WillRunTest() const {return m_run_test;}
+  const std::string& GetTestGenerationMethod() const {return m_test_generation;}
+  int GetTestNumber() const {return m_test_number;}
+  int GetTestTimeout() const {return m_test_timeout;}
   // analyzer config
-  bool WillRunAnalyze() const {
-    return m_run_analyze;
-  }
-  const std::string& GetAnalyer() const {
-    return m_analyzer;
-  }
+  bool WillRunAnalyze() const {return m_run_analyze;}
+  const std::string& GetAnalyer() const {return m_analyzer;}
   int GetAnalyzeTimeout() const {return m_analyze_timeout;}
   // debug
   bool WillShowCompileError() const {return m_show_compile_error;}
@@ -64,7 +41,13 @@ public:
   bool WillInteractCompile() const {return m_interact_compile;}
   bool WillInteractCompileError() const {return m_interact_compile_error;}
   // cmd
-  std::string GetCondCompMacros() const {return m_cond_comp_macros;}
+  const std::string& GetCondCompMacros() const {return m_cond_comp_macros;}
+  // output
+  const std::string& GetOutputDefault() const {return m_output_default;}
+  const std::string& GetOutputTrace() const {return m_output_trace;}
+  const std::string& GetOutputCompile() const {return m_output_compile;}
+  const std::string& GetOutputData() const {return m_output_data;}
+  const std::string& GetOutputRate() const {return m_output_rate;}
 
 private:
   Config() {}
@@ -73,6 +56,7 @@ private:
 
   std::string m_filename;
   std::string m_output_folder;
+  std::string m_tmp_folder;
   // segment
   std::string m_code_selection;
   int m_max_segment_size;
@@ -101,6 +85,12 @@ private:
   bool m_interact_compile_error;
   // cmd
   std::string m_cond_comp_macros;
+  // output control option
+  std::string m_output_default;
+  std::string m_output_trace;
+  std::string m_output_compile;
+  std::string m_output_data;
+  std::string m_output_rate;
 };
 
 #endif

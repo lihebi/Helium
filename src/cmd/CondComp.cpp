@@ -11,6 +11,8 @@
 #include "Config.hpp"
 
 CondComp::CondComp(const std::string &folder) : m_folder(folder) {
+
+  m_tmp_folder = Config::Instance()->GetTmpFolder()+"/condcomp";
   std::vector<std::string> extension {"c", "h"};
   FileUtil::GetFilesByExtension(m_folder, m_files, extension);
   getUsedMacros();
@@ -95,13 +97,13 @@ CondComp::getDefinedMacros() {
     config_ac_code += get_check_code(*it);
   }
   config_ac_code += "AC_OUTPUT\n";
-  FileUtil::Write("/tmp/helium/configure.ac", config_ac_code);
-  std::string cmd = "cd /tmp/helium && autoreconf && ./configure";
+  FileUtil::Write(m_tmp_folder + "/configure.ac", config_ac_code);
+  std::string cmd = "cd " + m_tmp_folder + " && autoreconf && ./configure";
   std::cout << "[CondComp::Run] running: " << cmd << std::endl;
   if (ThreadUtil::ExecExit(cmd) == 0) {
     std::cout << "\033[32m" << "successfully executed" << "\033[0m" << std::endl;
     std::ifstream is;
-    is.open("/tmp/helium/config.h");
+    is.open(m_tmp_folder + "/config.h");
     if (is.is_open()) {
       std::string line;
       while (getline(is, line)) {

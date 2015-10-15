@@ -18,6 +18,7 @@ private:
   int query(const std::string& id);
   bool process(std::vector<std::string>& lines);
   std::string m_folder;
+  std::string m_tmp_folder;
   std::vector<std::string> m_files;
   std::set<std::string> m_macros;
   std::set<std::string> m_defined_macros;

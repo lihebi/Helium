@@ -1,6 +1,8 @@
 <!-- Default Config -->
 <helium>
   <output_folder>helium_result</output_folder>
+  <!-- This is the tmp folder where log file and condcomp will be put in -->
+  <tmp_folder>/tmp/helium</tmp_folder>
   <segment>
     <code_selection>loop</code_selection>
     <!-- <code_selection>annotation</code_selection> -->
@@ -40,4 +42,15 @@
   <cmd>
     <cond_comp_macros>predefined_macros.h</cond_comp_macros>
   </cmd>
+  <!-- output control -->
+  <output>
+    <!-- If commented out, use stdout -->
+    <default>default.txt</default>
+    <trace>trace.txt</trace>
+    <compile>compile.txt</compile>
+    <!-- Test input, output, invariant -->
+    <data>data.txt</data>
+    <!-- compile/run success/error -->
+    <rate>rate.txt</rate>
+  </output>
 </helium>
