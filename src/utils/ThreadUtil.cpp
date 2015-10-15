@@ -38,24 +38,7 @@ std::string ThreadUtil::Exec(const std::string& cmd) {
   return Exec(cmd.c_str());
 }
 
-// std::string ThreadUtil::Exec(const char* cmd, const char* input) {
-//   std::cout << "[ThreadUtil::Exec]" << std::endl;
-//   FILE *pipe = popen(cmd, "r+");
-//   if (!pipe) return "ERROR";
-//   fputs(input, pipe);
-//   char buffer[128];
-//   std::string result = "";
-//   while(!feof(pipe)) {
-//     std::cout << "...." << std::endl;
-//     if (fgets(buffer, 128, pipe) != NULL) {
-//       result += buffer;
-//     }
-//     std::cout << "/* message */" << std::endl;
-//   }
-//   std::cout << "////" << std::endl;
-//   pclose(pipe);
-//   return result;
-// }
+// exec with input
 
 std::string ThreadUtil::Exec(const char* cmd, const std::string& input, unsigned int timeout) {
   return Exec(cmd, input.c_str(), timeout);

@@ -21,7 +21,7 @@ public:
   void LogTrace(const std::string& content);
   void LogCompile(const std::string& content);
   void LogData(const std::string& content);
-  void LogRate(const std::string& rate);
+  void LogRate(const std::string& content);
 
   // log MyClass::MyMethod entries
   void LogTrace();
@@ -31,7 +31,6 @@ private:
   FILE* getLogger(const std::string& name);
   static Logger* m_instance;
   std::string m_log_folder;
-  std::map<std::string, FILE*> m_loggers;
   FILE* m_trace_logger;
   FILE* m_default_logger;
   FILE* m_compile_logger;

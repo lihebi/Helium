@@ -33,7 +33,7 @@ Builder::writeMakefile() {
 
 void
 Builder::Build() {
-  std::cout<<"[Builder][Build]"<<std::endl;
+  Logger::Instance()->LogTrace("[Builder][Build]\n");
   m_main = m_seg_unit->GetMain();
   m_support = m_seg_unit->GetSupport();
   m_makefile = m_seg_unit->GetMakefile();
@@ -44,26 +44,25 @@ Builder::Build() {
 
 void
 Builder::Compile() {
-  std::cout<<"[Builder][Compile]"<<std::endl;
+  Logger::Instance()->LogTrace("[Builder][Compile]\n");
   std::string clean_cmd = "make clean -C " + Config::Instance()->GetOutputFolder();
   std::string cmd = "make -C " + Config::Instance()->GetOutputFolder();
-  std::cout<<"[Builder][Compile] clean"<<std::endl;
+  Logger::Instance()->LogTrace("[Builder][Compile] clean\n");
   if (!Config::Instance()->WillShowCompileError()) {
     cmd += " 2>/dev/null";
   }
   ThreadUtil::Exec(clean_cmd);
-  std::cout<<"[Builder][Compile] make"<<std::endl;
-  std::cout<<cmd<<std::endl;
+  Logger::Instance()->LogTrace("[Builder][Compile] make\n");
   int return_code = ThreadUtil::ExecExit(cmd);
   if (return_code != 0) {
-    std::cout<<"[Builder][Compile]"<<"\033[31m"<<"compile error"<<"\033[0m"<<std::endl;
+    Logger::Instance()->LogTrace("[Builder][Compile] compile error\n");
     Logger::Instance()->LogRate("compile error");
     if (Config::Instance()->WillInteractCompileError()) {
       std::cout<<"> Enter to continue ..."<<std::endl;
       getchar();
     }
   } else {
-    std::cout<<"[Builder][Compile]"<<"\033[32m"<<"compile success"<<"\033[0m"<<std::endl;
+    Logger::Instance()->Log("[Builder][Compile] compile success\n");
     Logger::Instance()->LogRate("compile success");
     m_success = true;
   }

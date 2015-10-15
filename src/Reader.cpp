@@ -11,13 +11,14 @@
 int Reader::m_skip_segment = -1;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
-  std::cout<<"[Reader][Constructor]"<<filename<<std::endl;
+  Logger::Instance()->LogTrace("[Reader][Constructor]\n");
   m_doc = std::make_shared<pugi::xml_document>();
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
-  std::cout<<"[Reader] Total segment in this file: "<<m_seg_units.size()<<std::endl;
+  Logger::Instance()->LogTrace("[Reader] Total segment in this file: "
+  + std::to_string(m_seg_units.size()) + "\n");
   if (m_seg_units.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
-    std::cout << "[Reader::Reader] Done reading segment" << std::endl;
+    Logger::Instance()->LogTrace("[Reader::Reader] Done reading segment\n");
     getchar();
   }
   if (m_skip_segment == -1) {
@@ -28,7 +29,7 @@ Reader::~Reader() {}
 
 void
 Reader::Read() {
-  std::cout<<"[Reader][Read]"<<std::endl;
+  Logger::Instance()->LogTrace("[Reader][Read]\n");
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
     if (m_skip_segment > 0) {
       m_skip_segment--;
@@ -81,7 +82,7 @@ void Reader::getLoopSegments() {
 
 }
 void Reader::getAnnotationSegments() {
-  std::cout << "[Reader::getAnnotationSegments]" << std::endl;
+  Logger::Instance()->LogTrace("[Reader::getAnnotationSegments]\n");
   pugi::xml_node root = m_doc->document_element();
   pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
   for (auto it=comment_nodes.begin();it!=comment_nodes.end();it++) {

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include "Logger.hpp"
 
 IOResolver::IOResolver() {}
 
@@ -180,7 +181,7 @@ std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
   const Segment& segment
 ) {
-  std::cout<<"[IOResolver::ResolveUndefinedVars]"<<std::endl;
+  Logger::Instance()->LogTrace("[IOResolver::ResolveUndefinedVars]\n");
   std::set<std::shared_ptr<Variable> > resolved;
   std::set<std::shared_ptr<Variable> > defined;
   std::vector<pugi::xml_node> vn = segment.GetNodes();
@@ -192,7 +193,7 @@ std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
   pugi::xml_node node
 ) {
-  std::cout<<"[IOResolver::ResolveUndefinedVars]"<<std::endl;
+  Logger::Instance()->LogTrace("[IOResolver::ResolveUndefinedVars]\n");
   std::set<std::shared_ptr<Variable> > resolved;
   std::set<std::shared_ptr<Variable> > defined;
   std::vector<pugi::xml_node> vn;

@@ -8,12 +8,13 @@
 #include <iostream>
 #include "resolver/Ctags.hpp"
 #include <cassert>
+#include "Logger.hpp"
 
 StructureType::StructureType(const std::string& name) {
   // need to resolve instead of looking up registry,
   // because the resolving snippet phase
   // is far behind current phase of resolve IO variables.
-  std::cout << "[StructureType::StructureType]" << name << std::endl;
+  Logger::Instance()->LogTrace("[StructureType::StructureType]"+name+"\n");
   std::set<Snippet*> snippets = Ctags::Instance()->Resolve(name);
   for (auto it=snippets.begin();it!=snippets.end();it++) {
     if ((*it)->GetType() == 's') {

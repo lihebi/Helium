@@ -10,6 +10,7 @@
 #include <boost/regex.hpp>
 #include <cassert>
 #include "snippet/TypedefSnippet.hpp"
+#include "Logger.hpp"
 
 static bool
 search_and_remove(std::string &s, boost::regex reg) {
@@ -129,9 +130,10 @@ TypeFactory::createLocalType() {
           // YES, by typedef struct conn conn
           type = TypeFactory(new_name).CreateType();
         } else if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_FUNC_POINTER) {
-          std::cout << "[TypeFactory::CreateType]"
-          << "\033[33m" << "typedef" + m_identifier + "is function pointer" << "\033[0m"
-          << std::endl;
+          Logger::Instance()->LogTrace("[TypeFactory::CreateType]"
+          "[WARNING] typedef"
+          + m_identifier
+          + "is function pointer\n");
         }
         break;
       }
@@ -140,11 +142,9 @@ TypeFactory::createLocalType() {
   // type should contains something.
   // or it may be NULL. So if it fails, do not necessarily means a bug
   if (!type) {
-    std::cout << "[TypeFactory::CreateType]"
-    << "\033[31m"
-    << "the type is local, but is not s or t: " << m_identifier
-    << "\033[0m" << std::endl;
-    // getchar();
+    Logger::Instance()->LogTrace("[TypeFactory::CreateType]"
+    "[ERROR] the type is local, but is not s or t: "
+    + m_identifier + "\n");
     return NULL;
   }
   return type;
@@ -178,9 +178,8 @@ TypeFactory::CreateType() {
   } else if (is_system_type(m_identifier)) {
     type = createSystemType();
   } else {
-    std::cout << "\033[33m[TypeFactory::CreateType][Warning] Not supported type: "
-    << m_identifier << "\033[0m"
-    << " in: " << m_name << std::endl;
+    Logger::Instance()->LogTrace("[TypeFactory::CreateType][Warning] Not supported type: "
+    + m_identifier + " in: " + m_name + "\n");
     return NULL;
   }
   if (type) {

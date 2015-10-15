@@ -12,6 +12,7 @@
 #include "resolver/Resolver.hpp"
 #include "util/FileUtil.hpp"
 #include "util/StringUtil.hpp"
+#include "Logger.hpp"
 
 #include <iostream>
 #include <boost/regex.hpp>
@@ -175,20 +176,20 @@ SnippetRegistry::resolveDependence(Snippet *s) {
 // this is the only way to add snippets to SnippetRegistry, aka m_snippets
 void
 SnippetRegistry::add(Snippet *s) {
-  std::cout << "[SnippetRegistry::add]" << std::endl;
-  std::cout << "\tType: " << s->GetType() << std::endl;
-  std::cout << "\tName: " << s->GetName() << std::endl;
-  std::cout << "\tKeywords: ";
+  Logger::Instance()->LogTrace("[SnippetRegistry::add]\n");
+  Logger::Instance()->LogTrace("\tType: " + std::to_string(s->GetType()) + "\n");
+  Logger::Instance()->LogTrace("\tName: " + s->GetName() + "\n");
+  Logger::Instance()->LogTrace("\tKeywords: ");
   m_snippets.insert(s);
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    std::cout << *it << ", ";
+    Logger::Instance()->LogTrace(*it + ", ");
     if (m_id_map.find(*it) == m_id_map.end()) {
       m_id_map[*it] = std::set<Snippet*>();
     }
     m_id_map[*it].insert(s);
   }
-  std::cout<<std::endl;
+  Logger::Instance()->LogTrace("\n");
 }
 
 void
@@ -206,18 +207,8 @@ SnippetRegistry::addDependence(Snippet *from, std::set<Snippet*> to) {
   }
 }
 
-static bool
-shall_not_create(const std::string& name) {
-  // some exceptional: htonll is a macro, if redefined, perhaps as a function,
-  // it will fail compiling
-  static std::set<std::string> ss = {"htonll", "ntohll"};
-  if (ss.find(name) != ss.end()) return true;
-  else return false;
-}
-
 Snippet*
 SnippetRegistry::createSnippet(const CtagsEntry& ce) {
-  if (shall_not_create(ce.GetName())) return NULL;
   Snippet *s;
   char t = get_true_type(ce);
   switch (t) {

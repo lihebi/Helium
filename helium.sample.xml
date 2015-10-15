@@ -13,7 +13,7 @@
   </segment>
   <context>
     <context_search>linear</context_search>
-    <max_linear_search_value>10</max_linear_search_value>
+    <max_linear_search_value>0</max_linear_search_value>
   </context>
   <build>
     <instrument_position>loop</instrument_position>
@@ -26,18 +26,18 @@
     <timeout>100</timeout>
   </test>
   <analyze>
-    <run_analyze>true</run_analyze>
+    <run_analyze>false</run_analyze>
     <analyzer>invariant</analyzer>
     <timeout>100</timeout>
   </analyze>
   <debug>
     <show_compile_error>true</show_compile_error>
-    <skip_segment>10</skip_segment>
+    <skip_segment>0</skip_segment>
   </debug>
   <interact>
     <read_segment>false</read_segment>
     <compile>false</compile>
-    <compile_error>true</compile_error>
+    <compile_error>false</compile_error>
   </interact>
   <cmd>
     <cond_comp_macros>predefined_macros.h</cond_comp_macros>

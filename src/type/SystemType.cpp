@@ -1,10 +1,11 @@
 #include "type/SystemType.hpp"
 #include <iostream>
+#include "Logger.hpp"
 
 SystemType::SystemType(
   const std::string& name, const struct struct_specifier& specifier
 ) : m_name(name), m_specifier(specifier) {
-  std::cout << "[SystemType::SystemType] " << m_name << std::endl;
+  Logger::Instance()->LogTrace("[SystemType::SystemType] " + m_name + "\n");
   if (m_specifier.is_struct)     m_type = "struct " + m_name;
   else if (m_specifier.is_enum)  m_type = "enum " + m_name;
   else if (m_specifier.is_union) m_type = "union " + m_name;
