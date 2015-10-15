@@ -1,6 +1,8 @@
 #include "util/ThreadUtil.hpp"
 #include <cstring>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 std::string ThreadUtil::Exec(
   const char* cmd,
