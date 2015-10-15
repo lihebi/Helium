@@ -17,7 +17,10 @@ get_logger(const std::string& filename, int fd, const char* mode) {
     fs::path dir = p.parent_path();
     if (!fs::exists(dir)) fs::create_directories(dir);
     FILE *fp = fopen(filename.c_str(), mode);
-    if (!fp) perror("fopen");
+    if (!fp) {
+      perror("fopen");
+      exit(1);
+    }
     return fp;
   }
 }

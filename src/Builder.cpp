@@ -51,9 +51,10 @@ Builder::Compile() {
   if (!Config::Instance()->WillShowCompileError()) {
     cmd += " 2>/dev/null";
   }
-  ThreadUtil::Exec(clean_cmd);
+  ThreadUtil::Exec(clean_cmd.c_str(), NULL);
   Logger::Instance()->LogTrace("[Builder][Compile] make\n");
-  int return_code = ThreadUtil::ExecExit(cmd);
+  int return_code;
+  ThreadUtil::Exec(cmd.c_str(), &return_code);
   if (return_code != 0) {
     Logger::Instance()->LogTrace("[Builder][Compile] compile error\n");
     Logger::Instance()->LogRate("compile error");

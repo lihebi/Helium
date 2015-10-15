@@ -11,7 +11,7 @@
 int Reader::m_skip_segment = -1;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
-  Logger::Instance()->LogTrace("[Reader][Constructor]\n");
+  Logger::Instance()->LogTrace("[Reader][Reader]\n");
   m_doc = std::make_shared<pugi::xml_document>();
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();

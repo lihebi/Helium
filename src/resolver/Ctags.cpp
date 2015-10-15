@@ -1,6 +1,7 @@
 #include "resolver/Ctags.hpp"
 #include "util/FileUtil.hpp"
 #include "snippet/SnippetRegistry.hpp"
+#include "Logger.hpp"
 #include <iostream>
 
 #include <cstdlib>
@@ -9,7 +10,7 @@ Ctags* Ctags::m_instance = 0;
 
 void
 Ctags::Load(const std::string& tagfile) {
-  std::cout << "[Ctags::Load]" << std::endl;
+  Logger::Instance()->LogTrace("[Ctags::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
   m_entry = (tagEntry*)malloc(sizeof(tagEntry));

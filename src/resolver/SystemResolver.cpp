@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include "util/StringUtil.hpp"
+#include "Logger.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -107,7 +108,7 @@ SystemResolver::Has(const std::string& name) {
 
 void
 SystemResolver::Load(const std::string& tagfile) {
-  std::cout << "[SystemResolver::Load]" << std::endl;
+  Logger::Instance()->LogTrace("[SystemResolver::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
   m_entry = (tagEntry*)malloc(sizeof(tagEntry));

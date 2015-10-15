@@ -75,7 +75,7 @@ CondComp::getUsedMacros() {
   // ls **/*.c can only be used in zsh
   // std::string cmd = "ifnames " + m_folder + "/**/*.[ch]";
   std::string cmd = "ifnames `find " + m_folder + " -name \"*.[ch]\"`";
-  std::string output = ThreadUtil::Exec(cmd);
+  std::string output = ThreadUtil::Exec(cmd.c_str(), NULL);
   std::vector<std::string> defines = StringUtil::Split(output, '\n');
   for (auto it=defines.begin();it!=defines.end();it++) {
     if (it->find("HAVE") == 0) {
@@ -100,7 +100,9 @@ CondComp::getDefinedMacros() {
   FileUtil::Write(m_tmp_folder + "/configure.ac", config_ac_code);
   std::string cmd = "cd " + m_tmp_folder + " && autoreconf && ./configure";
   std::cout << "[CondComp::Run] running: " << cmd << std::endl;
-  if (ThreadUtil::ExecExit(cmd) == 0) {
+  int return_code;
+  ThreadUtil::Exec(cmd.c_str(), &return_code);
+  if (return_code == 0) {
     std::cout << "\033[32m" << "successfully executed" << "\033[0m" << std::endl;
     std::ifstream is;
     is.open(m_tmp_folder + "/config.h");

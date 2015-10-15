@@ -69,7 +69,7 @@ Tester::Test() {
   // run program
   std::string cmd;
   // right now, hard code to timeout 2 seconds
-  std::string result = ThreadUtil::Exec(m_executable, input, 2);
+  std::string result = ThreadUtil::Exec(m_executable.c_str(), input.c_str(), NULL, 2);
   // std::cout << "result: " << std::endl;
   // std::cout << result << std::endl;
   // get output
