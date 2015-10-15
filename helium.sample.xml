@@ -18,7 +18,7 @@
     <instrument_type>variable</instrument_type>
   </build>
   <test>
-    <run_test>true</run_test>
+    <run_test>false</run_test>
     <test_generation>random</test_generation>
     <test_number>10</test_number>
     <timeout>100</timeout>
