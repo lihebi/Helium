@@ -4,7 +4,7 @@ for fname in $1/*
 do
   echo $fname
   # helium --pre $fname > /dev/null 2>&1
-  if [ `uname` == "Darwin" ] then
+  if [ `uname` == "Darwin" ]; then
     gtimeout 60 helium $fname > /dev/null 2>&1
   else
     timeout 60 helium $fname > /dev/null 2>&1
