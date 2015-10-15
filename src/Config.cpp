@@ -18,7 +18,7 @@ Config* Config::Instance() {
 }
 
 void Config::Load(const std::string& filename) {
-  std::cout<<"[Config] Loading Config: "<<filename<<std::endl;
+  std::cout<<"[Config::Load] "<<filename<<std::endl;
   m_filename = filename;
   pt::ptree tree;
   pt::read_xml(m_filename, tree);

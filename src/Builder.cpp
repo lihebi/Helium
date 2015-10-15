@@ -48,23 +48,25 @@ Builder::Compile() {
   std::string clean_cmd = "make clean -C " + Config::Instance()->GetOutputFolder();
   std::string cmd = "make -C " + Config::Instance()->GetOutputFolder();
   Logger::Instance()->LogTrace("[Builder][Compile] clean\n");
-  if (!Config::Instance()->WillShowCompileError()) {
-    cmd += " 2>/dev/null";
-  }
+  // if (!Config::Instance()->WillShowCompileError()) {
+  //   cmd += " 2>/dev/null";
+  // }
+  cmd += " 2>&1";
   ThreadUtil::Exec(clean_cmd.c_str(), NULL);
   Logger::Instance()->LogTrace("[Builder][Compile] make\n");
   int return_code;
-  ThreadUtil::Exec(cmd.c_str(), &return_code);
+  std::string error_msg = ThreadUtil::Exec(cmd.c_str(), &return_code);
   if (return_code != 0) {
     Logger::Instance()->LogTrace("[Builder][Compile] compile error\n");
-    Logger::Instance()->LogRate("compile error");
+    Logger::Instance()->LogRate("compile error\n");
+    Logger::Instance()->LogCompile(error_msg);
     if (Config::Instance()->WillInteractCompileError()) {
       std::cout<<"> Enter to continue ..."<<std::endl;
       getchar();
     }
   } else {
-    Logger::Instance()->Log("[Builder][Compile] compile success\n");
-    Logger::Instance()->LogRate("compile success");
+    Logger::Instance()->LogTrace("[Builder][Compile] compile success\n");
+    Logger::Instance()->LogRate("compile success\n");
     m_success = true;
   }
   if (Config::Instance()->WillInteractCompile()) {

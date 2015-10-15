@@ -33,10 +33,10 @@ Reader::Read() {
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
     if (m_skip_segment > 0) {
       m_skip_segment--;
-      Logger::Instance()->Log("skip this segment: " + m_filename);
+      Logger::Instance()->LogTrace("skip this segment: " + m_filename);
       continue;
     } else {
-      Logger::Instance()->Log("a new segment" + m_filename);
+      Logger::Instance()->LogTrace("a new segment" + m_filename);
     }
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
