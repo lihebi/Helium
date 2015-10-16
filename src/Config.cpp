@@ -77,10 +77,17 @@ void Config::Load(const std::string& filename) {
   // cmd
   m_cond_comp_macros = tree.get("helium.cmd.cond_comp_macros", "");
   // output
-  m_output_default = tree.get("helium.output.default", "");
-  m_output_debug = tree.get("helium.output.debug", "");
-  m_output_trace = tree.get("helium.output.trace", "");
-  m_output_compile = tree.get("helium.output.compile", "");
-  m_output_data = tree.get("helium.output.data", "");
-  m_output_rate = tree.get("helium.output.rate", "");
+  m_output_default = tree.get("helium.output.default.file", "");
+  m_output_debug = tree.get("helium.output.debug.file", "");
+  m_output_trace = tree.get("helium.output.trace.file", "");
+  m_output_compile = tree.get("helium.output.compile.file", "");
+  m_output_data = tree.get("helium.output.data.file", "");
+  m_output_rate = tree.get("helium.output.rate.file", "");
+  // mode
+  m_output_default_mode = tree.get("helium.output.default.mode", "a");
+  m_output_debug_mode = tree.get("helium.output.debug.mode", "a");
+  m_output_trace_mode = tree.get("helium.output.trace.mode", "a");
+  m_output_compile_mode = tree.get("helium.output.compile.mode", "a");
+  m_output_data_mode = tree.get("helium.output.data.mode", "a");
+  m_output_rate_mode = tree.get("helium.output.rate.mode", "a");
 }

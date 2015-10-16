@@ -45,13 +45,14 @@
   <!-- output control -->
   <output>
     <!-- If commented out, use stdout -->
-    <debug>debug.txt</debug>
-    <default>default.txt</default>
-    <trace>trace.txt</trace>
-    <compile>compile.txt</compile>
+    <!-- If no <mode>, use as 'a'. can also be 'w' -->
+    <debug><file>debug.txt</file></debug>
+    <default><file>default.txt</file></default>
+    <trace><file>trace.txt</file></trace>
+    <compile><file>compile.txt</file></compile>
     <!-- Test input, output, invariant -->
-    <data>data.txt</data>
+    <data><file>data.txt</file></data>
     <!-- compile/run success/error -->
-    <rate>rate.txt</rate>
+    <rate><file>rate.txt</file></rate>
   </output>
 </helium>
