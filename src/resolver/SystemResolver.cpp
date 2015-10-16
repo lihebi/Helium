@@ -31,9 +31,12 @@ SystemResolver::SystemResolver() {
       StringUtil::trim(line);
       flag = "";
       if (line.find(' ') != std::string::npos) {
-        std::vector<std::string> lines = StringUtil::Split(line);
-        line = lines[0];
-        flag = lines[1];
+        line = line.substr(0, line.find(' '));
+        flag = line.substr(line.find(' '));
+        StringUtil::trim(flag);
+        // std::vector<std::string> lines = StringUtil::Split(line);
+        // line = lines[0];
+        // flag = lines[1];
       }
       if (!line.empty() && line[0] != '#') {
         if (exists(line)) {
