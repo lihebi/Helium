@@ -1,3 +1,6 @@
+# timelimit: 30s
+# segment: 50
+
 project name,exit status,compile success count,compile error count,build rate
 ./abrasive-shairport,0, 52, 65, .44
 ./alibaba-tengine,0, 61, 112, .35

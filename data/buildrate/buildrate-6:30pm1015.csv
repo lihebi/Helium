@@ -1,3 +1,6 @@
+# timelimit: 60s
+# seg: 50
+
 project name,exit status,compile success count,compile error count,build rate
 ./abrasive-shairport,0,52,52,.50
 ./alibaba-tengine,-1,9,47,.16
