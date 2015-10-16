@@ -30,15 +30,12 @@ SystemResolver::SystemResolver() {
     while (getline(is, line)) {
       StringUtil::trim(line);
       flag = "";
-      if (line.find(' ') != std::string::npos) {
-        line = line.substr(0, line.find(' '));
-        flag = line.substr(line.find(' '));
-        StringUtil::trim(flag);
-        // std::vector<std::string> lines = StringUtil::Split(line);
-        // line = lines[0];
-        // flag = lines[1];
-      }
       if (!line.empty() && line[0] != '#') {
+        if (line.find(' ') != std::string::npos) {
+          flag = line.substr(line.find(' '));
+          line = line.substr(0, line.find(' '));
+          StringUtil::trim(flag);
+        }
         if (exists(line)) {
           m_headers.insert(line);
           if (!flag.empty()) {
