@@ -1,0 +1,254 @@
+support.h:45:1: error: unknown type name ‘PyTypeObject’
+support.h:50:5: error: expected specifier-qualifier-list before ‘PyObject_HEAD’
+support.h:59:5: error: expected ‘}’ before numeric constant
+generate.c:8:1: error: unknown type name ‘p1’
+generate.c:8:15: error: ‘p1’ undeclared (first use in this function)
+generate.c:8:18: error: expected expression before ‘)’ token
+generate.c:9:6: error: ‘p2’ undeclared (first use in this function)
+support.h:45:1: error: unknown type name ‘PyTypeObject’
+support.h:50:5: error: expected specifier-qualifier-list before ‘PyObject_HEAD’
+support.h:59:5: error: expected ‘}’ before numeric constant
+generate.c:14:5: error: ‘p2_tmp’ undeclared (first use in this function)
+generate.c:14:18: error: expected expression before ‘)’ token
+generate.c:15:6: error: ‘p2’ undeclared (first use in this function)
+support.h:45:1: error: unknown type name ‘PyTypeObject’
+support.h:50:5: error: expected specifier-qualifier-list before ‘PyObject_HEAD’
+support.h:59:5: error: expected ‘}’ before numeric constant
+generate.c:5:1: error: unknown type name ‘p1’
+generate.c:5:15: error: ‘p1’ undeclared (first use in this function)
+generate.c:5:18: error: expected expression before ‘)’ token
+generate.c:6:6: error: ‘p2’ undeclared (first use in this function)
+generate.c:8:5: error: ‘p2_tmp’ undeclared (first use in this function)
+generate.c:8:18: error: expected expression before ‘)’ token
+generate.c:9:6: error: ‘p2’ undeclared (first use in this function)
+support.h:45:1: error: unknown type name ‘PyTypeObject’
+support.h:50:5: error: expected specifier-qualifier-list before ‘PyObject_HEAD’
+support.h:59:5: error: expected ‘}’ before numeric constant
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+support.h:54:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+support.h:57:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘T’
+support.h:57:27: error: ‘J’ undeclared (first use in this function)
+support.h:57:29: error: ‘A’ undeclared (first use in this function)
+generate.c:3:1: error: expected expression before ‘int’
+generate.c:14:1: error: expected declaration or statement at end of input
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘Z’
+support.h:54:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+support.h:57:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+support.h:60:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘T’
+support.h:60:27: error: ‘J’ undeclared (first use in this function)
+support.h:60:29: error: ‘A’ undeclared (first use in this function)
+generate.c:3:1: error: expected expression before ‘int’
+generate.c:16:1: error: expected declaration or statement at end of input
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+support.h:54:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+generate.c:10:7: error: ‘J’ undeclared (first use in this function)
+generate.c:10:9: error: ‘E’ undeclared (first use in this function)
+generate.c:10:14: error: ‘A’ undeclared (first use in this function)
+generate.c:11:1: error: ‘C’ undeclared (first use in this function)
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘Z’
+support.h:54:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+support.h:57:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+support.h:60:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘T’
+support.h:60:27: error: ‘J’ undeclared (first use in this function)
+support.h:60:29: error: ‘A’ undeclared (first use in this function)
+generate.c:3:1: error: expected expression before ‘int’
+generate.c:16:1: error: expected declaration or statement at end of input
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+generate.c:17:46: error: ‘C’ undeclared (first use in this function)
+support.h:48:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:51:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘Z’
+support.h:54:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘E’
+support.h:57:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+support.h:60:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘T’
+support.h:60:27: error: ‘J’ undeclared (first use in this function)
+support.h:60:29: error: ‘A’ undeclared (first use in this function)
+support.h:63:1: error: expected expression before ‘char’
+generate.c:3:1: error: expected expression before ‘int’
+generate.c:29:1: error: expected declaration or statement at end of input
+support.h:45:1: error: unknown type name ‘PyTypeObject’
+support.h:50:5: error: expected specifier-qualifier-list before ‘PyObject_HEAD’
+support.h:59:5: error: expected ‘}’ before numeric constant
+support.h:64:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’
+support.h:67:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘J’
+support.h:70:8: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘T’
+support.h:70:27: error: ‘J’ undeclared (first use in this function)
+support.h:70:29: error: ‘A’ undeclared (first use in this function)
+generate.c:3:1: error: expected expression before ‘int’
+generate.c:17:1: error: expected declaration or statement at end of input
+support.h:191:14: error: nested redefinition of ‘enum rr_type’
+support.h:191:14: error: redeclaration of ‘enum rr_type’
+support.h:192:17: error: redeclaration of enumerator ‘RR_A’
+support.h:193:17: error: redeclaration of enumerator ‘RR_PTR’
+support.h:194:17: error: redeclaration of enumerator ‘RR_TXT’
+support.h:195:17: error: redeclaration of enumerator ‘RR_AAAA’
+support.h:196:17: error: redeclaration of enumerator ‘RR_SRV’
+support.h:197:17: error: redeclaration of enumerator ‘RR_NSEC’
+support.h:198:17: error: redeclaration of enumerator ‘RR_ANY’
+support.h:257:6: error: ‘audio_dummy’ undeclared here (not in a function)
+support.h:258:6: error: ‘audio_pipe’ undeclared here (not in a function)
+support.h:265:14: error: ‘help’ undeclared here (not in a function)
+support.h:265:5: error: initializer element is not constant
+support.h:265:5: error: (near initialization for ‘audio_alsa.help’)
+support.h:266:14: error: ‘init’ undeclared here (not in a function)
+support.h:266:5: error: initializer element is not constant
+support.h:266:5: error: (near initialization for ‘audio_alsa.init’)
+support.h:267:16: error: ‘deinit’ undeclared here (not in a function)
+support.h:267:5: error: initializer element is not constant
+support.h:267:5: error: (near initialization for ‘audio_alsa.deinit’)
+support.h:268:15: error: ‘start’ undeclared here (not in a function)
+support.h:268:5: error: initializer element is not constant
+support.h:268:5: error: (near initialization for ‘audio_alsa.start’)
+support.h:269:14: error: ‘stop’ undeclared here (not in a function)
+support.h:269:5: error: initializer element is not constant
+support.h:269:5: error: (near initialization for ‘audio_alsa.stop’)
+support.h:270:14: error: ‘play’ undeclared here (not in a function)
+support.h:270:5: error: initializer element is not constant
+support.h:270:5: error: (near initialization for ‘audio_alsa.play’)
+support.h:275:1: error: unknown type name ‘snd_pcm_t’
+support.h:278:1: error: unknown type name ‘snd_pcm_hw_params_t’
+support.h:281:1: error: unknown type name ‘snd_mixer_t’
+support.h:284:1: error: unknown type name ‘snd_mixer_elem_t’
+support.h:287:1: error: unknown type name ‘snd_mixer_selem_id_t’
+support.h:310:5: error: initializer element is not constant
+support.h:310:5: error: (near initialization for ‘audio_ao.help’)
+support.h:311:5: error: initializer element is not constant
+support.h:311:5: error: (near initialization for ‘audio_ao.init’)
+support.h:312:5: error: initializer element is not constant
+support.h:312:5: error: (near initialization for ‘audio_ao.deinit’)
+support.h:313:5: error: initializer element is not constant
+support.h:313:5: error: (near initialization for ‘audio_ao.start’)
+support.h:314:5: error: initializer element is not constant
+support.h:314:5: error: (near initialization for ‘audio_ao.stop’)
+support.h:315:5: error: initializer element is not constant
+support.h:315:5: error: (near initialization for ‘audio_ao.play’)
+support.h:322:5: error: initializer element is not constant
+support.h:322:5: error: (near initialization for ‘audio_dummy.help’)
+support.h:323:5: error: initializer element is not constant
+support.h:323:5: error: (near initialization for ‘audio_dummy.init’)
+support.h:324:5: error: initializer element is not constant
+support.h:324:5: error: (near initialization for ‘audio_dummy.deinit’)
+support.h:325:5: error: initializer element is not constant
+support.h:325:5: error: (near initialization for ‘audio_dummy.start’)
+support.h:326:5: error: initializer element is not constant
+support.h:326:5: error: (near initialization for ‘audio_dummy.stop’)
+support.h:327:5: error: initializer element is not constant
+support.h:327:5: error: (near initialization for ‘audio_dummy.play’)
+support.h:337:5: error: initializer element is not constant
+support.h:337:5: error: (near initialization for ‘audio_pipe.help’)
+support.h:338:5: error: initializer element is not constant
+support.h:338:5: error: (near initialization for ‘audio_pipe.init’)
+support.h:339:5: error: initializer element is not constant
+support.h:339:5: error: (near initialization for ‘audio_pipe.deinit’)
+support.h:340:5: error: initializer element is not constant
+support.h:340:5: error: (near initialization for ‘audio_pipe.start’)
+support.h:341:5: error: initializer element is not constant
+support.h:341:5: error: (near initialization for ‘audio_pipe.stop’)
+support.h:342:5: error: initializer element is not constant
+support.h:342:5: error: (near initialization for ‘audio_pipe.play’)
+support.h:349:5: error: initializer element is not constant
+support.h:349:5: error: (near initialization for ‘audio_pulse.help’)
+support.h:350:5: error: initializer element is not constant
+support.h:350:5: error: (near initialization for ‘audio_pulse.init’)
+support.h:351:5: error: initializer element is not constant
+support.h:351:5: error: (near initialization for ‘audio_pulse.deinit’)
+support.h:352:5: error: initializer element is not constant
+support.h:352:5: error: (near initialization for ‘audio_pulse.start’)
+support.h:353:5: error: initializer element is not constant
+support.h:353:5: error: (near initialization for ‘audio_pulse.stop’)
+support.h:354:5: error: initializer element is not constant
+support.h:354:5: error: (near initialization for ‘audio_pulse.play’)
+support.h:361:2: error: initializer element is not constant
+support.h:361:2: error: (near initialization for ‘audio_sndio.help’)
+support.h:362:2: error: initializer element is not constant
+support.h:362:2: error: (near initialization for ‘audio_sndio.init’)
+support.h:363:2: error: initializer element is not constant
+support.h:363:2: error: (near initialization for ‘audio_sndio.deinit’)
+support.h:364:2: error: initializer element is not constant
+support.h:364:2: error: (near initialization for ‘audio_sndio.start’)
+support.h:365:2: error: initializer element is not constant
+support.h:365:2: error: (near initialization for ‘audio_sndio.stop’)
+support.h:366:2: error: initializer element is not constant
+support.h:366:2: error: (near initialization for ‘audio_sndio.play’)
+support.h:367:13: error: ‘volume’ undeclared here (not in a function)
+support.h:368:1: error: initializer element is not constant
+support.h:368:1: error: (near initialization for ‘audio_sndio.volume’)
+support.h:390:6: error: ‘mdns_external_avahi’ undeclared here (not in a function)
+support.h:390:5: error: initializer element is not constant
+support.h:390:5: error: (near initialization for ‘mdns_backends[0]’)
+support.h:391:6: error: ‘mdns_external_dns_sd’ undeclared here (not in a function)
+support.h:391:5: error: initializer element is not constant
+support.h:391:5: error: (near initialization for ‘mdns_backends[1]’)
+support.h:392:6: error: ‘mdns_tinysvcmdns’ undeclared here (not in a function)
+support.h:392:5: error: initializer element is not constant
+support.h:392:5: error: (near initialization for ‘mdns_backends[2]’)
+support.h:397:1: error: unknown type name ‘AvahiClient’
+support.h:400:1: error: unknown type name ‘AvahiEntryGroup’
+support.h:403:1: error: unknown type name ‘AvahiThreadedPoll’
+support.h:415:22: error: ‘avahi_register’ undeclared here (not in a function)
+support.h:415:5: error: initializer element is not constant
+support.h:415:5: error: (near initialization for ‘mdns_avahi.mdns_register’)
+support.h:416:24: error: ‘avahi_unregister’ undeclared here (not in a function)
+support.h:417:1: error: initializer element is not constant
+support.h:417:1: error: (near initialization for ‘mdns_avahi.mdns_unregister’)
+support.h:420:1: error: unknown type name ‘DNSServiceRef’
+support.h:425:22: error: ‘mdns_dns_sd_register’ undeclared here (not in a function)
+support.h:425:5: error: initializer element is not constant
+support.h:425:5: error: (near initialization for ‘mdns_dns_sd.mdns_register’)
+support.h:426:24: error: ‘mdns_dns_sd_unregister’ undeclared here (not in a function)
+support.h:427:1: error: initializer element is not constant
+support.h:427:1: error: (near initialization for ‘mdns_dns_sd.mdns_unregister’)
+support.h:435:22: error: ‘mdns_external_avahi_register’ undeclared here (not in a function)
+support.h:435:5: error: initializer element is not constant
+support.h:435:5: error: (near initialization for ‘mdns_external_avahi.mdns_register’)
+support.h:436:24: error: ‘kill_mdns_child’ undeclared here (not in a function)
+support.h:437:1: error: initializer element is not constant
+support.h:437:1: error: (near initialization for ‘mdns_external_avahi.mdns_unregister’)
+support.h:442:22: error: ‘mdns_external_dns_sd_register’ undeclared here (not in a function)
+support.h:442:5: error: initializer element is not constant
+support.h:442:5: error: (near initialization for ‘mdns_external_dns_sd.mdns_register’)
+support.h:444:1: error: initializer element is not constant
+support.h:444:1: error: (near initialization for ‘mdns_external_dns_sd.mdns_unregister’)
+support.h:452:22: error: ‘mdns_tinysvcmdns_register’ undeclared here (not in a function)
+support.h:452:5: error: initializer element is not constant
+support.h:452:5: error: (near initialization for ‘mdns_tinysvcmdns.mdns_register’)
+support.h:453:24: error: ‘mdns_tinysvcmdns_unregister’ undeclared here (not in a function)
+support.h:454:1: error: initializer element is not constant
+support.h:454:1: error: (near initialization for ‘mdns_tinysvcmdns.mdns_unregister’)
+support.h:549:13: error: ‘volume’ redeclared as different kind of symbol
+support.h:557:29: error: unknown type name ‘AvahiEntryGroup’
+support.h:558:29: error: unknown type name ‘AvahiEntryGroupState’
+support.h:559:29: error: unknown type name ‘AVAHI_GCC_UNUSED’
+support.h:560:30: error: unknown type name ‘AvahiClient’
+support.h:561:29: error: unknown type name ‘AvahiClient’
+support.h:562:29: error: unknown type name ‘AvahiClientState’
+support.h:563:29: error: unknown type name ‘AVAHI_GCC_UNUSED’
+support.h:661:5: error: ‘optind’ undeclared (first use in this function)
+support.h:669:32: error: ‘optarg’ undeclared (first use in this function)
+support.h:691:47: error: array subscript is not an integer
+support.h:741:5: error: unknown type name ‘snd_pcm_uframes_t’
+support.h:742:52: error: ‘SND_PCM_STREAM_PLAYBACK’ undeclared (first use in this function)
+support.h:744:9: warning: implicit declaration of function ‘snd_strerror’ [-Wimplicit-function-declaration]
+         die("Alsa initialization failed: unable to open pcm device: %s\n", snd_strerror(ret));
+support.h:748:60: error: ‘SND_PCM_ACCESS_RW_INTERLEAVED’ undeclared (first use in this function)
+support.h:749:60: error: ‘SND_PCM_FORMAT_S16’ undeclared (first use in this function)
+support.h:831:34: error: ‘F_ULOCK’ undeclared (first use in this function)
+support.h:894:29: error: unknown type name ‘AvahiEntryGroup’
+support.h:895:29: error: unknown type name ‘AvahiEntryGroupState’
+support.h:896:29: error: unknown type name ‘AVAHI_GCC_UNUSED’
+support.h:904:30: error: unknown type name ‘AvahiClient’
+support.h:935:29: error: unknown type name ‘AvahiClient’
+support.h:936:29: error: unknown type name ‘AvahiClientState’
+support.h:937:29: error: unknown type name ‘AVAHI_GCC_UNUSED’
+support.h:970:37: error: ‘client_callback’ undeclared (first use in this function)
+support.h:1026:5: error: unknown type name ‘DNSServiceErrorType’
+     DNSServiceErrorType error;
+     error = DNSServiceRegister(&service,
+support.h:1029:32: error: ‘kDNSServiceInterfaceIndexAny’ undeclared (first use in this function)
+support.h:1042:18: error: ‘kDNSServiceErr_NoError’ undeclared (first use in this function)
+     if (error == kDNSServiceErr_NoError)
+     if (error == kDNSServiceErr_NoError)
