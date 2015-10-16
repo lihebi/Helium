@@ -3,6 +3,7 @@
 # Thread to validate
 * the error message by compiler is not precise, i.e. may not be the root cause
 * error message may be much more, e.g. 1 error, but compiler complains about more than 20 errors.
+* The number of errors of each type is not necessary the frequency. e.g. redefine a enum, every enum field will count for an error. For the 10 errors below, it is actually the same enum with 7 fields
 
 # data
 ```sh
@@ -21,5 +22,8 @@ types of errors(total 248):
  - `expected expression before ‘)’ token` (10)
  - `expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘A’`(27)
 * `'xxx' undeclared \(first use in this function\)` (32)
+fail to resolve type, or init of that type is unknown
 * `redeclaration of enumerator` (7)
-* `initializer element is not constant` (50) but they are in the same compilation error
+* `initializer element is not constant` (50)
+but they are in the same compilation error
+This appears in support.h file, not known why the init in existing functions have such error.
