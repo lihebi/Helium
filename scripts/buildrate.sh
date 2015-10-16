@@ -20,7 +20,7 @@ do
   fi
   success_count=`cat /tmp/helium/log/rate.txt | grep "compile success" | wc -l`
   error_count=`cat /tmp/helium/log/rate.txt | grep "compile error" | wc -l`
-  if [ $success_count == '0' && $error_count == '0' ]; then
+  if [[ $success_count == '0' && $error_count == '0' ]]; then
     buildrate='0'
   else
     buildrate=`echo "scale=2; $success_count/($success_count+$error_count)" | bc`
