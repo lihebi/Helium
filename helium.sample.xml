@@ -53,6 +53,6 @@
     <!-- Test input, output, invariant -->
     <data><file>data.txt</file></data>
     <!-- compile/run success/error -->
-    <rate><file>rate.txt</file></rate>
+    <rate><file>rate.txt</file><mode>w</mode></rate>
   </output>
 </helium>
