@@ -52,12 +52,12 @@ Logger::Logger() {
     m_log_folder, Config::Instance()->GetOutputRate(), 1,
     Config::Instance()->GetOutputRateMode().c_str()
   );
-  fputs("=======" __DATE__ __TIME__ "=======" , m_default_logger);
-  fputs("=======" __DATE__ __TIME__ "=======" , m_debug_logger);
-  fputs("=======" __DATE__ __TIME__ "=======" , m_trace_logger);
-  fputs("=======" __DATE__ __TIME__ "=======" , m_compile_logger);
-  fputs("=======" __DATE__ __TIME__ "=======" , m_data_logger);
-  fputs("=======" __DATE__ __TIME__ "=======" , m_rate_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_default_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_debug_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_trace_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_compile_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_data_logger);
+  fputs("=======" __DATE__ __TIME__ "=======\n" , m_rate_logger);
 }
 
 void log(const char* s, FILE *fp) {
