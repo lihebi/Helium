@@ -27,3 +27,27 @@ fail to resolve type, or init of that type is unknown
 * `initializer element is not constant` (50)
 but they are in the same compilation error
 This appears in support.h file, not known why the init in existing functions have such error.
+
+# fixed
+unknown type name
+
+* libevent-devel.i686
+* avahi-devel.x86_64
+* alsa-lib-devel.x86_64
+* openssl-devel.x86_64
+* glib-devel.x86_64
+* SDL-devel.x86_64
+* SDL_image-devel.x86_64
+
+enum inside a struct:
+
+```c
+struct xxx {
+  enum xxx {
+    AAA;
+    BBB;
+  } var1;
+}
+```
+
+Buildrate for 100 projects: from 25% to 41%
