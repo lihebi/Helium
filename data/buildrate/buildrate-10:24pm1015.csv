@@ -9,26 +9,20 @@ project name,exit status,compile success count,compile error count,build rate
 ./arut-nginx-rtmp-module,0, 3, 84, .03
 ./awslabs-s2n,0, 23, 110, .17
 ./b4winckler-macvim,0, 0, 13, 0
-./bagder-curl,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./bagder-curl,0, 0, 0, 0,
 ./Bilibili-ijkplayer,0, 0, 11, 0
 ./buaazp-zimg,0, 83, 19, .81
 ./cesanta-mongoose,0, 36, 60, .37
-./cinder-Cinder,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./cinder-Cinder,0, 0, 0, 0,
 ./clibs-clib,0, 107, 9, .92
-./cloudius-systems-osv,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 20545 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 0, 2, 0
+./cloudius-systems-osv, 0, 0, 2, 0
 ./cloudwu-skynet,0, 4, 13, .23
-./contiki-os-contiki,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./contiki-os-contiki,0, 0, 0, 0,
 ./coolwanglu-vim.js,0, 0, 13, 0
 ./DrKLO-Telegram,0, 3, 2, .60
 ./facebook-css-layout,0, 1, 16, .05
 ./facebook-watchman,0, 51, 74, .40
-./fastos-fastsocket,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 24745 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./fastos-fastsocket,0,0, 0, 0,
 ./FFmpeg-FFmpeg,0, 20, 119, .14
 ./fogleman-Craft,0, 15, 7, .68
 ./ggreer-the_silver_searcher,0, 35, 24, .59
@@ -37,24 +31,20 @@ Runtime error (func=(main), adr=11): Divide by zero
 ./grpc-grpc,0, 1, 24, .04
 ./h2o-h2o,0, 55, 86, .39
 ./haiwen-seafile,0, 13, 114, .10
-./helium_result,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./helium_result,0, 0, 0, 0,
 ./imatix-zguide,0, 1, 144, 0
 ./irungentoo-toxcore,0, 16, 82, .16
 ./jedisct1-libsodium,0, 0, 46, 0
 ./jonas-tig,0, 20, 109, .15
 ./jorisvink-kore,0, 7, 78, .08
 ./joyent-http-parser,0, 4, 27, .12
-./joyent-libuv,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./joyent-libuv,0, 0, 0, 0,
 ./julycoding-The-Art-Of-Programming-By-July,0, 68, 74, .47
 ./keendreams-keen,0, 14, 117, .10
-./kivy-python-for-android,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./kivy-python-for-android,0, 0, 0, 0,
 ./krakjoe-pthreads,0, 0, 24, 0
 ./kr-beanstalkd,0, 16, 60, .21
-./kripken-emscripten,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./kripken-emscripten,0,0, 0, 0,
 ./laruence-php-yaf,0, 19, 41, .31
 ./laverdet-node-fibers,0, 5, 0, 1.00
 ./libgit2-libgit2,0, 11, 132, .07
@@ -78,47 +68,36 @@ Runtime error (func=(main), adr=11): Divide by zero
 ./nicolasff-webdis,0, 96, 30, .76
 ./nothings-stb,0, 8, 108, .06
 ./numpy-numpy,0, 16, 26, .38
-./okamstudio-godot,/home/hebi/github/Helium/scripts/buildrate.sh: line 11:  9729 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./okamstudio-godot,0, 0, 0, 0,
 ./OpenKinect-libfreenect,0, 50, 64, .43
 ./orangeduck-Cello,0, 0, 2, 0
 ./philipl-pifs,0, 4, 4, .50
-./php-php-src,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./php-php-src,0,0, 0, 0,
 ./postgres-postgres,0, 0, 3, 0
 ./probablycorey-wax,0, 6, 45, .11
-./raspberrypi-linux,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./raspberrypi-linux,0, 0, 0, 0,
 ./redis-hiredis,0, 47, 18, .72
-./robertdavidgraham-masscan,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 15598 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 27, 44, .38
+./robertdavidgraham-masscan, 0, 27, 44, .38
 ./rswier-c4,0, 25, 0, 1.00
 ./rui314-8cc,0, 20, 58, .25
 ./SamyPesse-How-to-Make-a-Computer-Operating-System,0, 1, 110, 0
 ./sdegutis-mjolnir,0, 2, 36, .05
-./shadowsocks-shadowsocks-android,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
-./SoftEtherVPN-SoftEtherVPN,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./shadowsocks-shadowsocks-android,0,0, 0, 0,
+./SoftEtherVPN-SoftEtherVPN,0,0, 0, 0,
 ./stedolan-jq,0, 4, 50, .07
 ./swoole-swoole-src,0, 56, 72, .43
 ./synergy-synergy,0, 0, 5, 0
-./tmux-tmux,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 28424 Aborted                 timeout 30 helium $fname > /dev/null 2>&1
-0, 4, 8, .33
-./toland-qlmarkdown,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./tmux-tmux,0, 4, 8, .33
+./toland-qlmarkdown,0, 0, 0, 0,
 ./torch-torch7,0, 0, 129, 0
-./torvalds-linux,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./torvalds-linux,0, 0, 0, 0,
 ./twitter-twemproxy,0, 25, 72, .25
 ./vim-vim,0, 0, 13, 0
 ./visit1985-mdp,0, 29, 18, .61
 ./vmg-redcarpet,0, 50, 90, .35
 ./vysheng-tg,0, 17, 51, .25
 ./wg-wrk,0, 0, 9, 0
-./WhisperSystems-RedPhone,Runtime error (func=(main), adr=11): Divide by zero
-0, 0, 0,
+./WhisperSystems-RedPhone,0, 0, 0, 0,
 ./wishstudio-flinux,0, 8, 55, .12
 ./Xfennec-cv,0, 10, 9, .52
 ./yyuu-pyenv,0, 1, 0, 1.00

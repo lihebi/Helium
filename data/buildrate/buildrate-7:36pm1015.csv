@@ -23,8 +23,7 @@ project name,exit status,compile success count,compile error count,build rate
 ./DrKLO-Telegram,0, 403, 794, .33
 ./facebook-css-layout,0, 404, 810, .33
 ./facebook-watchman,0, 471, 919, .33
-./fastos-fastsocket,/home/hebi/github/Helium/scripts/buildrate.sh: line 11:  9391 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 471, 919, .33
+./fastos-fastsocket,0, 471, 919, .33
 ./FFmpeg-FFmpeg,0, 506, 1305, .27
 ./fogleman-Craft,0, 521, 1312, .28
 ./ggreer-the_silver_searcher,0, 555, 1337, .29
@@ -70,8 +69,7 @@ project name,exit status,compile success count,compile error count,build rate
 ./nicolasff-webdis,0, 1564, 4897, .24
 ./nothings-stb,0, 1590, 5141, .23
 ./numpy-numpy,0, 1623, 5189, .23
-./okamstudio-godot,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 28987 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 1623, 5189, .23
+./okamstudio-godot,0, 1623, 5189, .23
 ./OpenKinect-libfreenect,0, 1673, 5253, .24
 ./orangeduck-Cello,0, 1673, 5255, .24
 ./philipl-pifs,0, 1677, 5259, .24
@@ -80,20 +78,17 @@ project name,exit status,compile success count,compile error count,build rate
 ./probablycorey-wax,0, 1683, 5322, .24
 ./raspberrypi-linux,0, 1683, 5322, .24
 ./redis-hiredis,0, 1729, 5341, .24
-./robertdavidgraham-masscan,/home/hebi/github/Helium/scripts/buildrate.sh: line 11:  5243 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 1756, 5385, .24
+./robertdavidgraham-masscan,0, 1756, 5385, .24
 ./rswier-c4,0, 1781, 5385, .24
 ./rui314-8cc,0, 1818, 5514, .24
 ./SamyPesse-How-to-Make-a-Computer-Operating-System,0, 1819, 5624, .24
 ./sdegutis-mjolnir,0, 1821, 5670, .24
 ./shadowsocks-shadowsocks-android,0, 1821, 5670, .24
 ./SoftEtherVPN-SoftEtherVPN,0, 1821, 5670, .24
-./stedolan-jq,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 14153 Aborted                 timeout 30 helium $fname > /dev/null 2>&1
-0, 1836, 5760, .24
+./stedolan-jq, 0, 1836, 5760, .24
 ./swoole-swoole-src,0, 1890, 5861, .24
 ./synergy-synergy,0, 1890, 5866, .24
-./tmux-tmux,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 16837 Aborted                 timeout 30 helium $fname > /dev/null 2>&1
-0, 1892, 5876, .24
+./tmux-tmux, 0, 1892, 5876, .24
 ./toland-qlmarkdown,0, 1892, 5876, .24
 ./torch-torch7,0, 1900, 6103, .23
 ./torvalds-linux,0, 1900, 6103, .23
@@ -104,8 +99,7 @@ project name,exit status,compile success count,compile error count,build rate
 ./vysheng-tg,0, 2038, 6393, .24
 ./wg-wrk,0, 2038, 6402, .24
 ./WhisperSystems-RedPhone,0, 2038, 6402, .24
-./wishstudio-flinux,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 31793 Segmentation fault      timeout 30 helium $fname > /dev/null 2>&1
-0, 2046, 6457, .24
+./wishstudio-flinux,0, 2046, 6457, .24
 ./Xfennec-cv,0, 2055, 6467, .24
 ./yyuu-pyenv,0, 2056, 6467, .24
 ./zfsonlinux-zfs,0, 2056, 6471, .24
