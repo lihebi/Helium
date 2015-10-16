@@ -1,0 +1,332 @@
+# time limit: 60s for every project
+# code selection: loop
+# max segment size: 50
+# linear 0
+# run test: false
+
+./abrasive-shairport
+success
+SUCCESS: 52 ERROR: 52 RATE: .50
+./alibaba-tengine
+timeout
+SUCCESS: 9 ERROR: 47 RATE: .16
+./allinurl-goaccess
+success
+SUCCESS: 48 ERROR: 82 RATE: .36
+./antirez-disque
+timeout
+SUCCESS: 1 ERROR: 98 RATE: .01
+./antirez-redis
+timeout
+SUCCESS: 5 ERROR: 154 RATE: .03
+./arut-nginx-rtmp-module
+success
+SUCCESS: 6 ERROR: 197 RATE: .02
+./awslabs-s2n
+success
+SUCCESS: 25 ERROR: 147 RATE: .14
+./b4winckler-macvim
+timeout
+SUCCESS: 0 ERROR: 13 RATE: 0
+./bagder-curl
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./Bilibili-ijkplayer
+timeout
+SUCCESS: 0 ERROR: 11 RATE: 0
+./buaazp-zimg
+success
+SUCCESS: 80 ERROR: 22 RATE: .78
+./cesanta-mongoose
+success
+SUCCESS: 38 ERROR: 58 RATE: .39
+./cinder-Cinder
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./clibs-clib
+success
+SUCCESS: 131 ERROR: 14 RATE: .90
+./cloudius-systems-osv
+timeout
+SUCCESS: 0 ERROR: 2 RATE: 0
+./cloudwu-skynet
+timeout
+SUCCESS: 17 ERROR: 31 RATE: .35
+./contiki-os-contiki
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./coolwanglu-vim.js
+timeout
+SUCCESS: 0 ERROR: 13 RATE: 0
+./DrKLO-Telegram
+timeout
+SUCCESS: 12 ERROR: 0 RATE: 1.00
+./facebook-css-layout
+success
+SUCCESS: 1 ERROR: 16 RATE: .05
+./facebook-watchman
+success
+SUCCESS: 67 ERROR: 109 RATE: .38
+./fastos-fastsocket
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3:  6920 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./FFmpeg-FFmpeg
+timeout
+SUCCESS: 82 ERROR: 781 RATE: .09
+./fogleman-Craft
+timeout
+SUCCESS: 15 ERROR: 7 RATE: .68
+./ggreer-the_silver_searcher
+success
+SUCCESS: 34 ERROR: 25 RATE: .57
+./git-git
+timeout
+SUCCESS: 99 ERROR: 811 RATE: .10
+./google-ios-webkit-debug-proxy
+success
+SUCCESS: 40 ERROR: 61 RATE: .39
+./grpc-grpc
+timeout
+SUCCESS: 8 ERROR: 76 RATE: .09
+./h2o-h2o
+timeout
+SUCCESS: 235 ERROR: 361 RATE: .39
+./haiwen-seafile
+timeout
+SUCCESS: 55 ERROR: 455 RATE: .10
+./helium_result
+success
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./imatix-zguide
+success
+SUCCESS: 1 ERROR: 195 RATE: 0
+./irungentoo-toxcore
+success
+SUCCESS: 75 ERROR: 379 RATE: .16
+./jedisct1-libsodium
+success
+SUCCESS: 1 ERROR: 303 RATE: 0
+./jonas-tig
+success
+SUCCESS: 40 ERROR: 142 RATE: .21
+./jorisvink-kore
+success
+SUCCESS: 7 ERROR: 78 RATE: .08
+./joyent-http-parser
+success
+SUCCESS: 4 ERROR: 27 RATE: .12
+./joyent-libuv
+success
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./julycoding-The-Art-Of-Programming-By-July
+success
+SUCCESS: 99 ERROR: 157 RATE: .38
+./keendreams-keen
+success
+SUCCESS: 22 ERROR: 227 RATE: .08
+./kivy-python-for-android
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./krakjoe-pthreads
+success
+SUCCESS: 0 ERROR: 24 RATE: 0
+./kr-beanstalkd
+success
+SUCCESS: 16 ERROR: 60 RATE: .21
+./kripken-emscripten
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./laruence-php-yaf
+success
+SUCCESS: 19 ERROR: 41 RATE: .31
+./laverdet-node-fibers
+success
+SUCCESS: 5 ERROR: 0 RATE: 1.00
+./libgit2-libgit2
+timeout
+SUCCESS: 50 ERROR: 839 RATE: .05
+./libgit2-rugged
+success
+SUCCESS: 4 ERROR: 43 RATE: .08
+./libuv-libuv
+timeout
+SUCCESS: 0 ERROR: 1 RATE: 0
+./linuxmint-Cinnamon
+success
+SUCCESS: 4 ERROR: 229 RATE: .01
+./liuliu-ccv
+timeout
+SUCCESS: 6 ERROR: 6 RATE: .50
+./lpereira-lwan
+success
+SUCCESS: 65 ERROR: 52 RATE: .55
+./matz-streem
+success
+SUCCESS: 35 ERROR: 45 RATE: .43
+./memcached-memcached
+success
+SUCCESS: 47 ERROR: 28 RATE: .62
+./micropython-micropython
+timeout
+SUCCESS: 2 ERROR: 0 RATE: 1.00
+./mofarrell-p2pvc
+success
+SUCCESS: 73 ERROR: 49 RATE: .59
+./mozilla-firefox-ios
+timeout
+SUCCESS: 5 ERROR: 16 RATE: .23
+./mozilla-mozjpeg
+timeout
+SUCCESS: 4 ERROR: 41 RATE: .08
+./mpv-player-mpv
+timeout
+SUCCESS: 5 ERROR: 124 RATE: .03
+./mruby-mruby
+timeout
+SUCCESS: 33 ERROR: 179 RATE: .15
+./msysgit-msysgit
+timeout
+SUCCESS: 3 ERROR: 37 RATE: .07
+./nanomsg-nanomsg
+timeout
+SUCCESS: 9 ERROR: 100 RATE: .08
+./nelhage-reptyr
+success
+SUCCESS: 3 ERROR: 14 RATE: .17
+./nginx-nginx-releases
+timeout
+SUCCESS: 50 ERROR: 120 RATE: .29
+./nicolasff-webdis
+success
+SUCCESS: 115 ERROR: 46 RATE: .71
+./nothings-stb
+timeout
+SUCCESS: 35 ERROR: 277 RATE: .11
+./numpy-numpy
+timeout
+SUCCESS: 68 ERROR: 187 RATE: .26
+./okamstudio-godot
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3:  6282 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./OpenKinect-libfreenect
+success
+SUCCESS: 50 ERROR: 64 RATE: .43
+./orangeduck-Cello
+timeout
+SUCCESS: 0 ERROR: 2 RATE: 0
+./philipl-pifs
+success
+SUCCESS: 4 ERROR: 4 RATE: .50
+./php-php-src
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./postgres-postgres
+timeout
+SUCCESS: 1 ERROR: 15 RATE: .06
+./probablycorey-wax
+timeout
+SUCCESS: 13 ERROR: 119 RATE: .09
+./raspberrypi-linux
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./redis-hiredis
+success
+SUCCESS: 46 ERROR: 19 RATE: .70
+./robertdavidgraham-masscan
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3: 14194 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+timeout
+SUCCESS: 27 ERROR: 44 RATE: .38
+./rswier-c4
+success
+SUCCESS: 25 ERROR: 0 RATE: 1.00
+./rui314-8cc
+success
+SUCCESS: 37 ERROR: 129 RATE: .22
+./SamyPesse-How-to-Make-a-Computer-Operating-System
+success
+SUCCESS: 1 ERROR: 110 RATE: 0
+./sdegutis-mjolnir
+timeout
+SUCCESS: 2 ERROR: 91 RATE: .02
+./shadowsocks-shadowsocks-android
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./SoftEtherVPN-SoftEtherVPN
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3: 22139 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./stedolan-jq
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3: 22305 Aborted                 timeout 60 helium $fname > /dev/null 2>&1
+timeout
+SUCCESS: 15 ERROR: 90 RATE: .14
+./swoole-swoole-src
+success
+SUCCESS: 54 ERROR: 101 RATE: .34
+./synergy-synergy
+success
+SUCCESS: 0 ERROR: 5 RATE: 0
+./tmux-tmux
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3: 24733 Aborted                 timeout 60 helium $fname > /dev/null 2>&1
+timeout
+SUCCESS: 2 ERROR: 10 RATE: .16
+./toland-qlmarkdown
+success
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./torch-torch7
+success
+SUCCESS: 8 ERROR: 227 RATE: .03
+./torvalds-linux
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./twitter-twemproxy
+success
+SUCCESS: 34 ERROR: 103 RATE: .24
+./vim-vim
+timeout
+SUCCESS: 0 ERROR: 13 RATE: 0
+./visit1985-mdp
+success
+SUCCESS: 29 ERROR: 18 RATE: .61
+./vmg-redcarpet
+success
+SUCCESS: 58 ERROR: 105 RATE: .35
+./vysheng-tg
+success
+SUCCESS: 17 ERROR: 51 RATE: .25
+./wg-wrk
+timeout
+SUCCESS: 0 ERROR: 9 RATE: 0
+./WhisperSystems-RedPhone
+timeout
+Runtime error (func=(main), adr=11): Divide by zero
+SUCCESS: 0 ERROR: 0 RATE:
+./wishstudio-flinux
+/home/hebi/github/Helium/scripts/buildrate.sh: line 3:  5837 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+timeout
+SUCCESS: 8 ERROR: 55 RATE: .12
+./Xfennec-cv
+success
+SUCCESS: 9 ERROR: 10 RATE: .47
+./yyuu-pyenv
+success
+SUCCESS: 1 ERROR: 0 RATE: 1.00
+./zfsonlinux-zfs
+timeout
+SUCCESS: 0 ERROR: 4 RATE: 0
