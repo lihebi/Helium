@@ -1,0 +1,55 @@
+project name,exit status,compile success count,compile error count,build rate
+./alive,0,0, 0, 0
+./anubis,0,82, 78, .51
+./artanis,0,0, 0, 0
+./autoconf-archive,0,0, 0, 0
+./cim,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 21702 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+139,1, 0, 1.00
+./coreutils,124,78, 164, .32
+./cssc,0,16, 38, .29
+./datamash,0,28, 36, .43
+./dfarc,0,0, 0, 0
+./dhcp,0,0, 0, 0
+./dink-data,0,0, 0, 0
+./enscript,0,115, 106, .52
+./examples,0,0, 0, 0
+./freedink,0,19, 11, .63
+./freedink-data,0,0, 2, 0
+./gama,1,1, 69, .01
+./gcide,0,0, 0, 0
+./gcl,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 30590 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+139,0, 0, 0
+./gengen,0,6, 6, .50
+./gengetopt,0,15, 35, .30
+./glean,0,0, 0, 0
+./gm2,1,1, 20, .04
+./gnuastro,0,0, 0, 0
+./gnugo,124,86, 39, .68
+./gnuherds-app,0,0, 0, 0
+./gnuit,124,43, 205, .17
+./gnunet,0,0, 0, 0
+./grub,124,10, 282, .03
+./gss,/home/hebi/github/Helium/scripts/buildrate.sh: line 11:  6997 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+139,3, 0, 1.00
+./guile-rpc,0,0, 0, 0
+./guix,0,0, 0, 0
+./guix-artwork,0,0, 0, 0
+./halifax,0,7, 32, .17
+./libidn,1,0, 41, 0
+./libidn2,0,0, 0, 0
+./librefm,0,0, 12, 0
+./libtasn1,0,51, 114, .30
+./libtool,124,0, 0, 0
+./lilypond,/home/hebi/github/Helium/scripts/buildrate.sh: line 11: 10249 Segmentation fault      timeout 60 helium $fname > /dev/null 2>&1
+139,0, 0, 0
+./m4,0,21, 100, .17
+./mailutils,124,11, 85, .11
+./maintenance,0,0, 0, 0
+./mdk,124,7, 2, .77
+./mediagoblin,0,0, 0, 0
+./minife,0,2, 0, 1.00
+./miscfiles,0,0, 0, 0
+./myserver,1,1, 0, 1.00
+./qt,0,0, 0, 0
+./windinkedit,0,1, 3, .25
+./www-fr,0,0, 0, 0
