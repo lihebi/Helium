@@ -23,6 +23,8 @@ public:
   void LogData(const std::string& content);
   void LogRate(const std::string& content);
   void LogDebug(const std::string& content);
+  void LogTmp(const std::string& content);
+  void LogAll(const std::string& content);
 
   // log MyClass::MyMethod entries
   void LogTrace();
@@ -38,6 +40,7 @@ private:
   FILE* m_compile_logger;
   FILE* m_data_logger;
   FILE* m_rate_logger;
+  FILE* m_tmp_logger;
 };
 
 #endif

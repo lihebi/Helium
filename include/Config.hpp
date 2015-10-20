@@ -49,6 +49,7 @@ public:
   const std::string& GetOutputCompile() const {return m_output_compile;}
   const std::string& GetOutputData() const {return m_output_data;}
   const std::string& GetOutputRate() const {return m_output_rate;}
+  const std::string& GetOutputTmp() const {return m_output_tmp;}
   // mode
   const std::string& GetOutputDefaultMode() const {return m_output_default_mode;}
   const std::string& GetOutputDebugMode() const {return m_output_debug_mode;}
@@ -56,6 +57,7 @@ public:
   const std::string& GetOutputCompileMode() const {return m_output_compile_mode;}
   const std::string& GetOutputDataMode() const {return m_output_data_mode;}
   const std::string& GetOutputRateMode() const {return m_output_rate_mode;}
+  const std::string& GetOutputTmpMode() const {return m_output_tmp_mode;}
 
 private:
   Config() {}
@@ -106,6 +108,8 @@ private:
   std::string m_output_data_mode;
   std::string m_output_rate;
   std::string m_output_rate_mode;
+  std::string m_output_tmp;
+  std::string m_output_tmp_mode;
 };
 
 #endif

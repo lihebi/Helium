@@ -52,12 +52,10 @@ Logger::Logger() {
     m_log_folder, Config::Instance()->GetOutputRate(), 1,
     Config::Instance()->GetOutputRateMode().c_str()
   );
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_default_logger);
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_debug_logger);
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_trace_logger);
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_compile_logger);
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_data_logger);
-  fputs("=======" __DATE__ __TIME__ "=======\n" , m_rate_logger);
+  m_tmp_logger = get_logger(
+    m_log_folder, Config::Instance()->GetOutputTmp(), 1,
+    Config::Instance()->GetOutputTmpMode().c_str()
+  );
 }
 
 void log(const char* s, FILE *fp) {
@@ -92,4 +90,18 @@ Logger::LogRate(const std::string& content) {
 
 void Logger::LogDebug(const std::string& content) {
   log(content.c_str(), m_debug_logger);
+}
+
+void Logger::LogTmp(const std::string& content) {
+  log(content.c_str(), m_tmp_logger);
+}
+
+void Logger::LogAll(const std::string& content) {
+  Log(content);
+  LogTrace(content);
+  LogCompile(content);
+  LogData(content);
+  LogRate(content);
+  LogDebug(content);
+  LogTmp(content);
 }
