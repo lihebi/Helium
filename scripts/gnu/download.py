@@ -19,7 +19,7 @@ if __name__ == '__main__':
     directory = 'out'
     with open(sys.argv[1]) as f:
         for line in f:
-            if line.startswith("git"):
+            if line.startswith("http"):
                 name = line.split('/')[-1].split('.')[0];
                 command = 'git clone '+line.strip()+' ' + directory + '/'+name
                 DownloadThread(command).start()
