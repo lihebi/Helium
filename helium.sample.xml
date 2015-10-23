@@ -44,16 +44,34 @@
   </cmd>
   <!-- output control -->
   <output>
-    <!-- If commented out, use stdout -->
+    <!-- If no <file>, it will supress the log -->
     <!-- If no <mode>, use as 'a'. can also be 'w' -->
-    <debug><file>debug.txt</file></debug>
-    <default><file>default.txt</file></default>
-    <trace><file>trace.txt</file></trace>
-    <compile><file>compile.txt</file></compile>
+    <!-- If <file> is stdout or stderr, the mode is discarded. -->
+    <debug>
+      <file>debug.txt</file>
+      <!-- <file>stdout</file> -->
+    </debug>
+    <default>
+      <file>default.txt</file>
+    </default>
+    <trace>
+      <!-- <file>trace.txt</file> -->
+      <file>stdout</file>
+    </trace>
+    <compile>
+      <file>compile.txt</file>
+    </compile>
     <!-- Test input, output, invariant -->
-    <data><file>data.txt</file></data>
+    <data>
+      <file>data.txt</file>
+    </data>
     <!-- compile/run success/error -->
-    <rate><file>rate.txt</file><mode>w</mode></rate>
-    <tmp><file>tmp.txt</file></tmp>
+    <rate>
+      <file>rate.txt</file>
+      <mode>w</mode>
+    </rate>
+    <tmp>
+      <file>tmp.txt</file>
+    </tmp>
   </output>
 </helium>

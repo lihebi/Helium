@@ -9,10 +9,15 @@ namespace fs = boost::filesystem;
 Logger* Logger::m_instance = 0;
 
 FILE*
-get_logger(const std::string& prefix, const std::string& filename, int fd, const char* mode) {
+get_logger(const std::string& prefix, const std::string& filename, const char* mode) {
   if (filename.empty()) {
-    return fdopen(fd, "w");
+    return NULL;
   } else {
+    if (filename == "stdout") {
+      return fdopen(STDOUT_FILENO, "w");
+    } else if (filename == "stderr") {
+      return fdopen(STDERR_FILENO, "w");
+    }
     std::string full_path = prefix + "/" + filename;
     fs::path p(full_path);
     fs::path dir = p.parent_path();
@@ -29,38 +34,40 @@ get_logger(const std::string& prefix, const std::string& filename, int fd, const
 Logger::Logger() {
   m_log_folder = Config::Instance()->GetTmpFolder() + "/log";
   m_default_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputDefault(), 1,
+    m_log_folder, Config::Instance()->GetOutputDefault(),
     Config::Instance()->GetOutputDefaultMode().c_str()
   );
   m_debug_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputDebug(), 1,
+    m_log_folder, Config::Instance()->GetOutputDebug(),
     Config::Instance()->GetOutputDebugMode().c_str()
   );
   m_trace_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputTrace(), 1,
+    m_log_folder, Config::Instance()->GetOutputTrace(),
     Config::Instance()->GetOutputTraceMode().c_str()
   );
   m_compile_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputCompile(), 2,
+    m_log_folder, Config::Instance()->GetOutputCompile(),
     Config::Instance()->GetOutputCompileMode().c_str()
   );
   m_data_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputData(), 1,
+    m_log_folder, Config::Instance()->GetOutputData(),
     Config::Instance()->GetOutputDataMode().c_str()
   );
   m_rate_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputRate(), 1,
+    m_log_folder, Config::Instance()->GetOutputRate(),
     Config::Instance()->GetOutputRateMode().c_str()
   );
   m_tmp_logger = get_logger(
-    m_log_folder, Config::Instance()->GetOutputTmp(), 1,
+    m_log_folder, Config::Instance()->GetOutputTmp(),
     Config::Instance()->GetOutputTmpMode().c_str()
   );
 }
 
 void log(const char* s, FILE *fp) {
-  fputs(s, fp);
-  fflush(fp);
+  if (fp) {
+    fputs(s, fp);
+    fflush(fp);
+  }
 }
 
 
