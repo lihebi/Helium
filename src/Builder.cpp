@@ -60,6 +60,17 @@ Builder::Compile() {
     Logger::Instance()->LogTrace("[Builder][Compile] compile error\n");
     Logger::Instance()->LogRate("compile error\n");
     Logger::Instance()->LogCompile(error_msg);
+    if (Config::Instance()->WillBuildSaveIncompilable()) {
+      std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/incompilable";
+      std::string folder = m_seg_unit->GetFilename()
+      + "-" + std::to_string(m_seg_unit->GetLineNumber()) + "-" + __DATE__ + "-" + __TIME__;
+      std::remove(folder.begin(), folder.end(), ' ');
+      std::replace(folder.begin(), folder.end(), '/', '-');
+      FileUtil::CreateFolder(to_folder);
+      std::string cmd = "cp -r " + Config::Instance()->GetOutputFolder()
+      + " " + to_folder + "/" + folder;
+      ThreadUtil::Exec(cmd.c_str(), NULL);
+    }
     if (Config::Instance()->WillInteractCompileError()) {
       std::cout<<"> Enter to continue ..."<<std::endl;
       getchar();
@@ -68,6 +79,17 @@ Builder::Compile() {
     Logger::Instance()->LogTrace("[Builder][Compile] compile success\n");
     Logger::Instance()->LogRate("compile success\n");
     m_success = true;
+    if (Config::Instance()->WillBuildSaveCompilable()) {
+      std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/compilable";
+      std::string folder = m_seg_unit->GetFilename()
+      + "-" + std::to_string(m_seg_unit->GetLineNumber()) + "-" + __DATE__ + "-" + __TIME__;
+      std::remove(folder.begin(), folder.end(), ' ');
+      std::replace(folder.begin(), folder.end(), '/', '-');
+      FileUtil::CreateFolder(to_folder);
+      std::string cmd = "cp -r " + Config::Instance()->GetOutputFolder()
+      + " " + to_folder + "/" + folder;
+      ThreadUtil::Exec(cmd.c_str(), NULL);
+    }
   }
   if (Config::Instance()->WillInteractCompile()) {
     std::cout<<"> Enter to continue ..."<<std::endl;

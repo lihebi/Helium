@@ -20,10 +20,13 @@ public:
   int GetSegmentTimeout() const {return m_segment_timeout;}
   // context
   const std::string& GetContextSearchMethod() const {return m_context_search;}
-  const int GetMaxLinearSearchValue() const {return m_max_linear_search_value;}
+  int GetMaxLinearSearchValue() const {return m_max_linear_search_value;}
   // build config
   const std::string& GetInstrumentPosition() const {return m_instrument_position;}
   const std::string& GetInstrumentType() const {return m_instrument_type;}
+  int GetMaxSupportSize() const {return m_max_support_size;}
+  bool WillBuildSaveCompilable() const {return m_build_save_compilable;}
+  bool WillBuildSaveIncompilable() const {return m_build_save_incompilable;}
   // test config
   bool WillRunTest() const {return m_run_test;}
   const std::string& GetTestGenerationMethod() const {return m_test_generation;}
@@ -77,6 +80,9 @@ private:
   // build option
   std::string m_instrument_position;
   std::string m_instrument_type;
+  int m_max_support_size;
+  bool m_build_save_compilable;
+  bool m_build_save_incompilable;
   // test
   bool m_run_test;
   std::string m_test_generation;

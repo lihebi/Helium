@@ -16,6 +16,24 @@ void Segment::Clear() {
   m_nodes.clear();
 }
 
+/*
+ * Return line number of first node.
+ * 0 if no pos::line found for all node.
+ */
+int
+Segment::GetLineNumber() const {
+  pugi::xml_node node;
+  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
+    try {
+      node = it->select_node("//*[@pos::line]").node();
+    } catch(pugi::xpath_exception) {
+      // TODO
+    }
+    if (node) return atoi(node.attribute("pos::line").value());
+  }
+  return 0;
+}
+
 std::vector<pugi::xml_node> Segment::GetNodes() const {
   return m_nodes;
 }

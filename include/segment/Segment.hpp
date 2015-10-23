@@ -15,6 +15,7 @@ public:
   std::vector<pugi::xml_node> GetNodes() const;
   pugi::xml_node GetFirstNode() const;
   std::string GetText();
+  int GetLineNumber() const;
 private:
   std::vector<pugi::xml_node> m_nodes;
 };

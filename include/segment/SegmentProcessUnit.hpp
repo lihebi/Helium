@@ -28,6 +28,10 @@ public:
   std::set<std::shared_ptr<Variable> > GetInputVariables() const {return m_inv;}
   std::set<std::shared_ptr<Variable> > GetOutputVariables() const {return m_outv;}
 
+  // general info
+  const std::string& GetFilename() const {return m_filename;}
+  int GetLineNumber() const {return m_segment->GetLineNumber();}
+
 private:
   std::string getContext();
   void contextSearch();
