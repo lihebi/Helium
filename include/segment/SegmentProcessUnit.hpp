@@ -24,6 +24,7 @@ public:
   std::string GetSupport();
   std::string GetMakefile();
   bool IsValid();
+  bool CanContinue() const {return m_can_continue;}
 
   std::set<std::shared_ptr<Variable> > GetInputVariables() const {return m_inv;}
   std::set<std::shared_ptr<Variable> > GetOutputVariables() const {return m_outv;}
@@ -58,6 +59,7 @@ private:
 
   std::vector<pugi::xml_node> m_functions;
   int m_linear_search_value;
+  bool m_can_continue = true;
 };
 
 #endif

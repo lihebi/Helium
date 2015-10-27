@@ -19,6 +19,7 @@
     <instrument_position>loop</instrument_position>
     <instrument_type>variable</instrument_type>
     <max_support_size>3000</max_support_size>
+    <max_snippet_number>100</max_snippet_number>
     <!-- <max_function_level></max_function_level> -->
     <!--
     To save generated code, set the following to true.

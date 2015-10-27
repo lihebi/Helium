@@ -44,6 +44,10 @@ Reader::Read() {
     do {
       std::shared_ptr<Builder> builder = std::make_shared<Builder>(*it);
       builder->Build();
+      if (!(*it)->CanContinue()) {
+        Logger::Instance()->LogWarning("[Reader::Read] segment cannot continue");
+        break;
+      }
       builder->Compile();
       if (builder->Success() && Config::Instance()->WillRunTest()) {
         std::shared_ptr<Tester> tester = std::make_shared<Tester>(builder->GetExecutable(), *it);

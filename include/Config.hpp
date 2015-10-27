@@ -25,6 +25,7 @@ public:
   const std::string& GetInstrumentPosition() const {return m_instrument_position;}
   const std::string& GetInstrumentType() const {return m_instrument_type;}
   int GetMaxSupportSize() const {return m_max_support_size;}
+  int GetMaxSnippetNumber() const {return m_max_snippet_number;}
   bool WillBuildSaveCompilable() const {return m_build_save_compilable;}
   bool WillBuildSaveIncompilable() const {return m_build_save_incompilable;}
   // test config
@@ -83,6 +84,7 @@ private:
   std::string m_instrument_position;
   std::string m_instrument_type;
   int m_max_support_size;
+  int m_max_snippet_number;
   bool m_build_save_compilable;
   bool m_build_save_incompilable;
   // test

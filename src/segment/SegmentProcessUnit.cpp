@@ -324,6 +324,14 @@ SegmentProcessUnit::GetSupport() {
   all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
   Logger::Instance()->LogTrace("[SegmentProcessUnit::GetSupport] all snippets: "
   + std::to_string(all_snippets.size()) + "\n");
+  if (all_snippets.size() > Config::Instance()->GetMaxSnippetNumber()) {
+    Logger::Instance()->LogWarning(
+      "[SegmentProcessUnit::GetSupport] snippet number larger than config: "
+      + std::to_string(all_snippets.size()) +">"
+      + std::to_string(Config::Instance()->GetMaxSnippetNumber())
+    );
+    m_can_continue = false;
+  }
   // sort the snippets
   std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
   Logger::Instance()->LogTrace("after sort snippet: "
