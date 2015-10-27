@@ -61,6 +61,10 @@ Logger::Logger() {
     m_log_folder, Config::Instance()->GetOutputTmp(),
     Config::Instance()->GetOutputTmpMode().c_str()
   );
+  m_warning_logger = get_logger(
+    m_log_folder, Config::Instance()->GetOutputWarning(),
+    Config::Instance()->GetOutputWarningMode().c_str()
+  );
 }
 
 void log(const char* s, FILE *fp) {
@@ -103,6 +107,9 @@ void Logger::LogTmp(const std::string& content) {
   log(content.c_str(), m_tmp_logger);
 }
 
+void Logger::LogWarning(const std::string& content) {
+  log(content.c_str(), m_warning_logger);
+}
 void Logger::LogAll(const std::string& content) {
   Log(content);
   LogTrace(content);
@@ -111,4 +118,5 @@ void Logger::LogAll(const std::string& content) {
   LogRate(content);
   LogDebug(content);
   LogTmp(content);
+  LogWarning(content);
 }

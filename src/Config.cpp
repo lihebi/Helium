@@ -63,6 +63,7 @@ void Config::Load(const std::string& filename) {
   m_output_data             = tree.get("helium.output.data.file", "");
   m_output_rate             = tree.get("helium.output.rate.file", "");
   m_output_tmp              = tree.get("helium.output.tmp.file", "");
+  m_output_warning          = tree.get("helium.output.warning.file", "");
   // mode
   m_output_default_mode     = tree.get("helium.output.default.mode", "a");
   m_output_debug_mode       = tree.get("helium.output.debug.mode", "a");
@@ -71,4 +72,5 @@ void Config::Load(const std::string& filename) {
   m_output_data_mode        = tree.get("helium.output.data.mode", "a");
   m_output_rate_mode        = tree.get("helium.output.rate.mode", "a");
   m_output_tmp_mode         = tree.get("helium.output.tmp.mode", "a");
+  m_output_warning_mode     = tree.get("helium.output.tmp.mode", "a");
 }

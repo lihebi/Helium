@@ -24,6 +24,7 @@ public:
   void LogRate(const std::string& content);
   void LogDebug(const std::string& content);
   void LogTmp(const std::string& content);
+  void LogWarning(const std::string& content);
   void LogAll(const std::string& content);
 
   // log MyClass::MyMethod entries
@@ -41,6 +42,7 @@ private:
   FILE* m_data_logger;
   FILE* m_rate_logger;
   FILE* m_tmp_logger;
+  FILE* m_warning_logger;
 };
 
 #endif

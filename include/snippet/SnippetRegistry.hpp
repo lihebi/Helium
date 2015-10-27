@@ -37,7 +37,7 @@ private:
   // Can not add dependence outside the class
   void addDependence(Snippet *from, Snippet *to);
   void addDependence(Snippet *from, std::set<Snippet*> to);
-  void resolveDependence(Snippet *s);
+  void resolveDependence(Snippet *s, int level);
   void add(Snippet *s);
   SnippetRegistry() {}
   // resolve dependence

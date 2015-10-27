@@ -136,12 +136,22 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
   s = createSnippet(ce);
   if (!s) return NULL;
   add(s);
-  resolveDependence(s);
+  resolveDependence(s, 0);
   return s;
 }
 
 void
-SnippetRegistry::resolveDependence(Snippet *s) {
+SnippetRegistry::resolveDependence(Snippet *s, int level) {
+  // We should not limit here techniquelly, because we once we have the dependence break,
+  // We have no way to resolve the dependence after the break
+  // e.g. a => b => c => d => e
+  // If we break on c, then we will not have d and e.
+  // everytime we resolve a,b,c we know that it is already resolved, we will not try to resolve again.
+  if (level == 20) {
+    Logger::Instance()->LogWarning(
+      "[SnippetRegistry::resolveDependence] recursive resolve reach 20 level."
+    );
+  }
   std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
   // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
@@ -166,7 +176,7 @@ SnippetRegistry::resolveDependence(Snippet *s) {
         // then: add dependence adn resolve dependence
         addDependence(s, added_snippets);
         for (auto jt=added_snippets.begin();jt!=added_snippets.end();jt++) {
-          resolveDependence(*jt);
+          resolveDependence(*jt, level+1);
         }
       }
     }

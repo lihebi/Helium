@@ -82,5 +82,8 @@
     <tmp>
       <file>tmp.txt</file>
     </tmp>
+    <warning>
+      <file>warning.txt</file>
+    </warning>
   </output>
 </helium>
