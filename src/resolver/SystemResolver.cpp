@@ -99,7 +99,12 @@ SystemResolver::ResolveType(const std::string& name) {
 
 bool
 SystemResolver::Has(const std::string& name) {
-  std::vector<CtagsEntry> entries = Parse(name);
+  // only consider type:
+  //    g: enum
+  //    s: struct
+  //    u: union
+  //    t: typedef
+  std::vector<CtagsEntry> entries = Parse(name, "gsut");
   if (entries.empty()) return false;
   else {
     return true;
