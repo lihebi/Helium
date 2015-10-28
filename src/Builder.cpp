@@ -1,4 +1,5 @@
 #include <Builder.hpp>
+#include <algorithm>
 #include "util/FileUtil.hpp"
 #include "util/ThreadUtil.hpp"
 #include "Logger.hpp"
@@ -64,7 +65,7 @@ Builder::Compile() {
       std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/incompilable";
       std::string folder = m_seg_unit->GetFilename()
       + "-" + std::to_string(m_seg_unit->GetLineNumber()) + "-" + __DATE__ + "-" + __TIME__;
-      std::remove(folder.begin(), folder.end(), ' ');
+      folder.erase(std::remove(folder.begin(), folder.end(), ' '), folder.end());
       std::replace(folder.begin(), folder.end(), '/', '-');
       FileUtil::CreateFolder(to_folder);
       std::string cmd = "cp -r " + Config::Instance()->GetOutputFolder()
@@ -83,7 +84,7 @@ Builder::Compile() {
       std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/compilable";
       std::string folder = m_seg_unit->GetFilename()
       + "-" + std::to_string(m_seg_unit->GetLineNumber()) + "-" + __DATE__ + "-" + __TIME__;
-      std::remove(folder.begin(), folder.end(), ' ');
+      folder.erase(std::remove(folder.begin(), folder.end(), ' '), folder.end());
       std::replace(folder.begin(), folder.end(), '/', '-');
       FileUtil::CreateFolder(to_folder);
       std::string cmd = "cp -r " + Config::Instance()->GetOutputFolder()
