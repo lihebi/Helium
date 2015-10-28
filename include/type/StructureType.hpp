@@ -15,6 +15,7 @@ public:
   virtual std::string GetInputSpecification();
   virtual std::string GetOutputSpecification();
   virtual std::string GetName() const { return m_name;}
+  virtual enum type_kind GetTypeKind() const {return STRUCT_TYPE;}
 private:
   void simplifyCode();
   void parseFields();

@@ -113,6 +113,11 @@ void SegmentProcessUnit::resolveInput() {
   // std::set<Variable> vv;
   m_inv.clear();
   m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
+  for (auto it=m_inv.begin();it!=m_inv.end();it++) {
+    if ((*it)->GetType()->GetTypeKind() == SYSTEM_TYPE) {
+      Logger::Instance()->LogTmp("type: "+(*it)->GetType()->GetName() + "\tname: " + (*it)->GetName()+"\n");
+    }
+  }
 }
 
 pugi::xml_node

@@ -3,6 +3,13 @@
 
 #include <string>
 
+enum type_kind {
+  ENUM_TYPE,
+  PRIM_TYPE,
+  STRUCT_TYPE,
+  SYSTEM_TYPE,
+  UNION_TYPE
+};
 
 class Type {
 public:
@@ -13,6 +20,7 @@ public:
   virtual std::string GetInputSpecification() = 0;
   virtual std::string GetOutputSpecification() = 0;
   virtual std::string GetName() const = 0;
+  virtual enum type_kind GetTypeKind() const = 0;
 
   static std::string GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level);
   static std::string GetArrayCode(const std::string& type_name, const std::string& var_name, int dimension);
