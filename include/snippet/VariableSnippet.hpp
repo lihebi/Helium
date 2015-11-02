@@ -15,13 +15,15 @@ public:
   virtual std::set<std::string> GetKeywords() {return m_keywords;}
   virtual std::string GetFilename() const {return m_filename;}
   virtual int GetLineNumber() const {return m_line_number;}
+  virtual int GetLOC() const {return m_loc;}
 private:
   std::string m_code;
   std::string m_name;
   char m_type;
   std::string m_filename;
-  int m_line_number;
+  int m_line_number = 0;
   std::set<std::string> m_keywords;
+  int m_loc = 0;
 };
 
 #endif

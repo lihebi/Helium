@@ -6,16 +6,6 @@
 #include "util/SrcmlUtil.hpp"
 #include "util/DomUtil.hpp"
 
-static boost::regex alias_reg("(\\w+)\\s*;\\s*");
-
-TypedefSnippet::TypedefSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number)
-: m_code(code), m_type('t'), m_filename(filename), m_line_number(line_number) {
-  // std::cout << "[TypedefSnippet::TypedefSnippet]" << std::endl;
-  // std::cout << code << std::endl;
-  m_name = id;
-  m_keywords.insert(m_name);
-}
-
 void
 TypedefSnippet::semanticParse() {
   // fill m_from, m_to, m_typedef_type
@@ -44,6 +34,7 @@ TypedefSnippet::TypedefSnippet(const CtagsEntry& ce) {
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
   m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   m_name = ce.GetName();
   semanticParse();
   m_keywords.insert(m_name);

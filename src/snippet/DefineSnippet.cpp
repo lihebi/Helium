@@ -2,24 +2,12 @@
 #include "util/FileUtil.hpp"
 #include <boost/regex.hpp>
 
-// FIXME \\w+ will match the longest string?
-boost::regex define_name_reg("define\\s+(\\w+)");
-DefineSnippet::DefineSnippet(const std::string& code, const std::string& id, const std::string& filename, int line_number)
-: m_code(code), m_type('d'), m_filename(filename), m_line_number(line_number) {
-  boost::smatch match;
-  // if (boost::regex_search(code, match, define_name_reg)) {
-  //   m_name = match[1];
-  //   m_keywords.insert(m_name);
-  // }
-  m_name = id;
-  m_keywords.insert(m_name);
-}
-
 DefineSnippet::DefineSnippet(const CtagsEntry& ce) {
   m_type = 'd';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
   m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   m_name = ce.GetName();
   m_keywords.insert(m_name);
 }

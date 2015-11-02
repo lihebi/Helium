@@ -39,6 +39,7 @@ public:
   virtual std::string GetFilename() const = 0;
   virtual int GetLineNumber() const = 0;
   virtual std::string GetDecl() {return "";}
+  virtual int GetLOC() const = 0;
 private:
 };
 

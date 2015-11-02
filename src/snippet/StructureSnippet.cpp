@@ -44,18 +44,12 @@ get_keywords(
   }
 }
 
-StructureSnippet::StructureSnippet(const std::string& code, const std::string& filename, int line_number)
-: m_code(code), m_type('s'), m_filename(filename), m_line_number(line_number) {
-  // std::cout << "[StructureSnippet::StructureSnippet]" << std::endl;
-  // std::cout << code << std::endl;
-  get_keywords(code, m_name, m_alias, m_keywords);
-}
-
 StructureSnippet::StructureSnippet(const CtagsEntry& ce) {
   m_type = 's';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
   m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   get_keywords(m_code, m_name, m_alias, m_keywords);
   // print();
 }

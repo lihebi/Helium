@@ -39,7 +39,7 @@ void Config::Load(const std::string& filename) {
   // build option
   m_instrument_position     = tree.get("helium.build.instrument_position", "");
   m_instrument_type         = tree.get("helium.build.instrument_type", "");
-  m_max_support_size        = tree.get("helium.build.max_support_size", 999999);
+  m_max_snippet_size        = tree.get("helium.build.max_snippet_size", 999999);
   m_max_snippet_number      = tree.get("helium.build.max_snippet_number", 99999);
   m_build_save_compilable   = tree.get("helium.build.save_compilable", "false").compare("true") == 0;
   m_build_save_incompilable = tree.get("helium.build.save_incompilable", "false").compare("true") == 0;
