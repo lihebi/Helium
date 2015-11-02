@@ -7,6 +7,7 @@
 #include <set>
 #include <exception>
 #include <iostream>
+#include <unistd.h>
 namespace pt = boost::property_tree;
 
 Config *Config::m_instance = 0;
@@ -21,6 +22,10 @@ void Config::Load(const std::string& filename) {
   // std::cout<<"[Config::Load] "<<filename<<std::endl;
   m_filename = filename;
   pt::ptree tree;
+  if (access(filename.c_str(), F_OK) == -1) {
+    std::cerr << "[Config::Load] cannot load config file: " << filename << std::endl;
+    exit(1);
+  }
   pt::read_xml(m_filename, tree);
   // segment
   m_output_folder           = tree.get("helium.output_folder", "helium_out");

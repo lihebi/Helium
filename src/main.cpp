@@ -34,7 +34,7 @@ create_ctags(const std::string& folder) {
 int main(int argc, char* argv[]) {
   const char *helium_home_env = std::getenv("HELIUM_HOME");
   if(!helium_home_env) {
-    std::cout<<"Please set env variable HELIUM_HOME"<<std::endl;
+    std::cerr<<"Please set env variable HELIUM_HOME"<<std::endl;
     return 1;
   }
   fs::path helium_home(helium_home_env);
@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
     config_file = helium_home / "helium.xml";
   }
   Config *config = Config::Instance();
+  // may exit when the config file doesn't exist
   config->Load(config_file.string());
   // utils
   if (arg_parser->HasCmdUtils()) {
@@ -73,7 +74,9 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // main
+    // may exit if the tag file cannot load
     Ctags::Instance()->Load(folder + "/tags");
+    // may exit if the tag file cannot load
     SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
     HeaderSorter::Instance()->Load(folder);
     std::string output_folder = config->GetOutputFolder();

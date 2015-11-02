@@ -13,6 +13,11 @@ Ctags::Load(const std::string& tagfile) {
   Logger::Instance()->LogTrace("[Ctags::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
+  if (!info->status.opened) {
+    std::cerr << "[Ctags::Load] cannot load tagfile: " << tagfile
+    << ". Did you forget to preprocess the benchmark?"<< std::endl;
+    exit(1);
+  }
   m_entry = (tagEntry*)malloc(sizeof(tagEntry));
 }
 
