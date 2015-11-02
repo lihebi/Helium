@@ -9,6 +9,9 @@
 #include "resolver/Ctags.hpp"
 #include <cassert>
 #include "Logger.hpp"
+#include "variable/VariableFactory.hpp"
+
+std::set<std::string> StructureType::m_recursion_set = std::set<std::string>();
 
 StructureType::StructureType(const std::string& name) {
   // need to resolve instead of looking up registry,
@@ -24,7 +27,22 @@ StructureType::StructureType(const std::string& name) {
     }
   }
   assert(!m_name.empty());
-  // parseFields();
+  if (m_recursion_set.find(m_name) != m_recursion_set.end()) {
+    // if recursion detected, do not parse the field in current type, and init value set to null
+    m_null = true;
+    Logger::Instance()->LogDebug("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
+    return;
+  } else {
+    // before parseFields, push self to the stack
+    m_recursion_set.insert(m_name);
+    parseFields();
+    // after parseFields, pop self from stack
+    m_recursion_set.erase(m_name);
+    Logger::Instance()->LogDebug(
+      "[StructureType::StructureType] current recursion_set size: "
+      +std::to_string(m_recursion_set.size()) + '\n'
+    );
+  }
 }
 StructureType::~StructureType() {
 }
@@ -33,18 +51,40 @@ std::string
 StructureType::GetInputCode(const std::string& var) const {
   std::string code;
   if (GetDimension()>0) {
-    return Type::GetArrayCode(m_name, var, GetDimension());
+    code += Type::GetArrayCode(m_name, var, GetDimension());
   }
   if (GetPointerLevel()>0) {
-    return Type::GetAllocateCode(m_name, var, GetPointerLevel());
+    code += Type::GetDeclCode(m_name, var, GetPointerLevel());
+    code += Type::GetAllocateCode(m_name, var, GetPointerLevel());
   } else {
     code += m_name + " " + var + ";\n";
   }
   // fields init
   for (auto it=m_fields.begin();it!=m_fields.end();it++) {
-    std::string field_name = it->second;
-    field_name = std::string(GetPointerLevel()-1, '&') + var + "." + field_name;
-    code += it->first->GetInputCode(field_name) + "\n";
+    assert(GetPointerLevel()>=0);
+    std::string prefix;
+    if (GetPointerLevel()>0) {
+      prefix = "("+std::string(GetPointerLevel(), '*')+var+").";
+    } else {
+      prefix = var+'.';
+    }
+    code += (*it)->GetInputCodeWithoutDecl(prefix);
+  }
+  return code;
+}
+
+std::string
+StructureType::GetInputCodeWithoutDecl(const std::string& var) const {
+  if (m_null) {
+    return var + " = NULL;\n";
+  }
+  std::string code;
+  if (GetPointerLevel()>0) {
+    code += Type::GetAllocateCode(m_name, var, GetPointerLevel());
+  }
+  for (auto it=m_fields.begin();it!=m_fields.end();it++) {
+    std::string prefix = "("+std::string(GetPointerLevel(), '*')+var+").";
+    code += (*it)->GetInputCodeWithoutDecl(prefix);
   }
   return code;
 }
@@ -64,26 +104,14 @@ StructureType::GetOutputSpecification() {
 
 void
 StructureType::parseFields() {
-  std::cout << "[StructureType::parseFields]" << std::endl;
+  Logger::Instance()->LogTrace("[StructureType::parseFields]\n");
   pugi::xml_document doc;
-  std::cout << "/* message */" << std::endl;
   SrcmlUtil::String2XML(m_snippet->GetCode(), doc);
-  std::cout << "/* message */" << std::endl;
-  pugi::xml_node struct_node = doc.first_element_by_path("//struct");
+  pugi::xml_node struct_node = doc.select_node("//struct").node();
   // pugi::xml_node name_node = struct_node.child("name");
   pugi::xml_node block_node = struct_node.child("block");
   for (pugi::xml_node decl_stmt_node : block_node.children("decl_stmt")) {
-    std::cout << "/* message */" << std::endl;
-    pugi::xml_node decl_node = decl_stmt_node.child("decl");
-    std::string type_str = DomUtil::GetTextContent(decl_node.child("type"));
-    std::string name_str = DomUtil::GetTextContent(decl_node.child("name"));
-    if (name_str.find('[') != std::string::npos) {
-      type_str += name_str.substr(name_str.find('['));
-    }
-    name_str = name_str.substr(0, name_str.find('['));
-    std::cout << "/* message */" << std::endl;
-    // FIXME this line will have recursive problem
-    std::shared_ptr<Type> type = TypeFactory(type_str).CreateType();
-    m_fields.push_back(std::make_pair(type, name_str));
+    std::shared_ptr<Variable> v = VariableFactory::FromDeclStmt(decl_stmt_node);
+    m_fields.push_back(v);
   }
 }

@@ -27,6 +27,10 @@ EnumType::GetInputCode(const std::string& var) const {
   // TODO input from outside
   return m_avail_name + " " + var + ";\n";
 }
+std::string
+EnumType::GetInputCodeWithoutDecl(const std::string& var) const {
+  return "";
+}
 std::string EnumType::GetOutputCode(const std::string& var) const {
   return "";
 }

@@ -15,7 +15,8 @@ public:
     return m_name;
   }
   const std::shared_ptr<Type> GetType() const { return m_type;}
-  std::string GetInputCode() const;
+  std::string GetInputCode(const std::string& prefix="") const;
+  std::string GetInputCodeWithoutDecl(const std::string& prefix="") const;
   std::string GetOutputCode() const;
   std::string GetInputSpecification() const;
   std::string GetOutputSpecification() const;

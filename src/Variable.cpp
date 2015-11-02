@@ -10,8 +10,11 @@ Variable::Variable(std::shared_ptr<Type> type, const std::string& name)
   // << std::endl;
 }
 
-std::string Variable::GetInputCode() const {
-  return m_type->GetInputCode(m_name);
+std::string Variable::GetInputCode(const std::string& prefix) const {
+  return m_type->GetInputCode(prefix+m_name);
+}
+std::string Variable::GetInputCodeWithoutDecl(const std::string& prefix) const {
+  return m_type->GetInputCodeWithoutDecl(prefix+m_name);
 }
 std::string Variable::GetOutputCode() const {
   return m_type->GetOutputCode(m_name);

@@ -1,13 +1,31 @@
 #include "type/Type.hpp"
 #include <iostream>
 
+/*
+ * Get decl code for a pointer type
+ */
+std::string
+Type::GetDeclCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
+  return type_name + std::string(pointer_level, '*')+ " " + var_name;
+}
+
+static std::string
+qualify_var_name(const std::string& varname) {
+  std::string tmp = varname;
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'));
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '>'));
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '-'));
+  return tmp;
+}
+/**
+ * Only get the allocate code(malloc, assign), but no decl code.
+ */
 std::string
 Type::GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
   std::string code;
-  std::string var_tmp = var_name + "_tmp";
+  std::string var_tmp = qualify_var_name(var_name) + "_tmp";
   code += type_name + "* " + var_tmp + " = (" + type_name + "*)malloc(sizeof(" + type_name + "));\n";
-  code += type_name + std::string(pointer_level, '*')+ " " + var_name
-  + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
+  code += var_name + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
   return code;
 }
 

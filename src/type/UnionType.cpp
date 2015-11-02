@@ -36,6 +36,12 @@ UnionType::GetInputCode(const std::string& var) const {
   }
   return code;
 }
+
+std::string
+UnionType::GetInputCodeWithoutDecl(const std::string& var) const {
+  return "";
+}
+
 std::string UnionType::GetOutputCode(const std::string& var) const {
   return "";
 }

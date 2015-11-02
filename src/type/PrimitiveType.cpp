@@ -24,7 +24,7 @@ PrimitiveType::PrimitiveType(const struct type_specifier& specifier)
 PrimitiveType::~PrimitiveType() {}
 
 static std::string
-get_input(
+get_input_decl(
   const std::string& type, const std::string& formatter,
   const std::string& var,
   int pointer_level, int dimension
@@ -33,15 +33,39 @@ get_input(
   if (dimension>0) {
     return Type::GetArrayCode(type.c_str(), var, dimension);
   }
-  std::string assign;
   if (pointer_level > 0) {
+    code += Type::GetDeclCode(type, var, pointer_level);
     code += Type::GetAllocateCode(type, var, pointer_level);
-    assign = std::string(pointer_level-1, '*');
   } else {
     code += type + " " + var + ";\n";
+  }
+  return code;
+}
+
+static std::string
+get_input_scanf(
+  const std::string& type, const std::string& formatter,
+  const std::string& var,
+  int pointer_level, int dimension
+) {
+  std::string assign;
+  if (pointer_level > 0) {
+    assign = std::string(pointer_level-1, '*');
+  } else {
     assign = "&";
   }
-  code += "scanf(\"%" + formatter + "\", " + assign + var + ");\n";
+  return "scanf(\"%" + formatter + "\", " + assign + var + ");\n";
+}
+
+static std::string
+get_input(
+  const std::string& type, const std::string& formatter,
+  const std::string& var,
+  int pointer_level, int dimension
+) {
+  std::string code;
+  code += get_input_decl(type, formatter, var, pointer_level, dimension);
+  code += get_input_scanf(type, formatter, var, pointer_level, dimension);
   return code;
 }
 
@@ -124,6 +148,18 @@ PrimitiveType::GetInputCode(const std::string& var) const {
   if (m_specifier.is_void) return get_void_input(var, GetPointerLevel(), GetDimension());
   // rest is int
   return get_input("int", "d", var, GetPointerLevel(), GetDimension());
+}
+
+std::string
+PrimitiveType::GetInputCodeWithoutDecl(const std::string& var) const {
+  if (m_specifier.is_char) return get_input_scanf("char", "c", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_float) return get_input_scanf("float", "f", var, GetPointerLevel(), GetDimension());
+  if (m_specifier.is_double) return get_input_scanf("double", "lf", var, GetPointerLevel(), GetDimension());
+  // will not constrain bool here, but in input specification
+  if (m_specifier.is_bool) return get_input_scanf("bool", "d", var, GetPointerLevel(), GetDimension());
+  // if (m_specifier.is_void) return get_void_input(var, GetPointerLevel(), GetDimension());
+  // rest is int
+  return get_input_scanf("int", "d", var, GetPointerLevel(), GetDimension());
 }
 
 std::string

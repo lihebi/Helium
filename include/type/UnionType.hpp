@@ -9,6 +9,7 @@ public:
   UnionType(const std::string& name);
   virtual ~UnionType();
   virtual std::string GetInputCode(const std::string& var) const;
+  virtual std::string GetInputCodeWithoutDecl(const std::string& var) const;
   virtual std::string GetOutputCode(const std::string& var) const;
   virtual std::string GetInputSpecification();
   virtual std::string GetOutputSpecification();

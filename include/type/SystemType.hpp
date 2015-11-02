@@ -9,6 +9,7 @@ public:
   SystemType(const std::string& name, const struct struct_specifier& specifier);
   ~SystemType();
   virtual std::string GetInputCode(const std::string& var) const;
+  virtual std::string GetInputCodeWithoutDecl(const std::string& var) const;
   virtual std::string GetOutputCode(const std::string& var) const;
   virtual std::string GetInputSpecification();
   virtual std::string GetOutputSpecification();

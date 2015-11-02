@@ -30,6 +30,11 @@ SystemType::GetInputCode(const std::string& var) const {
 }
 
 std::string
+SystemType::GetInputCodeWithoutDecl(const std::string& var) const {
+  return "";
+}
+
+std::string
 SystemType::GetOutputCode(const std::string& var) const {
   return "";
 }
