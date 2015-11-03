@@ -16,7 +16,10 @@ public:
   static std::shared_ptr<Variable> ResolveLocalVar(const std::string& var_name, pugi::xml_node node);
   // recursively resolve
   // output: resolved
-  static void ResolveAliveVars(pugi::xml_node node, std::set<std::shared_ptr<Variable> >& resolved);
+  static void ResolveAliveVars(
+    pugi::xml_node node,
+    std::set<std::shared_ptr<Variable> >& resolved
+  );
   // get undefined variables and resolve the type
   static std::set<std::shared_ptr<Variable> > ResolveUndefinedVars(
     const Segment& segment

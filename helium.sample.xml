@@ -14,12 +14,14 @@
   <context>
     <context_search>linear</context_search>
     <max_linear_search_value>0</max_linear_search_value>
+    <max_context_size>1000</max_context_size>
   </context>
   <build>
     <instrument_position>loop</instrument_position>
     <instrument_type>variable</instrument_type>
     <max_snippet_size>3000</max_snippet_size>
     <max_snippet_number>100</max_snippet_number>
+    <simplify_output_var>false</simplify_output_var>
     <!-- <max_function_level></max_function_level> -->
     <!--
     To save generated code, set the following to true.

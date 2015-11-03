@@ -6,6 +6,14 @@
 #include <algorithm>
 #include "Logger.hpp"
 
+static bool
+var_in_set(const std::string& name, std::set<std::shared_ptr<Variable> >& s) {
+  for (auto it=s.begin();it!=s.end();it++) {
+    if ((*it)->GetName() == name) return true;
+  }
+  return false;
+}
+
 IOResolver::IOResolver() {}
 
 IOResolver::~IOResolver() {}
@@ -111,13 +119,7 @@ parseExpr(pugi::xml_node node) {
   return std::vector<std::string>();
 }
 
-bool
-var_in_set(const std::string& name, std::set<std::shared_ptr<Variable> >& s) {
-  for (auto it=s.begin();it!=s.end();it++) {
-    if ((*it)->GetName() == name) return true;
-  }
-  return false;
-}
+
 void
 IOResolver::visit(
   pugi::xml_node node,

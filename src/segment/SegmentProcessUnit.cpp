@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <boost/regex.hpp>
 #include "Logger.hpp"
+#include "util/StringUtil.hpp"
 
 SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
 : m_filename(filename),
@@ -73,6 +74,7 @@ bool SegmentProcessUnit::IncreaseContext() {
   Logger::Instance()->LogTrace("[SegmentProcessUnit][IncreaseContext]");
   m_linear_search_value++;
   if (m_linear_search_value > Config::Instance()->GetMaxLinearSearchValue()) {
+    Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max linear search value.\n");
     return false;
   }
   // increase context
@@ -100,6 +102,10 @@ bool SegmentProcessUnit::IncreaseContext() {
       m_context->Clear();
       m_context->PushBack(tmp);
     }
+  }
+  if (m_context->GetLOC() > Config::Instance()->GetMaxContextSize()) {
+    Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max context size.\n");
+    return false;
   }
   resolveInput();
   resolveOutput();
@@ -165,6 +171,33 @@ SegmentProcessUnit::uninstrument() {
   }
 }
 
+static void
+remove_used_vars(const std::string& code, std::set<std::shared_ptr<Variable> >& s) {
+  // only consider the code after '='
+  std::vector<std::string> lines = StringUtil::Split(code, '\n');
+  std::string tmp;
+  for (auto line:lines) {
+    if (line.rfind('=') != std::string::npos) {
+      line = line.substr(line.rfind('='));
+      tmp += line+'\n';
+    }
+  }
+  // remove from the set if the var is used(in to_resolve set)
+  std::set<std::string> to_resolve = Resolver::ExtractToResolve(tmp);
+  // TODO extract erase while iterating pattern into wiki
+  for (auto it=s.begin();it!=s.end();) {
+    if (to_resolve.find((*it)->GetName()) != to_resolve.end()) {
+      Logger::Instance()->LogTrace(
+        "[remove_used_vars] the var: " + (*it)->GetName()
+        + " is removed because it is used in context.\n"
+      );
+      it = s.erase(it);
+    } else {
+      it++;
+    }
+  }
+}
+
 void SegmentProcessUnit::resolveOutput() {
   Logger::Instance()->LogTrace("[SegmentProcessUnit::resolveOutput]\n");
   // std::set<Variable> vv;
@@ -174,6 +207,12 @@ void SegmentProcessUnit::resolveOutput() {
   m_outv.clear();
   if (m_output_node) {
     IOResolver::ResolveAliveVars(m_output_node, m_outv);
+    if (Config::Instance()->WillSimplifyOutputVar()) {
+      // remove already used vars in the segment/context
+      // m_context->GetNodes();
+      std::string context = getContext();
+      remove_used_vars(context, m_outv);
+    }
     for (auto it=m_outv.begin();it!=m_outv.end();it++) {
       pugi::xml_node node = m_output_node.append_child("outv");
       node.append_child(pugi::node_pcdata).set_value((*it)->GetOutputCode().c_str());

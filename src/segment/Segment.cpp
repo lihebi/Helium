@@ -8,12 +8,17 @@ Segment::~Segment () {}
 
 void Segment::PushBack(pugi::xml_node node) {
   m_nodes.push_back(node);
+  std::string text = GetText();
+  m_loc = std::count(text.begin(), text.end(), '\n');
 }
 void Segment::PushFront(pugi::xml_node node) {
   m_nodes.insert(m_nodes.begin(), node);
+  std::string text = GetText();
+  m_loc = std::count(text.begin(), text.end(), '\n');
 }
 void Segment::Clear() {
   m_nodes.clear();
+  m_loc = 0;
 }
 
 /*

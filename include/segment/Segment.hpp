@@ -16,8 +16,10 @@ public:
   pugi::xml_node GetFirstNode() const;
   std::string GetText();
   int GetLineNumber() const;
+  int GetLOC() const {return m_loc;}
 private:
   std::vector<pugi::xml_node> m_nodes;
+  int m_loc = 0;
 };
 
 #endif
