@@ -16,8 +16,8 @@ std::string Variable::GetInputCode(const std::string& prefix) const {
 std::string Variable::GetInputCodeWithoutDecl(const std::string& prefix) const {
   return m_type->GetInputCodeWithoutDecl(prefix+m_name);
 }
-std::string Variable::GetOutputCode() const {
-  return m_type->GetOutputCode(m_name);
+std::string Variable::GetOutputCode(const std::string& prefix) const {
+  return m_type->GetOutputCode(prefix+m_name);
 }
 std::string
 Variable::GetInputSpecification() const {

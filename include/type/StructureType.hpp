@@ -22,6 +22,8 @@ private:
   void simplifyCode();
   void parseFields();
 
+  std::string getPrefix(const std::string& var) const;
+
   std::vector<std::shared_ptr<Variable> > m_fields;
   std::string m_name;
   // std::string m_alias;

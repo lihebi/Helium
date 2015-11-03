@@ -173,10 +173,7 @@ void SegmentProcessUnit::resolveOutput() {
   instrument();
   m_outv.clear();
   if (m_output_node) {
-    // IOResolver::ResolveAliveVars(m_output_node, m_outv);
-    // TODO resolveAliveVars
-    // TODO until a node(the segment start node)
-    m_outv = m_inv;
+    IOResolver::ResolveAliveVars(m_output_node, m_outv);
     for (auto it=m_outv.begin();it!=m_outv.end();it++) {
       pugi::xml_node node = m_output_node.append_child("outv");
       node.append_child(pugi::node_pcdata).set_value((*it)->GetOutputCode().c_str());

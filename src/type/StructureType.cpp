@@ -74,6 +74,17 @@ StructureType::GetInputCode(const std::string& var) const {
 }
 
 std::string
+StructureType::getPrefix(const std::string& var) const {
+  std::string prefix;
+  if (GetPointerLevel()>0) {
+    prefix = "("+std::string(GetPointerLevel(), '*')+var+").";
+  } else {
+    prefix = var+'.';
+  }
+  return prefix;
+}
+
+std::string
 StructureType::GetInputCodeWithoutDecl(const std::string& var) const {
   if (m_null) {
     return var + " = NULL;\n";
@@ -83,15 +94,26 @@ StructureType::GetInputCodeWithoutDecl(const std::string& var) const {
     code += Type::GetAllocateCode(m_name, var, GetPointerLevel());
   }
   for (auto it=m_fields.begin();it!=m_fields.end();it++) {
-    std::string prefix = "("+std::string(GetPointerLevel(), '*')+var+").";
-    code += (*it)->GetInputCodeWithoutDecl(prefix);
+
+    code += (*it)->GetInputCodeWithoutDecl(getPrefix(var));
   }
   return code;
 }
 
 std::string
 StructureType::GetOutputCode(const std::string& var) const {
-  return "";
+  std::string code;
+  if (GetDimension() > 0) {
+    code += "// [StructureType::GetOutputCode] array code omitted.\n";
+    return code;
+  }
+  if (GetPointerLevel()>0) {
+    code += "printf(\"%d\", "+var+"==NULL);\n";
+  }
+  for (auto it=m_fields.begin();it!=m_fields.end();it++) {
+    code += (*it)->GetOutputCode(getPrefix(var));
+  }
+  return code;
 }
 std::string
 StructureType::GetInputSpecification() {
