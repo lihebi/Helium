@@ -116,7 +116,7 @@ SystemResolver::Load(const std::string& tagfile) {
   Logger::Instance()->LogTrace("[SystemResolver::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
-  if (!info->status.opened) {
+  if (info->status.opened != true) {
     std::cerr << "[SystemResolver::Load] cannot load tagfile: " << tagfile
     << ". Did you forget to make systype.tags file?" << std::endl;
     exit(1);

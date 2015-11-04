@@ -3,6 +3,7 @@
 #include "snippet/SnippetRegistry.hpp"
 #include "Logger.hpp"
 #include <iostream>
+#include <unistd.h>
 
 #include <cstdlib>
 
@@ -13,7 +14,8 @@ Ctags::Load(const std::string& tagfile) {
   Logger::Instance()->LogTrace("[Ctags::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
-  if (!info->status.opened) {
+  // this is a int ... upon success, it will be set to 1
+  if (info->status.opened != true) {
     std::cerr << "[Ctags::Load] cannot load tagfile: " << tagfile
     << ". Did you forget to preprocess the benchmark?"<< std::endl;
     exit(1);
