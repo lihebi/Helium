@@ -13,9 +13,9 @@ Type::GetDeclCode(const std::string& type_name, const std::string& var_name, int
 static std::string
 qualify_var_name(const std::string& varname) {
   std::string tmp = varname;
-  tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'));
-  tmp.erase(std::remove(tmp.begin(), tmp.end(), '>'));
-  tmp.erase(std::remove(tmp.begin(), tmp.end(), '-'));
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'), tmp.end());
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '>'), tmp.end());
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '-'), tmp.end());
   return tmp;
 }
 /**
