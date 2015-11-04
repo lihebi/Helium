@@ -1,5 +1,6 @@
 #include "segment/Segment.hpp"
 #include "util/DomUtil.hpp"
+#include <algorithm>
 
 #include <iostream>
 

@@ -1,5 +1,6 @@
 #include "snippet/VariableSnippet.hpp"
 #include "util/FileUtil.hpp"
+#include <algorithm>
 
 VariableSnippet::VariableSnippet(const CtagsEntry& ce) {
   m_name = ce.GetName();
