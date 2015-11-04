@@ -25,6 +25,7 @@ std::string ThreadUtil::Exec(
       close(pipefd[0]);
       close(pipefd[1]);
       execl("/bin/sh", "sh", "-c", cmd, (char *) NULL);
+      perror("execl");
       exit(1);
     }
     default: {
@@ -85,7 +86,6 @@ ThreadUtil::Exec(
     exit(1);
   }
   pid_t pid;
-  // fork
   pid = fork();
   if (pid<0) {
     perror("fork");

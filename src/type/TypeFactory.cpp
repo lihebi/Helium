@@ -99,6 +99,7 @@ is_local_type(const std::string& identifier) {
 
 std::shared_ptr<Type>
 TypeFactory::createLocalType() {
+  Logger::Instance()->LogTrace("[TypeFactory::createLocalType]\n");
   std::shared_ptr<Type> type;
   // need to know the code for local type
   // only handle structure or typedef
@@ -152,6 +153,7 @@ TypeFactory::createLocalType() {
 
 std::shared_ptr<Type>
 TypeFactory::createSystemType() {
+  Logger::Instance()->LogTrace("[TypeFactory::createSystemType]\n");
   std::shared_ptr<Type> type;
   std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
   if (prim_type.empty()) {
@@ -169,7 +171,7 @@ TypeFactory::createSystemType() {
 
 std::shared_ptr<Type>
 TypeFactory::CreateType() {
-  // std::cout << "[TypeFactory::CreateType]" << m_name << std::endl;
+  Logger::Instance()->LogTrace("[TypeFactory::CreateType] " + m_name + "\n");
   std::shared_ptr<Type> type;
   if (IsPrimitiveType()) {
     type = std::make_shared<PrimitiveType>(m_component.type_specifier);

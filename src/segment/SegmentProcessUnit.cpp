@@ -20,9 +20,12 @@ m_linear_search_value(0) {
   Logger::Instance()->LogTrace("[SegmentProcessUnit][Constructor]\n");
 }
 SegmentProcessUnit::~SegmentProcessUnit() {
+  Logger::Instance()->LogTrace("[SegmentProcessUnit::~SegmentProcessUnit]\n");
   // remove instrument when deconstruct
   unsimplifyCode();
-  uninstrument();
+  // Techniquely it should uninstrument here, but I'm encountering with a pugixml bug:
+  // node.parent().remove_child(node) will get error.
+  // uninstrument();
 }
 
 void SegmentProcessUnit::SetSegment(const Segment &s) {
@@ -75,7 +78,7 @@ SegmentProcessUnit::IsValid() {
 }
 
 bool SegmentProcessUnit::IncreaseContext() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit][IncreaseContext]");
+  Logger::Instance()->LogTrace("[SegmentProcessUnit][IncreaseContext]\n");
   m_linear_search_value++;
   if (m_linear_search_value > Config::Instance()->GetMaxLinearSearchValue()) {
     Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max linear search value.\n");
@@ -241,6 +244,7 @@ SegmentProcessUnit::uninstrument() {
   // }
   if (m_output_node) {
     pugi::xml_node tmp = m_output_node.parent();
+    // this remove_child will cause error!!! crash!
     tmp.remove_child(m_output_node);
     m_output_node = pugi::xml_node();
   }
@@ -281,7 +285,8 @@ void SegmentProcessUnit::resolveOutput() {
   instrument();
   m_outv.clear();
   if (m_output_node) {
-    IOResolver::ResolveAliveVars(m_output_node, m_outv);
+    IOResolver::ResolveAliveVars(m_output_node, m_outv, *m_context);
+    // m_outv = m_inv;
     if (Config::Instance()->WillSimplifyOutputVar()) {
       // remove already used vars in the segment/context
       // m_context->GetNodes();

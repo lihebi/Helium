@@ -27,28 +27,35 @@ StructureType::StructureType(const std::string& name) {
     }
   }
   assert(!m_name.empty());
-  if (m_recursion_set.find(m_name) != m_recursion_set.end()) {
-    // if recursion detected, do not parse the field in current type, and init value set to null
-    m_null = true;
-    Logger::Instance()->LogNull("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
-    return;
-  } else {
-    // before parseFields, push self to the stack
-    m_recursion_set.insert(m_name);
-    parseFields();
-    // after parseFields, pop self from stack
-    m_recursion_set.erase(m_name);
-    Logger::Instance()->LogNull(
-      "[StructureType::StructureType] current recursion_set size: "
-      +std::to_string(m_recursion_set.size()) + '\n'
-    );
-  }
+  // enable parseFields will cause "fork: resource temporary unavailable", even on memcached.
+  // not sure why, but it should be something about ThreadUtil
+  // However threadutil is synchronized, so it should not have problem.
+  // As a result, temporarily this parse field feature cannot be enabled.
+  // But I'm pretty sure for large benchmarks this error should also occur.
+
+  // if (m_recursion_set.find(m_name) != m_recursion_set.end()) {
+  //   // if recursion detected, do not parse the field in current type, and init value set to null
+  //   m_null = true;
+  //   Logger::Instance()->LogDebug("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
+  //   return;
+  // } else {
+  //   // before parseFields, push self to the stack
+  //   m_recursion_set.insert(m_name);
+  //   parseFields();
+  //   // after parseFields, pop self from stack
+  //   m_recursion_set.erase(m_name);
+  //   Logger::Instance()->LogDebug(
+  //     "[StructureType::StructureType] current recursion_set size: "
+  //     +std::to_string(m_recursion_set.size()) + '\n'
+  //   );
+  // }
 }
 StructureType::~StructureType() {
 }
 
 std::string
 StructureType::GetInputCode(const std::string& var) const {
+  Logger::Instance()->LogTrace("[StructureType::GetInputCode]\n");
   std::string code;
   if (GetDimension()>0) {
     code += Type::GetArrayCode(m_name, var, GetDimension());
@@ -102,6 +109,7 @@ StructureType::GetInputCodeWithoutDecl(const std::string& var) const {
 
 std::string
 StructureType::GetOutputCode(const std::string& var) const {
+  Logger::Instance()->LogTrace("[StructureType::GetOutputCode]\n");
   std::string code;
   if (GetDimension() > 0) {
     code += "// [StructureType::GetOutputCode] array code omitted.\n";

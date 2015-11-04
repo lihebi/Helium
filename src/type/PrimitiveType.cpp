@@ -17,6 +17,7 @@ PrimitiveType::PrimitiveType(const struct type_specifier& specifier)
   if (specifier.is_double)   m_name += "double ";
   if (specifier.is_bool)     m_name += "bool ";
   if (specifier.is_void)     m_name += "void ";
+  Logger::Instance()->LogTrace("[PrimitiveType::PrimitiveType] " + m_name + "\n");
   // should at least have some specifier
   assert(!m_name.empty());
   m_name.pop_back();
@@ -106,6 +107,7 @@ get_char_input(const std::string& var, int pointer_level, int dimension) {
   // pointer or not
   std::string assign;
   if (pointer_level > 0) {
+    code += Type::GetDeclCode("char", var, pointer_level);
     code += Type::GetAllocateCode("char", var, pointer_level);
     assign = std::string(pointer_level-1, '*');
   } else {
@@ -121,9 +123,8 @@ get_void_input(const std::string& var, int pointer_level, int dimension) {
   if (pointer_level > 0) {
     return "void " + std::string(pointer_level, '*') + " " + var+" = NULL;\n";
   } else {
-    std::cout << "[PrimitiveType::getVoidInputCode]"
-    << "\033[31m" << "void should always be pointers" << "\033[0m" << std::endl;
-    exit(1);
+    Logger::Instance()->LogWarning("[PrimitiveType::getVoidInputCode] void should always be pointers\n");
+    return "";
   }
 }
 
@@ -134,12 +135,13 @@ get_void_output(const std::string& var, int pointer_level, int dimension) {
   } else {
     // this should never happen, because already exit in get_void_input
     Logger::Instance()->LogWarning("[PrimitiveType::getVoidOutputCode] void should always be pointers\n");
-    exit(1);
+    return "";
   }
 }
 
 std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
+  Logger::Instance()->LogTrace("[PrimitiveType::GetInputCode]\n");
   if (m_specifier.is_char) return get_char_input(var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_float) return get_input("float", "f", var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_double) return get_input("double", "lf", var, GetPointerLevel(), GetDimension());
@@ -164,6 +166,7 @@ PrimitiveType::GetInputCodeWithoutDecl(const std::string& var) const {
 
 std::string
 PrimitiveType::GetOutputCode(const std::string& var) const {
+  Logger::Instance()->LogTrace("[PrimitiveType::GetOutputCode]\n");
   // TODO char output
   // if (m_specifier.is_char) return get_char_output(var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_float) return get_output("float", "f", var, GetPointerLevel(), GetDimension());

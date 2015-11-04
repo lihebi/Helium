@@ -3,6 +3,7 @@
 #include "util/DomUtil.hpp"
 #include <iostream>
 #include <cstring>
+#include "Logger.hpp"
 
 std::vector<std::shared_ptr<Variable> >
 VariableFactory::FromParamList(pugi::xml_node node) {
@@ -39,6 +40,7 @@ VariableFactory::FromDeclStmt(pugi::xml_node node) {
 
 std::shared_ptr<Variable>
 VariableFactory::FromDecl(pugi::xml_node node) {
+  Logger::Instance()->LogTrace("[VariableFactory::FromDecl]\n");
   if (node.type() == pugi::node_element && strcmp(node.name(), "decl") == 0) {
     // std::cout << "<decl>" << std::endl;
     // std::cout << DomUtil::GetTextContent(node) << std::endl;

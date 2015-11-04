@@ -18,7 +18,8 @@ public:
   // output: resolved
   static void ResolveAliveVars(
     pugi::xml_node node,
-    std::set<std::shared_ptr<Variable> >& resolved
+    std::set<std::shared_ptr<Variable> >& resolved,
+    const Segment& context
   );
   // get undefined variables and resolve the type
   static std::set<std::shared_ptr<Variable> > ResolveUndefinedVars(

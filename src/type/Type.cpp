@@ -7,7 +7,7 @@
  */
 std::string
 Type::GetDeclCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
-  return type_name + std::string(pointer_level, '*')+ " " + var_name;
+  return type_name + std::string(pointer_level, '*')+ " " + var_name+";\n";
 }
 
 static std::string

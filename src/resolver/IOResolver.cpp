@@ -67,15 +67,20 @@ IOResolver::ResolveLocalVar(
  */
 void IOResolver::ResolveAliveVars(
   pugi::xml_node node,
-  std::set<std::shared_ptr<Variable> >& resolved
+  std::set<std::shared_ptr<Variable> >& resolved,
+  const Segment& context
 ) {
+  // currently only consider continueous context
+  if (!context.HasNode(node)) return;
   if (node && node.previous_sibling()) {
     // go to previous sibling if any
     node = node.previous_sibling();
     if (node.type() == pugi::node_element) {
       if (strcmp(node.name(), "decl_stmt") == 0) {
         std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
-        resolved.insert(vp);
+        if (vp) {
+          resolved.insert(vp);
+        }
       } else if (strcmp(node.name(), "parameter_list") == 0) {
         std::vector<std::shared_ptr<Variable> > vv = VariableFactory::FromParamList(node);
         for (auto it=vv.begin();it!=vv.end();it++) {
@@ -90,7 +95,7 @@ void IOResolver::ResolveAliveVars(
     // return if no even parent
     return;
   }
-  ResolveAliveVars(node, resolved);
+  ResolveAliveVars(node, resolved, context);
 }
 
 void
@@ -129,7 +134,9 @@ IOResolver::visit(
   if (node.type() == pugi::node_element) {
     if (strcmp(node.name(), "decl_stmt") == 0) {
       std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
-      if (vp) defined.insert(vp);
+      if (vp) {
+        defined.insert(vp);
+      }
     } else if (strcmp(node.name(), "expr") == 0) {
       // in #ifdef, there may be `#elif defined(__sun)`
       // TODO even if __sun is identified as undefined,
@@ -153,7 +160,9 @@ IOResolver::visit(
     } else if (strcmp(node.name(), "for") == 0) {
       pugi::xml_node decl_node = node.child("init").child("decl");
       std::shared_ptr<Variable> vp = VariableFactory::FromDecl(decl_node);
-      if (vp) defined.insert(vp);
+      if (vp) {
+        defined.insert(vp);
+      }
     }
   }
 }
