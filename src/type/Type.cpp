@@ -1,5 +1,6 @@
 #include "type/Type.hpp"
 #include <iostream>
+#include <algorithm>
 
 /*
  * Get decl code for a pointer type
