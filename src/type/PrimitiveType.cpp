@@ -2,6 +2,7 @@
 #include "type/TypeFactory.hpp"
 #include <iostream>
 #include <cassert>
+#include "Logger.hpp"
 
 PrimitiveType::PrimitiveType(const struct type_specifier& specifier)
 : m_specifier(specifier) {
@@ -132,8 +133,7 @@ get_void_output(const std::string& var, int pointer_level, int dimension) {
     return "printf(\"%d\\n\", ("+var+"==NULL));\n";
   } else {
     // this should never happen, because already exit in get_void_input
-    std::cout << "[PrimitiveType::getVoidOutputCode]"
-    << "\033[31m" << "void should always be pointers" << "\033[0m" << std::endl;
+    Logger::Instance()->LogWarning("[PrimitiveType::getVoidOutputCode] void should always be pointers\n");
     exit(1);
   }
 }

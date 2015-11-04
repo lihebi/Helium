@@ -134,6 +134,8 @@ StructureType::parseFields() {
   pugi::xml_node block_node = struct_node.child("block");
   for (pugi::xml_node decl_stmt_node : block_node.children("decl_stmt")) {
     std::shared_ptr<Variable> v = VariableFactory::FromDeclStmt(decl_stmt_node);
-    m_fields.push_back(v);
+    if (v) {
+      m_fields.push_back(v);
+    }
   }
 }
