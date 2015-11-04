@@ -17,6 +17,8 @@ public:
 
   // test if node is within <level> levels inside a <tagname>
   static bool InNode(pugi::xml_node node, std::string tagname, int level);
+  // least upper bound of two nodes
+  static pugi::xml_node lub(pugi::xml_node n1, pugi::xml_node n2);
 };
 
 #endif

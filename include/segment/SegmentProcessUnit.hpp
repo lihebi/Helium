@@ -45,6 +45,10 @@ private:
   void instrument();
   void uninstrument();
 
+  void simplifyCode();
+  void unsimplifyCode();
+  void doSimplifyCode(pugi::xml_node node, pugi::xml_node key);
+
   // builder function
   std::string getInputCode();
 
@@ -60,6 +64,7 @@ private:
   std::vector<pugi::xml_node> m_functions;
   int m_linear_search_value;
   bool m_can_continue = true;
+  std::vector<pugi::xml_node> m_omit_nodes;
 };
 
 #endif

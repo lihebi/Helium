@@ -17,6 +17,7 @@ public:
   std::string GetText();
   int GetLineNumber() const;
   int GetLOC() const {return m_loc;}
+  bool HasNode(pugi::xml_node node) const;
 private:
   std::vector<pugi::xml_node> m_nodes;
   int m_loc = 0;

@@ -15,6 +15,7 @@
     <context_search>linear</context_search>
     <max_linear_search_value>0</max_linear_search_value>
     <max_context_size>1000</max_context_size>
+    <simplify_branch>true</simplify_branch>
   </context>
   <build>
     <instrument_position>loop</instrument_position>

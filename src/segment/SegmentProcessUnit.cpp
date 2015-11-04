@@ -19,7 +19,11 @@ m_context(std::make_shared<Segment>()),
 m_linear_search_value(0) {
   Logger::Instance()->LogTrace("[SegmentProcessUnit][Constructor]\n");
 }
-SegmentProcessUnit::~SegmentProcessUnit() {}
+SegmentProcessUnit::~SegmentProcessUnit() {
+  // remove instrument when deconstruct
+  unsimplifyCode();
+  uninstrument();
+}
 
 void SegmentProcessUnit::SetSegment(const Segment &s) {
   m_segment = std::make_shared<Segment>(s);
@@ -29,7 +33,7 @@ void SegmentProcessUnit::AddNode(pugi::xml_node node) {
 }
 void SegmentProcessUnit::Process() {
   Logger::Instance()->LogTrace("[SegmentProcessUnit] Processing Segment Unit\n");
-  m_context = m_segment;
+  m_context = std::make_shared<Segment>(*m_segment);
   resolveInput();
   resolveOutput();
   resolveSnippets();
@@ -77,6 +81,7 @@ bool SegmentProcessUnit::IncreaseContext() {
     Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max linear search value.\n");
     return false;
   }
+  unsimplifyCode();
   // increase context
   pugi::xml_node first_node = m_context->GetNodes()[0];
   pugi::xml_node tmp = DomUtil::GetPreviousASTElement(first_node);
@@ -107,6 +112,9 @@ bool SegmentProcessUnit::IncreaseContext() {
     Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max context size.\n");
     return false;
   }
+  if (Config::Instance()->WillSimplifyBranch()) {
+    simplifyCode();
+  }
   resolveInput();
   resolveOutput();
   resolveSnippets();
@@ -118,11 +126,78 @@ void SegmentProcessUnit::resolveInput() {
   // TODO input variable type may be structure. These structure should appear in support.h
   // std::set<Variable> vv;
   m_inv.clear();
-  m_inv = IOResolver::ResolveUndefinedVars(*m_segment);
+  m_inv = IOResolver::ResolveUndefinedVars(*m_context);
   for (auto it=m_inv.begin();it!=m_inv.end();it++) {
     if ((*it)->GetType()->GetTypeKind() == SYSTEM_TYPE) {
       Logger::Instance()->LogTmp("type: "+(*it)->GetType()->GetName() + "\tname: " + (*it)->GetName()+"\n");
     }
+  }
+}
+
+/**
+ * Recursively determine if the node and its children may influence key
+ */
+void
+SegmentProcessUnit::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
+  // Logger::Instance()->LogDebug("[SegmentProcessUnit::doSimplifyCode]\n");
+  if (DomUtil::lub(node, key) == node) {
+    // node is the ancestor of key
+    for (pugi::xml_node n : node.children()) {
+      doSimplifyCode(n, key);
+    }
+  } else if (strcmp(node.name(), "then") == 0 ||
+    strcmp(node.name(), "else") == 0 ||
+    strcmp(node.name(), "elseif") == 0 ||
+    strcmp(node.name(), "case") == 0 ||
+    strcmp(node.name(), "default") == 0
+  ) {
+    // cannot just use AST nodes because <condition> is also a node, but it is not a node in CFG
+    // so we enumerate the branches which are able to eliminate: if <then> <else> <elseif>, switch <case> <default>
+    // node is in different branch
+    pugi::xml_node ancestor = DomUtil::lub(node, key);
+    // std::cout << "node: " << node.name() << std::endl;
+    // std::cout << "key: " << key.name() << std::endl;
+    // std::cout << "ancestor: " << ancestor.name() << std::endl;
+    while (m_context->HasNode(ancestor)) {
+      // here we can only consider the possible loop back edge(without goto)
+      // because we only have AST info, no semantic.
+      // specifically, we have <while> <do> <for>
+      if(strcmp(ancestor.name(), "while") == 0 ||
+        strcmp(ancestor.name(), "do") == 0 ||
+        strcmp(ancestor.name(), "for") == 0
+      ) {
+        return;
+      }
+      ancestor = ancestor.parent();
+    }
+    // no loop ancestor in the context
+    // the mark attribute
+    node.append_attribute("helium-omit");
+    // node.print(std::cout);
+    // std::string tmp = DomUtil::GetTextContent(node);
+    Logger::Instance()->LogDebug("[SegmentProcessUnit::doSimplifyCode] simplified: "
+    + std::string(ancestor.name())+"\n");
+    m_omit_nodes.push_back(node);
+  }
+}
+
+void
+SegmentProcessUnit::simplifyCode() {
+  Logger::Instance()->LogTrace("[SegmentProcessUnit::simplifyCode]\n");
+  // remove the AST branches in the context that has no influence on the segment
+  std::vector<pugi::xml_node> nodes = m_context->GetNodes();
+  pugi::xml_node segment_node = m_segment->GetFirstNode();
+
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    doSimplifyCode(*it, segment_node);
+  }
+}
+
+void
+SegmentProcessUnit::unsimplifyCode() {
+  Logger::Instance()->LogTrace("[SegmentProcessUnit::unsimplifyCode]\n");
+  for (auto it=m_omit_nodes.begin();it!=m_omit_nodes.end();it++) {
+    it->remove_attribute(it->attribute("helium-omit"));
   }
 }
 

@@ -30,7 +30,7 @@ StructureType::StructureType(const std::string& name) {
   if (m_recursion_set.find(m_name) != m_recursion_set.end()) {
     // if recursion detected, do not parse the field in current type, and init value set to null
     m_null = true;
-    Logger::Instance()->LogDebug("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
+    Logger::Instance()->LogNull("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
     return;
   } else {
     // before parseFields, push self to the stack
@@ -38,7 +38,7 @@ StructureType::StructureType(const std::string& name) {
     parseFields();
     // after parseFields, pop self from stack
     m_recursion_set.erase(m_name);
-    Logger::Instance()->LogDebug(
+    Logger::Instance()->LogNull(
       "[StructureType::StructureType] current recursion_set size: "
       +std::to_string(m_recursion_set.size()) + '\n'
     );

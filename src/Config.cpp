@@ -37,6 +37,7 @@ void Config::Load(const std::string& filename) {
   m_context_search          = tree.get("helium.context.context_search", "linear");
   m_max_linear_search_value = tree.get("helium.context.max_linear_search_value", 0);
   m_max_context_size        = tree.get("helium.context.max_context_size", 99999);
+  m_simplify_branch         = tree.get("helium.context.simplify_branch", "false").compare("true") == 0;
   // build option
   m_instrument_position     = tree.get("helium.build.instrument_position", "");
   m_instrument_type         = tree.get("helium.build.instrument_type", "");

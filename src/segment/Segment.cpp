@@ -69,3 +69,11 @@ Segment::GetText() {
   }
   return s;
 }
+
+bool
+Segment::HasNode(pugi::xml_node node) const {
+  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
+    if (DomUtil::lub(*it, node) == *it) return true;
+  }
+  return false;
+}

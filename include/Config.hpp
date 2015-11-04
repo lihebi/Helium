@@ -22,6 +22,7 @@ public:
   const std::string& GetContextSearchMethod() const {return m_context_search;}
   int GetMaxLinearSearchValue() const {return m_max_linear_search_value;}
   int GetMaxContextSize() const {return m_max_context_size;}
+  bool WillSimplifyBranch() const {return m_simplify_branch;}
   // build config
   const std::string& GetInstrumentPosition() const {return m_instrument_position;}
   const std::string& GetInstrumentType() const {return m_instrument_type;}
@@ -84,6 +85,7 @@ private:
   std::string m_context_search;
   int m_max_linear_search_value;
   int m_max_context_size;
+  bool m_simplify_branch;
   // build option
   std::string m_instrument_position;
   std::string m_instrument_type;

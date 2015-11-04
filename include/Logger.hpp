@@ -26,6 +26,7 @@ public:
   void LogTmp(const std::string& content);
   void LogWarning(const std::string& content);
   void LogAll(const std::string& content);
+  void LogNull(const std::string& content) {}
 
   // log MyClass::MyMethod entries
   void LogTrace();
