@@ -1,0 +1,5 @@
+project name,exit status,compile success count,compile error count,build rate
+./coreutils,0,226, 381, .37
+./findutils,0,38, 62, .38
+./grep,0,53, 104, .33
+./make,0,6, 9, .40
