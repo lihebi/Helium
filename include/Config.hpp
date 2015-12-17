@@ -68,6 +68,8 @@ public:
   const std::string& GetOutputRateMode() const {return m_output_rate_mode;}
   const std::string& GetOutputTmpMode() const {return m_output_tmp_mode;}
   const std::string& GetOutputWarningMode() const {return m_output_warning_mode;}
+  // verbose
+  bool IsLogTraceVerbose() const {return m_output_trace_verbose;}
 
 private:
   Config() {}
@@ -120,6 +122,9 @@ private:
   std::string m_output_debug_mode;
   std::string m_output_trace;
   std::string m_output_trace_mode;
+
+  bool m_output_trace_verbose;
+  
   std::string m_output_compile;
   std::string m_output_compile_mode;
   std::string m_output_data;

@@ -58,6 +58,9 @@ void FileUtil::GetFilesByExtension(
   }
 }
 
+// HEBI TODO IMPORTANT remove rely on comment-free code.
+// In other words, use parser for extraction!!
+
 // from line, match a {}
 std::string
 extract_forward(const std::vector<std::string>& vs, int line_number) {

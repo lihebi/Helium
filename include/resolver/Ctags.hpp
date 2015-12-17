@@ -9,49 +9,25 @@
 // we need: 1. file path 2. line number 3. type
 class CtagsEntry {
 public:
-  CtagsEntry(const std::string& name, const std::string& file, int line, char type)
-  : m_name(name), m_file(file), m_line(line), m_type(type) {
-    if (m_file.find("/") != std::string::npos) {
-      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
-    }
-  }
-  CtagsEntry(const std::string& name, const char* file, int line, char type)
-  : m_name(name), m_file(file), m_line(line), m_type(type) {
-    if (m_file.find("/") != std::string::npos) {
-      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
-    }
-  }
-  // construct by pattern
-  CtagsEntry(const std::string& name, const char* file, const char* pattern, char type)
-  : m_name(name), m_file(file), m_pattern(pattern), m_type(type) {
-    if (m_file.find("/") != std::string::npos) {
-      m_simple_filename = m_file.substr(m_file.rfind("/")+1);
-    }
-  }
+  CtagsEntry(const tagEntry* const entry);
   ~CtagsEntry() {}
-  std::string GetName() const {
-    return m_name;
-  }
-  std::string GetFileName() const {
-    return m_file;
-  }
+  std::string GetName() const {return m_name;}
+  std::string GetFileName() const {return m_file;}
   std::string GetSimpleFileName() const { return m_simple_filename;}
-  int GetLineNumber() const {
-    return m_line;
-  }
-  std::string GetPattern() const {
-    return m_pattern;
-  }
-  char GetType() const {
-    return m_type;
-  }
+  int         GetLineNumber() const {return m_line;}
+  std::string GetPattern() const {return m_pattern;}
+  char        GetType() const {return m_type;}
+  std::string GetTyperef() const {return m_typeref;}
 private:
   std::string m_name;
   std::string m_file;
-  std::string m_simple_filename;
+  std::string m_simple_filename; // the last portion of path. Use for header sorter
+  // the pattern is not used for find code.
+  // The pattern itself is used in system resolver to recursively resolve type to primitive
   std::string m_pattern;
   int m_line;
   char m_type;
+  std::string m_typeref;
 };
 
 class Ctags {

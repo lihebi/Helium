@@ -40,11 +40,8 @@ VariableFactory::FromDeclStmt(pugi::xml_node node) {
 
 std::shared_ptr<Variable>
 VariableFactory::FromDecl(pugi::xml_node node) {
-  Logger::Instance()->LogTrace("[VariableFactory::FromDecl]\n");
+  Logger::Instance()->LogTraceV("[VariableFactory::FromDecl]\n");
   if (node.type() == pugi::node_element && strcmp(node.name(), "decl") == 0) {
-    // std::cout << "<decl>" << std::endl;
-    // std::cout << DomUtil::GetTextContent(node) << std::endl;
-    // node.print(std::cout);
     std::string type_str = DomUtil::GetTextContent(node.child("type"));
     std::string name_str = DomUtil::GetTextContent(node.child("name"));
     if (name_str.find('[') != std::string::npos) {

@@ -2,7 +2,7 @@
 #include <boost/regex.hpp>
 #include "util/FileUtil.hpp"
 #include <iostream>
-
+#include <Logger.hpp>
 /*
 FIXME
 typedef struct _IO_STATUS_BLOCK {
@@ -18,11 +18,18 @@ typedef struct _IO_STATUS_BLOCK {
 static boost::regex name_reg("struct\\s+(\\w+)");
 static boost::regex alias_reg("(\\w+)\\s*;\\s*");
 
+/*
+ * TODO This function is too buggy.
+ * The most common fault is libstdc++ string out-of-range
+ * It may be caused by code is empty.
+ * Or code is not a struct definitio: e.g. typedef struct conn * conn;
+ */
 static void
 get_keywords(
   const std::string& code,
   std::string& name, std::string& alias, std::set<std::string>& keywords
 ) {
+  Logger::Instance()->LogTraceV("[StructureSnippet::get_keywords]\n");
   boost::smatch name_match;
   boost::smatch alias_match;
   std::string tmp = code.substr(0, code.find('{'));
@@ -44,21 +51,32 @@ get_keywords(
   }
 }
 
+void
+StructureSnippet::getName(const CtagsEntry& ce) {
+  if (ce.GetType() == 't') {
+    std::string typeref = ce.GetTyperef();
+    std::string name = typeref.substr(strlen("struct:"));
+    if (name.substr(0, strlen("__anon")) == "__anon") {
+      // anonymouse structure
+      m_name = "";
+    } else {
+      // we already get the refer struct name from ctags, no need to parse the code!
+      m_name = name;
+    }
+    m_alias = ce.GetName();
+  } else {
+    m_name = ce.GetName();
+  }
+}
+
 StructureSnippet::StructureSnippet(const CtagsEntry& ce) {
+  Logger::Instance()->LogTraceV("[StructureSnippet::StructureSnippet]\n");
   m_type = 's';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
-  m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  // m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  getName(ce);
+  m_code = GetStructCode(ce.GetFileName(), m_line_number, m_name, m_alias);
   m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   get_keywords(m_code, m_name, m_alias, m_keywords);
-  // print();
-}
-
-void
-StructureSnippet::print() {
-  std::cout << "[StructureSnippet::print]" << std::endl;
-  std::cout << "\tname: " << m_name << std::endl;
-  std::cout << "\talias: " << m_alias << std::endl;
-  std::cout << "\tfilename: " << m_filename << std::endl;
-  std::cout << "\tline number: " << m_line_number << std::endl;
 }

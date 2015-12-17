@@ -24,7 +24,10 @@ public:
   virtual int GetLineNumber() const {return m_line_number;}
   virtual int GetLOC() const {return m_loc;}
 private:
+  void getName(const CtagsEntry& ce);
+  std::string getStructureCode(std::string filename, int line);
   void print();
+  
   std::string m_code;
   // m_name for structuresnippet should be the true name
   std::string m_name;

@@ -65,8 +65,15 @@ fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
   specifier.is_union  = search_and_remove(name, boost::regex("\\bunion\\b"))  ? 1 : 0;
 }
 
+/*
+ * Type factory will handle:
+ * - []
+ * - *,&
+ * - qualifier, specifier
+ */
 TypeFactory::TypeFactory(const std::string& name)
 : m_name(name), m_dimension(0), m_pointer_level(0) {
+  Logger::Instance()->LogTraceV("[TypeFactory::TypeFactory] " + name + "\n");
   std::string name_tmp = m_name;
   if (name_tmp.find('[') != std::string::npos) {
     m_dimension = std::count(name_tmp.begin(), name_tmp.end(), '[');
@@ -99,7 +106,7 @@ is_local_type(const std::string& identifier) {
 
 std::shared_ptr<Type>
 TypeFactory::createLocalType() {
-  Logger::Instance()->LogTrace("[TypeFactory::createLocalType]\n");
+  Logger::Instance()->LogTraceV("[TypeFactory::createLocalType] "+ m_identifier +"\n");
   std::shared_ptr<Type> type;
   // need to know the code for local type
   // only handle structure or typedef
@@ -121,17 +128,19 @@ TypeFactory::createLocalType() {
     // separate 't' with 'gs' to fix the bug: typedef struct conn conn
     // resolve conn as the true code struct conn {} first possible, so that no recursive
     for (auto it=snippets.begin();it!=snippets.end();it++) {
-      if ((*it)->GetType() == 't') {
-        if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_TYPE) {
-          std::string to_type = ((TypedefSnippet*)*it)->GetToType();
+      Snippet* s = *it;
+      if (s->GetType() == 't') {
+        if (((TypedefSnippet*)s)->GetTypedefType() == TYPEDEF_TYPE) {
+          std::string to_type = ((TypedefSnippet*)s)->GetToType();
           std::string new_name = m_name;
           new_name.replace(new_name.find(m_identifier), m_identifier.length(), to_type);
           // CAUSION this may or may not be a primitive type
           // FIXME may infinite loop?
           // YES, by typedef struct conn conn
+          if (new_name.empty()) break;
           type = TypeFactory(new_name).CreateType();
         } else if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_FUNC_POINTER) {
-          Logger::Instance()->LogTrace("[TypeFactory::CreateType]"
+          Logger::Instance()->LogWarning("[TypeFactory::CreateType]"
           "[WARNING] typedef"
           + m_identifier
           + "is function pointer\n");
@@ -143,7 +152,7 @@ TypeFactory::createLocalType() {
   // type should contains something.
   // or it may be NULL. So if it fails, do not necessarily means a bug
   if (!type) {
-    Logger::Instance()->LogTrace("[TypeFactory::CreateType]"
+    Logger::Instance()->LogWarning("[TypeFactory::CreateType]"
     "[ERROR] the type is local, but is not s or t: "
     + m_identifier + "\n");
     return NULL;
@@ -153,14 +162,13 @@ TypeFactory::createLocalType() {
 
 std::shared_ptr<Type>
 TypeFactory::createSystemType() {
-  Logger::Instance()->LogTrace("[TypeFactory::createSystemType]\n");
+  Logger::Instance()->LogTraceV("[TypeFactory::createSystemType]\n");
   std::shared_ptr<Type> type;
   std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
   if (prim_type.empty()) {
     // TODO detail of system type
     type = std::make_shared<SystemType>(m_identifier, m_component.struct_specifier);
   } else {
-    // std::cout << "Resolved from " << m_identifier << " to Primitive: \033[32m" << prim_type << "\033[0m" << std::endl;
     std::string new_name = m_name;
     new_name.replace(new_name.find(m_identifier), m_identifier.length(), prim_type);
     // FIXME this should be a primitive type
@@ -171,7 +179,7 @@ TypeFactory::createSystemType() {
 
 std::shared_ptr<Type>
 TypeFactory::CreateType() {
-  Logger::Instance()->LogTrace("[TypeFactory::CreateType] " + m_name + "\n");
+  Logger::Instance()->LogTraceV("[TypeFactory::CreateType] " + m_name + "\n");
   std::shared_ptr<Type> type;
   if (IsPrimitiveType()) {
     type = std::make_shared<PrimitiveType>(m_component.type_specifier);
@@ -180,7 +188,7 @@ TypeFactory::CreateType() {
   } else if (is_system_type(m_identifier)) {
     type = createSystemType();
   } else {
-    Logger::Instance()->LogTrace("[TypeFactory::CreateType][Warning] Not supported type: "
+    Logger::Instance()->LogWarning("[TypeFactory::CreateType][Warning] Not supported type: "
     + m_identifier + " in: " + m_name + "\n");
     return NULL;
   }

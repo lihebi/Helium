@@ -85,10 +85,21 @@ Logger::LogTrace(const std::string& content) {
   log(content.c_str(), m_trace_logger);
 }
 
+/*
+ * Verbose trace logger.
+ */ 
+void
+Logger::LogTraceV(const std::string& content) {
+  if (Config::Instance()->IsLogTraceVerbose()) {
+    log(content.c_str(), m_trace_logger);
+  }
+}
+
 void
 Logger::LogCompile(const std::string& content) {
   log(content.c_str(), m_compile_logger);
 }
+
 
 void
 Logger::LogData(const std::string& content) {

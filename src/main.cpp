@@ -24,7 +24,8 @@ namespace fs = boost::filesystem;
 static void
 create_ctags(const std::string& folder) {
   std::string cmd = "ctags -f ";
-  cmd += folder + "/tags";
+  // cmd += folder + "/tags";
+  cmd += "tags"; // current folder
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
   cmd += folder;
   std::cout<< "create_ctags: " << cmd <<std::endl;
@@ -75,7 +76,14 @@ int main(int argc, char* argv[]) {
   } else {
     // main
     // may exit if the tag file cannot load
-    Ctags::Instance()->Load(folder + "/tags");
+    // TODO tags file should appear in another location rather than the code base itself,
+    // because the code base is stored read-only
+    std::string tagfile = arg_parser->GetString("tagfile");
+    if (tagfile.empty()) {
+      Ctags::Instance()->Load(folder + "/tags");
+    } else {
+      Ctags::Instance()->Load(tagfile);
+    }
     // may exit if the tag file cannot load
     SystemResolver::Instance()->Load((helium_home / "systype.tags").string());
     HeaderSorter::Instance()->Load(folder);

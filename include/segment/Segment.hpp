@@ -15,6 +15,7 @@ public:
   std::vector<pugi::xml_node> GetNodes() const;
   pugi::xml_node GetFirstNode() const;
   std::string GetText();
+  std::string GetTextExceptComment();
   int GetLineNumber() const;
   int GetLOC() const {return m_loc;}
   bool HasNode(pugi::xml_node node) const;

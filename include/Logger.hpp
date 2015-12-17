@@ -19,6 +19,7 @@ public:
   // predefined logger
   void Log(const std::string& content);
   void LogTrace(const std::string& content);
+  void LogTraceV(const std::string& content);
   void LogCompile(const std::string& content);
   void LogData(const std::string& content);
   void LogRate(const std::string& content);

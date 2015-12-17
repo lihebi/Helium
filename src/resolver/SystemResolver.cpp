@@ -70,7 +70,7 @@ SystemResolver::GetLibs() const {
 // uint8_t => unsigned char"
 std::string
 SystemResolver::ResolveType(const std::string& name) {
-  // std::cout << "[SystemResolver::ResolveType] " << name << std::endl;
+  Logger::Instance()->LogTraceV("[SystemResolver::ResolveType] "+name+"\n");
   std::vector<CtagsEntry> entries = Parse(name, "t");
   for (auto it=entries.begin();it!=entries.end();it++) {
     std::string pattern = it->GetPattern();
@@ -130,7 +130,7 @@ SystemResolver::Parse(const std::string& name) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind) {
-      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(m_entry));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);
@@ -145,7 +145,7 @@ SystemResolver::Parse(const std::string& name, const std::string& type) {
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind && type.find(*(m_entry->kind)) != std::string::npos) {
-      vc.push_back(CtagsEntry(name, m_entry->file, m_entry->address.pattern, *(m_entry->kind)));
+      vc.push_back(CtagsEntry(m_entry));
     }
     // find next
     result = tagsFindNext(m_tagfile, m_entry);

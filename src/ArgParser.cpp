@@ -22,6 +22,7 @@ ArgParser::ArgParser(int argc, char** argv)
     ("equivalence", "run equivalence checking experiment")
     ("change", "run change experiment")
     ("config", po::value<std::string>(), "config file")
+    ("tagfile", po::value<std::string>(), "tag file")
     ;
   po::options_description hidden("Hidden options");
   hidden.add_options()

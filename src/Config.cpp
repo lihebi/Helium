@@ -82,4 +82,6 @@ void Config::Load(const std::string& filename) {
   m_output_rate_mode        = tree.get("helium.output.rate.mode", "a");
   m_output_tmp_mode         = tree.get("helium.output.tmp.mode", "a");
   m_output_warning_mode     = tree.get("helium.output.tmp.mode", "a");
+  // verbose
+  m_output_trace_verbose    = tree.get("helium.output.trace.verbose", "false").compare("true") == 0;
 }

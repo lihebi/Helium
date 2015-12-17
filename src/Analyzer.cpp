@@ -14,8 +14,8 @@ Analyzer::Analyze() {
   Logger::Instance()->LogTrace("[Analyzer::Analyze]\n");
   std::string cmd = std::string(std::getenv("HELIUM_HOME")) + "/scripts/compare.py -f " + Config::Instance()->GetOutputFolder()+"/out.csv";
   std::string result = ThreadUtil::Exec(cmd.c_str(), NULL);
-  std::cout << "analyze result:" << std::endl;
-  std::cout << result << std::endl;
+  Logger::Instance()->LogData("analyze result:\n");
+  Logger::Instance()->LogData(result+"\n");
 }
 
 Analyzer::~Analyzer() {}

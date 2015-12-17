@@ -47,7 +47,6 @@ pugi::xml_node DomUtil::GetFunctionCall(pugi::xml_node node) {
   pugi::xpath_node_set call_nodes = node.root().select_nodes("//call");
   for (auto it=call_nodes.begin();it!=call_nodes.end();it++) {
     if (strcmp(it->node().child_value("name"), func_name) == 0) {
-      std::cout<<"[DomUtil] found function call to "<<func_name<<std::endl;
       return GetParentASTElement(it->node());
     }
   }
@@ -58,6 +57,7 @@ pugi::xml_node DomUtil::GetFunctionCall(pugi::xml_node node) {
 std::string
 DomUtil::GetTextContent(pugi::xml_node node) {
   std::string text;
+  if (!node) return "";
   for (pugi::xml_node n : node.children()) {
     if (n.type() == pugi::node_element) {
       if (!node.attribute("helium-omit")) {
@@ -68,10 +68,36 @@ DomUtil::GetTextContent(pugi::xml_node node) {
         strcmp(node.name(), "elseif") == 0 ||
         strcmp(node.name(), "default") == 0
       ) {
+        // FIXME Why??????
+        // For simplification of code.
+        // I will add "helium-omit" attribute on the AST to mark deletion.
+        // Those tag will be deleted.
+        // But to make the syntax valid, I need to add some "{}"
         text += "{}";
       } else if (strcmp(node.name(), "case") == 0) {
+        // FIXME why??????
         text += "{break;}";
       }
+    } else {
+      text += n.value();
+    }
+  }
+  return text;
+}
+
+std::string
+DomUtil::GetTextContentExcept(pugi::xml_node node, std::string name) {
+  if (!node) return "";
+  std::string text;
+  for (pugi::xml_node n : node.children()) {
+    if (n.type() == pugi::node_element) {
+      if (!node.attribute("helium-omit")) {
+        if (strcmp(n.name(), name.c_str()) != 0) {
+          text += GetTextContentExcept(n, name);
+        }
+      }
+      // TODO this version does not use the trick for simplification,
+      // so it doesnot work with simplification
     } else {
       text += n.value();
     }

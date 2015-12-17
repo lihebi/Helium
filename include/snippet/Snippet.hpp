@@ -40,6 +40,20 @@ public:
   virtual int GetLineNumber() const = 0;
   virtual std::string GetDecl() {return "";}
   virtual int GetLOC() const = 0;
+
+  // functions for get code
+  static std::string GetFunctionCode(std::string filename, int line, std::string function_name="");
+  static std::string GetEnumCode(std::string filename, int line, std::string enum_name="");
+  static std::string GetDefineCode(std::string filename, int line);
+
+  static std::string GetStructCode(std::string filename, int line, std::string name, std::string alias);
+  static std::string GetUnionCode(std::string filename, int line, std::string name, std::string alias);
+  static std::string GetVariableCode(std::string filename, int line, std::string name);
+
+
+  static std::string GetCode(std::string filename, int line, std::string name, std::string alias, std::string tag);
+  static std::string GetTypedefCode(std::string filename, int line, std::string alias);
+  
 private:
 };
 

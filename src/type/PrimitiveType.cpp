@@ -17,7 +17,7 @@ PrimitiveType::PrimitiveType(const struct type_specifier& specifier)
   if (specifier.is_double)   m_name += "double ";
   if (specifier.is_bool)     m_name += "bool ";
   if (specifier.is_void)     m_name += "void ";
-  Logger::Instance()->LogTrace("[PrimitiveType::PrimitiveType] " + m_name + "\n");
+  Logger::Instance()->LogTraceV("[PrimitiveType::PrimitiveType] " + m_name + "\n");
   // should at least have some specifier
   assert(!m_name.empty());
   m_name.pop_back();
@@ -141,7 +141,7 @@ get_void_output(const std::string& var, int pointer_level, int dimension) {
 
 std::string
 PrimitiveType::GetInputCode(const std::string& var) const {
-  Logger::Instance()->LogTrace("[PrimitiveType::GetInputCode]\n");
+  Logger::Instance()->LogTraceV("[PrimitiveType::GetInputCode]\n");
   if (m_specifier.is_char) return get_char_input(var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_float) return get_input("float", "f", var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_double) return get_input("double", "lf", var, GetPointerLevel(), GetDimension());
@@ -166,7 +166,7 @@ PrimitiveType::GetInputCodeWithoutDecl(const std::string& var) const {
 
 std::string
 PrimitiveType::GetOutputCode(const std::string& var) const {
-  Logger::Instance()->LogTrace("[PrimitiveType::GetOutputCode]\n");
+  Logger::Instance()->LogTraceV("[PrimitiveType::GetOutputCode]\n");
   // TODO char output
   // if (m_specifier.is_char) return get_char_output(var, GetPointerLevel(), GetDimension());
   if (m_specifier.is_float) return get_output("float", "f", var, GetPointerLevel(), GetDimension());
@@ -180,7 +180,6 @@ PrimitiveType::GetOutputCode(const std::string& var) const {
 
 std::string
 PrimitiveType::GetInputSpecification() {
-  // std::cout << "[PrimitiveType::GetInputSpecification]" << std::endl;
   std::string spec;
 
   if (m_specifier.is_char) spec += "50_70,";
@@ -202,7 +201,6 @@ PrimitiveType::GetInputSpecification() {
 
 std::string
 PrimitiveType::GetOutputSpecification() {
-  // std::cout << "[PrimitiveType::GetOutputSpecification]" << std::endl;
   if (GetDimension()>0) return "";
   else if (GetPointerLevel()>0) {return "NULL";}
   else {

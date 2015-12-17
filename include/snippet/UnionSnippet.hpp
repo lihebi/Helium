@@ -17,6 +17,8 @@ public:
   virtual int GetLineNumber() const {return m_line_number;}
   virtual int GetLOC() const {return m_loc;}
 private:
+
+  void getName(const CtagsEntry& ce);
   std::string m_code;
   std::string m_name;
   std::string m_alias;

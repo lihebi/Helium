@@ -1,5 +1,6 @@
 #include "util/SrcmlUtil.hpp"
 #include "util/ThreadUtil.hpp"
+#include <iostream>
 
 void SrcmlUtil::File2XML(const std::string &filename, pugi::xml_document& doc) {
   std::string cmd;

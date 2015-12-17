@@ -7,7 +7,8 @@ VariableSnippet::VariableSnippet(const CtagsEntry& ce) {
   m_type = 'v';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
-  m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  // m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_code = GetVariableCode(ce.GetFileName(), ce.GetLineNumber(), ce.GetName());
   m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   m_keywords.insert(m_name);
 }

@@ -5,6 +5,7 @@
 #include <pugixml.hpp>
 #include "util/SrcmlUtil.hpp"
 #include "util/DomUtil.hpp"
+#include "Logger.hpp"
 
 void
 TypedefSnippet::semanticParse() {
@@ -30,10 +31,12 @@ TypedefSnippet::semanticParse() {
 }
 
 TypedefSnippet::TypedefSnippet(const CtagsEntry& ce) {
+  Logger::Instance()->LogTraceV("[TypedefSnippet::TypedefSnippet]\n");
   m_type = 't';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
-  m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  // m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_code = GetTypedefCode(ce.GetFileName(), ce.GetLineNumber(), ce.GetName());
   m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   m_name = ce.GetName();
   semanticParse();

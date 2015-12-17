@@ -29,11 +29,31 @@ get_keywords(
   }
 }
 
+void
+UnionSnippet::getName(const CtagsEntry& ce) {
+  if (ce.GetType() == 't') {
+    std::string typeref = ce.GetTyperef();
+    std::string name = typeref.substr(strlen("union:"));
+    if (name.substr(0, strlen("__anon")) == "__anon") {
+      // anonymouse structure
+      m_name = "";
+    } else {
+      // we already get the refer struct name from ctags, no need to parse the code!
+      m_name = name;
+    }
+    m_alias = ce.GetName();
+  } else {
+    m_name = ce.GetName();
+  }
+}
+
 UnionSnippet::UnionSnippet(const CtagsEntry& ce) {
   m_type = 'u';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();
-  m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  getName(ce);
+  // m_code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
+  m_code = GetUnionCode(ce.GetFileName(), ce.GetLineNumber(), m_name, m_alias);
   m_loc = std::count(m_code.begin(), m_code.end(), '\n');
   get_keywords(m_code, m_name, m_alias, m_keywords);
 }

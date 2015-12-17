@@ -17,6 +17,7 @@ public:
   // Reader functions
   void SetSegment(const Segment &s);
   void AddNode(pugi::xml_node);
+  void AddNodes(std::vector<pugi::xml_node>);
   void Process();
   bool IncreaseContext();
   // builder functions
@@ -32,6 +33,8 @@ public:
   // general info
   const std::string& GetFilename() const {return m_filename;}
   int GetLineNumber() const {return m_segment->GetLineNumber();}
+
+  std::shared_ptr<Segment> GetSegment() const {return m_segment;}
 
 private:
   std::string getContext();

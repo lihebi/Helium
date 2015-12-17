@@ -12,7 +12,10 @@
 #include "resolver/Resolver.hpp"
 #include "util/FileUtil.hpp"
 #include "util/StringUtil.hpp"
+#include "util/SrcmlUtil.hpp"
 #include "Logger.hpp"
+
+#include <pugixml.hpp>
 
 #include <iostream>
 #include <boost/regex.hpp>
@@ -24,16 +27,66 @@ static boost::regex structure_reg("^typedef\\s+struct(\\s+\\w+)?\\s*\\{");
 static boost::regex enum_reg     ("^typedef\\s+enum(\\s+\\w+)?\\s*\\{");
 static boost::regex union_reg    ("^typedef\\s+union(\\s+\\w+)?\\s*\\{");
 
+/*
+ * typedef may be a structure, a enumerator, or union.
+ * If none of the above, than it is truelly a simple typedef
+ * In addition, if the type is 'e', than use 'g' instead because TODO??
+
+ * Now comes a new problem.
+ * the typeref is not useful, because:
+ *   typedef struct conn[5] * conn;
+ * will also has a typeref:struct:conn
+ * The solution should be, parse the code to see if the block is expanded.
+ * Indeed, what I want to differenciate is,
+ *   typedef struct conn { int a; } * conn; -- 1)
+ * and
+ *   typedef struct conn * conn; --- 2)
+ *   struct conn { int a;}; --- 3)
+ *
+ * The reason why I need to differenciate them is,
+ * The first cannot be stored in two different snippet, because when including both of them in the code, the structure is redefined.
+ * I don't know how to include both 2) and 3) in the same snippet, so I split them.
+ * Another good reason to store 2) and 3) in two different snippets are that,
+ * there may be some complex typedef,
+ * it doesn't make sense to record the in the original structure definition,
+ * which should be clean.
+ */
+// static char
+// get_true_type(const CtagsEntry& ce) {
+//   if (ce.GetType() == 't') {
+//     std::string typeref = ce.GetTyperef();
+//     if (StringUtil::StartsWith(typeref, "struct:")) {
+//       return 's';
+//     } else if (StringUtil::StartsWith(typeref, "enum:")) {
+//       return 'g';
+//     } else if (StringUtil::StartsWith(typeref, "union:")) {
+//       return 'u';
+//     } else return 't';
+//   } else if (ce.GetType() == 'e') {return 'g';}
+//   else return ce.GetType();
+// }
+
 static char
 get_true_type(const CtagsEntry& ce) {
+  // std::cout<<"get_true_type"<<std::endl;
+  // std::cout<<"\t"<<ce.GetName()<<std::endl;
+  // std::cout<<"\t"<<ce.GetFileName()<<std::endl;
+  // std::cout<<"\t"<<ce.GetType()<<std::endl;
   if (ce.GetType() == 't') {
-    std::string code = FileUtil::GetBlock(ce.GetFileName(), ce.GetLineNumber(), ce.GetType());
-    std::string trimed_code = code;
-    StringUtil::trim(trimed_code);
-    if      (boost::regex_search(trimed_code, structure_reg)) return 's';
-    else if (boost::regex_search(trimed_code, enum_reg)) return 'g';
-    else if (boost::regex_search(trimed_code, union_reg)) return 'u';
-    else return 't';
+    std::string alias = ce.GetName();
+    pugi::xml_document doc;
+    SrcmlUtil::File2XML(ce.GetFileName(), doc);
+    pugi::xml_node root = doc.document_element();
+    std::string query = "//typedef[name='" + alias + "']";
+    pugi::xml_node typedef_node = root.select_node(query.c_str()).node();
+    pugi::xml_node type_node = typedef_node.child("type");
+    if (type_node.child("struct")) {
+      return 't';
+    } else if (type_node.child("enum")) {
+      return 'g';
+    } else if (type_node.child("union")) {
+      return 'u';
+    } else return 't';
   } else if (ce.GetType() == 'e') return 'g';
   else return ce.GetType();
 }
@@ -142,6 +195,7 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
 
 void
 SnippetRegistry::resolveDependence(Snippet *s, int level) {
+  Logger::Instance()->LogTraceV("[SnippetRegistry::resolveDependence]\n");
   // We should not limit here techniquelly, because we once we have the dependence break,
   // We have no way to resolve the dependence after the break
   // e.g. a => b => c => d => e
@@ -153,7 +207,6 @@ SnippetRegistry::resolveDependence(Snippet *s, int level) {
     );
   }
   std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
-  // std::cout << "[SnippetRegistry::resolveDependence] size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
     if (!LookUp(*it).empty()) {
       // this will success if any snippet for a string is added.
@@ -187,7 +240,7 @@ SnippetRegistry::resolveDependence(Snippet *s, int level) {
 void
 SnippetRegistry::add(Snippet *s) {
   Logger::Instance()->LogTrace("[SnippetRegistry::add]\n");
-  Logger::Instance()->LogTrace("\tType: " + std::to_string(s->GetType()) + "\n");
+  Logger::Instance()->LogTrace("\tType: " + std::string(1, s->GetType()) + "\n");
   Logger::Instance()->LogTrace("\tName: " + s->GetName() + "\n");
   Logger::Instance()->LogTrace("\tKeywords: ");
   m_snippets.insert(s);

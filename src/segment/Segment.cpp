@@ -57,7 +57,6 @@ Segment::GetFirstNode() const {
 void Segment::Print() {
   std::cout<<"=======Segment======="<<std::endl;
   for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    // it->print(std::cout);
     std::cout<<DomUtil::GetTextContent(*it)<<std::endl;
   }
 }
@@ -67,6 +66,15 @@ Segment::GetText() {
   std::string s;
   for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
     s += DomUtil::GetTextContent(*it) + '\n';
+  }
+  return s;
+}
+
+std::string
+Segment::GetTextExceptComment() {
+  std::string s;
+  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
+    s += DomUtil::GetTextContentExcept(*it, "comment") + '\n';
   }
   return s;
 }

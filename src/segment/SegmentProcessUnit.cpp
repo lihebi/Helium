@@ -34,12 +34,19 @@ void SegmentProcessUnit::SetSegment(const Segment &s) {
 void SegmentProcessUnit::AddNode(pugi::xml_node node) {
   m_segment->PushBack(node);
 }
+void SegmentProcessUnit::AddNodes(std::vector<pugi::xml_node> nodes) {
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    m_segment->PushBack(*it);
+  }
+}
 void SegmentProcessUnit::Process() {
   Logger::Instance()->LogTrace("[SegmentProcessUnit] Processing Segment Unit\n");
   m_context = std::make_shared<Segment>(*m_segment);
+  // doing library call experiment
   resolveInput();
   resolveOutput();
-  resolveSnippets();
+  // do not need resolveSnippet at this point
+  // resolveSnippets();
 }
 
 bool
@@ -158,9 +165,6 @@ SegmentProcessUnit::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
     // so we enumerate the branches which are able to eliminate: if <then> <else> <elseif>, switch <case> <default>
     // node is in different branch
     pugi::xml_node ancestor = DomUtil::lub(node, key);
-    // std::cout << "node: " << node.name() << std::endl;
-    // std::cout << "key: " << key.name() << std::endl;
-    // std::cout << "ancestor: " << ancestor.name() << std::endl;
     while (m_context->HasNode(ancestor)) {
       // here we can only consider the possible loop back edge(without goto)
       // because we only have AST info, no semantic.
@@ -176,7 +180,6 @@ SegmentProcessUnit::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
     // no loop ancestor in the context
     // the mark attribute
     node.append_attribute("helium-omit");
-    // node.print(std::cout);
     // std::string tmp = DomUtil::GetTextContent(node);
     Logger::Instance()->LogDebug("[SegmentProcessUnit::doSimplifyCode] simplified: "
     + std::string(ancestor.name())+"\n");
@@ -304,10 +307,12 @@ void SegmentProcessUnit::resolveSnippets() {
   Logger::Instance()->LogTrace("[SegmentProcessUnit][resolveSnippets]\n");
   m_snippets.clear();
   // the initial code to resolve is: context + input variable(input code)
-  std::string code = m_context->GetText();
+  // std::string code = m_context->GetText();
+  // Now we assume the comments exist in the code (no longer do the remove comment preprocessing)
+  // We should not resolve the words in comments as identifiers
+  std::string code = m_context->GetTextExceptComment();
   code += getInputCode();
   std::set<std::string> ss = Resolver::ExtractToResolve(code);
-  // std::cout << "size of to resolve: " << ss.size() << std::endl;
   for (auto it=ss.begin();it!=ss.end();it++) {
     std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it);
     m_snippets.insert(snippets.begin(), snippets.end());
@@ -326,7 +331,6 @@ std::vector<Snippet*>
 sortSnippets(std::set<Snippet*> all) {
   std::vector<Snippet*> sorted;
   // prepare containers
-  // std::cout << "prepare containers" << std::endl;
   std::set<std::string> all_files;
   std::map<std::string, std::vector<Snippet*> > file_to_snippet_map;
   for (auto it=all.begin();it!=all.end();it++) {
@@ -348,7 +352,9 @@ sortSnippets(std::set<Snippet*> all) {
   for (auto it=all_files.begin();it!=all_files.end();it++) {
     if ((*it).back() == 'c') {all_c_files.insert(*it);}
     else if ((*it).back() == 'h') {all_h_files.insert(*it);}
-    else {std::cout << "[sortSnippets2] Warning: not c or h file" << std::endl;}
+    else {
+      Logger::Instance()->LogWarning("[sortSnippets2] Warning: not c or h file\n");
+    }
   }
 
   // sort file names

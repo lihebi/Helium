@@ -221,6 +221,12 @@ CondComp::getAction(const std::string& line) {
   return result;
 }
 
+/*
+ * for the vector of strings: lines, examine the string pattern.
+ * If is e.g. #ifdef xxx, remove or sustain the part.
+ * TODO we do not assume we have comments removed. So we should use parser instead of string pattern.
+ * TODO we should not change the source code.
+ */
 bool
 CondComp::process(std::vector<std::string>& lines) {
   // std::cout << "[CondComp::process]" << std::endl;

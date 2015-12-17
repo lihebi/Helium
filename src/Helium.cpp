@@ -21,6 +21,11 @@ Helium::Helium(const std::string &folder)
   Logger::Instance()->LogTrace("[Helium][Constructor]\n");
   Logger::Instance()->LogAll("=====" __DATE__ __TIME__ + folder+" ======\n");
   FileUtil::GetFilesByExtension(m_folder, m_files, "c");
+  Logger::Instance()->LogTrace(
+                               "[Helium][Constructor] total number of c files: "
+                               + std::to_string(m_files.size())
+                               + "\n"
+                               );
   for (auto it=m_files.begin();it!=m_files.end();it++) {
     std::shared_ptr<Reader> reader = std::make_shared<Reader>(*it);
     reader->Read();
