@@ -52,6 +52,8 @@ VariableFactory::FromDecl(pugi::xml_node node) {
     if (type) {
       std::shared_ptr<Variable> v = std::make_shared<Variable>(type, name_str);
       return v;
+    } else {
+      // std::cout<<"Type create not successful: " <<type_str<<std::endl;
     }
   }
   return NULL;

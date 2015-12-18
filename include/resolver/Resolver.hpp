@@ -10,6 +10,7 @@
 class Resolver {
 public:
   static std::set<std::string> ExtractToResolve(const std::string& code);
+  static bool IsCKeyword(const std::string& s);
 private:
 };
 

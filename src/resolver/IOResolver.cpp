@@ -5,6 +5,11 @@
 #include <cstring>
 #include <algorithm>
 #include "Logger.hpp"
+#include "resolver/Ctags.hpp"
+#include "resolver/Resolver.hpp"
+#include "resolver/SystemResolver.hpp"
+
+#include "Global.hpp"
 
 static bool
 var_in_set(const std::string& name, std::set<std::shared_ptr<Variable> >& s) {
@@ -29,6 +34,7 @@ IOResolver::ResolveLocalVar(
   pugi::xml_node node
 ) {
   Logger::Instance()->LogTraceV("[IOResolver::ResolveLocalVar] "+name+"\n");
+  //  std::cout<<"Resolve local Var: " + name + '\n'<<std::endl;
   while (node && node.previous_sibling()) {
     node = node.previous_sibling();
     if (node.type() == pugi::node_element) {
@@ -106,7 +112,7 @@ simplify_variable_name(std::string& s) {
 }
 // return name used in <expr>
 std::vector<std::string>
-parseExpr(pugi::xml_node node) {
+parse_expr(pugi::xml_node node) {
   std::vector<std::string> vs;
   if (node && node.type() == pugi::node_element && strcmp(node.name(), "expr") == 0) {
     for (pugi::xml_node n : node.children("name")) {
@@ -128,6 +134,7 @@ IOResolver::visit(
 ) {
   if (node.type() == pugi::node_element) {
     if (strcmp(node.name(), "decl_stmt") == 0) {
+      // if a decl_stmt, we add it to already defined set
       std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
       if (vp) {
         defined.insert(vp);
@@ -141,15 +148,41 @@ IOResolver::visit(
       || DomUtil::InNode(node, "cpp:ifndef", 2)) {
         return;
       }
-      std::vector<std::string> vs = parseExpr(node); // the name used in <expr>
+      // all names used in this expr
+      // TODO NOW should use semantic instead of just parse_expr and get all names
+      std::vector<std::string> vs = parse_expr(node); // the name used in <expr>
       for (auto it=vs.begin();it!=vs.end();it++) {
         // check if in resolved or defined
         if (var_in_set(*it, resolved) || var_in_set(*it, defined)) {
           continue;
         }
-        std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
-        if (vp) {
-          resolved.insert(vp);
+        // actually resolve it!!
+        // What I need to do is
+        // * see if it is a C keyword
+        // * see if it is a SystemType or ThirdParty Library type
+        // * then it should be a variable type (TODO what else?)
+
+        if (Resolver::IsCKeyword(*it)) continue;
+        else if (SystemResolver::Instance()->Has(*it)) continue;
+        else if (!Ctags::Instance()->Parse(*it, "tseg").empty()) continue;
+        else {
+          std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
+          if (vp) {
+            resolved.insert(vp);
+          } else {
+            std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it, "v");
+            if (!snippets.empty()) {
+              // TODO global variable should also be count as input??
+            } else {
+              // std::cout<<"\033[31m Fatal error: name: " << *it << "is not able to resolve. Should skip this benchmark is many this error happens."<<"\n";
+              global_error_number++;
+              if (global_error_number > 100) {
+                exit(1);
+                std::cout << "Global error number > 100" << "\n";
+                exit(1);
+              }
+            }
+          } 
         }
       }
     } else if (strcmp(node.name(), "for") == 0) {
@@ -162,6 +195,9 @@ IOResolver::visit(
   }
 }
 
+/**
+ * For all nodes, use depth-first-search for undefined vars.
+ */
 void
 IOResolver::resolveUndefinedVars(
   std::vector<pugi::xml_node> nodes,
@@ -183,6 +219,12 @@ IOResolver::resolveUndefinedVars(
   }
 }
 
+/**
+ * Return undefined var for a segment.
+ *
+ * @param[in] segment The input segment
+ * @return a set of Variables
+ */
 std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
   const Segment& segment

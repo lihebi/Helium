@@ -29,6 +29,12 @@ public:
     const std::string& file,
     const std::string& content
   );
+  static void
+  Append(
+         const std::string& file,
+         const std::string& content
+         );
+
   static std::string Read(const std::string& file);
 
   // folders

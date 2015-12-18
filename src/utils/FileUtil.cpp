@@ -211,6 +211,24 @@ FileUtil::Write(
   }
 }
 
+void
+FileUtil::Append(
+                 const std::string& file,
+                 const std::string& content
+                 ) {
+  fs::path file_path(file);
+  fs::path dir = file_path.parent_path();
+  if (!fs::exists(dir)) {
+    fs::create_directories(dir);
+  }
+  std::ofstream os;
+  os.open(file_path.string(), std::ios_base::app);
+  if (os.is_open()) {
+    os<<content;
+    os.close();
+  }
+}
+
 std::string
 FileUtil::Read(const std::string& file) {
   std::ifstream is;

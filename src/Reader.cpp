@@ -10,6 +10,8 @@
 #include "type/TypeFactory.hpp"
 #include <signal.h>
 #include <setjmp.h>
+#include "util/FileUtil.hpp"
+#include "Global.hpp"
 
 int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
@@ -22,6 +24,7 @@ int Reader::m_cur_seg_no = 0;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
   Logger::Instance()->LogTrace("[Reader][Reader]\n");
+  std::cout<<m_filename<<std::endl;
   m_doc = std::make_shared<pugi::xml_document>();
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
@@ -55,6 +58,9 @@ has_variable(std::set<std::shared_ptr<Variable> > variables, std::string name, i
   return false;
 }
 
+// bool
+// has_variables(std::set<std::shared_ptr<Variable> > variables, std::string);
+
 
 static bool watch_dog_skip = false;
 
@@ -62,9 +68,28 @@ static jmp_buf jmpbuf; // jumbuf for long jump
 
 void watch_dog(int sig) {
   Logger::Instance()->Log("Segment Timeout\n");
+  global_error_number++;
+  if (global_error_number>100) exit(1);
   watch_dog_skip = true;
   ualarm(Config::Instance()->GetSegmentTimeout()*1000, 0);
   longjmp(jmpbuf, 1); // jump back to previous stack
+}
+
+std::string
+get_match_library_name(std::set<std::shared_ptr<Variable> > inv) {
+  std::vector< std::set<std::string> > libraries;
+  libraries.push_back({"char", "int"});
+  for (auto it=libraries.begin();it!=libraries.end();it++) {
+    for (auto jt=it->begin();jt!=it->end();jt++) {
+      // if (!has_variable(inv, *jt, 1))
+    }
+  }
+  if (has_variable(inv, "char*", 1)
+      && has_variable(inv, "int", 1)) {
+    std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
+    // std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
+    // OK, the input variable matches
+  } 
 }
 
 /*
@@ -95,7 +120,6 @@ Reader::Read() {
                             "begin segment:  NO: " + std::to_string(m_cur_seg_no)
                             + "\n"
                             );
-    // std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
     (*it)->Process();
@@ -105,27 +129,36 @@ Reader::Read() {
       std::set<std::shared_ptr<Variable> > outv = (*it)->GetOutputVariables();
 
       // output inv, outv
-      // std::cout<<"\tinput:";
-      // for (auto it=inv.begin();it!=inv.end();it++) {
-      //   std::cout<<(*it)->GetType()->GetName()<<" ";
-      // }
-      // std::cout<<"\n\toutput:";
-      // for (auto it=outv.begin();it!=outv.end();it++) {
-      //   std::cout<<"\t"<<(*it)->GetType()->GetName()<<std::endl;
-      // }
-      // std::cout<<std::endl;
+      std::cout<<"\tinput:";
+      for (auto it=inv.begin();it!=inv.end();it++) {
+        std::cout<<(*it)->GetType()->GetName()<<" ";
+      }
+      std::cout<<"\n\toutput:";
+      for (auto it=outv.begin();it!=outv.end();it++) {
+        std::cout<<"\t"<<(*it)->GetType()->GetName()<<std::endl;
+      }
+      std::cout<<std::endl;
       
       // TODO how to compare variable?
       // prototype from string.h
       // (char*, int) (char*, char*)
       // prototype from ctype.h
       // (int, int)
-      // if (has_variable(inv, "char*", 1)
-      //     && has_variable(inv, "int", 1)) {
-      //   std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
-      //   // OK, the input variable matches
-      // }
-      // continue;
+      if (has_variable(inv, "char*", 1)
+          && has_variable(inv, "int", 1)) {
+        std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
+        std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
+
+
+        // std::string filename = "/Users/hebi/benchmark/char_int.txt";
+        std::string filename = "./char_int.txt";
+        FileUtil::Append(filename, "\n================\n");
+        FileUtil::Append(filename, "\tSegNO: "+std::to_string(m_cur_seg_no)+"\n");
+        FileUtil::Append(filename, "\tFilename: "+m_filename+"\n");
+        FileUtil::Append(filename, (*it)->GetSegment()->GetText());
+        // OK, the input variable matches
+      }
+      continue;
 
       
       std::shared_ptr<Builder> builder = std::make_shared<Builder>(*it);

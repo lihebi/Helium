@@ -9,6 +9,8 @@
 #include "util/FileUtil.hpp"
 #include "Logger.hpp"
 
+#include "Global.hpp"
+
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
@@ -27,6 +29,7 @@ Helium::Helium(const std::string &folder)
                                + "\n"
                                );
   for (auto it=m_files.begin();it!=m_files.end();it++) {
+    global_file_error_number = 0;
     std::shared_ptr<Reader> reader = std::make_shared<Reader>(*it);
     reader->Read();
   }

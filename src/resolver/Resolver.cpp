@@ -42,3 +42,8 @@ Resolver::ExtractToResolve(const std::string& code) {
   }
   return ss;
 }
+
+bool
+Resolver::IsCKeyword(const std::string& s) {
+  return c_common_keyword.find(s) != c_common_keyword.end();
+}
