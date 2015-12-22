@@ -48,9 +48,9 @@ has_variable(std::set<std::shared_ptr<Variable> > variables, std::string name, i
   if (number <= 0) return true;
   for (auto it=variables.begin();it!=variables.end();it++) {
     std::shared_ptr<Type> vtype = (*it)->GetType();
-    if (type->GetName() == vtype->GetName()
-        && type->GetDimension() == vtype->GetDimension()
-        && type->GetPointerLevel() == vtype->GetPointerLevel()) {
+    if (type->GetName() == vtype->GetName()) {
+        // && type->GetDimension() == vtype->GetDimension()
+        // && type->GetPointerLevel() == vtype->GetPointerLevel()) {
       number--;
       if (number <=0) return true;
     }
@@ -65,11 +65,16 @@ has_variable(std::set<std::shared_ptr<Variable> > variables, std::string name, i
 static bool watch_dog_skip = false;
 
 static jmp_buf jmpbuf; // jumbuf for long jump
+static bool skip_file = false;
 
 void watch_dog(int sig) {
   Logger::Instance()->Log("Segment Timeout\n");
   global_error_number++;
   if (global_error_number>100) exit(1);
+  // file_error_number++;
+  // if (file_error_number>30) {
+  //   skip_file = true;
+  // }
   watch_dog_skip = true;
   ualarm(Config::Instance()->GetSegmentTimeout()*1000, 0);
   longjmp(jmpbuf, 1); // jump back to previous stack
@@ -116,6 +121,10 @@ Reader::Read() {
     if (m_skip_segment > m_cur_seg_no) {
       continue;
     }
+    // if (skip_file) {
+    //   skip_file = false;
+    //   break;
+    // }
     Logger::Instance()->Log(
                             "begin segment:  NO: " + std::to_string(m_cur_seg_no)
                             + "\n"
@@ -131,12 +140,12 @@ Reader::Read() {
       // output inv, outv
       std::cout<<"\tinput:";
       for (auto it=inv.begin();it!=inv.end();it++) {
-        std::cout<<(*it)->GetType()->GetName()<<" ";
+        std::cout<<(*it)->GetType()->GetName()<<", ";
       }
-      std::cout<<"\n\toutput:";
-      for (auto it=outv.begin();it!=outv.end();it++) {
-        std::cout<<"\t"<<(*it)->GetType()->GetName()<<std::endl;
-      }
+      // std::cout<<"\n\toutput:";
+      // for (auto it=outv.begin();it!=outv.end();it++) {
+      //   std::cout<<"\t"<<(*it)->GetType()->GetName()<<std::endl;
+      // }
       std::cout<<std::endl;
       
       // TODO how to compare variable?
@@ -144,7 +153,7 @@ Reader::Read() {
       // (char*, int) (char*, char*)
       // prototype from ctype.h
       // (int, int)
-      if (has_variable(inv, "char*", 1)
+      if (has_variable(inv, "char", 1)
           && has_variable(inv, "int", 1)) {
         std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
         std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;

@@ -1,0 +1,18 @@
+#include <boost/test/unit_test.hpp>
+#include "resolver/IOResolver.hpp"
+
+void simplify_variable_name(std::string& s);
+
+BOOST_AUTO_TEST_CASE(first) {
+  std::string s = "a->b";
+  simplify_variable_name(s);
+  BOOST_TEST(s == "a");
+
+  s = "abcd[54].xyz";
+  simplify_variable_name(s);
+  BOOST_TEST(s == "abcd");
+
+  s = "abcd_efg.ass";
+  simplify_variable_name(s);
+  BOOST_TEST(s == "abcd_efgh");
+}
