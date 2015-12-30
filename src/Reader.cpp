@@ -6,7 +6,6 @@
 #include "Analyzer.hpp"
 #include "util/SrcmlUtil.hpp"
 #include "util/DomUtil.hpp"
-#include "Logger.hpp"
 #include "type/TypeFactory.hpp"
 #include <signal.h>
 #include <setjmp.h>
@@ -23,16 +22,12 @@ int Reader::m_cur_seg_no = 0;
  */
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
-  Logger::Instance()->LogTrace("[Reader][Reader]\n");
   std::cout<<m_filename<<std::endl;
   m_doc = std::make_shared<pugi::xml_document>();
   SrcmlUtil::File2XML(m_filename, *m_doc);
   getSegments();
-  Logger::Instance()->LogTrace("[Reader] Total segment in this file: "
-  + std::to_string(m_seg_units.size()) + "\n");
   std::cout<<"total seg: " << m_seg_units.size()<<std::endl;
   if (m_seg_units.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
-    Logger::Instance()->LogTrace("[Reader::Reader] Done reading segment\n");
     getchar();
   }
   m_skip_segment = Config::Instance()->GetSkipSegment();
@@ -68,7 +63,6 @@ static jmp_buf jmpbuf; // jumbuf for long jump
 static bool skip_file = false;
 
 void watch_dog(int sig) {
-  Logger::Instance()->Log("Segment Timeout\n");
   global_error_number++;
   if (global_error_number>100) exit(1);
   // file_error_number++;
@@ -108,7 +102,6 @@ get_match_library_name(std::set<std::shared_ptr<Variable> > inv) {
 void
 Reader::Read() {
   signal(SIGALRM, watch_dog);
-  Logger::Instance()->LogTrace("[Reader][Read]\n");
   ualarm(Config::Instance()->GetSegmentTimeout()*1000, 0);
   for (auto it=m_seg_units.begin();it!=m_seg_units.end();it++) {
     //    if (setjmp(jmpbuf) != 0) perror("setjmp");
@@ -121,14 +114,6 @@ Reader::Read() {
     if (m_skip_segment > m_cur_seg_no) {
       continue;
     }
-    // if (skip_file) {
-    //   skip_file = false;
-    //   break;
-    // }
-    Logger::Instance()->Log(
-                            "begin segment:  NO: " + std::to_string(m_cur_seg_no)
-                            + "\n"
-                            );
     // process the segment unit.
     // do input resolve, output resovle, context search, support resolve
     (*it)->Process();
@@ -173,7 +158,6 @@ Reader::Read() {
       std::shared_ptr<Builder> builder = std::make_shared<Builder>(*it);
       builder->Build();
       if (!(*it)->CanContinue()) {
-        Logger::Instance()->LogWarning("[Reader::Read] segment cannot continue");
         break;
       }
       builder->Compile();
@@ -216,7 +200,6 @@ void Reader::getLoopSegments() {
 
 }
 void Reader::getAnnotationSegments() {
-  Logger::Instance()->LogTrace("[Reader::getAnnotationSegments]\n");
   pugi::xml_node root = m_doc->document_element();
   pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
   for (auto it=comment_nodes.begin();it!=comment_nodes.end();it++) {
@@ -273,7 +256,6 @@ is_loop(pugi::xml_node n) {
  */
 void
 Reader::getDivideSegments() {
-  Logger::Instance()->LogTrace("[Reader::getDivideSegments]\n");
   pugi::xml_node root = m_doc->document_element();
   pugi::xpath_node_set function_nodes = root.select_nodes("//function");
   for (auto it=function_nodes.begin();it!=function_nodes.end();it++) {

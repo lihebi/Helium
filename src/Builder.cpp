@@ -2,7 +2,6 @@
 #include <algorithm>
 #include "util/FileUtil.hpp"
 #include "util/ThreadUtil.hpp"
-#include "Logger.hpp"
 
 Builder::Builder(std::shared_ptr<SegmentProcessUnit> seg_unit)
 : m_seg_unit(seg_unit), m_success(false) {
@@ -34,7 +33,6 @@ Builder::writeMakefile() {
 
 void
 Builder::Build() {
-  Logger::Instance()->LogTrace("[Builder][Build]\n");
   m_main = m_seg_unit->GetMain();
   m_support = m_seg_unit->GetSupport();
   m_makefile = m_seg_unit->GetMakefile();
@@ -45,22 +43,16 @@ Builder::Build() {
 
 void
 Builder::Compile() {
-  Logger::Instance()->LogTrace("[Builder][Compile]\n");
   std::string clean_cmd = "make clean -C " + Config::Instance()->GetOutputFolder();
   std::string cmd = "make -C " + Config::Instance()->GetOutputFolder();
-  Logger::Instance()->LogTrace("[Builder][Compile] clean\n");
   // if (!Config::Instance()->WillShowCompileError()) {
   //   cmd += " 2>/dev/null";
   // }
   cmd += " 2>&1";
   ThreadUtil::Exec(clean_cmd.c_str(), NULL);
-  Logger::Instance()->LogTrace("[Builder][Compile] make\n");
   int return_code;
   std::string error_msg = ThreadUtil::Exec(cmd.c_str(), &return_code);
   if (return_code != 0) {
-    Logger::Instance()->LogTrace("[Builder][Compile] compile error\n");
-    Logger::Instance()->LogRate("compile error\n");
-    Logger::Instance()->LogCompile(error_msg);
     if (Config::Instance()->WillBuildSaveIncompilable()) {
       std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/incompilable";
       std::string folder = m_seg_unit->GetFilename()
@@ -77,8 +69,6 @@ Builder::Compile() {
       getchar();
     }
   } else {
-    Logger::Instance()->LogTrace("[Builder][Compile] compile success\n");
-    Logger::Instance()->LogRate("compile success\n");
     m_success = true;
     if (Config::Instance()->WillBuildSaveCompilable()) {
       std::string to_folder = Config::Instance()->GetTmpFolder() + "/generated_code/compilable";

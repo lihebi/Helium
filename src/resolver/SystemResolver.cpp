@@ -6,7 +6,6 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include "util/StringUtil.hpp"
-#include "Logger.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -70,7 +69,6 @@ SystemResolver::GetLibs() const {
 // uint8_t => unsigned char"
 std::string
 SystemResolver::ResolveType(const std::string& name) {
-  Logger::Instance()->LogTraceV("[SystemResolver::ResolveType] "+name+"\n");
   std::vector<CtagsEntry> entries = Parse(name, "t");
   for (auto it=entries.begin();it!=entries.end();it++) {
     std::string pattern = it->GetPattern();
@@ -113,7 +111,6 @@ SystemResolver::Has(const std::string& name) {
 
 void
 SystemResolver::Load(const std::string& tagfile) {
-  Logger::Instance()->LogTrace("[SystemResolver::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
   if (info->status.opened != true) {

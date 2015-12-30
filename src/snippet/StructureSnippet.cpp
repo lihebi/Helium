@@ -2,7 +2,6 @@
 #include <boost/regex.hpp>
 #include "util/FileUtil.hpp"
 #include <iostream>
-#include <Logger.hpp>
 /*
 FIXME
 typedef struct _IO_STATUS_BLOCK {
@@ -29,7 +28,6 @@ get_keywords(
   const std::string& code,
   std::string& name, std::string& alias, std::set<std::string>& keywords
 ) {
-  Logger::Instance()->LogTraceV("[StructureSnippet::get_keywords]\n");
   boost::smatch name_match;
   boost::smatch alias_match;
   std::string tmp = code.substr(0, code.find('{'));
@@ -70,7 +68,6 @@ StructureSnippet::getName(const CtagsEntry& ce) {
 }
 
 StructureSnippet::StructureSnippet(const CtagsEntry& ce) {
-  Logger::Instance()->LogTraceV("[StructureSnippet::StructureSnippet]\n");
   m_type = 's';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();

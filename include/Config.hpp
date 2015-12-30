@@ -50,26 +50,6 @@ public:
   bool WillInteractCompileError() const {return m_interact_compile_error;}
   // cmd
   const std::string& GetCondCompMacros() const {return m_cond_comp_macros;}
-  // output
-  const std::string& GetOutputDefault() const {return m_output_default;}
-  const std::string& GetOutputDebug() const {return m_output_debug;}
-  const std::string& GetOutputTrace() const {return m_output_trace;}
-  const std::string& GetOutputCompile() const {return m_output_compile;}
-  const std::string& GetOutputData() const {return m_output_data;}
-  const std::string& GetOutputRate() const {return m_output_rate;}
-  const std::string& GetOutputTmp() const {return m_output_tmp;}
-  const std::string& GetOutputWarning() const {return m_output_warning;}
-  // mode
-  const std::string& GetOutputDefaultMode() const {return m_output_default_mode;}
-  const std::string& GetOutputDebugMode() const {return m_output_debug_mode;}
-  const std::string& GetOutputTraceMode() const {return m_output_trace_mode;}
-  const std::string& GetOutputCompileMode() const {return m_output_compile_mode;}
-  const std::string& GetOutputDataMode() const {return m_output_data_mode;}
-  const std::string& GetOutputRateMode() const {return m_output_rate_mode;}
-  const std::string& GetOutputTmpMode() const {return m_output_tmp_mode;}
-  const std::string& GetOutputWarningMode() const {return m_output_warning_mode;}
-  // verbose
-  bool IsLogTraceVerbose() const {return m_output_trace_verbose;}
 
 private:
   Config() {}
@@ -115,26 +95,6 @@ private:
   bool m_interact_compile_error;
   // cmd
   std::string m_cond_comp_macros;
-  // output control option
-  std::string m_output_default;
-  std::string m_output_default_mode;
-  std::string m_output_debug;
-  std::string m_output_debug_mode;
-  std::string m_output_trace;
-  std::string m_output_trace_mode;
-
-  bool m_output_trace_verbose;
-  
-  std::string m_output_compile;
-  std::string m_output_compile_mode;
-  std::string m_output_data;
-  std::string m_output_data_mode;
-  std::string m_output_rate;
-  std::string m_output_rate_mode;
-  std::string m_output_tmp;
-  std::string m_output_tmp_mode;
-  std::string m_output_warning;
-  std::string m_output_warning_mode;
 };
 
 #endif

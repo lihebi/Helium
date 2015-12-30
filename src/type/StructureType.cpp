@@ -8,7 +8,6 @@
 #include <iostream>
 #include "resolver/Ctags.hpp"
 #include <cassert>
-#include "Logger.hpp"
 #include "variable/VariableFactory.hpp"
 
 std::set<std::string> StructureType::m_recursion_set = std::set<std::string>();
@@ -17,7 +16,6 @@ StructureType::StructureType(const std::string& name) {
   // need to resolve instead of looking up registry,
   // because the resolving snippet phase
   // is far behind current phase of resolve IO variables.
-  Logger::Instance()->LogTraceV("[StructureType::StructureType]"+name+"\n");
   std::set<Snippet*> snippets = Ctags::Instance()->Resolve(name);
   for (auto it=snippets.begin();it!=snippets.end();it++) {
     if ((*it)->GetType() == 's') {
@@ -36,7 +34,6 @@ StructureType::StructureType(const std::string& name) {
   // if (m_recursion_set.find(m_name) != m_recursion_set.end()) {
   //   // if recursion detected, do not parse the field in current type, and init value set to null
   //   m_null = true;
-  //   Logger::Instance()->LogDebug("[StructureType::StructureType] " + m_name + " is recursion, set to null.\n");
   //   return;
   // } else {
   //   // before parseFields, push self to the stack
@@ -44,10 +41,6 @@ StructureType::StructureType(const std::string& name) {
   //   parseFields();
   //   // after parseFields, pop self from stack
   //   m_recursion_set.erase(m_name);
-  //   Logger::Instance()->LogDebug(
-  //     "[StructureType::StructureType] current recursion_set size: "
-  //     +std::to_string(m_recursion_set.size()) + '\n'
-  //   );
   // }
 }
 StructureType::~StructureType() {
@@ -55,7 +48,6 @@ StructureType::~StructureType() {
 
 std::string
 StructureType::GetInputCode(const std::string& var) const {
-  Logger::Instance()->LogTraceV("[StructureType::GetInputCode]\n");
   std::string code;
   if (GetDimension()>0) {
     code += Type::GetArrayCode(m_name, var, GetDimension());
@@ -109,7 +101,6 @@ StructureType::GetInputCodeWithoutDecl(const std::string& var) const {
 
 std::string
 StructureType::GetOutputCode(const std::string& var) const {
-  Logger::Instance()->LogTraceV("[StructureType::GetOutputCode]\n");
   std::string code;
   if (GetDimension() > 0) {
     code += "// [StructureType::GetOutputCode] array code omitted.\n";
@@ -134,7 +125,6 @@ StructureType::GetOutputSpecification() {
 
 void
 StructureType::parseFields() {
-  Logger::Instance()->LogTraceV("[StructureType::parseFields]\n");
   pugi::xml_document doc;
   SrcmlUtil::String2XML(m_snippet->GetCode(), doc);
   pugi::xml_node struct_node = doc.select_node("//struct").node();

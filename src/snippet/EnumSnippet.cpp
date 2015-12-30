@@ -4,7 +4,6 @@
 #include "util/DomUtil.hpp"
 #include "util/SrcmlUtil.hpp"
 #include "util/FileUtil.hpp"
-#include <Logger.hpp>
 
 static boost::regex name_reg("enum\\s+(\\w+)");
 static boost::regex alias_reg("(\\w+)\\s*;\\s*");
@@ -14,7 +13,6 @@ get_keywords(
   const std::string& code,
   std::set<std::string>& keywords
 ) {
-  Logger::Instance()->LogTraceV("[EnumSnippet::get_keywords]\n");
    // TODO NOW Enum members should be in the keywords
   pugi::xml_document doc;
   SrcmlUtil::String2XML(code, doc);
@@ -54,7 +52,6 @@ EnumSnippet::getName(const CtagsEntry& ce) {
 
 
 EnumSnippet::EnumSnippet(const CtagsEntry& ce) {
-  Logger::Instance()->LogTraceV("[EnumSnippet::EnumSnippet] " + ce.GetName() + "\n");
   m_type = 'g';
   m_filename = ce.GetSimpleFileName();
   m_line_number = ce.GetLineNumber();

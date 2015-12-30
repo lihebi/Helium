@@ -13,7 +13,6 @@
 #include "util/FileUtil.hpp"
 #include "util/StringUtil.hpp"
 #include "util/SrcmlUtil.hpp"
-#include "Logger.hpp"
 
 #include <pugixml.hpp>
 
@@ -195,17 +194,11 @@ SnippetRegistry::Add(const CtagsEntry& ce) {
 
 void
 SnippetRegistry::resolveDependence(Snippet *s, int level) {
-  Logger::Instance()->LogTraceV("[SnippetRegistry::resolveDependence]\n");
   // We should not limit here techniquelly, because we once we have the dependence break,
   // We have no way to resolve the dependence after the break
   // e.g. a => b => c => d => e
   // If we break on c, then we will not have d and e.
   // everytime we resolve a,b,c we know that it is already resolved, we will not try to resolve again.
-  if (level == 20) {
-    Logger::Instance()->LogWarning(
-      "[SnippetRegistry::resolveDependence] recursive resolve reach 20 level."
-    );
-  }
   std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
   for (auto it=ss.begin();it!=ss.end();it++) {
     if (!LookUp(*it).empty()) {
@@ -239,20 +232,14 @@ SnippetRegistry::resolveDependence(Snippet *s, int level) {
 // this is the only way to add snippets to SnippetRegistry, aka m_snippets
 void
 SnippetRegistry::add(Snippet *s) {
-  Logger::Instance()->LogTrace("[SnippetRegistry::add]\n");
-  Logger::Instance()->LogTrace("\tType: " + std::string(1, s->GetType()) + "\n");
-  Logger::Instance()->LogTrace("\tName: " + s->GetName() + "\n");
-  Logger::Instance()->LogTrace("\tKeywords: ");
   m_snippets.insert(s);
   std::set<std::string> keywords = s->GetKeywords();
   for (auto it=keywords.begin();it!=keywords.end();it++) {
-    Logger::Instance()->LogTrace(*it + ", ");
     if (m_id_map.find(*it) == m_id_map.end()) {
       m_id_map[*it] = std::set<Snippet*>();
     }
     m_id_map[*it].insert(s);
   }
-  Logger::Instance()->LogTrace("\n");
 }
 
 void

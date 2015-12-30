@@ -7,6 +7,16 @@
 
 namespace po = boost::program_options;
 
+/**
+ * Argument Parser.
+ *
+ * Design:
+helium [options] <target-benchmark-folder>
+
+[options]
+-f, --config
+
+ */
 class ArgParser {
 public:
   ArgParser(int argc, char** argv);

@@ -2,7 +2,6 @@
 #include "util/StringUtil.hpp"
 #include "util/ThreadUtil.hpp"
 #include <fstream>
-#include "Logger.hpp"
 
 static int
 myrand(int low, int high) {
@@ -13,7 +12,6 @@ myrand(int low, int high) {
 
 Tester::Tester(const std::string &executable, std::shared_ptr<SegmentProcessUnit> seg_unit)
 : m_executable(executable), m_seg_unit(seg_unit), m_success(false) {
-  Logger::Instance()->LogTrace("[Tester::Tester] " + executable + "\n");
   srand(time(0));
   // the first random number is highly related to the time, so we don't use it
   rand();
@@ -47,39 +45,29 @@ get_input_by_spec(std::string spec) {
 
 std::string
 Tester::generateInput() {
-  Logger::Instance()->LogTrace("[Tester::generateInput]\n");
   // get input specification
   std::set<std::shared_ptr<Variable> > inv = m_seg_unit->GetInputVariables();
   std::string text;
-  Logger::Instance()->LogData("input_spec for all variables:\n");
   for (auto it=inv.begin();it!=inv.end();it++) {
     std::string input_spec = (*it)->GetInputSpecification();
-    Logger::Instance()->LogData(input_spec + ", ");
     text += get_input_by_spec(input_spec);
   }
-  Logger::Instance()->LogData("\n");
   // random & pair
   return text;
 }
 
 void
 Tester::Test() {
-  Logger::Instance()->LogDebug("Test");
-  Logger::Instance()->LogTrace("[Tester::Test]\n");
   // generate input
   std::string input = generateInput();
-  Logger::Instance()->LogData("input:");
-  Logger::Instance()->LogData(input+"\n");
   // run program
   std::string cmd;
   // right now, hard code to timeout 2 seconds
   int status;
   std::string result = ThreadUtil::Exec(m_executable.c_str(), input.c_str(), &status, 2);
   if (status == 0) {
-    Logger::Instance()->LogRate("run success\n");
     m_success = true;
   } else {
-    Logger::Instance()->LogRate("run error, status="+std::to_string(status)+"\n");
     m_success = false;
   }
   // get output

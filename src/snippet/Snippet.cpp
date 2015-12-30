@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cassert>
 #include "util/DomUtil.hpp"
-#include "Logger.hpp"
 
 /*
  * use depth-first-search for the first pos:line attribute
@@ -66,7 +65,6 @@ get_element_last_line(pugi::xml_node node) {
  */
 std::string
 Snippet::GetFunctionCode(std::string filename, int line, std::string function_name) {
-  Logger::Instance()->LogTraceV("[Snippet::GetFunctionCode]"+function_name+"\n");
   assert(line>=0);
   assert(!filename.empty());
   // parse the file to xml tree
@@ -94,7 +92,6 @@ Snippet::GetFunctionCode(std::string filename, int line, std::string function_na
 
 std::string
 Snippet::GetEnumCode(std::string filename, int line, std::string enum_name) {
-  Logger::Instance()->LogTraceV("[Snippet::GetEnumCode]\n");
   assert(line>=0);
   pugi::xml_document doc;
   SrcmlUtil::File2XML(filename, doc);

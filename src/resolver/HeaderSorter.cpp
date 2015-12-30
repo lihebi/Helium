@@ -1,6 +1,5 @@
 #include "resolver/HeaderSorter.hpp"
 #include "util/FileUtil.hpp"
-#include "Logger.hpp"
 #include <fstream>
 #include <boost/regex.hpp>
 #include <iostream>
@@ -13,7 +12,6 @@ static boost::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");
 // scan the #inlcude "" statement, and get dependence relations between them
 void
 HeaderSorter::Load(const std::string& folder) {
-  Logger::Instance()->LogTrace("[HeaderSorter::Load]\n");
   std::vector<std::string> headers;
   FileUtil::GetFilesByExtension(folder, headers, "h");
   for (auto it=headers.begin();it!=headers.end();it++) {

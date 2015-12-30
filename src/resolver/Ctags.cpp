@@ -1,14 +1,12 @@
 #include "resolver/Ctags.hpp"
 #include "util/FileUtil.hpp"
 #include "snippet/SnippetRegistry.hpp"
-#include "Logger.hpp"
 #include <iostream>
 #include <unistd.h>
 
 #include <cstdlib>
 
 CtagsEntry::CtagsEntry(const tagEntry* const entry) {
-  Logger::Instance()->LogTraceV("[CtagsEntry::CtagsEntry]" + std::string(entry->name) + "\n");
   m_name = entry->name;
   m_file = entry->file;
   m_line = entry->address.lineNumber;
@@ -30,7 +28,6 @@ Ctags* Ctags::m_instance = 0;
 
 void
 Ctags::Load(const std::string& tagfile) {
-  Logger::Instance()->LogTrace("[Ctags::Load]\n");
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   m_tagfile = tagsOpen (tagfile.c_str(), info);
   // this is a int ... upon success, it will be set to 1
@@ -44,7 +41,6 @@ Ctags::Load(const std::string& tagfile) {
 
 std::vector<CtagsEntry>
 Ctags::Parse(const std::string& name) {
-  Logger::Instance()->LogTraceV("[Ctags:Parse] " + name + "\n");
   std::vector<CtagsEntry> vc;
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
@@ -75,7 +71,6 @@ Ctags::Parse(const std::string& name, const std::string& type) {
 // return Snippet*
 std::set<Snippet*>
 Ctags::Resolve(const std::string& name) {
-  Logger::Instance()->LogTraceV("[Ctags::Resolve] " + name + "\n");
   // TODO look up first
   std::vector<CtagsEntry> vc = Parse(name);
   std::set<Snippet*> vsp;

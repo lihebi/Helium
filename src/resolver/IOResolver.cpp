@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
-#include "Logger.hpp"
 #include "resolver/Ctags.hpp"
 #include "resolver/Resolver.hpp"
 #include "resolver/SystemResolver.hpp"
@@ -33,7 +32,6 @@ IOResolver::ResolveLocalVar(
   const std::string& name,
   pugi::xml_node node
 ) {
-  Logger::Instance()->LogTraceV("[IOResolver::ResolveLocalVar] "+name+"\n");
   //  std::cout<<"Resolve local Var: " + name + '\n'<<std::endl;
   while (node && node.previous_sibling()) {
     node = node.previous_sibling();
@@ -229,7 +227,6 @@ std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
   const Segment& segment
 ) {
-  Logger::Instance()->LogTrace("[IOResolver::ResolveUndefinedVars]\n");
   std::set<std::shared_ptr<Variable> > resolved;
   std::set<std::shared_ptr<Variable> > defined;
   std::vector<pugi::xml_node> vn = segment.GetNodes();
@@ -241,7 +238,6 @@ std::set<std::shared_ptr<Variable> >
 IOResolver::ResolveUndefinedVars(
   pugi::xml_node node
 ) {
-  Logger::Instance()->LogTrace("[IOResolver::ResolveUndefinedVars]\n");
   std::set<std::shared_ptr<Variable> > resolved;
   std::set<std::shared_ptr<Variable> > defined;
   std::vector<pugi::xml_node> vn;

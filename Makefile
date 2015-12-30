@@ -43,7 +43,7 @@ ifeq ($(UNAME_S), Linux)
 	SONAME := libhelium.so.1
 endif
 
-TARGET_LIB := $(BUILDDIR)/$(SONAME)
+TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
 
 CLIENT_SRC := client/main.cpp # main.cpp is separate from other source files because I need to have a dynamic lib for test to link
 
@@ -66,7 +66,7 @@ C_TEST_LIB := -L$(BUILDDIR) -lhelium # the target helium library
 C_TEST_LIB += -lgtest # google test framework
 
 C_TEST_LIB += -lboost_unit_test_framework # boost test framework
-C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
+C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_log_setup # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
 C_INC := -I include # local include folder
 
@@ -77,23 +77,34 @@ C_INC := -I include # local include folder
 
 all: client
 
-# libhelium.so is only used for test
-libhelium: $(TARGET_LIB)
+##############################
+## Helium executable
+##############################
 
-$(TARGET_LIB): $(OBJECTS)
-	@mkdir -p $(dir $@)
-	$(CC) $(DYLIB_FLAG) $(C_LIB) $(C_INC) -o $(TARGET_LIB) $(OBJECTS)
-
-
+# the actual execuable of Helium
 client: $(TARGET)
 # Compile client based on the object files, instead of the dynamic lib
 $(TARGET): $(CLIENT_SRC) $(OBJECTS)
 	$(CC) $(C_LIB) $(C_INC) -o $@ $(CLIENT_SRC) $(OBJECTS)
 
+
+##############################
+## tests
+##############################
+# libhelium.so is only used for test
+libhelium: $(TARGET_LIB)
+$(TARGET_LIB): $(OBJECTS)
+	@mkdir -p $(dir $@)
+	$(CC) $(DYLIB_FLAG) $(C_LIB) $(C_INC) -o $(TARGET_LIB) $(OBJECTS)
+
 test: libhelium $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJECTS) $(TEST_MAIN)
 	$(CC) $(CFLAGS) $(C_INC) $(C_LIB) $(C_TEST_LIB) -o $@ $^
+
+##############################
+## General compile rule
+##############################
 
 # For all target build/*.o, find the counter part in src/*.cpp
 # compile it into the target
@@ -101,7 +112,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(C_INC) -c -o $@ $<
 
-
+##############################
+## other trival staff
+##############################
 
 doc:
 	doxygen

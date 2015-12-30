@@ -9,7 +9,6 @@
 #include <cstring>
 #include <algorithm>
 #include <boost/regex.hpp>
-#include "Logger.hpp"
 #include "util/StringUtil.hpp"
 
 SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
@@ -17,10 +16,8 @@ SegmentProcessUnit::SegmentProcessUnit(const std::string& filename)
 m_segment(std::make_shared<Segment>()),
 m_context(std::make_shared<Segment>()),
 m_linear_search_value(0) {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit][Constructor]\n");
 }
 SegmentProcessUnit::~SegmentProcessUnit() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::~SegmentProcessUnit]\n");
   // remove instrument when deconstruct
   unsimplifyCode();
   // Techniquely it should uninstrument here, but I'm encountering with a pugixml bug:
@@ -40,7 +37,6 @@ void SegmentProcessUnit::AddNodes(std::vector<pugi::xml_node> nodes) {
   }
 }
 void SegmentProcessUnit::Process() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit] Processing Segment Unit\n");
   m_context = std::make_shared<Segment>(*m_segment);
   // doing library call experiment
   resolveInput();
@@ -56,12 +52,6 @@ SegmentProcessUnit::IsValid() {
   std::string content = m_segment->GetText();
   int size = std::count(content.begin(), content.end(), '\n');
   if (size > Config::Instance()->GetMaxSegmentSize()) {
-    Logger::Instance()->LogTrace("[SegmentProcessUnit::IsValid]"
-    "[WARNING]"
-    "segment not valid because its size: "
-    + std::to_string(size)
-    + " is larger than max: "
-    + std::to_string(Config::Instance()->GetMaxSegmentSize()) +"\n");
     return false;
   }
   // check if the segment is in a funciton prototype that contains enum parameter or return type
@@ -77,18 +67,13 @@ SegmentProcessUnit::IsValid() {
     // TODO the segment not in function(the function prototype has enum)
     // may also be able to analyze if it doesn't use the function parameters.
     // But, sorry I don't care about you.
-    Logger::Instance()->LogTrace("[SegmentProcessUnit::Valid]"
-    "[WARNING]"
-    "segment not valid because it is not in a function\n");
     return false;
   }
 }
 
 bool SegmentProcessUnit::IncreaseContext() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit][IncreaseContext]\n");
   m_linear_search_value++;
   if (m_linear_search_value > Config::Instance()->GetMaxLinearSearchValue()) {
-    Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max linear search value.\n");
     return false;
   }
   unsimplifyCode();
@@ -105,8 +90,6 @@ bool SegmentProcessUnit::IncreaseContext() {
       // interprocedure
       // TODO function should be in generate.c
       // TODO segment should be recognized(kept)
-      Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext]"
-      "interprocedure context search\n");
       m_functions.push_back(tmp);
       tmp = DomUtil::GetFunctionCall(tmp);
       if (!tmp) return false;
@@ -119,7 +102,6 @@ bool SegmentProcessUnit::IncreaseContext() {
     }
   }
   if (m_context->GetLOC() > Config::Instance()->GetMaxContextSize()) {
-    Logger::Instance()->LogTrace("[SegmentProcessUnit::IncreaseContext] Reach max context size.\n");
     return false;
   }
   if (Config::Instance()->WillSimplifyBranch()) {
@@ -132,14 +114,12 @@ bool SegmentProcessUnit::IncreaseContext() {
 }
 
 void SegmentProcessUnit::resolveInput() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::resolveInput]\n");
   // TODO input variable type may be structure. These structure should appear in support.h
   // std::set<Variable> vv;
   m_inv.clear();
   m_inv = IOResolver::ResolveUndefinedVars(*m_context);
   for (auto it=m_inv.begin();it!=m_inv.end();it++) {
     if ((*it)->GetType()->GetTypeKind() == SYSTEM_TYPE) {
-      Logger::Instance()->LogTmp("type: "+(*it)->GetType()->GetName() + "\tname: " + (*it)->GetName()+"\n");
     }
   }
 }
@@ -149,7 +129,6 @@ void SegmentProcessUnit::resolveInput() {
  */
 void
 SegmentProcessUnit::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
-  // Logger::Instance()->LogDebug("[SegmentProcessUnit::doSimplifyCode]\n");
   if (DomUtil::lub(node, key) == node) {
     // node is the ancestor of key
     for (pugi::xml_node n : node.children()) {
@@ -181,15 +160,12 @@ SegmentProcessUnit::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
     // the mark attribute
     node.append_attribute("helium-omit");
     // std::string tmp = DomUtil::GetTextContent(node);
-    Logger::Instance()->LogDebug("[SegmentProcessUnit::doSimplifyCode] simplified: "
-    + std::string(ancestor.name())+"\n");
     m_omit_nodes.push_back(node);
   }
 }
 
 void
 SegmentProcessUnit::simplifyCode() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::simplifyCode]\n");
   // remove the AST branches in the context that has no influence on the segment
   std::vector<pugi::xml_node> nodes = m_context->GetNodes();
   pugi::xml_node segment_node = m_segment->GetFirstNode();
@@ -201,7 +177,6 @@ SegmentProcessUnit::simplifyCode() {
 
 void
 SegmentProcessUnit::unsimplifyCode() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::unsimplifyCode]\n");
   for (auto it=m_omit_nodes.begin();it!=m_omit_nodes.end();it++) {
     it->remove_attribute(it->attribute("helium-omit"));
   }
@@ -269,10 +244,6 @@ remove_used_vars(const std::string& code, std::set<std::shared_ptr<Variable> >& 
   // TODO extract erase while iterating pattern into wiki
   for (auto it=s.begin();it!=s.end();) {
     if (to_resolve.find((*it)->GetName()) != to_resolve.end()) {
-      Logger::Instance()->LogTrace(
-        "[remove_used_vars] the var: " + (*it)->GetName()
-        + " is removed because it is used in context.\n"
-      );
       it = s.erase(it);
     } else {
       it++;
@@ -281,7 +252,6 @@ remove_used_vars(const std::string& code, std::set<std::shared_ptr<Variable> >& 
 }
 
 void SegmentProcessUnit::resolveOutput() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::resolveOutput]\n");
   // std::set<Variable> vv;
   // TODO point of interest
   uninstrument();
@@ -304,7 +274,6 @@ void SegmentProcessUnit::resolveOutput() {
 }
 
 void SegmentProcessUnit::resolveSnippets() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit][resolveSnippets]\n");
   m_snippets.clear();
   // the initial code to resolve is: context + input variable(input code)
   // std::string code = m_context->GetText();
@@ -317,8 +286,6 @@ void SegmentProcessUnit::resolveSnippets() {
     std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it);
     m_snippets.insert(snippets.begin(), snippets.end());
   }
-  Logger::Instance()->LogTrace("[SegmentProcessUnit][resolveSnippets] size: "
-  + std::to_string(m_snippets.size()) + "\n");
 }
 
 bool
@@ -353,7 +320,6 @@ sortSnippets(std::set<Snippet*> all) {
     if ((*it).back() == 'c') {all_c_files.insert(*it);}
     else if ((*it).back() == 'h') {all_h_files.insert(*it);}
     else {
-      Logger::Instance()->LogWarning("[sortSnippets2] Warning: not c or h file\n");
     }
   }
 
@@ -445,19 +411,11 @@ get_foot() {
 
 std::string
 SegmentProcessUnit::GetSupport() {
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::GetSupport]\n");
   // prepare the containers
   std::set<Snippet*> all_snippets;
   all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
-  Logger::Instance()->LogTrace("[SegmentProcessUnit::GetSupport] all snippets: "
-  + std::to_string(all_snippets.size()) + "\n");
   // simplify code: break when snippet number larger than config
   if (all_snippets.size() > Config::Instance()->GetMaxSnippetNumber()) {
-    Logger::Instance()->LogWarning(
-      "[SegmentProcessUnit::GetSupport] snippet number larger than config: "
-      + std::to_string(all_snippets.size()) +">"
-      + std::to_string(Config::Instance()->GetMaxSnippetNumber())
-    );
     m_can_continue = false;
   }
   // simplify code: break when snippet size larger than config
@@ -466,17 +424,10 @@ SegmentProcessUnit::GetSupport() {
     _loc += (*it)->GetLOC();
   }
   if (_loc > Config::Instance()->GetMaxSnippetSize()) {
-    Logger::Instance()->LogWarning(
-      "[SegmentProcessUnit::GetSupport] snippet number larger than config: "
-      + std::to_string(_loc) + ">"
-      + std::to_string(Config::Instance()->GetMaxSnippetSize())
-    );
     m_can_continue = false;
   }
   // sort the snippets
   std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
-  Logger::Instance()->LogTrace("after sort snippet: "
-  + std::to_string(sorted_all_snippets.size()) + "\n");
   // return the snippet code
   std::string code = "";
   // head

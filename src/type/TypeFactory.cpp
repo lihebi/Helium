@@ -10,7 +10,6 @@
 #include <boost/regex.hpp>
 #include <cassert>
 #include "snippet/TypedefSnippet.hpp"
-#include "Logger.hpp"
 
 static bool
 search_and_remove(std::string &s, boost::regex reg) {
@@ -73,7 +72,6 @@ fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
  */
 TypeFactory::TypeFactory(const std::string& name)
 : m_name(name), m_dimension(0), m_pointer_level(0) {
-  Logger::Instance()->LogTraceV("[TypeFactory::TypeFactory] " + name + "\n");
   std::string name_tmp = m_name;
   if (name_tmp.find('[') != std::string::npos) {
     m_dimension = std::count(name_tmp.begin(), name_tmp.end(), '[');
@@ -106,7 +104,6 @@ is_local_type(const std::string& identifier) {
 
 std::shared_ptr<Type>
 TypeFactory::createLocalType() {
-  Logger::Instance()->LogTraceV("[TypeFactory::createLocalType] "+ m_identifier +"\n");
   std::shared_ptr<Type> type;
   // need to know the code for local type
   // only handle structure or typedef
@@ -140,10 +137,7 @@ TypeFactory::createLocalType() {
           if (new_name.empty()) break;
           type = TypeFactory(new_name).CreateType();
         } else if (((TypedefSnippet*)*it)->GetTypedefType() == TYPEDEF_FUNC_POINTER) {
-          Logger::Instance()->LogWarning("[TypeFactory::CreateType]"
-          "[WARNING] typedef"
-          + m_identifier
-          + "is function pointer\n");
+          // function pointer??
         }
         break;
       }
@@ -152,9 +146,6 @@ TypeFactory::createLocalType() {
   // type should contains something.
   // or it may be NULL. So if it fails, do not necessarily means a bug
   if (!type) {
-    Logger::Instance()->LogWarning("[TypeFactory::CreateType]"
-    "[ERROR] the type is local, but is not s or t: "
-    + m_identifier + "\n");
     return NULL;
   }
   return type;
@@ -162,7 +153,6 @@ TypeFactory::createLocalType() {
 
 std::shared_ptr<Type>
 TypeFactory::createSystemType() {
-  Logger::Instance()->LogTraceV("[TypeFactory::createSystemType]\n");
   std::shared_ptr<Type> type;
   std::string prim_type = SystemResolver::Instance()->ResolveType(m_identifier);
   if (prim_type.empty()) {
@@ -179,7 +169,6 @@ TypeFactory::createSystemType() {
 
 std::shared_ptr<Type>
 TypeFactory::CreateType() {
-  Logger::Instance()->LogTraceV("[TypeFactory::CreateType] " + m_name + "\n");
   std::shared_ptr<Type> type;
   if (IsPrimitiveType()) {
     type = std::make_shared<PrimitiveType>(m_component.type_specifier);
@@ -188,8 +177,6 @@ TypeFactory::CreateType() {
   } else if (is_system_type(m_identifier)) {
     type = createSystemType();
   } else {
-    Logger::Instance()->LogWarning("[TypeFactory::CreateType][Warning] Not supported type: "
-    + m_identifier + " in: " + m_name + "\n");
     return NULL;
   }
   if (type) {

@@ -3,42 +3,48 @@
 
 ArgParser::ArgParser(int argc, char** argv)
 {
+  // create options_description
   po::options_description options("Arguments");
+  // add options to it
   options.add_options()
-    ("help", "produce help message")
-    ("log-level", po::value<int>()->default_value(5), "log level")
+    ("help,h", "produce help message") // --help, -h
+    ("config,f", po::value<std::string>(), "config file")
+    ("tagfile,c", po::value<std::string>(), "tag file")
+    ("verbose,v", "verbose output")
     ;
-  po::options_description cmd_utils("Utils");
-  cmd_utils.add_options()
-    ("split", "split declaration")
-    ("remove-comment", "remove comment")
-    ("ctags", "create ctags")
-    ("cond-comp", "conditional compile")
-    ("pre", "preprocess")
-    ;
-  po::options_description experiments("Experiments");
-  experiments.add_options()
-    ("build-rate", "run build rate experiment")
-    ("equivalence", "run equivalence checking experiment")
-    ("change", "run change experiment")
-    ("config", po::value<std::string>(), "config file")
-    ("tagfile", po::value<std::string>(), "tag file")
-    ;
+
   po::options_description hidden("Hidden options");
   hidden.add_options()
     ("folder", "project folder");
-  // positional options
+  // positional options: used for the option that don't need to use a --prefix
   po::positional_options_description positional;
+  // this "folder" option include only one item
   positional.add("folder", 1);
 
   // Further group
-  m_cmdline_options.add(options).add(hidden).add(cmd_utils).add(experiments);
-  m_help_options.add(options).add(cmd_utils).add(experiments);
+  // all options avaliable for command line options
+  m_cmdline_options
+    .add(options)
+    .add(hidden)
+    ;
 
-  po::store(po::command_line_parser(argc, argv).
-    options(m_cmdline_options).positional(positional).run(), m_vm);
+  // this is the message that will show for help messages
+  m_help_options
+    .add(options)
+    ;
+
+  /* run parser and store in m_vm */
+  po::store(
+            po::command_line_parser(argc, argv)
+            .options(m_cmdline_options) // add cmdline options
+            .positional(positional)     // add positional options
+            .run(),                     // run the parser
+            // store into m_vm
+            m_vm
+            );
   po::notify(m_vm);
 
+  /* validate the options */
   if (!validate()) {
     PrintHelp();
     exit(1);
@@ -59,6 +65,12 @@ bool ArgParser::Has(std::string name) {
     return false;
   }
 }
+
+/*
+ * Get content from vm
+ * m_vm["folder"].as<std::string>();
+ * m_vm["include-files"].as< std::vector<std::string> > ();
+ */
 std::string ArgParser::GetString(std::string name) {
   if (Has(name)) {
     return m_vm[name].as<std::string>();
