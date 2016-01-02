@@ -9,29 +9,19 @@ CC := g++
 ## Dir settings
 ##############################
 SRCDIR := src
-SPIKE_DIR := spikes
 BUILDDIR := build
-TARGET := bin/helium
 BIN_DIR := bin
 
-##############################
-## Source and Dist
-##############################
-SRCEXT := cpp
-SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-# test source
-# the file xx/xx/test_xxx.cpp is recognized as test file.
-TEST_SOURCES := $(shell find $(SRCDIR) -type f -name *test_*.$(SRCEXT))
-# test files are filtered out from SOURCES
-SOURCES := $(filter-out $(TEST_SOURCES), $(SOURCES))
+TARGET := bin/helium
+TEST_TARGET := bin/test
 
-# objects
+SRCEXT := cc
+SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 # pattern substring replacement: $(patsubst pattern,replacement,text)
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-TEST_OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(TEST_SOURCES:.$(SRCEXT)=.o))
 
-TEST_MAIN := test/test_main.cpp
-TEST_TARGET := bin/test
+TEST_MAIN := test/test_main.cc
+CLIENT_SRC := client/main.cc # main.cpp is separate from other source files because I need to have a dynamic lib for test to link
 
 # get lib name for Mac OS and Linux
 SONAME :=
@@ -45,7 +35,6 @@ endif
 
 TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
 
-CLIENT_SRC := client/main.cpp # main.cpp is separate from other source files because I need to have a dynamic lib for test to link
 
 ##############################
 ## Compile flags
@@ -68,7 +57,6 @@ C_TEST_LIB += -lgtest # google test framework
 C_TEST_LIB += -lboost_unit_test_framework # boost test framework
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_log_setup # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
-C_INC := -I include # local include folder
 
 ##############################
 ## Targets

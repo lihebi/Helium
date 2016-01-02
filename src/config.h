@@ -1,0 +1,26 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+#include <string>
+#include <map>
+
+class Config {
+public:
+  Config* Instance() {
+    if (m_instance == NULL) {
+      m_instance = new Config();
+    }
+    return m_instance;
+  }
+  ~Config();
+  void ParseFile(std::string filename);
+  void ParseString(std::string s);
+  std::string GetString(std::string name);
+private:
+  Config();
+  void parse(std::istream& is);
+  std::map<std::string, std::string> m_map;
+  Config* m_instance;
+};
+
+#endif
