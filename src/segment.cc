@@ -123,7 +123,7 @@ void Segment::Grow() {
 SPU::SPU(const std::string& filename) : m_filename(filename) {}
 SPU::~SPU() {
   // remove instrument when deconstruct
-  unsimplifyCode();
+  // unsimplifyCode();
   // Techniquely it should uninstrument here, but I'm encountering with a pugixml bug:
   // node.parent().remove_child(node) will get error.
   // uninstrument();
@@ -489,18 +489,19 @@ SPU::GetSupport() {
   std::string code_func_decl;
   std::string code_func;
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    if ((*it)->Type() == SK_Function) {
-      // functions
-      code_func_decl += dynamic_cast<FunctionSnippet*>(*it)->GetDecl()+"\n";
-      code_func +=
-      "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
-      + "\n" + (*it)->GetCode() + '\n';
-    } else {
-      // all other codes
-      code +=
-      "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
-      + "\n" + (*it)->GetCode() + '\n';
-    }
+    // FIXME the type of a snippet is signature, containing multiple SnippetKind
+    // if ((*it)->Type() == SK_Function) {
+    //   // functions
+    //   code_func_decl += dynamic_cast<FunctionSnippet*>(*it)->GetDecl()+"\n";
+    //   code_func +=
+    //   "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
+    //   + "\n" + (*it)->GetCode() + '\n';
+    // } else {
+    //   // all other codes
+    //   code +=
+    //   "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
+    //   + "\n" + (*it)->GetCode() + '\n';
+    // }
   }
   code += "\n// function declarations\n";
   code += code_func_decl;

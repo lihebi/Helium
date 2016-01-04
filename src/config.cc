@@ -48,3 +48,8 @@ Config::parse(std::istream &is) {
     m_map[key] = value;
   }
 }
+
+std::string Config::GetString(std::string name) const {
+}
+int Config::GetInt(std::string name) const {
+}

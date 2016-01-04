@@ -28,10 +28,11 @@ load_helium_home() {
 }
 
 static void
-create_ctags(const std::string& folder) {
+create_tagfile(const std::string& folder, const std::string& file) {
   std::string cmd = "ctags -f ";
   // cmd += folder + "/tags";
-  cmd += "tags"; // current folder
+  // cmd += "tags"; // current folder
+  cmd += file;
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
   cmd += folder;
   std::cout<< "create_ctags: " << cmd <<std::endl;
@@ -43,14 +44,44 @@ Helium::Helium(int argc, char** argv) {
   /* load HELIUM_HOME */
   std::string helium_home = load_helium_home();
   /* parse arguments */
-  ArgParser* args = new ArgParser(argc, argv);
+  ArgParser args(argc, argv);
   // target folder
-  m_folder = args->GetString("folder");
+  m_folder = args.GetString("folder");
   while (m_folder.back() == '/') m_folder.pop_back();
+
+
+
+
+  /*******************************
+   ** utilities
+   *******************************/
+  if (args.Has("create-tagfile")) {
+    if (args.Has("output")) {
+      std::string output_file = args.GetString("output");
+      if (output_file.empty()) output_file = "tags";
+      create_tagfile(m_folder, output_file);
+    }
+    exit(0);
+  }
+
+
+
+
+
+  /*******************************
+   ** Helium start
+   *******************************/
+
+  
   /* load tag file */
-  std::string tagfile = args->GetString("tagfile");
+  std::string tagfile = args.GetString("tagfile");
   if (tagfile.empty()) {
-    ctags_load(m_folder + "/tags");
+    // ctags_load(m_folder + "/tags");
+    // create tagfile
+    std::cout << "creating tag file ..."  << "\n";
+    create_tagfile(m_folder, "/tmp/helium.tags");
+    std::cout << "done"  << "\n";
+    ctags_load("/tmp/helium.tags");
   } else {
     ctags_load(tagfile);
   }

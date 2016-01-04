@@ -13,12 +13,36 @@ namespace fs = boost::filesystem;
 /**
  * Trim a string. Modify in position
  */
-void
-utils::trim(std::string& s) {
-  size_t begin = s.find_first_not_of(" \n\r\t");
-  size_t end = s.find_last_not_of(" \n\r\t")+1;
-  s = s.substr(begin, end);
+// trim from start
+inline std::string &utils::ltrim(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+  return s;
 }
+
+// trim from end
+inline std::string &utils::rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+  return s;
+}
+
+// trim from both ends
+inline std::string &utils::trim(std::string &s) {
+  return ltrim(rtrim(s));
+}
+
+// gtest document says the test_case_name and test_name should not contain _
+TEST(utils_test_case, trim_test) {
+  std::string s = " ab cd  ";
+  utils::trim(s);
+  EXPECT_EQ(s, "ab cd");
+  s = "\tabcd\t   \n";
+  utils::trim(s);
+  EXPECT_EQ(s, "abcd");
+  s = "   \t\n";
+  utils::trim(s);
+  EXPECT_TRUE(s.empty());
+}
+
 
 
 /**
@@ -34,6 +58,16 @@ utils::split(const std::string &s) {
     std::istream_iterator<std::string>{}
   };
   return tokens;
+}
+
+TEST(utils_test_case, split_test) {
+  std::string s = "  ab  cd \n \t ef";
+  std::vector<std::string> vs = utils::split(s);
+  EXPECT_FALSE(vs.empty());
+  EXPECT_EQ(vs.size(), 3);
+  EXPECT_EQ(vs[0], "ab");
+  EXPECT_EQ(vs[1], "cd");
+  EXPECT_EQ(vs[2], "ef");
 }
 
 /**
@@ -98,15 +132,6 @@ void utils::remove(std::string& s, const std::string& pattern) {
 
 
 
-// gtest document says the test_case_name and test_name should not contain _
-TEST(trim_test_case, trim_test) {
-  std::string s = " ab cd  ";
-  utils::trim(s);
-  EXPECT_EQ(s, "ab cd");
-  s = "\tabcd\t   \n";
-  utils::trim(s);
-  EXPECT_EQ(s, "abcd");
-}
 
 
 /*******************************
@@ -181,13 +206,19 @@ void utils::get_files_by_extension(
   }
 }
 
+bool
+utils::file_exist(const std::string& file) {
+  fs::path file_path(file);
+  return fs::exists(file_path);
+}
+
 
 /**
  * Write file with content.
  * Will overwrite. If the file doesn't exist, it will create it recursively(the parent directory)
  */
 void
-utils::write(const std::string& file, const std::string& content) {
+utils::write_file(const std::string& file, const std::string& content) {
   fs::path file_path(file);
   fs::path dir = file_path.parent_path();
   if (!fs::exists(dir)) {
@@ -205,7 +236,7 @@ utils::write(const std::string& file, const std::string& content) {
  * Append content to file. Create if not existing.
  */
 void
-utils::append(const std::string& file, const std::string& content) {
+utils::append_file(const std::string& file, const std::string& content) {
   fs::path file_path(file);
   fs::path dir = file_path.parent_path();
   if (!fs::exists(dir)) {
@@ -223,7 +254,7 @@ utils::append(const std::string& file, const std::string& content) {
  * Read a file into string.
  */
 std::string
-utils::read(const std::string& file) {
+utils::read_file(const std::string& file) {
   std::ifstream is;
   is.open(file);
   std::string code;

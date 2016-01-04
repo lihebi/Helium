@@ -6,7 +6,9 @@
 
 namespace utils {
 
-  void trim(std::string& s);
+  inline std::string& ltrim(std::string &s);
+  inline std::string& rtrim(std::string &s);
+  inline std::string& trim(std::string &s);
 
   /*******************************
    ** File utils
@@ -16,14 +18,15 @@ namespace utils {
   void get_files(const std::string &folder, std::vector<std::string>& vs);
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::string& s);
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::vector<std::string>& extension);
+  bool file_exist(const std::string& file);
 
 
   /*******************************
    * read/write
    *******************************/
-  void write(const std::string& file, const std::string& content);
-  void append(const std::string& file, const std::string& content);
-  std::string read(const std::string& file);
+  void write_file(const std::string& file, const std::string& content);
+  void append_file(const std::string& file, const std::string& content);
+  std::string read_file(const std::string& file);
   // folders
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);

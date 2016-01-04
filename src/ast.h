@@ -129,18 +129,5 @@ namespace ast { // begin of namespace ast
 } // end of namespace ast
 
 
-/*******************************
- ** Dom Related Util functions
- *******************************/
-
-pugi::xml_node get_previous_ast_element(pugi::xml_node node);
-pugi::xml_node get_parent_ast_element(pugi::xml_node node);
-pugi::xml_node get_function_call(pugi::xml_node node);
-
-std::string get_text_content(pugi::xml_node node);
-std::string get_text_content_except_tag(pugi::xml_node, std::string name);
-
-pugi::xml_node lub(pugi::xml_node n1, pugi::xml_node n2);
-
 
 #endif

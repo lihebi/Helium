@@ -114,6 +114,119 @@ std::string ctags_types_to_string(std::set<SnippetKind> types) {
  ** Snippet
  *******************************/
 
+
+/*******************************
+ ** create snippet
+ *******************************/
+
+/**
+ * Query query on code.
+ * return the first matching.
+ */
+std::string query_code_first(const std::string& code, const std::string& query) {
+  pugi::xml_document doc;
+  string2xml(code, doc);
+  pugi::xml_node root_node = doc.document_element();
+  pugi::xml_node node = root_node.select_node(query.c_str()).node();
+  return node.child_value();
+}
+/**
+ * Query "query" on "code".
+ * Return all matching.
+ * Will not use get_text_content, but use child_value() for a xml tag.
+ * Only support tag value currently, not attribute value.
+ */
+std::vector<std::string> query_code(const std::string& code, const std::string& query) {
+  std::vector<std::string> result;
+  pugi::xml_document doc;
+  string2xml(code, doc);
+  pugi::xml_node root_node = doc.document_element();
+  pugi::xpath_node_set nodes = root_node.select_nodes(query.c_str());
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    pugi::xml_node node = it->node();
+    result.push_back(node.child_value());
+  }
+  return result;
+}
+
+
+Snippet::Snippet(const CtagsEntry& entry) {
+  /**
+   * 1. get code
+   * 2. get signature
+   */
+  SnippetKind type = char_to_ctags_type(entry.GetType());
+  switch(type) {
+  case SK_Function: {
+    m_code = get_func_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Function);
+    break;
+  }
+  case SK_Structure: {
+    m_code = get_struct_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Structure);
+    break;
+  }
+  case SK_Enum: {
+    m_code = get_enum_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Enum);
+    // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
+    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
+    for (std::string m : members) {
+      m_sig.emplace(m, SK_EnumMember);
+    }
+    break;
+  }
+  case SK_Union: {
+    m_code = get_union_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Union);
+    break;
+  }
+  case SK_Define: {
+    m_code = get_def_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Define);
+    break;
+  }
+  case SK_Variable: {
+    m_code = get_var_code(entry);
+    m_sig.emplace(entry.GetName(), SK_Variable);
+    break;
+  }
+  case SK_EnumMember: {
+    m_code = get_enum_code(entry);
+    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
+    for (std::string m : members) {
+      m_sig.emplace(m, SK_EnumMember);
+    }
+    // enum name
+    std::string name = query_code_first(m_code, "//enum/name");
+    if (!name.empty()) m_sig.emplace(name, SK_Enum);
+    // possibly typedef
+    name = query_code_first(m_code, "//typedef/name");
+    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
+    break;
+  }
+  case SK_Typedef: {
+    m_code = get_typedef_code(entry);
+    // tyepdef
+    std::string name = query_code_first(m_code, "//typedef/name");
+    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
+    // TODO NOW also needs to test if it is a struct, union, or enum
+    break;
+  }
+  // case SK_Const:
+  //   m_code = get_const_code(entry);
+  // case SK_Member:
+  //   m_code = get_mem_code(entry);
+  default:
+    // should we reach here?
+    // null snippet?
+    m_code = "";
+  }
+}
+
+
+
 /**
  * Get all types pairs of this snippet.
 
@@ -194,14 +307,9 @@ std::string Snippet::GetName() const {
 
 
 
-
-
-
 /*******************************
  ** Functions for get code from file based on ctags entry
  *******************************/
-
-#if 0
 
 /*
  * use depth-first-search for the first pos:line attribute
@@ -253,6 +361,8 @@ get_element_last_line(pugi::xml_node node) {
   }
   return -1;
 }
+
+std::string get_text_content(pugi::xml_node node);
 
 /**
  * Get code as string of <tag_name> node in filename that encloses line_number
@@ -362,133 +472,3 @@ std::string get_var_code(const CtagsEntry& entry) {
   std::string filename = entry.GetFileName();
   return get_code_enclosing_line(filename, line_number, "decl_stmt");
 }
-
-/*******************************
- ** create snippet
- *******************************/
-
-std::vector<std::string> get_enum_members(const std::string &code) {
-  std::vector<std::string> members;
-  pugi::xml_document doc;
-  string2xml(code, doc);
-  pugi::xml_node root_node = doc.document_element();
-  pugi::xml_node enum_node = root_node.select_node("//enum").node();
-  pugi::xpath_node_set name_nodes = enum_node.select_nodes("block/decl/name");
-  for (size_t i=0;i<name_nodes.size();i++) {
-    std::string s = get_text_content(name_nodes[i].node());
-    // Add enum member names into keywords
-    if (!s.empty()) {
-      members.push_back(s);
-    }
-  }
-  return members;
-}
-
-/**
- * Query query on code.
- * return the first matching.
- */
-std::string query_code_first(const std::string& code, const std::string& query) {
-  pugi::xml_document doc;
-  string2xml(code, doc);
-  pugi::xml_node root_node = doc.document_element();
-  pugi::xml_node node = root_node.select_node(query.c_str()).node();
-  return node.child_value();
-}
-/**
- * Query "query" on "code".
- * Return all matching.
- * Will not use get_text_content, but use child_value() for a xml tag.
- * Only support tag value currently, not attribute value.
- */
-std::vector<std::string> query_code(const std::string& code, const std::string& query) {
-  std::vector<std::string> result;
-  pugi::xml_document doc;
-  string2xml(code, doc);
-  pugi::xml_node root_node = doc.document_element();
-  pugi::xpath_node_set nodes = root_node.select_nodes(query.c_str());
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    pugi::xml_node node = it->node();
-    result.push_back(node.child_value());
-  }
-  return result;
-}
-
-Snippet::Snippet(const CtagsEntry& entry) {
-  /**
-   * 1. get code
-   * 2. get signature
-   */
-  SnippetKind type = char_to_ctags_type(entry.GetType());
-  switch(type) {
-  case SK_Function: {
-    m_code = get_func_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Function);
-    break;
-  }
-  case SK_Structure: {
-    m_code = get_struct_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Structure);
-    break;
-  }
-  case SK_Enum: {
-    m_code = get_enum_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Enum);
-    // std::vector<std::string> members = get_enum_members(m_code);
-    // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
-    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
-    for (std::string m : members) {
-      m_sig.emplace(m, SK_EnumMember);
-    }
-    break;
-  }
-  case SK_Union: {
-    m_code = get_union_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Union);
-    break;
-  }
-  case SK_Define: {
-    m_code = get_def_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Define);
-    break;
-  }
-  case SK_Variable: {
-    m_code = get_var_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Variable);
-    break;
-  }
-  case SK_EnumMember: {
-    m_code = get_enum_code(entry);
-    // std::vector<std::string> members = get_enum_members(m_code);
-    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
-    for (std::string m : members) {
-      m_sig.emplace(m, SK_EnumMember);
-    }
-    // enum name
-    std::string name = query_code_first(m_code, "//enum/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Enum);
-    // possibly typedef
-    name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
-    break;
-  }
-  case SK_Typedef: {
-    m_code = get_typedef_code(entry);
-    // tyepdef
-    std::string name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
-    // TODO NOW also needs to test if it is a struct, union, or enum
-    break;
-  }
-  // case SK_Const:
-  //   m_code = get_const_code(entry);
-  // case SK_Member:
-  //   m_code = get_mem_code(entry);
-  default:
-    // should we reach here?
-    // null snippet?
-    m_code = "";
-  }
-}
-
-#endif

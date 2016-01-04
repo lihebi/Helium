@@ -15,8 +15,8 @@ public:
   ~Config();
   void ParseFile(std::string filename);
   void ParseString(std::string s);
-  std::string GetString(std::string name);
-  int GetInt(std::string name);
+  std::string GetString(std::string name) const;
+  int GetInt(std::string name) const;
 private:
   Config();
   void parse(std::istream& is);

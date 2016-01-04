@@ -4,6 +4,8 @@
  ** DomUtil
  *******************************/
 
+
+
 /**
  * valid ast includes: expr, decl, break, macro, for, while, if, function
  */
@@ -176,4 +178,19 @@ lub(pugi::xml_node n1, pugi::xml_node n2) {
     n2 = n2.parent();
   }
   return n1;
+}
+
+
+/**
+ * test if node is within <level> levels inside a <tagname>
+ */
+bool
+dom_in_node(pugi::xml_node node, std::string tagname, int level) {
+  while (node.parent() && level>0) {
+    node = node.parent();
+    level--;
+    if (node.type() != pugi::node_element) return false;
+    if (node.name() == tagname) return true;
+  }
+  return false;
 }

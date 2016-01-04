@@ -100,6 +100,7 @@ void Type::decompose() {
  *******************************/
 
 
+Variable::Variable() {}
 Variable::Variable(Type type, const std::string& name)
 : m_type(type), m_name(name) {
 }
@@ -110,6 +111,11 @@ Variable::Variable(const std::string& type, const std::string& name) {
   m_type_str = type;
   m_type = Type(type);
 }
+Variable::operator bool() {
+  return false;
+}
+
+
 
 VariableList var_from_node(ast::Node node) {
   VariableList vars;
@@ -192,3 +198,23 @@ std::string get_input_code(Variable v) {
 //   // code += "   scanf()"
 //   return code;
 // }
+
+
+/*******************************
+ ** VariableList
+ *******************************/
+
+VariableList::VariableList() {}
+VariableList::~VariableList() {}
+/* construct */
+void VariableList::Add(Variable v) {}
+void VariableList::Add(VariableList vars) {}
+/* meta */
+size_t VariableList::Size() const {}
+bool VariableList::Empty() const {}
+void VariableList::Clear() {}
+/* add only if the name is unique */
+void VariableList::AddUniqueName(Variable v) {}
+void VariableList::AddUniqueName(VariableList vars) {}
+Variable VariableList::LookUp(const std::string &name) {}
+std::vector<Variable> VariableList::Variables() const {}

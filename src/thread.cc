@@ -5,7 +5,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
-std::string exec(const char* cmd, int *status, int timeout) {
+std::string utils::exec(const char* cmd, int *status, int timeout) {
   int pipefd[2];
   if (pipe(pipefd) == -1) {
     perror("pipe");
@@ -50,7 +50,7 @@ std::string exec(const char* cmd, int *status, int timeout) {
   }
 }
 
-int split(const char *scon, char** &argv) {
+static int split(const char *scon, char** &argv) {
   char *s = strdup(scon);
   char *tok = strtok(s, " ");
   argv = (char**)malloc(10*sizeof(char*));
@@ -65,7 +65,7 @@ int split(const char *scon, char** &argv) {
   return argc;
 }
 
-std::string exec(const char* cmd, const char* input, int *status, unsigned int timeout) {
+std::string utils::exec(const char* cmd, const char* input, int *status, unsigned int timeout) {
   // cmd should not exceed BUFSIZ
   char cmd_buf[BUFSIZ];
   strcpy(cmd_buf, cmd);
@@ -96,7 +96,7 @@ std::string exec(const char* cmd, const char* input, int *status, unsigned int t
     // prepare the command
     char **argv = NULL;
     // the argv is malloc-ed, but anyway the process will exit, it will be released
-    split(cmd, argv);
+    ::split(cmd, argv);
     execvp(argv[0], argv);
     perror("execvp");
     exit(1);

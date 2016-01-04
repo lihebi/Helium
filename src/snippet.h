@@ -135,7 +135,7 @@ public:
   std::string GetName() const;
   // TODO do we really need this, since we already has the more powerful signature?
   // Maybe a simple utility function to get coerce categorization?
-  SnippetKind Type() const;
+  // SnippetKind Type() const;
 
   /* signature */
   snippet_signature GetSignature() const;
@@ -146,10 +146,10 @@ public:
   bool SatisfySignature(const std::string& name, std::set<SnippetKind> types);
 
   /* meta data */
-  std::string GetCode() const;
-  int GetLineNumber() const;
-  std::string GetFileName() const;
-  int GetLOC() const;
+  std::string GetCode() const {return m_code;}
+  int GetLineNumber() const {return m_line_number;}
+  std::string GetFileName() const {return m_filename;}
+  int GetLOC() const {return m_loc;}
 private:
   snippet_signature m_sig;
   std::string m_code;

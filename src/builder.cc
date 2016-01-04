@@ -10,11 +10,11 @@ Builder::~Builder() {}
 
 void
 Builder::writeMain() {
-  utils::write(Config::Instance()->GetString("output_folder")+"/generate.c", m_main);
+  utils::write_file(Config::Instance()->GetString("output_folder")+"/generate.c", m_main);
 }
 
 void Builder::writeSupport() {
-  utils::write(
+  utils::write_file(
     Config::Instance()->GetString("output_folder")+"/support.h",
     m_support
   );
@@ -22,7 +22,7 @@ void Builder::writeSupport() {
 
 void
 Builder::writeMakefile() {
-  utils::write(
+  utils::write_file(
     Config::Instance()->GetString("output_folder")+"/Makefile",
     m_makefile
   );

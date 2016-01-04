@@ -11,7 +11,14 @@ ArgParser::ArgParser(int argc, char** argv)
     ("config,f", po::value<std::string>(), "config file")
     ("tagfile,c", po::value<std::string>(), "tag file")
     ("verbose,v", "verbose output")
+    ("output,o", po::value<std::string>(), "output location")
     ;
+
+  po::options_description util_options("Utils");
+  util_options.add_options()
+    ("create-tagfile", "create tag file")
+    ;
+    
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
@@ -25,12 +32,14 @@ ArgParser::ArgParser(int argc, char** argv)
   // all options avaliable for command line options
   m_cmdline_options
     .add(options)
+    .add(util_options)
     .add(hidden)
     ;
 
   // this is the message that will show for help messages
   m_help_options
     .add(options)
+    .add(util_options)
     ;
 
   /* run parser and store in m_vm */

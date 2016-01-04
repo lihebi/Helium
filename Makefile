@@ -76,7 +76,7 @@ all: client
 client: $(TARGET)
 # Compile client based on the object files, instead of the dynamic lib
 $(TARGET): $(MAIN) $(OBJECTS)
-	$(CC) $(C_LIB) -o $@ $(CLIENT_MAIN) $(OBJECTS)
+	$(CC) $(C_LIB) -o $@ $(MAIN) $(OBJECTS)
 
 
 ##############################
@@ -94,6 +94,7 @@ $(TARGET): $(MAIN) $(OBJECTS)
 # 	$(CC) $(CFLAGS) $(C_LIB) $(C_TEST_LIB) -o $@ $^
 
 test: $(TEST_TARGET)
+	$(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
 	$(CC) $(CFLAGS) $(C_LIB) -o $@ $^

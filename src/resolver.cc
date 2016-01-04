@@ -44,3 +44,13 @@ bool
 is_c_keyword(const std::string& s) {
   return c_common_keyword.find(s) != c_common_keyword.end();
 }
+
+
+SymbolTable::SymbolTable() {}
+SymbolTable::~SymbolTable() {}
+int SymbolTable::CurrentLevel() {}
+void SymbolTable::PushLevel() {}
+void SymbolTable::PopLevel() {}
+void SymbolTable::AddSymbol(Variable v) {}
+void SymbolTable::AddSymbol(VariableList vars) {}
+Variable SymbolTable::LookUp(const std::string &name) {}
