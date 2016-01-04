@@ -1,6 +1,8 @@
 #ifndef __HELIUM_H__
 #define __HELIUM_H__
 
+#include "common.h"
+
 class Helium {
 public:
   Helium(int argc, char** argv);

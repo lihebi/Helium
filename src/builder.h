@@ -1,9 +1,10 @@
 #ifndef __BUILDER_H__
 #define __BUILDER_H__
+#include "segment.h"
 
 class Builder {
 public:
-  Builder(std::shared_ptr<SegmentProcessUnit> seg_unit);
+  Builder(SPU spu);
   virtual ~Builder();
   void Build();
   void Compile();
@@ -13,7 +14,7 @@ private:
   void writeMain();
   void writeSupport();
   void writeMakefile();
-  std::shared_ptr<SegmentProcessUnit> m_seg_unit;
+  SPU m_spu;
   // Segment m_context;
   std::string m_main;
   std::string m_support;

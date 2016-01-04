@@ -26,16 +26,16 @@ SOURCES := $(filter-out $(MAIN) $(TEST_MAIN), $(SOURCES))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 
 # get lib name for Mac OS and Linux
-SONAME :=
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S), Darwin)
-	SONAME := libhelium.dylib
-endif
-ifeq ($(UNAME_S), Linux)
-	SONAME := libhelium.so.1
-endif
+# SONAME :=
+# UNAME_S := $(shell uname -s)
+# ifeq ($(UNAME_S), Darwin)
+# 	SONAME := libhelium.dylib
+# endif
+# ifeq ($(UNAME_S), Linux)
+# 	SONAME := libhelium.so.1
+# endif
 
-TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
+# TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
 
 
 ##############################
@@ -44,21 +44,22 @@ TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
 
 CFLAGS := -g -Wall --std=c++11
 
-DYLIB_FLAG :=
-ifeq ($(UNAME_S), Darwin)
-	DYLIB_FLAG := -dynamiclib
-endif
-ifeq ($(UNAME_S), Linux)
-	DYLIB_FLAG := -shared -Wl,-soname,$(SONAME)
-endif
+# DYLIB_FLAG :=
+# ifeq ($(UNAME_S), Darwin)
+# 	DYLIB_FLAG := -dynamiclib
+# endif
+# ifeq ($(UNAME_S), Linux)
+# 	DYLIB_FLAG := -shared -Wl,-soname,$(SONAME)
+# endif
 
 # -pthread
-C_TEST_LIB := -L$(BUILDDIR) -lhelium # the target helium library
-C_TEST_LIB += -lgtest # google test framework
-C_TEST_LIB += -lboost_unit_test_framework # boost test framework
+# C_TEST_LIB := -L$(BUILDDIR) -lhelium # the target helium library
+# C_TEST_LIB += -lgtest # google test framework
+# C_TEST_LIB += -lboost_unit_test_framework # boost test framework
 
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_log_setup # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
+C_LIB += -lgtest
 
 ##############################
 ## Targets
@@ -82,15 +83,20 @@ $(TARGET): $(MAIN) $(OBJECTS)
 ## tests
 ##############################
 # libhelium.so is only used for test
-libhelium: $(TARGET_LIB)
-$(TARGET_LIB): $(OBJECTS)
-	@mkdir -p $(dir $@)
-	$(CC) $(DYLIB_FLAG) $(C_LIB) -o $(TARGET_LIB) $(OBJECTS)
+# libhelium: $(TARGET_LIB)
+# $(TARGET_LIB): $(OBJECTS)
+# 	@mkdir -p $(dir $@)
+# 	$(CC) $(DYLIB_FLAG) $(C_LIB) -o $(TARGET_LIB) $(OBJECTS)
 
-test: libhelium $(TEST_TARGET)
+# test: libhelium $(TEST_TARGET)
 
-$(TEST_TARGET): $(TEST_OBJECTS) $(TEST_MAIN)
-	$(CC) $(CFLAGS) $(C_LIB) $(C_TEST_LIB) -o $@ $^
+# $(TEST_TARGET): $(TEST_OBJECTS) $(TEST_MAIN)
+# 	$(CC) $(CFLAGS) $(C_LIB) $(C_TEST_LIB) -o $@ $^
+
+test: $(TEST_TARGET)
+
+$(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
+	$(CC) $(CFLAGS) $(C_LIB) -o $@ $^
 
 ##############################
 ## General compile rule

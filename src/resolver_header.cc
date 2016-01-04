@@ -1,6 +1,8 @@
 #include "resolver.h"
 #include "utils.h"
 
+using namespace utils;
+
 HeaderSorter* HeaderSorter::m_instance = 0;
 
 static boost::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");

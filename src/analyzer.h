@@ -3,11 +3,10 @@
 
 class Analyzer {
 public:
-  Analyzer(const TestResult &test_result);
+  Analyzer();
   virtual ~Analyzer();
   void Analyze();
 private:
-  TestResult m_test_result;
 };
 
 

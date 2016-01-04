@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <sstream>
 
+using namespace utils;
+
 Config* Config::m_instance = 0;
 
 Config::Config() {}

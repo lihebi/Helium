@@ -1,7 +1,9 @@
 #include "ast.h"
 #include "utils.h"
 #include <stdlib.h>
-#include <assert.h>>
+#include <assert.h>
+
+using namespace utils;
 
 /*******************************
  ** Util functions

@@ -66,7 +66,7 @@ private:
 
 
 
-void ctags_init(const std::string& filename);
+void ctags_load(const std::string& filename);
 std::vector<CtagsEntry> ctags_parse(const std::string& name);
 
 

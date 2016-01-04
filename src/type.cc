@@ -2,6 +2,8 @@
 #include "common.h"
 #include "utils.h"
 
+using namespace utils;
+
 static bool
 search_and_remove(std::string &s, boost::regex reg) {
   if (boost::regex_search(s, reg)) {
@@ -133,9 +135,15 @@ VariableList var_from_node(ast::Node node) {
   return vars;
 }
 
+/**
+ * Get input code for a Variable.
 
+If it is a pointer, allocate memory.
+TODO If it is an array, need a loop, and array size.
+
+ */
 std::string get_input_code(Variable v) {
-  
+  return "";
 }
 
 /*******************************

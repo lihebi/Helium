@@ -1,6 +1,7 @@
-#include <pugixml.hpp>
 #include <vector>
 #include <memory>
+
+#include "segment.h"
 
 class Reader {
 public:
@@ -14,7 +15,7 @@ private:
   void getDivideSegments();
 
 
-  std::vector<std::shared_ptr<SegmentProcessUnit> > m_seg_units;
+  std::vector<SPU> m_spus;
   std::shared_ptr<pugi::xml_document> m_doc;
   std::string m_filename;
   static int m_skip_segment; // store config number

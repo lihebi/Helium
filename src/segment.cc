@@ -464,7 +464,7 @@ std::string
 SPU::GetSupport() {
   // prepare the containers
   std::set<Snippet*> all_snippets;
-  all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
+  all_snippets = SnippetRegistry::Instance()->GetAllDeps(m_snippets);
   // simplify code: break when snippet number larger than config
   // FIXME max_snippet_number is negative?
   if (all_snippets.size() > (size_t)Config::Instance()->GetInt("max_snippet_number")) {

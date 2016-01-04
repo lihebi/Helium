@@ -3,6 +3,8 @@
 #include "snippet.h"
 #include "utils.h"
 
+using namespace utils;
+
 /*******************************
  ** ctags
  *******************************/
@@ -198,6 +200,8 @@ std::string Snippet::GetName() const {
 /*******************************
  ** Functions for get code from file based on ctags entry
  *******************************/
+
+#if 0
 
 /*
  * use depth-first-search for the first pos:line attribute
@@ -486,3 +490,5 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_code = "";
   }
 }
+
+#endif

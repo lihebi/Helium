@@ -1,24 +1,14 @@
-#include "Helium.hpp"
-#include "segment/Segment.hpp"
-#include "Reader.hpp"
-#include "Builder.hpp"
-#include "Tester.hpp"
-#include "Analyzer.hpp"
-
-#include "util/ThreadUtil.hpp"
-#include "util/FileUtil.hpp"
-#include "ArgParser.hpp"
-#include "Config.hpp"
-#include "resolver/Ctags.hpp"
-#include "resolver/SystemResolver.hpp"
-#include "resolver/HeaderSorter.hpp"
-
-#include "Global.hpp"
-
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
-
+#include "helium.h"
 #include <string>
+#include <iostream>
+#include "arg_parser.h"
+#include "snippet.h"
+#include "resolver.h"
+#include "config.h"
+#include "utils.h"
+#include "reader.h"
+
+using namespace utils;
 
 /**
  * read env variable HELIUM_HOME
@@ -60,9 +50,9 @@ Helium::Helium(int argc, char** argv) {
   /* load tag file */
   std::string tagfile = args->GetString("tagfile");
   if (tagfile.empty()) {
-    Ctags::Instance()->Load(m_folder + "/tags");
+    ctags_load(m_folder + "/tags");
   } else {
-    Ctags::Instance()->Load(tagfile);
+    ctags_load(tagfile);
   }
 
   /* load system tag file */
@@ -70,25 +60,23 @@ Helium::Helium(int argc, char** argv) {
   HeaderSorter::Instance()->Load(m_folder);
 
   /* load config */
-  Config::Instance()->Load(helium_home+"/helium.xml");
+  Config::Instance()->ParseFile(helium_home+"/helium.conf");
   
-  std::string output_folder = Config::Instance()->GetOutputFolder();
+  std::string output_folder = Config::Instance()->GetString("output_folder");
   /* prepare folder */
-  FileUtil::RemoveFolder(output_folder);
-  FileUtil::CreateFolder(output_folder);
+  remove_folder(output_folder);
+  create_folder(output_folder);
 
 
   /* get files in target folder */
-  FileUtil::GetFilesByExtension(m_folder, m_files, "c");
+  get_files_by_extension(m_folder, m_files, "c");
 }
 Helium::~Helium() {}
 
 void
 Helium::Run() {
   for (auto it=m_files.begin();it!=m_files.end();it++) {
-    global_file_error_number = 0;
-    std::shared_ptr<Reader> reader = std::make_shared<Reader>(*it);
-    reader->Read();
+    Reader(*it).Read();
   }
 }
 

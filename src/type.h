@@ -145,9 +145,11 @@ class VariableList {
 public:
   VariableList();
   ~VariableList();
-  bool Empty();
+  /* construct */
   void Add(Variable v);
   void Add(VariableList vars);
+  /* meta */
+  size_t Size() const;
   bool Empty() const;
   void Clear();
   /* add only if the name is unique */
