@@ -1,4 +1,5 @@
 #include "resolver.h"
+#include "utils.h"
 
 HeaderSorter* HeaderSorter::m_instance = 0;
 
@@ -9,13 +10,12 @@ static boost::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");
 void
 HeaderSorter::Load(const std::string& folder) {
   std::vector<std::string> headers;
-  FileUtil::GetFilesByExtension(folder, headers, "h");
+  get_files_by_extension(folder, headers, "h");
   for (auto it=headers.begin();it!=headers.end();it++) {
-    std::ifstream is;
     std::string filename = *it;
     // get only the last component(i.e. filename) in the file path
     filename = filename.substr(filename.rfind("/")+1);
-    is.open(*it);
+    std::ifstream is(*it);
     if (is.is_open()) {
       std::string line;
       while(std::getline(is, line)) {

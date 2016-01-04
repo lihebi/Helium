@@ -1,248 +1,139 @@
 #include "resolver.h"
 
-static bool
-var_in_set(const std::string& name, std::set<std::shared_ptr<Variable> >& s) {
-  for (auto it=s.begin();it!=s.end();it++) {
-    if ((*it)->GetName() == name) return true;
+using namespace ast;
+
+
+/**
+ * resolve the type of the variable "name", at the Node n in AST.
+ 
+ This is fairly easy: from the given node, go to previous sibling and parent.
+There're two kinds of stmts that defines a variable:
+- funtion parameter
+- decl_stmt
+
+Bottom Up
+ 
+ */
+Variable resolver::resolve_var(ast::Node node, const std::string& name) {
+  if (!node) return Variable(); // node is empty, return empty Variable
+  switch (node.Type()) {
+  case NK_Function: {
+    // examine function parameters
+    VariableList vars = var_from_node(node);
+    if (vars.LookUp(name)) return vars.LookUp(name);
+    break;
   }
-  return false;
+  case NK_DeclStmt: {
+    // examine decl_stmt
+    VariableList vars = var_from_node(node);
+    if (vars.LookUp(name)) return vars.LookUp(name);
+    break;
+  }
+  default: {
+    // go to next sibling or parent to recurse.
+    if (node.NextSibling()) return resolve_var(node.NextSibling(), name);
+    if (node.Parent()) return resolve_var(node.Parent(), name);
+    // if no sibling and parent, return Null variable
+    return Variable();
+  }
+  }
 }
 
-IOResolver::IOResolver() {}
 
-IOResolver::~IOResolver() {}
+/**
+ * Get a list of alive variables ** at Node "node"**.
+ This does not include undefined variable(we only search the variable defines)
 
-/*
- * Resolve the var in any nodes before `node`
- * Will search for `decl_stmt` or `params`
- * Return type name if found.
+From the node, go to previous sibling and parent.
+There're two kinds of stmts that defines a variable:
+- function parameter
+- decl_stmt
+
+The extra restriction is, the nodes to search must be inside the node list.
+
+This is somehow a symbol table. We need to use the inner most declaration for that variable.
+
+Bottom Up
  */
-std::shared_ptr<Variable>
-IOResolver::ResolveLocalVar(
-  const std::string& name,
-  pugi::xml_node node
-) {
-  //  std::cout<<"Resolve local Var: " + name + '\n'<<std::endl;
-  while (node && node.previous_sibling()) {
-    node = node.previous_sibling();
-    if (node.type() == pugi::node_element) {
-      // won't search beyond function. That will resolved as global variable
-      // FIXME: slabs_clsid in slabs.c in memcached will skip the <function> ...
-      if (strcmp(node.name(), "function") == 0) {
-        return NULL;
-      } else if (strcmp(node.name(), "decl_stmt") == 0) {
-        std::shared_ptr<Variable> v = VariableFactory::FromDeclStmt(node);
-        if (v && v->GetName() == name) {
-          return v;
-        }
-      } else if (strcmp(node.name(), "parameter_list") == 0) {
-        std::vector<std::shared_ptr<Variable> > vv = VariableFactory::FromParamList(node);
-        for (auto it=vv.begin();it!=vv.end();it++) {
-          if ((*it)->GetName() == name) {
-            return *it;
-          }
-        }
-      }
-    }
+
+void resolver::get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList &result) {
+  if (!node) return;
+  if (!nodes.Contains(node)) return; // must be inside node list given. It is not the node in the list, but the node is inside some node in the list.
+  switch (node.Type()) {
+  case NK_Function:
+  case NK_DeclStmt: {
+    VariableList vars = var_from_node(node);
+    result.AddUniqueName(vars);
+    break;
   }
-  if (node && node.parent()) {
-    return ResolveLocalVar(name, node.parent());
-  } else {
-    return NULL;
-  }
-}
-/*
- * Resolve all alive vars at this node.
- */
-void IOResolver::ResolveAliveVars(
-  pugi::xml_node node,
-  std::set<std::shared_ptr<Variable> >& resolved,
-  const Segment& context
-) {
-  // currently only consider continueous context
-  if (!context.HasNode(node)) return;
-  if (node && node.previous_sibling()) {
-    // go to previous sibling if any
-    node = node.previous_sibling();
-    if (node.type() == pugi::node_element) {
-      if (strcmp(node.name(), "decl_stmt") == 0) {
-        std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
-        if (vp) {
-          resolved.insert(vp);
-        }
-      } else if (strcmp(node.name(), "parameter_list") == 0) {
-        std::vector<std::shared_ptr<Variable> > vv = VariableFactory::FromParamList(node);
-        for (auto it=vv.begin();it!=vv.end();it++) {
-          resolved.insert(*it);
-        }
-      }
-    }
-  } else if (node.parent()) {
-    // go to parent if no previous sibling
-    node = node.parent();
-  } else {
-    // return if no even parent
+  default: {
+    if (node.NextSibling()) return get_alive_vars(node.NextSibling(), nodes, result);
+    if (node.Parent()) return get_alive_vars(node.Parent(), nodes, result);
     return;
   }
-  ResolveAliveVars(node, resolved, context);
-}
-
-void
-simplify_variable_name(std::string& s) {
-  s = s.substr(0, s.find('['));
-  s = s.substr(0, s.find("->"));
-  s = s.substr(0, s.find('.'));
-  // TODO wiki the erase-remove-idiom
-  s.erase(std::remove(s.begin(), s.end(), '('), s.end());
-  s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
-  s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
-  s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
-}
-// return name used in <expr>
-std::vector<std::string>
-parse_expr(pugi::xml_node node) {
-  std::vector<std::string> vs;
-  if (node && node.type() == pugi::node_element && strcmp(node.name(), "expr") == 0) {
-    for (pugi::xml_node n : node.children("name")) {
-      std::string s = DomUtil::GetTextContent(n);
-      simplify_variable_name(s);
-      vs.push_back(s);
-    }
-    return vs;
   }
-  return std::vector<std::string>();
 }
 
-
-void
-IOResolver::visit(
-  pugi::xml_node node,
-  std::set<std::shared_ptr<Variable> >& resolved,
-  std::set<std::shared_ptr<Variable> >& defined
-) {
-  if (node.type() == pugi::node_element) {
-    if (strcmp(node.name(), "decl_stmt") == 0) {
-      // if a decl_stmt, we add it to already defined set
-      std::shared_ptr<Variable> vp = VariableFactory::FromDeclStmt(node);
-      if (vp) {
-        defined.insert(vp);
-      }
-    } else if (strcmp(node.name(), "expr") == 0) {
-      // in #ifdef, there may be `#elif defined(__sun)`
-      // TODO even if __sun is identified as undefined,
-      // we can't resolve its type, then we will not report it...
-      if (DomUtil::InNode(node, "cpp:ifdef", 2)
-      || DomUtil::InNode(node, "cpp:elif", 2)
-      || DomUtil::InNode(node, "cpp:ifndef", 2)) {
-        return;
-      }
-      // all names used in this expr
-      // TODO NOW should use semantic instead of just parse_expr and get all names
-      std::vector<std::string> vs = parse_expr(node); // the name used in <expr>
-      for (auto it=vs.begin();it!=vs.end();it++) {
-        // check if in resolved or defined
-        if (var_in_set(*it, resolved) || var_in_set(*it, defined)) {
-          continue;
-        }
-        // actually resolve it!!
-        // What I need to do is
-        // * see if it is a C keyword
-        // * see if it is a SystemType or ThirdParty Library type
-        // * then it should be a variable type (TODO what else?)
-
-        if (Resolver::IsCKeyword(*it)) continue;
-        else if (SystemResolver::Instance()->Has(*it)) continue;
-        else if (!Ctags::Instance()->Parse(*it, "tseg").empty()) continue;
-        else {
-          std::shared_ptr<Variable> vp = ResolveLocalVar(*it, node);
-          if (vp) {
-            resolved.insert(vp);
-          } else {
-            std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it, "v");
-            if (!snippets.empty()) {
-              // TODO global variable should also be count as input??
-            } else {
-              // std::cout<<"\033[31m Fatal error: name: " << *it << "is not able to resolve. Should skip this benchmark is many this error happens."<<"\n";
-              global_error_number++;
-              if (global_error_number > 100) {
-                exit(1);
-                std::cout << "Global error number > 100" << "\n";
-                exit(1);
-              }
-            }
-          } 
-        }
-      }
-    } else if (strcmp(node.name(), "for") == 0) {
-      pugi::xml_node decl_node = node.child("init").child("decl");
-      std::shared_ptr<Variable> vp = VariableFactory::FromDecl(decl_node);
-      if (vp) {
-        defined.insert(vp);
-      }
-    }
-  }
+void resolver::get_undefined_vars(ast::NodeList nodes, VariableList &result) {
+  SymbolTable st;
+  get_undefined_vars(nodes, st, result);
 }
 
 /**
- * For all nodes, use depth-first-search for undefined vars.
+
+ * Get a list of variables that is used in the node list, but not defined within them.
+ 
+ Top Down.
+
+All variable usage is parsed as <name> tag in <expr> tag.
+But, it is not marked as variable name, or function name, or other names.
+
+We need to build the symbol table along the way.
+Currently symbol table only contains variable.
+Variables can be defined in
+- for init
+- decl_stmt
+
+ from the first node in the node list, depth first search, maintain symbol table.
+ 
+ @param[in] nodes the nodes to search in this level
+@param[in] the symbol table until this level
+@param[in,out] the variable list that is undefined
  */
-void
-IOResolver::resolveUndefinedVars(
-  std::vector<pugi::xml_node> nodes,
-  std::set<std::shared_ptr<Variable> >& resolved,
-  std::set<std::shared_ptr<Variable> > defined // copy!
-) {
-  // caution: this is a performance bottle neck.
-  // to limit the segment size may help
-  // static int count = 0;
-  // count++;
-  // std::cout << "[IOResolver::resolveUndefinedVars] " << count << std::endl;
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    visit(*it, resolved, defined);
-    std::vector<pugi::xml_node> vn;
-    for (pugi::xml_node n : it->children()) {
-      vn.push_back(n);
+void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result) {
+  for (ast::Node node : nodes.Nodes()) {
+    switch (node.Type()) {
+    case NK_DeclStmt: {
+      VariableList vars = var_from_node(node);
+      st.AddSymbol(vars);
+      break;
     }
-    resolveUndefinedVars(vn, resolved, defined);
+    case NK_For: {
+      VariableList vars = var_from_node(node);
+      st.PushLevel();
+      st.AddSymbol(vars);
+      get_undefined_vars(node.Children(), st, result);
+      st.PopLevel();
+      break;
+    }
+    case NK_Expr: {
+      
+      std::vector<std::string> names = dynamic_cast<ExprNode&>(node).IDs();//  = parse_expr(node); // TODO replace it with semantic one
+      for (auto it=names.begin();it!=names.end();++it) {
+        if (st.LookUp(*it)) continue;
+        Variable v = resolve_var(node, *it);
+        // also add unique name, because I can't think up a scenario that an inner variable with the same name is not defined
+        // and there's no way to init them anyhow.
+        // The only problem that will arise is that the block is not continuous
+        if (v) result.AddUniqueName(v);
+      }
+    }
+    default: {
+      st.PushLevel();
+      get_undefined_vars(node.Children(), st, result);
+      st.PopLevel();
+    }
+    }
   }
 }
 
-/**
- * Return undefined var for a segment.
- *
- * @param[in] segment The input segment
- * @return a set of Variables
- */
-std::set<std::shared_ptr<Variable> >
-IOResolver::ResolveUndefinedVars(
-  const Segment& segment
-) {
-  std::set<std::shared_ptr<Variable> > resolved;
-  std::set<std::shared_ptr<Variable> > defined;
-  std::vector<pugi::xml_node> vn = segment.GetNodes();
-  resolveUndefinedVars(vn, resolved, defined);
-  return resolved;
-}
-
-std::set<std::shared_ptr<Variable> >
-IOResolver::ResolveUndefinedVars(
-  pugi::xml_node node
-) {
-  std::set<std::shared_ptr<Variable> > resolved;
-  std::set<std::shared_ptr<Variable> > defined;
-  std::vector<pugi::xml_node> vn;
-  vn.push_back(node);
-  resolveUndefinedVars(vn, resolved, defined);
-  return resolved;
-}
-// get the variable name only
-void
-IOResolver::GetUndefinedVars(
-  const Segment& segment,
-  std::vector<std::string>& resolved
-) {}
-void
-IOResolver::GetUndefiendVars(
-  pugi::xml_node node,
-  std::vector<std::string>& resolved
-) {}

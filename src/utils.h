@@ -18,8 +18,6 @@ pugi::xml_node get_function_call(pugi::xml_node node);
 std::string get_text_content(pugi::xml_node node);
 std::string get_text_content_except_tag(pugi::xml_node, std::string name);
 
-
-bool in_node(pugi::xml_node node, std::string tagname, int level);
 pugi::xml_node lub(pugi::xml_node n1, pugi::xml_node n2);
 
 /*******************************

@@ -87,27 +87,28 @@ std::vector<CtagsEntry> ctags_parse(const std::string& name);
  *  m: class/struct/union members
  */
 
-enum ctags_type {
-  CTAGS_FUNC = 1,        // f: function
-  CTAGS_STRUCT,          // s: structure
-  CTAGS_ENUM,            // g: enumerator
-  CTAGS_UNION,           // u: union
-  CTAGS_DEF,             // d: define
-  CTAGS_VAR,             // v: variable
-  CTAGS_ENUM_MEM,        // e: enumerator member
-  CTAGS_TYPEDEF,         // t: typedef
-  CTAGS_CONST,           // c: constant
-  CTAGS_MEM              // m: class/struct/union member // not useful
-};
+typedef enum _SnippetKind {
+  SK_Function,      // f: function                               
+  SK_Structure,     // s: structure                              
+  SK_Enum,          // g: enumerator                             
+  SK_Union,         // u: union                                  
+  SK_Define,        // d: define                                 
+  SK_Variable,      // v: variable                               
+  SK_EnumMember,    // e: enumerator member                      
+  SK_Typedef,       // t: typedef                                
+  SK_Const,         // c: constant                               
+  SK_Member         // m: class/struct/union member // not useful
+} SnippetKind;
 
-enum ctags_type
-char_to_ctags_type(char t);
-std::set<enum ctags_type>
-string_to_ctags_types(std::string s);
+
+SnippetKind
+char_to_snippet_type(char t);
+std::set<SnippetKind>
+string_to_snippet_types(std::string s);
 char
-ctags_type_to_char(enum ctags_type t);
+snippet_type_to_char(SnippetKind t);
 std::string
-ctags_types_to_string(std::set<enum ctags_type> types);
+snippet_types_to_string(std::set<SnippetKind> types);
 
 /*******************************
  ** Functions for get code from file based on ctags entry
@@ -124,22 +125,37 @@ std::string get_typedef_code(const CtagsEntry& entry);
 /*******************************
  ** Snippet
  *******************************/
-typedef std::multimap<std::string, enum ctags_type> snippet_signature;
+typedef std::multimap<std::string, SnippetKind> snippet_signature;
+
 
 class Snippet {
 public:
   Snippet(const CtagsEntry& entry);
-  ~Snippet();
-  std::string GetName();
+  virtual ~Snippet();
+  std::string GetName() const;
+  // TODO do we really need this, since we already has the more powerful signature?
+  // Maybe a simple utility function to get coerce categorization?
+  SnippetKind Type() const;
 
-  snippet_signature GetSignature();
-  std::set<enum ctags_type> GetSignature(const std::string& name);
-  bool SatisfySignature(const std::string& name, std::set<enum ctags_type> types);
+  /* signature */
+  snippet_signature GetSignature() const;
+  /* snippet will be looked-up by name. */
+  std::set<SnippetKind> GetSignature(const std::string& name);
+  std::set<std::string> GetSignatureKey() const;
+  /* this is not name has all types, but name has a mapping to one of types */
+  bool SatisfySignature(const std::string& name, std::set<SnippetKind> types);
 
-  std::string GetCode();
+  /* meta data */
+  std::string GetCode() const;
+  int GetLineNumber() const;
+  std::string GetFileName() const;
+  int GetLOC() const;
 private:
   snippet_signature m_sig;
   std::string m_code;
+  int m_line_number;
+  std::string m_filename;
+  int m_loc;
 };
 
 
@@ -231,34 +247,26 @@ public:
     return m_instance;
   }
 
-  /**
-   * Resolve the id "name", return snippet if found, or empty set if cannot resolve.
-   Internally, it resolve the id, for all types, recursively.
-   Every time the lookup hit the record, that means for this entry, nothing needs to be done.
-   We resolve everything at once.
-   * This is the only API to add something into registry from outside.
-   * Ctags resolver will not be directly used by client.
-   */
-  std::set<Snippet*> Resolve(const std::string& name, std::string type="");
-  
-  std::set<Snippet*> GetDependence(Snippet* snippet);
+  /* resolving */
+  std::set<Snippet*> Resolve(const std::string& name);
+  std::set<Snippet*> Resolve(const std::string& name, SnippetKind kind);
+  std::set<Snippet*> Resolve(const std::string& name, std::set<SnippetKind> kinds);
+
+  std::set<Snippet*> GetDeps(Snippet* snippet);
   // recursively get dependence
-  std::set<Snippet*> GetAllDependence(Snippet* snippet);
-  std::set<Snippet*> GetAllDependence(std::set<Snippet*> snippets);
+  std::set<Snippet*> GetAllDeps(Snippet* snippet);
+  std::set<Snippet*> GetAllDeps(std::set<Snippet*> snippets);
 
 private:
+  /* lookup */
   std::set<Snippet*> lookUp(const std::string& name);
-  // look up by type
-  Snippet* lookUp(const std::string& name, char type);
-  // look up by types
-  std::set<Snippet*> lookUp(const std::string& name, const std::string& type);
+  std::set<Snippet*> lookUp(const std::string& name, SnippetKind kind);
+  std::set<Snippet*> lookUp(const std::string& name, std::set<SnippetKind> kinds);
   
-  Snippet* createSnippet(const CtagsEntry& ce);
   // Can not add dependence outside the class
-  void addDependence(Snippet *from, Snippet *to);
-  void addDependence(Snippet *from, std::set<Snippet*> to);
-  void resolveDependence(Snippet *s, int level);
-  void add(Snippet *s);
+  void addDep(Snippet *from, Snippet *to);
+  void addDeps(Snippet *from, std::set<Snippet*> to);
+  
   SnippetRegistry() {}
   // resolve dependence
   static SnippetRegistry* m_instance;
@@ -275,6 +283,16 @@ private:
    * so we map from pointer to pointer vector, representing the dependence
    */
   std::map<Snippet*, std::set<Snippet*> > m_dependence_map;
+};
+
+
+/*******************************
+ ** Subclass snipet
+ *******************************/
+
+class FunctionSnippet : public Snippet {
+public:
+  std::string GetDecl() const;
 };
 
 #endif

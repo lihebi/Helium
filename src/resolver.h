@@ -3,8 +3,9 @@
 
 #include <readtags.h>
 #include "common.h"
-#include "segment.h"
 #include "snippet.h"
+#include "ast.h"
+#include "type.h"
 
 std::set<std::string>
 extract_id_to_resolve(const std::string& code);
@@ -38,40 +39,37 @@ private:
   std::map<std::string, std::set<std::string> > m_dependence_map;
 };
 
-class IOResolver {
+
+
+/**
+ * This symbol table is only written for variable, no function support.
+So specifically lookup will return Variable.
+I need to look into how symbol table is implemented in llvm to decide how to support a fully qualified symbol table.
+ */
+class SymbolTable {
 public:
-  IOResolver();
-  ~IOResolver();
-  static std::shared_ptr<Variable> ResolveLocalVar(const std::string& var_name, pugi::xml_node node);
-  // recursively resolve
-  // output: resolved
-  static void ResolveAliveVars(
-    pugi::xml_node node,
-    std::set<std::shared_ptr<Variable> >& resolved,
-    const Segment& context
-  );
-  // get undefined variables and resolve the type
-  static std::set<std::shared_ptr<Variable> > ResolveUndefinedVars(
-    const Segment& segment
-  );
-  static std::set<std::shared_ptr<Variable> > ResolveUndefinedVars(
-    pugi::xml_node node
-  );
-  // get the variable name only
-  void GetUndefinedVars(const Segment& segment, std::vector<std::string>& resolved);
-  void GetUndefiendVars(pugi::xml_node node, std::vector<std::string>& resolved);
+  SymbolTable();
+  ~SymbolTable();
+  int CurrentLevel();
+  void PushLevel();
+  void PopLevel();
+  void AddSymbol(Variable v);
+  void AddSymbol(VariableList vars);
+  Variable LookUp(const std::string &name);
 private:
-  static void resolveUndefinedVars(
-    std::vector<pugi::xml_node> vn,
-    std::set<std::shared_ptr<Variable> >& resolved,
-    std::set<std::shared_ptr<Variable> > defined
-  );
-  static void visit(
-    pugi::xml_node node,
-    std::set<std::shared_ptr<Variable> >& resolved,
-    std::set<std::shared_ptr<Variable> >& defined
-  );
 };
 
+
+
+namespace resolver {
+  /*******************************
+   ** variable
+   *******************************/
+  
+  void get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList &result);
+  Variable resolve_var(ast::Node node, const std::string& name);
+  void get_undefined_vars(ast::NodeList nodes, VariableList &result);
+  void get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result);
+}
 
 #endif

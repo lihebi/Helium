@@ -1,4 +1,5 @@
 #include "resolver.h"
+#include <boost/regex.hpp>
 
 static const std::set<std::string> c_common_keyword = {
   // def, head

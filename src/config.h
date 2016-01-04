@@ -6,7 +6,7 @@
 
 class Config {
 public:
-  Config* Instance() {
+  static Config* Instance() {
     if (m_instance == NULL) {
       m_instance = new Config();
     }
@@ -16,11 +16,12 @@ public:
   void ParseFile(std::string filename);
   void ParseString(std::string s);
   std::string GetString(std::string name);
+  int GetInt(std::string name);
 private:
   Config();
   void parse(std::istream& is);
   std::map<std::string, std::string> m_map;
-  Config* m_instance;
+  static Config* m_instance;
 };
 
 #endif

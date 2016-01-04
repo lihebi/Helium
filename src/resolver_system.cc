@@ -1,4 +1,7 @@
 #include "resolver.h"
+#include "utils.h"
+#include <boost/filesystem.hpp>
+#include <iostream>
 
 namespace fs = boost::filesystem;
 
@@ -20,13 +23,13 @@ SystemResolver::SystemResolver() {
     std::string line;
     std::string flag;
     while (getline(is, line)) {
-      StringUtil::trim(line);
+      trim(line);
       flag = "";
       if (!line.empty() && line[0] != '#') {
         if (line.find(' ') != std::string::npos) {
           flag = line.substr(line.find(' '));
           line = line.substr(0, line.find(' '));
-          StringUtil::trim(flag);
+          trim(flag);
         }
         if (exists(line)) {
           m_headers.insert(line);
@@ -70,7 +73,7 @@ SystemResolver::ResolveType(const std::string& name) {
     pattern = pattern.substr(pattern.find("typedef"));
     pattern = pattern.substr(0, pattern.rfind(';'));
     // FIXME typedef xxx xxx yyy ;
-    std::vector<std::string> vs = StringUtil::Split(pattern);
+    std::vector<std::string> vs = split(pattern);
     // to_type is the middle part of split
     std::string to_type;
     for (size_t i=1;i<vs.size()-1;i++) {

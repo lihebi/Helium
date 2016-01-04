@@ -17,11 +17,13 @@ TEST_TARGET := bin/test
 
 SRCEXT := cc
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+
+MAIN := $(SRCDIR)/main.cc
+TEST_MAIN := $(SRCDIR)/test_main.cc
+
+SOURCES := $(filter-out $(MAIN) $(TEST_MAIN), $(SOURCES))
 # pattern substring replacement: $(patsubst pattern,replacement,text)
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-
-TEST_MAIN := test/test_main.cc
-CLIENT_SRC := client/main.cc # main.cpp is separate from other source files because I need to have a dynamic lib for test to link
 
 # get lib name for Mac OS and Linux
 SONAME :=
@@ -53,8 +55,8 @@ endif
 # -pthread
 C_TEST_LIB := -L$(BUILDDIR) -lhelium # the target helium library
 C_TEST_LIB += -lgtest # google test framework
-
 C_TEST_LIB += -lboost_unit_test_framework # boost test framework
+
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_log_setup # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
 
@@ -72,8 +74,8 @@ all: client
 # the actual execuable of Helium
 client: $(TARGET)
 # Compile client based on the object files, instead of the dynamic lib
-$(TARGET): $(CLIENT_SRC) $(OBJECTS)
-	$(CC) $(C_LIB) $(C_INC) -o $@ $(CLIENT_SRC) $(OBJECTS)
+$(TARGET): $(MAIN) $(OBJECTS)
+	$(CC) $(C_LIB) -o $@ $(CLIENT_MAIN) $(OBJECTS)
 
 
 ##############################
@@ -83,12 +85,12 @@ $(TARGET): $(CLIENT_SRC) $(OBJECTS)
 libhelium: $(TARGET_LIB)
 $(TARGET_LIB): $(OBJECTS)
 	@mkdir -p $(dir $@)
-	$(CC) $(DYLIB_FLAG) $(C_LIB) $(C_INC) -o $(TARGET_LIB) $(OBJECTS)
+	$(CC) $(DYLIB_FLAG) $(C_LIB) -o $(TARGET_LIB) $(OBJECTS)
 
 test: libhelium $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJECTS) $(TEST_MAIN)
-	$(CC) $(CFLAGS) $(C_INC) $(C_LIB) $(C_TEST_LIB) -o $@ $^
+	$(CC) $(CFLAGS) $(C_LIB) $(C_TEST_LIB) -o $@ $^
 
 ##############################
 ## General compile rule
@@ -98,7 +100,7 @@ $(TEST_TARGET): $(TEST_OBJECTS) $(TEST_MAIN)
 # compile it into the target
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(C_INC) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 ##############################
 ## other trival staff

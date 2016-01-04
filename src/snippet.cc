@@ -60,47 +60,47 @@ std::vector<CtagsEntry> ctags_parse(const std::string& name) {
  ** ctags_type enum related
  *******************************/
 
-enum ctags_type char_to_ctags_type(char t) {
+SnippetKind char_to_ctags_type(char t) {
   switch (t) {
-  case 'f': return CTAGS_FUNC;
-  case 's': return CTAGS_STRUCT;
-  case 'g': return CTAGS_ENUM;
-  case 'u': return CTAGS_UNION;
-  case 'd': return CTAGS_DEF;
-  case 'v': return CTAGS_VAR;
-  case 'e': return CTAGS_ENUM_MEM;
-  case 't': return CTAGS_TYPEDEF;
-  case 'c': return CTAGS_CONST;
-  case 'm': return CTAGS_MEM;
+  case 'f': return SK_Function;
+  case 's': return SK_Structure;
+  case 'g': return SK_Enum;
+  case 'u': return SK_Union;
+  case 'd': return SK_Define;
+  case 'v': return SK_Variable;
+  case 'e': return SK_EnumMember;
+  case 't': return SK_Typedef;
+  case 'c': return SK_Const;
+  case 'm': return SK_Member;
   default: assert(false);
   }
 }
 
-std::set<enum ctags_type> string_to_ctags_types(std::string s) {
-  std::set<enum ctags_type> types;
+std::set<SnippetKind> string_to_ctags_types(std::string s) {
+  std::set<SnippetKind> types;
   for (auto it=s.begin();it!=s.end();it++) {
     types.insert(char_to_ctags_type(*it));
   }
   return types;
 }
 
-char ctags_type_to_char(enum ctags_type t) {
+char ctags_type_to_char(SnippetKind t) {
   switch (t) {
-  case CTAGS_FUNC : return 'f';
-  case CTAGS_STRUCT : return 's';
-  case CTAGS_ENUM : return 'g';
-  case CTAGS_UNION : return 'u';
-  case CTAGS_DEF : return 'd';
-  case CTAGS_VAR : return 'v';
-  case CTAGS_ENUM_MEM : return 'e';
-  case CTAGS_TYPEDEF : return 't';
-  case CTAGS_CONST : return 'c';
-  case CTAGS_MEM : return 'm';
+  case SK_Function : return 'f';
+  case SK_Structure : return 's';
+  case SK_Enum : return 'g';
+  case SK_Union : return 'u';
+  case SK_Define : return 'd';
+  case SK_Variable : return 'v';
+  case SK_EnumMember : return 'e';
+  case SK_Typedef : return 't';
+  case SK_Const : return 'c';
+  case SK_Member : return 'm';
   default: assert(false);
   }
 }
 
-std::string ctags_types_to_string(std::set<enum ctags_type> types) {
+std::string ctags_types_to_string(std::set<SnippetKind> types) {
   std::string s;
   for (auto it=types.begin();it!=types.end();it++) {
     s += ctags_type_to_char(*it);
@@ -117,14 +117,14 @@ std::string ctags_types_to_string(std::set<enum ctags_type> types) {
 
  This should be a multimap
  {
- "conn": CTAGS_STRUCT,
- "conn": CTAGS_TYPEDEF
+ "conn": SK_Structure,
+ "conn": SK_Typedef
  }
 
  {
- "ctags_type": CTAGS_ENUM,
- "CTAGS_CONST": CTAGS_ENUM_MEM,
- "CTAGS_MEM": CTAGS_ENUM_MEM
+ "ctags_type": SK_Enum,
+ "SK_Const": SK_EnumMember,
+ "SK_Member": SK_EnumMember
  }
 
  The snippet will only be indexed by the name, e.g. "conn".
@@ -132,7 +132,7 @@ std::string ctags_types_to_string(std::set<enum ctags_type> types) {
  typedef struct {
  } ALIAS_NAME;
 
- Then the signature is {"ALIAS_NAME", CTAGS_TYPEDEF} ? but actually it is a structure.
+ Then the signature is {"ALIAS_NAME", SK_Typedef} ? but actually it is a structure.
 
  每个模块只专心做一件事，所以这个不必理会，直接按照typedef来说。
  因为大体上用到snippet只是要知道其code，以及能够管理dependency和lookup。
@@ -141,16 +141,16 @@ std::string ctags_types_to_string(std::set<enum ctags_type> types) {
 
 */
 snippet_signature
-Snippet::GetSignature() {
+Snippet::GetSignature() const {
   return m_sig;
 }
 /**
  * @param[in] name only get the types of the id(key) "name"
  */
-std::set<enum ctags_type>
+std::set<SnippetKind>
 Snippet::GetSignature(const std::string& name) {
   std::pair <snippet_signature::iterator, snippet_signature::iterator> ret; 
-  std::set<enum ctags_type> types;
+  std::set<SnippetKind> types;
   ret = m_sig.equal_range(name);
   for (auto it=ret.first; it!=ret.second;it++) {
     types.insert(it->second);
@@ -159,10 +159,21 @@ Snippet::GetSignature(const std::string& name) {
 }
 
 /**
+ * Get all keys of m_sig. Which is all keywords to index this snippet in registry
+ */
+std::set<std::string> Snippet::GetSignatureKey() const {
+  std::set<std::string> result;
+  for (auto sig : m_sig) {
+    result.insert(sig.first);
+  }
+  return result;
+}
+
+/**
  * True if this snippet has a key "name", whose type has a map to ONE of "types"
  */
 bool
-Snippet::SatisfySignature(const std::string& name, std::set<enum ctags_type> types) {
+Snippet::SatisfySignature(const std::string& name, std::set<SnippetKind> types) {
   std::pair <snippet_signature::iterator, snippet_signature::iterator> ret;
   ret = m_sig.equal_range(name);
   for (auto it=ret.first; it!=ret.second;it++) {
@@ -175,7 +186,7 @@ Snippet::SatisfySignature(const std::string& name, std::set<enum ctags_type> typ
 
 Snippet::~Snippet() {}
 // used only for print purpose! Human readable.
-std::string Snippet::GetName() {
+std::string Snippet::GetName() const {
   return "NO NAME";
 }
 
@@ -404,70 +415,70 @@ Snippet::Snippet(const CtagsEntry& entry) {
    * 1. get code
    * 2. get signature
    */
-  enum ctags_type type = char_to_ctags_type(entry.GetType());
+  SnippetKind type = char_to_ctags_type(entry.GetType());
   switch(type) {
-  case CTAGS_FUNC: {
+  case SK_Function: {
     m_code = get_func_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_FUNC);
+    m_sig.emplace(entry.GetName(), SK_Function);
     break;
   }
-  case CTAGS_STRUCT: {
+  case SK_Structure: {
     m_code = get_struct_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_STRUCT);
+    m_sig.emplace(entry.GetName(), SK_Structure);
     break;
   }
-  case CTAGS_ENUM: {
+  case SK_Enum: {
     m_code = get_enum_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_ENUM);
+    m_sig.emplace(entry.GetName(), SK_Enum);
     // std::vector<std::string> members = get_enum_members(m_code);
     // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
     std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
     for (std::string m : members) {
-      m_sig.emplace(m, CTAGS_ENUM_MEM);
+      m_sig.emplace(m, SK_EnumMember);
     }
     break;
   }
-  case CTAGS_UNION: {
+  case SK_Union: {
     m_code = get_union_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_UNION);
+    m_sig.emplace(entry.GetName(), SK_Union);
     break;
   }
-  case CTAGS_DEF: {
+  case SK_Define: {
     m_code = get_def_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_DEF);
+    m_sig.emplace(entry.GetName(), SK_Define);
     break;
   }
-  case CTAGS_VAR: {
+  case SK_Variable: {
     m_code = get_var_code(entry);
-    m_sig.emplace(entry.GetName(), CTAGS_VAR);
+    m_sig.emplace(entry.GetName(), SK_Variable);
     break;
   }
-  case CTAGS_ENUM_MEM: {
+  case SK_EnumMember: {
     m_code = get_enum_code(entry);
     // std::vector<std::string> members = get_enum_members(m_code);
     std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
     for (std::string m : members) {
-      m_sig.emplace(m, CTAGS_ENUM_MEM);
+      m_sig.emplace(m, SK_EnumMember);
     }
     // enum name
     std::string name = query_code_first(m_code, "//enum/name");
-    if (!name.empty()) m_sig.emplace(name, CTAGS_ENUM);
+    if (!name.empty()) m_sig.emplace(name, SK_Enum);
     // possibly typedef
     name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, CTAGS_TYPEDEF);
+    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
     break;
   }
-  case CTAGS_TYPEDEF: {
+  case SK_Typedef: {
     m_code = get_typedef_code(entry);
     // tyepdef
     std::string name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, CTAGS_TYPEDEF);
+    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
     // TODO NOW also needs to test if it is a struct, union, or enum
     break;
   }
-  // case CTAGS_CONST:
+  // case SK_Const:
   //   m_code = get_const_code(entry);
-  // case CTAGS_MEM:
+  // case SK_Member:
   //   m_code = get_mem_code(entry);
   default:
     // should we reach here?

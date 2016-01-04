@@ -3,26 +3,40 @@
 
 #include <pugixml.hpp>
 #include <vector>
-#include "variable.h"
+#include "type.h"
 
 class Segment {
 public:
   Segment ();
   virtual ~Segment ();
-  void PushBack(pugi::xml_node node);
-  void PushFront(pugi::xml_node node);
+  /* construct */
+  void PushBack(ast::Node node);
+  void PushBack(ast::NodeList nodes);
+  void PushFront(ast::Node node);
+  void PushFront(ast::NodeList nodes);
   void Clear();
   void Print();
-  std::vector<pugi::xml_node> GetNodes() const;
-  pugi::xml_node GetFirstNode() const;
+
+  /* grow */
+  void Grow();
+  
+  /* Getter */
+  ast::NodeList GetNodes() const;
+  ast::Node GetFirstNode() const;
+  /* text */
   std::string GetText();
   std::string GetTextExceptComment();
   int GetLineNumber() const;
   int GetLOC() const {return m_loc;}
-  bool HasNode(pugi::xml_node node) const;
+  /* attr */
+  bool HasNode(ast::Node node) const;
+  bool IsValid() const {return m_valid;}
 private:
-  std::vector<pugi::xml_node> m_nodes;
+  void updateMeta();
+  ast::NodeList m_nodes;
+  ast::NodeList m_function_nodes;
   int m_loc = 0;
+  bool m_valid = false;
 };
 
 class SPU {
@@ -31,8 +45,8 @@ public:
   ~SPU();
   // Reader functions
   void SetSegment(const Segment &s);
-  void AddNode(pugi::xml_node);
-  void AddNodes(std::vector<pugi::xml_node>);
+  void AddNode(ast::Node);
+  void AddNodes(ast::NodeList);
   void Process();
   bool IncreaseContext();
   // builder functions
@@ -42,14 +56,14 @@ public:
   bool IsValid();
   bool CanContinue() const {return m_can_continue;}
 
-  std::set<std::shared_ptr<Variable> > GetInputVariables() const {return m_inv;}
-  std::set<std::shared_ptr<Variable> > GetOutputVariables() const {return m_outv;}
+  VariableList GetInputVariables() const {return m_inv;}
+  VariableList GetOutputVariables() const {return m_outv;}
 
   // general info
   const std::string& GetFilename() const {return m_filename;}
-  int GetLineNumber() const {return m_segment->GetLineNumber();}
+  int GetLineNumber() const {return m_segment.GetLineNumber();}
 
-  std::shared_ptr<Segment> GetSegment() const {return m_segment;}
+  Segment GetSegment() const {return m_segment;}
 
 private:
   std::string getContext();
@@ -65,24 +79,24 @@ private:
 
   void simplifyCode();
   void unsimplifyCode();
-  void doSimplifyCode(pugi::xml_node node, pugi::xml_node key);
+  void doSimplifyCode(ast::Node node, ast::Node key);
 
   // builder function
   std::string getInputCode();
 
   std::string m_filename;
 
-  std::shared_ptr<Segment> m_segment;
-  std::shared_ptr<Segment> m_context;
-  std::set<std::shared_ptr<Variable> > m_inv;
-  std::set<std::shared_ptr<Variable> > m_outv;
-  pugi::xml_node m_output_node;
+  Segment m_segment;
+  Segment m_context;
+  VariableList m_inv;
+  VariableList m_outv;
+  ast::Node m_output_node;
   std::set<Snippet*> m_snippets;
 
-  std::vector<pugi::xml_node> m_functions;
-  int m_linear_search_value;
+  std::vector<ast::Node> m_functions;
+  int m_linear_search_value = 0;
   bool m_can_continue = true;
-  std::vector<pugi::xml_node> m_omit_nodes;
+  std::vector<ast::Node> m_omit_nodes;
 };
 
 

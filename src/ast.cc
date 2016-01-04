@@ -1,11 +1,11 @@
 #include "ast.h"
 #include "utils.h"
 #include <stdlib.h>
+#include <assert.h>>
 
 /*******************************
  ** Util functions
  *******************************/
-
 
 /**
  * valid ast includes: expr, decl, break, macro, for, while, if, function
@@ -199,49 +199,195 @@ lub(pugi::xml_node n1, pugi::xml_node n2) {
  ** AST functions
  *******************************/
 
+/*******************************
+ ** ast::Doc
+ *******************************/
+
+using namespace ast;
+
+Doc::Doc() {}
+Doc::~Doc() {
+  if (m_doc) m_doc.reset();
+  assert(!m_doc);
+}
+
+bool Doc::IsValid() {
+  if (m_doc) return true;
+  else return false;
+}
+
+Node Doc::Root() {
+  return Node(this, m_doc.document_element());
+}
+
 /**
  * Init ast_doc* from file. Needs to be destroyed.
  */
-ast_doc* ast_init_from_file(const std::string &filename) {
-  ast_doc *doc = (ast_doc*)malloc(sizeof(ast_doc));
-  file2xml(filename, doc->doc);
-  return doc;
+void Doc::InitFromFile(const std::string &filename) {
+  Doc *doc = (Doc*)malloc(sizeof(Doc));
+  file2xml(filename, doc->m_doc);
 }
 
 /**
- * Init ast_doc* from string. Need to be destroyed.
+ * Init doc* from string. Need to be destroyed.
  */
-ast_doc* ast_init_from_string(const std::string& code) {
-  ast_doc *doc = (ast_doc*)malloc(sizeof(ast_doc));
-  string2xml(code, doc->doc);
-  return doc;
+void Doc::InitFromString(const std::string& code) {
+  Doc *doc = (Doc*)malloc(sizeof(Doc));
+  string2xml(code, doc->m_doc);
 }
 
-/**
- * Destroy ast_doc*.
- */
-void ast_destroy(ast_doc *doc) {
-  if (doc != NULL) {
-    doc->doc.reset();
+/*******************************
+ ** Node
+ *******************************/
+
+Node::Node() {}
+Node::Node(Doc* doc, pugi::xml_node node) : m_doc(doc), m_node(node) {}
+Node::~Node() {}
+bool Node::IsValid() const {
+  if (m_doc && m_doc->IsValid()) return true;
+  else return false;
+}
+Node Node::Root() {
+  return Node(m_doc, m_node.root());
+}
+
+Node Node::PreviousSibling() {
+  pugi::xml_node node = m_node.previous_sibling();
+  if (node) {
+    return Node(m_doc, node);
+  } else {
+    return Node(); // null node.
   }
-  free(doc);
+}
+
+Node Node::NextSibling() {
+  pugi::xml_node node = m_node.next_sibling();
+  if (node) {
+    return Node(m_doc, node);
+  } else {
+    return Node();
+  }
+}
+
+
+/*
+ * return the first line markup of the node
+ * -1 if no markup found
+ */
+int
+Node::GetFirstLineNumber() const {
+  pugi::xml_node node;
+  try {
+    node = m_node.select_node("//*[@pos::line]").node();
+  } catch (pugi::xpath_exception) {
+    // TODO
+  }
+  if (node) return atoi(node.attribute("pos::line").value());
+  return -1;
+}
+
+/* traverse */
+
+Node Node::Parent() {}
+
+Node Node::FirstChild() {}
+
+NodeList Node::Children() {}
+
+std::string Node::Text() const {
+  return get_text_content(m_node);
+}
+std::string Node::TextExceptComment() const {
+  return get_text_content_except_tag(m_node, "comment");
+}
+
+bool Node::Contains(Node n) {
+  return (lub(n.m_node, m_node) == m_node);
 }
 
 /**
- * Get root from ast_node.
+ * test if node is within <level> levels inside a <tagname>
  */
-ast_node ast_get_root(ast_node node) {
-  node.node = node.node.root();
-  return node;
+// bool
+// in_node(pugi::xml_node node, std::string tagname, int level) {
+//   while (node.parent() && level>0) {
+//     node = node.parent();
+//     level--;
+//     if (node.type() != pugi::node_element) return false;
+//     if (node.name() == tagname) return true;
+//   }
+//   return false;
+// }
+
+
+bool in_node(Node node, NodeKind kind) {
+  while ( (node = node.Parent()) ) {
+    if (node.Type() == kind) return true;
+  }
+  return false;
 }
 
-/**
- * Get root from ast_doc.
- */
-ast_node ast_get_root(ast_doc *doc) {
-  ast_node node;
-  node.doc = doc;
-  node.node = doc->doc.document_element();
-  return node;
+/*******************************
+ ** NodeList
+ *******************************/
+
+NodeList::NodeList() {}
+NodeList::~NodeList() {}
+
+// if node is a child noe of m_nodes. Caution: not node is in m_node!
+bool NodeList::Contains(Node n) const {
+  for (Node node : m_nodes) {
+    if (node.Contains(n)) return true;
+  }
+  return false;
+}
+std::vector<Node> NodeList::Nodes() const {
+  return m_nodes;
+}
+void NodeList::PushBack(Node node) {
+  m_nodes.push_back(node);
+}
+void NodeList::PushBack(NodeList nodes) {
+  for (Node node : nodes.Nodes()) {
+    m_nodes.push_back(node);
+  }
+}
+
+void NodeList::PushFront(Node node) {
+  m_nodes.insert(m_nodes.begin(), node);
+}
+
+void NodeList::PushFront(NodeList nodes) {
+  std::vector<Node> _nodes = nodes.Nodes();
+  m_nodes.insert(m_nodes.begin(), _nodes.begin(), _nodes.end());
+}
+void NodeList::Clear() {
+  m_nodes.clear();
+}
+
+
+/*******************************
+ ** AST subclasses
+ *******************************/
+static void
+simplify_variable_name(std::string& s) {
+  s = s.substr(0, s.find('['));
+  s = s.substr(0, s.find("->"));
+  s = s.substr(0, s.find('.'));
+  // TODO wiki the erase-remove-idiom
+  s.erase(std::remove(s.begin(), s.end(), '('), s.end());
+  s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
+  s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
+  s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
+}
+
+std::vector<std::string> ExprNode::IDs() {
+  std::vector<std::string> ids;
+  for (pugi::xml_node n : m_node.children("name")) {
+    std::string s = get_text_content(n);
+    simplify_variable_name(s);
+    ids.push_back(s);
+  }
+  return ids;
 }
 

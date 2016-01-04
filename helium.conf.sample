@@ -12,15 +12,12 @@ output_folder = helium_result
 # code_selection=loop
 code_selection = divide
 
-segment_timeout = 2000 # mili seconds
-
 ##############################
 ## Context
 ##############################
 
 context_search_method = linear
 context_search_value = 0
-max_context_size = 1000 # measured by loc
 
 # TODO unfeasible path v.s. dead code?
 
@@ -30,7 +27,7 @@ max_context_size = 1000 # measured by loc
 
 instrument_position = loop
 instrument_type = vairable
-
+                
 ##############################
 ## Code Simplification
 ##############################
@@ -55,3 +52,11 @@ test_timeout = 100 # mili-seconds
 analyze_type = invariant
 analyze_timeout = 100
 
+##############################
+## scalability limit
+##############################
+max_snippet_number = 100
+max_snippet_size = 2000
+segment_timeout = 2000 # mili seconds
+max_segment_size = 50
+max_context_size = 1000 # measured by loc

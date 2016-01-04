@@ -249,19 +249,6 @@ get_text_content_except(pugi::xml_node node, std::string name) {
 // }
 
 
-/**
- * test if node is within <level> levels inside a <tagname>
- */
-bool
-in_node(pugi::xml_node node, std::string tagname, int level) {
-  while (node.parent() && level>0) {
-    node = node.parent();
-    level--;
-    if (node.type() != pugi::node_element) return false;
-    if (node.name() == tagname) return true;
-  }
-  return false;
-}
 
 /**
  * least upper bound of two nodes

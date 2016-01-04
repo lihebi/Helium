@@ -1,68 +1,70 @@
 #include "segment.h"
+#include "utils.h"
+#include <iostream>
+#include "resolver.h"
 
+#include "config.h"
+
+using namespace ast;
 
 Segment::Segment () {}
 Segment::~Segment () {}
 
-void Segment::PushBack(pugi::xml_node node) {
-  m_nodes.push_back(node);
-  std::string text = GetText();
-  m_loc = std::count(text.begin(), text.end(), '\n');
+void Segment::PushBack(Node node) {
+  m_nodes.PushBack(node);
+  updateMeta();
 }
-void Segment::PushFront(pugi::xml_node node) {
-  m_nodes.insert(m_nodes.begin(), node);
+void Segment::PushBack(NodeList nodes) {
+  m_nodes.PushBack(nodes);
+  updateMeta();
+}
+void Segment::PushFront(Node node) {
+  m_nodes.PushFront(node);
+  updateMeta();
+}
+
+void Segment::PushFront(NodeList nodes) {
+  m_nodes.PushFront(nodes);
+  updateMeta();
+}
+
+void Segment::updateMeta() {
   std::string text = GetText();
   m_loc = std::count(text.begin(), text.end(), '\n');
 }
 void Segment::Clear() {
-  m_nodes.clear();
+  m_nodes.Clear();
   m_loc = 0;
 }
 
-/*
- * Return line number of first node.
- * 0 if no pos::line found for all node.
- */
-int
-Segment::GetLineNumber() const {
-  pugi::xml_node node;
-  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    try {
-      node = it->select_node("//*[@pos::line]").node();
-    } catch(pugi::xpath_exception) {
-      // TODO
-    }
-    if (node) return atoi(node.attribute("pos::line").value());
+int Segment::GetLineNumber() const {
+  for (Node n : m_nodes.Nodes()) {
+    // FIXME 0 is a magic number! The acutal value inside Node is -1 ..
+    if (n.GetFirstLineNumber() > 0) return n.GetFirstLineNumber();
   }
   return 0;
 }
 
-std::vector<pugi::xml_node> Segment::GetNodes() const {
+NodeList Segment::GetNodes() const {
   return m_nodes;
 }
 
-pugi::xml_node
+Node
 Segment::GetFirstNode() const {
-  if (m_nodes.empty()) {
+  if (m_nodes.Empty()) {
     // this should be a node_null
-    return pugi::xml_node();
+    return Node();
   } else {
-    return m_nodes[0];
-  }
-}
-
-void Segment::Print() {
-  std::cout<<"=======Segment======="<<std::endl;
-  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    std::cout<<DomUtil::GetTextContent(*it)<<std::endl;
+    return m_nodes.Get(0);
   }
 }
 
 std::string
 Segment::GetText() {
   std::string s;
-  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    s += DomUtil::GetTextContent(*it) + '\n';
+  for (Node node : m_nodes.Nodes()) {
+    s += node.Text();
+    // s += '\n'; // FIXME need this?
   }
   return s;
 }
@@ -70,18 +72,47 @@ Segment::GetText() {
 std::string
 Segment::GetTextExceptComment() {
   std::string s;
-  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    s += DomUtil::GetTextContentExcept(*it, "comment") + '\n';
+  for (Node node : m_nodes.Nodes()) {
+    s += node.TextExceptComment();
   }
   return s;
 }
 
 bool
-Segment::HasNode(pugi::xml_node node) const {
-  for (auto it=m_nodes.begin();it!=m_nodes.end();it++) {
-    if (DomUtil::lub(*it, node) == *it) return true;
+Segment::HasNode(Node node) const {
+  return m_nodes.Contains(node);
+}
+
+void Segment::Grow() {
+  Node first_node = m_nodes.Get(0);
+  Node n = first_node.PreviousSibling();
+  // has previous sibling
+  if (n) {
+    this->PushFront(n);
+    m_valid = true;
+    goto after;
   }
-  return false;
+  n = first_node.Parent();
+  // don't have parent
+  if (!n) {
+    m_valid = false;
+    return;
+  }
+  // parent is function
+  if (n.Type() == NK_Function) {
+    m_function_nodes.PushBack(n);
+    n = get_function_call(n);
+    // can't get function callsite
+    if (!n) {
+      m_valid = false;
+      return;
+    }
+  }
+  this->Clear();
+  this->PushFront(n);
+ after:
+  // TODO check size of segment
+  return;
 }
 
 
@@ -89,12 +120,7 @@ Segment::HasNode(pugi::xml_node node) const {
  ** SPU
  *******************************/
 
-SPU::SPU(const std::string& filename)
-: m_filename(filename),
-m_segment(std::make_shared<Segment>()),
-m_context(std::make_shared<Segment>()),
-m_linear_search_value(0) {
-}
+SPU::SPU(const std::string& filename) : m_filename(filename) {}
 SPU::~SPU() {
   // remove instrument when deconstruct
   unsimplifyCode();
@@ -104,18 +130,16 @@ SPU::~SPU() {
 }
 
 void SPU::SetSegment(const Segment &s) {
-  m_segment = std::make_shared<Segment>(s);
+  m_segment = s;
 }
-void SPU::AddNode(pugi::xml_node node) {
-  m_segment->PushBack(node);
+void SPU::AddNode(Node node) {
+  m_segment.PushBack(node);
 }
-void SPU::AddNodes(std::vector<pugi::xml_node> nodes) {
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    m_segment->PushBack(*it);
-  }
+void SPU::AddNodes(NodeList nodes) {
+  m_segment.PushBack(nodes);
 }
 void SPU::Process() {
-  m_context = std::make_shared<Segment>(*m_segment);
+  m_context = m_segment;
   // doing library call experiment
   resolveInput();
   resolveOutput();
@@ -127,9 +151,9 @@ bool
 SPU::IsValid() {
   // check if valid
   // check segment size
-  std::string content = m_segment->GetText();
+  std::string content = m_segment.GetText();
   int size = std::count(content.begin(), content.end(), '\n');
-  if (size > Config::Instance()->GetMaxSegmentSize()) {
+  if (size > Config::Instance()->GetInt("max_segment_size")) {
     return false;
   }
   // check if the segment is in a funciton prototype that contains enum parameter or return type
@@ -138,8 +162,8 @@ SPU::IsValid() {
   // FIXME maybe the segment itself is not in a enum function,
   // but when doing context search, it may go into a interprocedure that is in enum function
   // So check m_context every time doing context search should be complete solution.
-  pugi::xml_node node = m_segment->GetFirstNode();
-  if (node && DomUtil::InNode(node, "function", 100)) {
+  Node node = m_segment.GetFirstNode();
+  if (node && in_node(node, NK_Function)) {
     return true;
   } else {
     // TODO the segment not in function(the function prototype has enum)
@@ -151,40 +175,10 @@ SPU::IsValid() {
 
 bool SPU::IncreaseContext() {
   m_linear_search_value++;
-  if (m_linear_search_value > Config::Instance()->GetMaxLinearSearchValue()) {
+  if (m_linear_search_value > Config::Instance()->GetInt("context_search_value")) {
     return false;
   }
-  unsimplifyCode();
-  // increase context
-  pugi::xml_node first_node = m_context->GetNodes()[0];
-  pugi::xml_node tmp = DomUtil::GetPreviousASTElement(first_node);
-  if (tmp) {
-    // sibling nodes
-    m_context->PushFront(tmp);
-  } else {
-    tmp = DomUtil::GetParentASTElement(first_node);
-    if (!tmp) return false;
-    if (strcmp(tmp.name(), "function") == 0) {
-      // interprocedure
-      // TODO function should be in generate.c
-      // TODO segment should be recognized(kept)
-      m_functions.push_back(tmp);
-      tmp = DomUtil::GetFunctionCall(tmp);
-      if (!tmp) return false;
-      m_context->Clear();
-      m_context->PushBack(tmp);
-    } else {
-      // parent node
-      m_context->Clear();
-      m_context->PushBack(tmp);
-    }
-  }
-  if (m_context->GetLOC() > Config::Instance()->GetMaxContextSize()) {
-    return false;
-  }
-  if (Config::Instance()->WillSimplifyBranch()) {
-    simplifyCode();
-  }
+  m_context.Grow();
   resolveInput();
   resolveOutput();
   resolveSnippets();
@@ -194,160 +188,137 @@ bool SPU::IncreaseContext() {
 void SPU::resolveInput() {
   // TODO input variable type may be structure. These structure should appear in support.h
   // std::set<Variable> vv;
-  m_inv.clear();
-  m_inv = IOResolver::ResolveUndefinedVars(*m_context);
-  for (auto it=m_inv.begin();it!=m_inv.end();it++) {
-    if ((*it)->GetType()->GetTypeKind() == SYSTEM_TYPE) {
-    }
-  }
+  m_inv.Clear();
+  resolver::get_undefined_vars(m_context.GetNodes(), m_inv);
 }
 
 /**
  * Recursively determine if the node and its children may influence key
  */
-void
-SPU::doSimplifyCode(pugi::xml_node node, pugi::xml_node key) {
-  if (DomUtil::lub(node, key) == node) {
-    // node is the ancestor of key
-    for (pugi::xml_node n : node.children()) {
-      doSimplifyCode(n, key);
-    }
-  } else if (strcmp(node.name(), "then") == 0 ||
-    strcmp(node.name(), "else") == 0 ||
-    strcmp(node.name(), "elseif") == 0 ||
-    strcmp(node.name(), "case") == 0 ||
-    strcmp(node.name(), "default") == 0
-  ) {
-    // cannot just use AST nodes because <condition> is also a node, but it is not a node in CFG
-    // so we enumerate the branches which are able to eliminate: if <then> <else> <elseif>, switch <case> <default>
-    // node is in different branch
-    pugi::xml_node ancestor = DomUtil::lub(node, key);
-    while (m_context->HasNode(ancestor)) {
-      // here we can only consider the possible loop back edge(without goto)
-      // because we only have AST info, no semantic.
-      // specifically, we have <while> <do> <for>
-      if(strcmp(ancestor.name(), "while") == 0 ||
-        strcmp(ancestor.name(), "do") == 0 ||
-        strcmp(ancestor.name(), "for") == 0
-      ) {
-        return;
-      }
-      ancestor = ancestor.parent();
-    }
-    // no loop ancestor in the context
-    // the mark attribute
-    node.append_attribute("helium-omit");
-    // std::string tmp = DomUtil::GetTextContent(node);
-    m_omit_nodes.push_back(node);
-  }
-}
+// void
+// SPU::doSimplifyCode(Node node, Node key) {
+//   if (DomUtil::lub(node, key) == node) {
+//     // node is the ancestor of key
+//     for (Node n : node.children()) {
+//       doSimplifyCode(n, key);
+//     }
+//   } else if (strcmp(node.name(), "then") == 0 ||
+//     strcmp(node.name(), "else") == 0 ||
+//     strcmp(node.name(), "elseif") == 0 ||
+//     strcmp(node.name(), "case") == 0 ||
+//     strcmp(node.name(), "default") == 0
+//   ) {
+//     // cannot just use AST nodes because <condition> is also a node, but it is not a node in CFG
+//     // so we enumerate the branches which are able to eliminate: if <then> <else> <elseif>, switch <case> <default>
+//     // node is in different branch
+//     Node ancestor = DomUtil::lub(node, key);
+//     while (m_context->HasNode(ancestor)) {
+//       // here we can only consider the possible loop back edge(without goto)
+//       // because we only have AST info, no semantic.
+//       // specifically, we have <while> <do> <for>
+//       if(strcmp(ancestor.name(), "while") == 0 ||
+//         strcmp(ancestor.name(), "do") == 0 ||
+//         strcmp(ancestor.name(), "for") == 0
+//       ) {
+//         return;
+//       }
+//       ancestor = ancestor.parent();
+//     }
+//     // no loop ancestor in the context
+//     // the mark attribute
+//     node.append_attribute("helium-omit");
+//     // std::string tmp = get_text_content(node);
+//     m_omit_nodes.push_back(node);
+//   }
+// }
 
-void
-SPU::simplifyCode() {
-  // remove the AST branches in the context that has no influence on the segment
-  std::vector<pugi::xml_node> nodes = m_context->GetNodes();
-  pugi::xml_node segment_node = m_segment->GetFirstNode();
+// void
+// SPU::simplifyCode() {
+//   // remove the AST branches in the context that has no influence on the segment
+//   std::vector<Node> nodes = m_context->GetNodes();
+//   Node segment_node = m_segment->GetFirstNode();
 
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    doSimplifyCode(*it, segment_node);
-  }
-}
+//   for (auto it=nodes.begin();it!=nodes.end();it++) {
+//     doSimplifyCode(*it, segment_node);
+//   }
+// }
 
-void
-SPU::unsimplifyCode() {
-  for (auto it=m_omit_nodes.begin();it!=m_omit_nodes.end();it++) {
-    it->remove_attribute(it->attribute("helium-omit"));
-  }
-}
+// void
+// SPU::unsimplifyCode() {
+//   for (auto it=m_omit_nodes.begin();it!=m_omit_nodes.end();it++) {
+//     it->remove_attribute(it->attribute("helium-omit"));
+//   }
+// }
 
-pugi::xml_node
-get_outmost_loop_node(std::shared_ptr<Segment> segment) {
-  std::vector<pugi::xml_node> nodes = segment->GetNodes();
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    if (strcmp(it->name(), "for") == 0 || strcmp(it->name(), "while") == 0) {
-      return *it;
-    }
-  }
-  return pugi::xml_node();
-}
+/*******************************
+ ** TODO instrument
+ *******************************/
+// Node
+// get_outmost_loop_node(Segment segment) {
+//   NodeList nodes = segment.GetNodes();
+//   for (auto it=nodes.begin();it!=nodes.end();it++) {
+//     if (strcmp(it->name(), "for") == 0 || strcmp(it->name(), "while") == 0) {
+//       return *it;
+//     }
+//   }
+//   return Node();
+// }
 
-void
-SPU::instrument() {
-  std::string instrument_position = Config::Instance()->GetInstrumentPosition();
-  std::string instrument_type = Config::Instance()->GetInstrumentType();
-  if (instrument_position.empty() || instrument_type.empty()) return;
-  if (instrument_position == "loop") {
-    pugi::xml_node loop_node = get_outmost_loop_node(m_segment);
-    pugi::xml_node block_node = loop_node.child("block");
-    if (block_node) {
-      // create only <helium_instrument> node, for latter remove
-      pugi::xml_node new_node = block_node.insert_child_before(
-        "helium_instrument", block_node.last_child()
-      );
-      new_node.append_child(pugi::node_pcdata).set_value("\n// @Output\n");
-      m_output_node = new_node;
-    }
-  }
-}
+// void
+// SPU::instrument() {
+//   std::string instrument_position = Config::Instance()->GetInstrumentPosition();
+//   std::string instrument_type = Config::Instance()->GetInstrumentType();
+//   if (instrument_position.empty() || instrument_type.empty()) return;
+//   if (instrument_position == "loop") {
+//     Node loop_node = get_outmost_loop_node(m_segment);
+//     Node block_node = loop_node.child("block");
+//     if (block_node) {
+//       // create only <helium_instrument> node, for latter remove
+//       Node new_node = block_node.insert_child_before(
+//         "helium_instrument", block_node.last_child()
+//       );
+//       new_node.append_child(pugi::node_pcdata).set_value("\n// @Output\n");
+//       m_output_node = new_node;
+//     }
+//   }
+// }
 
-void
-SPU::uninstrument() {
-  // pugi::xml_node seg_parent_node = m_segment->GetFirstNode().parent();
-  // pugi::xpath_node_set helium_instruments = seg_parent_node.select_nodes("//helium_instrument");
-  // for (auto it=helium_instruments.begin();it!=helium_instruments.end();it++) {
-  //   pugi::xml_node tmp = it->parent();
-  //   tmp.remove_child(it->node());
-  // }
-  if (m_output_node) {
-    pugi::xml_node tmp = m_output_node.parent();
-    // this remove_child will cause error!!! crash!
-    tmp.remove_child(m_output_node);
-    m_output_node = pugi::xml_node();
-  }
-}
+// void
+// SPU::uninstrument() {
+//   // Node seg_parent_node = m_segment.GetFirstNode().parent();
+//   // pugi::xpath_node_set helium_instruments = seg_parent_node.select_nodes("//helium_instrument");
+//   // for (auto it=helium_instruments.begin();it!=helium_instruments.end();it++) {
+//   //   Node tmp = it->parent();
+//   //   tmp.remove_child(it->node());
+//   // }
+//   if (m_output_node) {
+//     Node tmp = m_output_node.parent();
+//     // this remove_child will cause error!!! crash!
+//     tmp.remove_child(m_output_node);
+//     m_output_node = Node();
+//   }
+// }
 
-static void
-remove_used_vars(const std::string& code, std::set<std::shared_ptr<Variable> >& s) {
-  // only consider the code after '='
-  std::vector<std::string> lines = StringUtil::Split(code, '\n');
-  std::string tmp;
-  for (auto line:lines) {
-    if (line.rfind('=') != std::string::npos) {
-      line = line.substr(line.rfind('='));
-      tmp += line+'\n';
-    }
-  }
-  // remove from the set if the var is used(in to_resolve set)
-  std::set<std::string> to_resolve = Resolver::ExtractToResolve(tmp);
-  // TODO extract erase while iterating pattern into wiki
-  for (auto it=s.begin();it!=s.end();) {
-    if (to_resolve.find((*it)->GetName()) != to_resolve.end()) {
-      it = s.erase(it);
-    } else {
-      it++;
-    }
-  }
-}
 
 void SPU::resolveOutput() {
   // std::set<Variable> vv;
   // TODO point of interest
-  uninstrument();
-  instrument();
-  m_outv.clear();
+  // uninstrument();
+  // instrument();
+  m_outv.Clear();
   if (m_output_node) {
-    IOResolver::ResolveAliveVars(m_output_node, m_outv, *m_context);
-    // m_outv = m_inv;
-    if (Config::Instance()->WillSimplifyOutputVar()) {
-      // remove already used vars in the segment/context
-      // m_context->GetNodes();
-      std::string context = getContext();
-      remove_used_vars(context, m_outv);
-    }
-    for (auto it=m_outv.begin();it!=m_outv.end();it++) {
-      pugi::xml_node node = m_output_node.append_child("outv");
-      node.append_child(pugi::node_pcdata).set_value((*it)->GetOutputCode().c_str());
-    }
+    resolver::get_alive_vars(m_output_node, m_context.GetNodes(), m_outv);
+    // if (Config::Instance()->WillSimplifyOutputVar()) {
+    //   // remove already used vars in the segment/context
+    //   // m_context->GetNodes();
+    //   std::string context = getContext();
+    //   remove_used_vars(context, m_outv);
+    // }
+    /* TODO output instrument */
+    // for (auto it=m_outv.begin();it!=m_outv.end();it++) {
+    //   Node node = m_output_node.append_child("outv");
+    //   node.append_child(pugi::node_pcdata).set_value((*it)->GetOutputCode().c_str());
+    // }
   }
 }
 
@@ -357,11 +328,12 @@ void SPU::resolveSnippets() {
   // std::string code = m_context->GetText();
   // Now we assume the comments exist in the code (no longer do the remove comment preprocessing)
   // We should not resolve the words in comments as identifiers
-  std::string code = m_context->GetTextExceptComment();
+  std::string code = m_context.GetTextExceptComment();
   code += getInputCode();
-  std::set<std::string> ss = Resolver::ExtractToResolve(code);
-  for (auto it=ss.begin();it!=ss.end();it++) {
-    std::set<Snippet*> snippets = Ctags::Instance()->Resolve(*it);
+  // TODO use semantic when resolving
+  std::set<std::string> ids = extract_id_to_resolve(code);
+  for (auto it=ids.begin();it!=ids.end();++it) {
+    std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(*it);
     m_snippets.insert(snippets.begin(), snippets.end());
   }
 }
@@ -379,7 +351,7 @@ sortSnippets(std::set<Snippet*> all) {
   std::set<std::string> all_files;
   std::map<std::string, std::vector<Snippet*> > file_to_snippet_map;
   for (auto it=all.begin();it!=all.end();it++) {
-    std::string filename = (*it)->GetFilename();
+    std::string filename = (*it)->GetFileName();
     all_files.insert(filename);
     if (file_to_snippet_map.find(filename) == file_to_snippet_map.end()) {
       file_to_snippet_map[filename] = std::vector<Snippet*>();
@@ -414,7 +386,7 @@ sortSnippets(std::set<Snippet*> all) {
 
 std::string
 SPU::getContext() {
-  std::string context = m_context->GetText();
+  std::string context = m_context.GetText();
   boost::regex return_regex("\\breturn\\b[^;]*;");
   context = boost::regex_replace<boost::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
   // FIXME when doing context search, break may appear, while we don't have the outside loop
@@ -424,11 +396,12 @@ SPU::getContext() {
 std::string
 SPU::getInputCode() {
   std::string s;
-  for (auto it=m_inv.begin();it!=m_inv.end();it++) {
-    s += (*it)->GetInputCode();
+  for (Variable var : m_inv.Variables()) {
+    s += get_input_code(var);
   }
   return s;
 }
+
 std::string
 getHeader() {
   std::string s;
@@ -453,7 +426,7 @@ SPU::GetMain() {
   s += getInputCode();
   s += "// Context\n";
   s += "// " + m_filename + "\n";
-  // s += m_context->GetText();
+  // s += m_context.GetText();
   s += getContext();
   s += "\n}";
   return s;
@@ -493,7 +466,8 @@ SPU::GetSupport() {
   std::set<Snippet*> all_snippets;
   all_snippets = SnippetRegistry::Instance()->GetAllDependence(m_snippets);
   // simplify code: break when snippet number larger than config
-  if (all_snippets.size() > Config::Instance()->GetMaxSnippetNumber()) {
+  // FIXME max_snippet_number is negative?
+  if (all_snippets.size() > (size_t)Config::Instance()->GetInt("max_snippet_number")) {
     m_can_continue = false;
   }
   // simplify code: break when snippet size larger than config
@@ -501,7 +475,7 @@ SPU::GetSupport() {
   for (auto it=all_snippets.begin();it!=all_snippets.end();it++) {
     _loc += (*it)->GetLOC();
   }
-  if (_loc > Config::Instance()->GetMaxSnippetSize()) {
+  if (_loc > Config::Instance()->GetInt("max_snippet_size")) {
     m_can_continue = false;
   }
   // sort the snippets
@@ -515,16 +489,16 @@ SPU::GetSupport() {
   std::string code_func_decl;
   std::string code_func;
   for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    if ((*it)->GetType() == 'f') {
+    if ((*it)->Type() == SK_Function) {
       // functions
-      code_func_decl += (*it)->GetDecl()+"\n";
+      code_func_decl += dynamic_cast<FunctionSnippet*>(*it)->GetDecl()+"\n";
       code_func +=
-      "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
+      "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
       + "\n" + (*it)->GetCode() + '\n';
     } else {
       // all other codes
       code +=
-      "// " + (*it)->GetFilename() + ":" + std::to_string((*it)->GetLineNumber())
+      "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
       + "\n" + (*it)->GetCode() + '\n';
     }
   }

@@ -5,6 +5,7 @@
 
 #include "snippet.h"
 #include "utils.h"
+#include "resolver.h"
 
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
@@ -13,61 +14,124 @@ SnippetRegistry* SnippetRegistry::m_instance = 0;
  ** Resolve
  *******************************/
 
+
+// TODO need manually update if the enum changes. Any way to auto it?
+static const std::set<SnippetKind> all_snippet_kinds = {
+  SK_Function,
+  SK_Structure,
+  SK_Enum,
+  SK_Union,
+  SK_Define,
+  SK_Variable,
+  SK_EnumMember,
+  SK_Typedef,
+  SK_Const,
+  SK_Member
+};
+
+
+std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name) {
+  return Resolve(name, all_snippet_kinds);
+}
+
+std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, SnippetKind kind) {
+  std::set<SnippetKind> kinds;
+  kinds.insert(kind);
+  return Resolve(name, kinds);
+}
+
 /**
- * @param[in] name id to resolve
- * @param[in] type a string, each
+ * Main work-horse of Resolving.
+ * Need to check if it is already in.
+ * If yes, get the specific kind by lookup.
+ * If not, resolve all IDs; Add them to index; return specific kinds.
+ *
+ * Resolve the id "name", return snippet if found, or empty set if cannot resolve.
+ Internally, it resolve the id, for all types, recursively.
+ Every time the lookup hit the record, that means for this entry, nothing needs to be done.
+ We resolve everything at once.
+ * This is the only API to add something into registry from outside.
+ * Ctags resolver will not be directly used by client.
  */
-std::set<Snippet*> Resolve(const std::string& name, std::set<enum ctags_type> types) {
-  std::set<Snippet*> snippets;
+
+std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<SnippetKind> kinds) {
+  // hit
+  if (!lookUp(name, kinds).empty()) {
+    return lookUp(name, kinds);
+  }
+  // doesn't hit, resolve it!
+  std::set<Snippet*> result;
+  std::set<Snippet*> all_snippets;
+  std::set<Snippet*> direct_snippets;
   std::vector<CtagsEntry> entries = ctags_parse(name);
+  // construct all snippets that is directly related to name(the entries returned by ctags lookup), for ALL kinds
   if (!entries.empty()) {
     for (auto it=entries.begin();it!=entries.end();it++) {
       CtagsEntry ce = *it;
       Snippet *s = new Snippet(ce);
-      if (s->SatisfyType(name, types)) {
-        snippets.insert(s);
-      }
+      direct_snippets.insert(s);
     }
   }
-  return snippets;
+  // TODO remove duplicate in direct_snippets
+  // CAUTION: need to be freed if duplicate
+  ;
+  // get the specific kinds. NOTE: this is the only place that check the kinds
+  for (auto it=direct_snippets.begin();it!=direct_snippets.end();++it) {
+    if ((*it)->SatisfySignature(name, kinds)) {
+      result.insert(*it);
+    }
+  }
+  // recursively resolve and add to local storage(m_snippets).
+  // CAUTION: store pointers and will never be freed.
+  for (auto it=direct_snippets.begin(), end=direct_snippets.end(); it!=end; ++it) {
+    m_snippets.insert(*it);
+    // also take care of m_id_map and m_dependence_map
+    std::set<std::string> keys = (*it)->GetSignatureKey();
+    for (std::string key : keys) {
+      m_id_map[key].insert(*it);
+    }
+  }
+  
+  // recursive
+  for (auto it=direct_snippets.begin(), end=direct_snippets.end(); it!=end; ++it) {
+    std::string code = (*it)->GetCode();
+    std::set<std::string> ids = extract_id_to_resolve(code);
+    for (std::string id : ids) {
+      std::set<Snippet*> snippets = Resolve(id);
+      addDeps(*it, snippets);
+    }
+  }
+  return result;
 }
 
+
 /**************************
- ******* Look Up **********
+ ** Look Up
  **************************/
-std::set<Snippet*>
-SnippetRegistry::lookUp(const std::string& name) {
+
+std::set<Snippet*> SnippetRegistry::lookUp(const std::string& name) {
+  // return lookUp(name, all_snippet_kinds);
   if (m_id_map.find(name) != m_id_map.end()) {
     return m_id_map[name];
   }
   return std::set<Snippet*>();
 }
-// look up by type
-Snippet*
-SnippetRegistry::lookUp(const std::string& name, char type) {
-  if (m_id_map.find(name) != m_id_map.end()) {
-    std::set<Snippet*> vs = m_id_map[name];
-    for (auto it=vs.begin();it!=vs.end();it++) {
-      if ((*it)->GetType() == type) {
-        return *it;
-      }
-    }
-  }
-  return NULL;
+std::set<Snippet*> SnippetRegistry::lookUp(const std::string& name, SnippetKind kind) {
+  std::set<SnippetKind> kinds = {kind};
+  return lookUp(name, kinds);
 }
-// look up by types
-std::set<Snippet*>
-SnippetRegistry::lookUp(const std::string& name, const std::string& type) {
+std::set<Snippet*> SnippetRegistry::lookUp(const std::string& name, std::set<SnippetKind> kinds) {
+  std::set<Snippet*> result;
   if (m_id_map.find(name) != m_id_map.end()) {
-    std::set<Snippet*> vs = m_id_map[name];
-    for (auto it=vs.begin();it!=vs.end();it++) {
-      if (type.find((*it)->GetType()) == std::string::npos) {
-        vs.erase(it);
+    // return m_id_map[name];
+    std::set<Snippet*> snippets = m_id_map[name];
+    for (auto it=snippets.begin();it!=snippets.end();++it) {
+      if ((*it)->SatisfySignature(name, kinds)) {
+        result.insert(*it);
       }
     }
-    return vs;
   }
-  return std::set<Snippet*>();
+  return result;
 }
 
 /**************************
@@ -75,7 +139,7 @@ SnippetRegistry::lookUp(const std::string& name, const std::string& type) {
  **************************/
 
 std::set<Snippet*>
-SnippetRegistry::GetDependence(Snippet* snippet) {
+SnippetRegistry::GetDeps(Snippet* snippet) {
   if (m_dependence_map.find(snippet) != m_dependence_map.end()) {
     return m_dependence_map[snippet];
   } else {
@@ -84,10 +148,10 @@ SnippetRegistry::GetDependence(Snippet* snippet) {
 }
 // recursively get dependence
 std::set<Snippet*>
-SnippetRegistry::GetAllDependence(Snippet* snippet) {
+SnippetRegistry::GetAllDeps(Snippet* snippet) {
   std::set<Snippet*> snippets;
   snippets.insert(snippet);
-  return GetAllDependence(snippets);
+  return GetAllDeps(snippets);
 }
 
 /*
@@ -95,7 +159,7 @@ SnippetRegistry::GetAllDependence(Snippet* snippet) {
  * return including the params
  */
 std::set<Snippet*>
-SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
+SnippetRegistry::GetAllDeps(std::set<Snippet*> snippets) {
   std::set<Snippet*> all_snippets;
   std::set<Snippet*> to_resolve;
   for (auto it=snippets.begin();it!=snippets.end();it++) {
@@ -106,7 +170,7 @@ SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
     Snippet *tmp = *(to_resolve.begin());
     to_resolve.erase(tmp);
     all_snippets.insert(tmp);
-    std::set<Snippet*> dep = GetDependence(tmp);
+    std::set<Snippet*> dep = GetDeps(tmp);
     for (auto it=dep.begin();it!=dep.end();it++) {
       if (all_snippets.find(*it) == all_snippets.end()) {
         // not found, new snippet
@@ -121,71 +185,8 @@ SnippetRegistry::GetAllDependence(std::set<Snippet*> snippets) {
  ********** Add ***********
  **************************/
 
-Snippet*
-SnippetRegistry::Add(const CtagsEntry& ce) {
-  // lookup to save computation
-  // FIXME may not be the first .. but since we have type insure, it should be no problem.
-  Snippet *s = LookUp(ce.GetName(), get_true_type(ce));
-  if (s) return s;
-  s = createSnippet(ce);
-  if (!s) return NULL;
-  add(s);
-  resolveDependence(s, 0);
-  return s;
-}
-
 void
-SnippetRegistry::resolveDependence(Snippet *s, int level) {
-  // We should not limit here techniquelly, because we once we have the dependence break,
-  // We have no way to resolve the dependence after the break
-  // e.g. a => b => c => d => e
-  // If we break on c, then we will not have d and e.
-  // everytime we resolve a,b,c we know that it is already resolved, we will not try to resolve again.
-  std::set<std::string> ss = Resolver::ExtractToResolve(s->GetCode());
-  for (auto it=ss.begin();it!=ss.end();it++) {
-    if (!LookUp(*it).empty()) {
-      // this will success if any snippet for a string is added.
-      // So add all snippets for one string, then call this function recursively.
-      addDependence(s, LookUp(*it));
-    } else {
-      std::vector<CtagsEntry> vc = Ctags::Instance()->Parse(*it);
-      if (!vc.empty()) {
-        std::set<Snippet*> added_snippets;
-        // first: create and add, remove duplicate if possible
-        for (auto jt=vc.begin();jt!=vc.end();jt++) {
-          Snippet *s = LookUp(jt->GetName(), get_true_type(*jt));
-          if (s) continue;
-          Snippet *snew = createSnippet(*jt);
-          if (snew) {
-            add(snew);
-            added_snippets.insert(snew);
-          }
-        }
-        // then: add dependence adn resolve dependence
-        addDependence(s, added_snippets);
-        for (auto jt=added_snippets.begin();jt!=added_snippets.end();jt++) {
-          resolveDependence(*jt, level+1);
-        }
-      }
-    }
-  }
-}
-
-// this is the only way to add snippets to SnippetRegistry, aka m_snippets
-void
-SnippetRegistry::add(Snippet *s) {
-  m_snippets.insert(s);
-  std::set<std::string> keywords = s->GetKeywords();
-  for (auto it=keywords.begin();it!=keywords.end();it++) {
-    if (m_id_map.find(*it) == m_id_map.end()) {
-      m_id_map[*it] = std::set<Snippet*>();
-    }
-    m_id_map[*it].insert(s);
-  }
-}
-
-void
-SnippetRegistry::addDependence(Snippet *from, Snippet *to) {
+SnippetRegistry::addDep(Snippet *from, Snippet *to) {
   if (m_dependence_map.find(from) == m_dependence_map.end()) {
     m_dependence_map[from] = std::set<Snippet*>();
   }
@@ -193,9 +194,9 @@ SnippetRegistry::addDependence(Snippet *from, Snippet *to) {
 }
 
 void
-SnippetRegistry::addDependence(Snippet *from, std::set<Snippet*> to) {
+SnippetRegistry::addDeps(Snippet *from, std::set<Snippet*> to) {
   for (auto it=to.begin();it!=to.end();it++) {
-    addDependence(from, *it);
+    addDep(from, *it);
   }
 }
 
