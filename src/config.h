@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "arg_parser.h"
+
 class Config {
 public:
   static Config* Instance() {
@@ -15,8 +17,9 @@ public:
   ~Config();
   void ParseFile(std::string filename);
   void ParseString(std::string s);
-  std::string GetString(std::string name) const;
-  int GetInt(std::string name) const;
+  std::string GetString(std::string name);
+  int GetInt(std::string name);
+  void Overwrite(ArgParser &args);
 private:
   Config();
   void parse(std::istream& is);

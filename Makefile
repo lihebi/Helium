@@ -64,7 +64,7 @@ C_LIB += -lgtest
 ##############################
 ## Targets
 ##############################
-.PHONY: all clean doc libhelium test install
+.PHONY: all clean doc libhelium test install tmp
 
 all: client
 
@@ -133,3 +133,7 @@ systype.tags:
 		--exclude=openssl\
 		--exclude=xorg\
 		-R /usr/include/ /usr/local/include
+
+# this is what every that is handy
+tmp:
+	helium test/benchmark

@@ -10,25 +10,6 @@ namespace fs = boost::filesystem;
  ** string utils
  *******************************/
 
-/**
- * Trim a string. Modify in position
- */
-// trim from start
-inline std::string &utils::ltrim(std::string &s) {
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-  return s;
-}
-
-// trim from end
-inline std::string &utils::rtrim(std::string &s) {
-  s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-  return s;
-}
-
-// trim from both ends
-inline std::string &utils::trim(std::string &s) {
-  return ltrim(rtrim(s));
-}
 
 // gtest document says the test_case_name and test_name should not contain _
 TEST(utils_test_case, trim_test) {
@@ -284,6 +265,7 @@ utils::remove_folder(const std::string& folder) {
  */
 void
 utils::create_folder(const std::string& folder) {
+  if (folder.empty()) return;
   fs::path folder_path(folder);
   if (!fs::exists(folder_path)) {
     fs::create_directories(folder_path);

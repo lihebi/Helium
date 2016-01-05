@@ -30,12 +30,9 @@ load_helium_home() {
 static void
 create_tagfile(const std::string& folder, const std::string& file) {
   std::string cmd = "ctags -f ";
-  // cmd += folder + "/tags";
-  // cmd += "tags"; // current folder
   cmd += file;
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
   cmd += folder;
-  std::cout<< "create_ctags: " << cmd <<std::endl;
   std::system(cmd.c_str());
 }
 
@@ -87,17 +84,18 @@ Helium::Helium(int argc, char** argv) {
   }
 
   /* load system tag file */
-  SystemResolver::Instance()->Load(helium_home + "systype.tags");
+  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   HeaderSorter::Instance()->Load(m_folder);
 
   /* load config */
   Config::Instance()->ParseFile(helium_home+"/helium.conf");
+  Config::Instance()->Overwrite(args);
   
-  std::string output_folder = Config::Instance()->GetString("output_folder");
+  std::string output_folder = Config::Instance()->GetString("output-folder");
+  assert(!output_folder.empty() && "output-folder is not set");
   /* prepare folder */
   remove_folder(output_folder);
   create_folder(output_folder);
-
 
   /* get files in target folder */
   get_files_by_extension(m_folder, m_files, "c");
