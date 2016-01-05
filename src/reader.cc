@@ -175,11 +175,11 @@ Reader::Read() {
 }
 
 void Reader::getSegments() {
-  if (Config::Instance()->GetString("code_selection_method") == "loop") {
+  if (Config::Instance()->GetString("code-selection-method") == "loop") {
     getLoopSegments();
-  } else if (Config::Instance()->GetString("code_selection_method") == "annotation") {
+  } else if (Config::Instance()->GetString("code-selection-method") == "annotation") {
     getAnnotationSegments();
-  } else if (Config::Instance()->GetString("code_selection_method") == "divide") {
+  } else if (Config::Instance()->GetString("code-selection-method") == "divide") {
     getDivideSegments();
   }
 }

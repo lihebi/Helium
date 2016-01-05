@@ -76,7 +76,7 @@ Tester::Test() {
   VariableList outv = m_spu.GetOutputVariables();
   int size = outv.Size();
   std::vector<std::string> results = split(result);
-  std::string outcsv = Config::Instance()->GetString("output_folder") + "/out.csv";
+  std::string outcsv = Config::Instance()->GetString("output-folder") + "/out.csv";
   std::ofstream os;
   os.open(outcsv);
   if (os.is_open()) {

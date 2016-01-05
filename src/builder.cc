@@ -10,12 +10,12 @@ Builder::~Builder() {}
 
 void
 Builder::writeMain() {
-  utils::write_file(Config::Instance()->GetString("output_folder")+"/generate.c", m_main);
+  utils::write_file(Config::Instance()->GetString("output-folder")+"/generate.c", m_main);
 }
 
 void Builder::writeSupport() {
   utils::write_file(
-    Config::Instance()->GetString("output_folder")+"/support.h",
+    Config::Instance()->GetString("output-folder")+"/support.h",
     m_support
   );
 }
@@ -23,7 +23,7 @@ void Builder::writeSupport() {
 void
 Builder::writeMakefile() {
   utils::write_file(
-    Config::Instance()->GetString("output_folder")+"/Makefile",
+    Config::Instance()->GetString("output-folder")+"/Makefile",
     m_makefile
   );
 }
@@ -40,8 +40,8 @@ Builder::Build() {
 
 void
 Builder::Compile() {
-  std::string clean_cmd = "make clean -C " + Config::Instance()->GetString("output_folder");
-  std::string cmd = "make -C " + Config::Instance()->GetString("output_folder");
+  std::string clean_cmd = "make clean -C " + Config::Instance()->GetString("output-folder");
+  std::string cmd = "make -C " + Config::Instance()->GetString("output-folder");
   // if (!Config::Instance()->WillShowCompileError()) {
   //   cmd += " 2>/dev/null";
   // }
@@ -64,5 +64,5 @@ Builder::Compile() {
 }
 
 std::string Builder::GetExecutable() {
-  return Config::Instance()->GetString("output_folder") + "/a.out";
+  return Config::Instance()->GetString("output-folder") + "/a.out";
 }
