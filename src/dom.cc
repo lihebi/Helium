@@ -22,6 +22,10 @@ bool is_valid_ast(const char* name) {
   else return false;
 }
 
+bool is_valid_ast(pugi::xml_node node) {
+  return is_valid_ast(node.name());
+}
+
 pugi::xml_node get_previous_ast_element(pugi::xml_node node) {
   while (node) {
     node = node.previous_sibling();
@@ -52,17 +56,17 @@ pugi::xml_node get_parent_ast_element(pugi::xml_node node) {
  * @param[in] node the <function> node in xml
  * @return the node <call> of the function. Or null_node is not found.
  */
-pugi::xml_node get_function_call(pugi::xml_node node) {
-  const char *func_name = node.child_value("name");
-  pugi::xpath_node_set call_nodes = node.root().select_nodes("//call");
-  for (auto it=call_nodes.begin();it!=call_nodes.end();it++) {
-    if (strcmp(it->node().child_value("name"), func_name) == 0) {
-      return get_parent_ast_element(it->node());
-    }
-  }
-  pugi::xml_node null_node;
-  return null_node;
-}
+// pugi::xml_node get_function_call(pugi::xml_node node) {
+//   const char *func_name = node.child_value("name");
+//   pugi::xpath_node_set call_nodes = node.root().select_nodes("//call");
+//   for (auto it=call_nodes.begin();it!=call_nodes.end();it++) {
+//     if (strcmp(it->node().child_value("name"), func_name) == 0) {
+//       return get_parent_ast_element(it->node());
+//     }
+//   }
+//   pugi::xml_node null_node;
+//   return null_node;
+// }
 
 /**
  * Get text content of node.

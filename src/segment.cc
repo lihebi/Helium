@@ -11,20 +11,20 @@ Segment::Segment () {}
 Segment::~Segment () {}
 
 void Segment::PushBack(Node node) {
-  m_nodes.PushBack(node);
+  m_nodes.push_back(node);
   updateMeta();
 }
 void Segment::PushBack(NodeList nodes) {
-  m_nodes.PushBack(nodes);
+  m_nodes.insert(m_nodes.end(), nodes.begin(), nodes.end());
   updateMeta();
 }
 void Segment::PushFront(Node node) {
-  m_nodes.PushFront(node);
+  m_nodes.insert(m_nodes.begin(), node);
   updateMeta();
 }
 
 void Segment::PushFront(NodeList nodes) {
-  m_nodes.PushFront(nodes);
+  m_nodes.insert(m_nodes.begin(), nodes.begin(), nodes.end());
   updateMeta();
 }
 
@@ -33,12 +33,12 @@ void Segment::updateMeta() {
   m_loc = std::count(text.begin(), text.end(), '\n');
 }
 void Segment::Clear() {
-  m_nodes.Clear();
+  m_nodes.clear();
   m_loc = 0;
 }
 
 int Segment::GetLineNumber() const {
-  for (Node n : m_nodes.Nodes()) {
+  for (Node n : m_nodes) {
     // FIXME 0 is a magic number! The acutal value inside Node is -1 ..
     if (n.GetFirstLineNumber() > 0) return n.GetFirstLineNumber();
   }
@@ -51,18 +51,18 @@ NodeList Segment::GetNodes() const {
 
 Node
 Segment::GetFirstNode() const {
-  if (m_nodes.Empty()) {
+  if (m_nodes.empty()) {
     // this should be a node_null
     return Node();
   } else {
-    return m_nodes.Get(0);
+    return m_nodes[0];
   }
 }
 
 std::string
 Segment::GetText() {
   std::string s;
-  for (Node node : m_nodes.Nodes()) {
+  for (Node node : m_nodes) {
     s += node.Text();
     // s += '\n'; // FIXME need this?
   }
@@ -72,7 +72,7 @@ Segment::GetText() {
 std::string
 Segment::GetTextExceptComment() {
   std::string s;
-  for (Node node : m_nodes.Nodes()) {
+  for (Node node : m_nodes) {
     s += node.TextExceptComment();
   }
   return s;
@@ -80,11 +80,18 @@ Segment::GetTextExceptComment() {
 
 bool
 Segment::HasNode(Node node) const {
-  return m_nodes.Contains(node);
+  for (Node node : m_nodes) {
+    if (node.Contains(node)) return true;
+  }
+  return false;
 }
 
 void Segment::Grow() {
-  Node first_node = m_nodes.Get(0);
+  if (m_nodes.empty()) {
+    m_valid = false;
+    return;
+  }
+  Node first_node = m_nodes[0];
   Node n = first_node.PreviousSibling();
   // has previous sibling
   if (n) {
@@ -99,9 +106,10 @@ void Segment::Grow() {
     return;
   }
   // parent is function
-  if (n.Type() == NK_Function) {
-    m_function_nodes.PushBack(n);
-    n = get_function_call(n);
+  if (n.Kind() == NK_Function) {
+    m_function_nodes.push_back(n);
+    CallNode call_node = dynamic_cast<FunctionNode&>(n).GetCallNode();
+    n = call_node;
     // can't get function callsite
     if (!n) {
       m_valid = false;

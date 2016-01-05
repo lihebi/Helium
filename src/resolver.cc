@@ -48,9 +48,30 @@ is_c_keyword(const std::string& s) {
 
 SymbolTable::SymbolTable() {}
 SymbolTable::~SymbolTable() {}
-int SymbolTable::CurrentLevel() {}
-void SymbolTable::PushLevel() {}
-void SymbolTable::PopLevel() {}
-void SymbolTable::AddSymbol(Variable v) {}
-void SymbolTable::AddSymbol(VariableList vars) {}
-Variable SymbolTable::LookUp(const std::string &name) {}
+int SymbolTable::CurrentLevel() {
+  return m_tables.size();
+}
+void SymbolTable::PushLevel() {
+  m_tables.push_back(std::map<std::string, Variable>());
+}
+void SymbolTable::PopLevel() {
+  m_tables.pop_back();
+}
+void SymbolTable::AddSymbol(Variable v) {
+  m_tables.back()[v.Name()] = v;
+}
+void SymbolTable::AddSymbol(VariableList vars) {
+  for (Variable v : vars.Variables()) {
+    m_tables.back()[v.Name()] = v;
+  }
+}
+Variable SymbolTable::LookUp(const std::string &name) {
+  // FIXME back() will copy?
+  // FIXME performance
+  for (int i=m_tables.size()-1;i>=0;i--) {
+    if (m_tables[i].find(name) != m_tables[i].end()) {
+      return m_tables[i][name];
+    }
+  }
+  return Variable();
+}

@@ -126,7 +126,7 @@ public:
   Variable();
   ~Variable() {}
   
-  const std::string& GetName() const {return m_name;}
+  const std::string& Name() const {return m_name;}
   const Type GetType() const { return m_type;}
 
   operator bool();
@@ -140,6 +140,8 @@ private:
   int m_pointer;
   int m_dimension;
 };
+
+
 
 class VariableList {
 public:

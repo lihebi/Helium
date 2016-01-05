@@ -16,7 +16,7 @@ Bottom Up
  */
 Variable resolver::resolve_var(ast::Node node, const std::string& name) {
   if (!node) return Variable(); // node is empty, return empty Variable
-  switch (node.Type()) {
+  switch (node.Kind()) {
   case NK_Function: {
     // examine function parameters
     VariableList vars = var_from_node(node);
@@ -37,6 +37,7 @@ Variable resolver::resolve_var(ast::Node node, const std::string& name) {
     return Variable();
   }
   }
+  return Variable();
 }
 
 
@@ -58,8 +59,9 @@ Bottom Up
 
 void resolver::get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList &result) {
   if (!node) return;
-  if (!nodes.Contains(node)) return; // must be inside node list given. It is not the node in the list, but the node is inside some node in the list.
-  switch (node.Type()) {
+  // if (!nodes.Contains(node)) return; // must be inside node list given. It is not the node in the list, but the node is inside some node in the list.
+  if (ast::contains(nodes, node)) return;
+  switch (node.Kind()) {
   case NK_Function:
   case NK_DeclStmt: {
     VariableList vars = var_from_node(node);
@@ -101,8 +103,8 @@ Variables can be defined in
 @param[in,out] the variable list that is undefined
  */
 void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result) {
-  for (ast::Node node : nodes.Nodes()) {
-    switch (node.Type()) {
+  for (ast::Node node : nodes) {
+    switch (node.Kind()) {
     case NK_DeclStmt: {
       VariableList vars = var_from_node(node);
       st.AddSymbol(vars);

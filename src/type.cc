@@ -3,6 +3,7 @@
 #include "utils.h"
 
 using namespace utils;
+using namespace ast;
 
 static bool
 search_and_remove(std::string &s, boost::regex reg) {
@@ -120,23 +121,36 @@ Variable::operator bool() {
 VariableList var_from_node(ast::Node node) {
   VariableList vars;
   std::map<std::string, std::string> plain_vars;
-  switch (node.Type()) {
+  switch (node.Kind()) {
   case ast::NK_Function: {
-    plain_vars = dynamic_cast<ast::FunctionNode&>(node).ParamList();
+    // plain_vars = dynamic_cast<ast::FunctionNode&>(node).ParamList();
+    ParamNodeList params = dynamic_cast<ast::FunctionNode&>(node).Params();
+    for (ParamNode param : params) {
+      DeclNode decl = param.Decl();
+      std::string name = decl.Name();
+      TypeNode type = decl.Type();
+      // FIXME this may be just part of it. Or very long.
+      std::string type_str = type.Name();
+      vars.Add(Variable(type_str, name));
+    }
     break;
   }
   case ast::NK_DeclStmt: {
+    // from name to type
     plain_vars = dynamic_cast<ast::DeclStmtNode&>(node).Decls();
+    for (auto it=plain_vars.begin();it!=plain_vars.end();++it) {
+      vars.Add(Variable(it->second, it->first));
+    }
     break;
   }
   case ast::NK_For: {
     plain_vars = dynamic_cast<ast::ForNode&>(node).InitDecls();
+    for (auto it=plain_vars.begin();it!=plain_vars.end();++it) {
+      vars.Add(Variable(it->second, it->first));
+    }
     break;
   }
   default: {}
-  }
-  for (auto it=plain_vars.begin();it!=plain_vars.end();++it) {
-    vars.Add(Variable(it->first, it->second));
   }
   return vars;
 }
@@ -204,17 +218,60 @@ std::string get_input_code(Variable v) {
  ** VariableList
  *******************************/
 
+
+
 VariableList::VariableList() {}
 VariableList::~VariableList() {}
 /* construct */
-void VariableList::Add(Variable v) {}
-void VariableList::Add(VariableList vars) {}
+void VariableList::Add(Variable v) {
+  m_vars.push_back(v);
+}
+void VariableList::Add(VariableList vars) {
+  for (Variable v : vars.Variables()) {
+    m_vars.push_back(v);
+  }
+}
 /* meta */
-size_t VariableList::Size() const {}
-bool VariableList::Empty() const {}
-void VariableList::Clear() {}
+size_t VariableList::Size() const {
+  return m_vars.size();
+}
+bool VariableList::Empty() const {
+  return m_vars.empty();
+}
+
+void VariableList::Clear() {
+  m_vars.clear();
+}
 /* add only if the name is unique */
-void VariableList::AddUniqueName(Variable v) {}
-void VariableList::AddUniqueName(VariableList vars) {}
-Variable VariableList::LookUp(const std::string &name) {}
-std::vector<Variable> VariableList::Variables() const {}
+void VariableList::AddUniqueName(Variable var) {
+  std::string name = var.Name();
+  // m_vars.erase(std::remove_if(
+  //                             m_vars.begin(), m_vars.end(),
+  //                             [](Variable v) {return v.Name() == name;}
+  //                             ));
+  if (!var) return;
+  for (auto it=m_vars.begin();it!=m_vars.end();) {
+    if (it->Name() == var.Name()) {
+      it = m_vars.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  Add(var);
+}
+void VariableList::AddUniqueName(VariableList vars) {
+  for (Variable var : vars.Variables()) {
+    AddUniqueName(var);
+  }
+}
+Variable VariableList::LookUp(const std::string &name) {
+  for (Variable v : m_vars) {
+    if (v.Name() == name) {
+      return v;
+    }
+  }
+  return Variable();
+}
+std::vector<Variable> VariableList::Variables() const {
+  return m_vars;
+}

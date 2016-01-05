@@ -57,6 +57,7 @@ public:
   void AddSymbol(VariableList vars);
   Variable LookUp(const std::string &name);
 private:
+  std::vector<std::map<std::string, Variable> > m_tables;
 };
 
 

@@ -10,9 +10,10 @@ using namespace utils;
  *******************************/
 
 bool is_valid_ast(const char* name);
+bool is_valid_ast(pugi::xml_node node);
 pugi::xml_node get_previous_ast_element(pugi::xml_node node);
 pugi::xml_node get_parent_ast_element(pugi::xml_node node);
-pugi::xml_node get_function_call(pugi::xml_node node);
+// pugi::xml_node get_function_call(pugi::xml_node node);
 
 std::string get_text_content(pugi::xml_node node);
 std::string get_text_content_except_tag(pugi::xml_node, std::string name);
@@ -65,7 +66,9 @@ Node::Node() {}
 Node::Node(Doc* doc, pugi::xml_node node) : m_doc(doc), m_node(node) {}
 Node::Node(const Node&) {}
 Node::~Node() {}
-NodeKind Node::Type() {}
+NodeKind Node::Kind() {
+  return m_kind;
+}
 bool Node::IsValid() const {
   if (m_doc && m_doc->IsValid()) return true;
   else return false;
@@ -111,11 +114,22 @@ Node::GetFirstLineNumber() const {
 
 /* traverse */
 
-Node Node::Parent() {}
+Node Node::Parent() {
+  pugi::xml_node node = m_node.parent();
+  while (node && !is_valid_ast(node)) {
+    node = node.parent();
+  }
+  if (!node) return Node();
+  return Node(m_doc, node);
+}
 
-Node Node::FirstChild() {}
-
-NodeList Node::Children() {}
+NodeList Node::Children() {
+  NodeList nodes;
+  for (pugi::xml_node n : m_node.children()) {
+    nodes.push_back(Node(m_doc, n));
+  }
+  return nodes;
+}
 
 std::string Node::Text() const {
   return get_text_content(m_node);
@@ -149,59 +163,65 @@ bool Node::Contains(Node n) {
  *******************************/
 bool ast::in_node(Node node, NodeKind kind) {
   while ( (node = node.Parent()) ) {
-    if (node.Type() == kind) return true;
+    if (node.Kind() == kind) return true;
   }
   return false;
 }
 
-Node ast::get_function_call(Node n) {}
 
-/*******************************
- ** NodeList
- *******************************/
-
-NodeList::NodeList() {}
-NodeList::~NodeList() {}
-
-// if node is a child noe of m_nodes. Caution: not node is in m_node!
-bool NodeList::Contains(Node n) const {
-  for (Node node : m_nodes) {
-    if (node.Contains(n)) return true;
+bool ast::contains(NodeList nodes, Node node) {
+  for (Node n : nodes) {
+    if (n.Contains(node)) return true;
   }
   return false;
 }
-std::vector<Node> NodeList::Nodes() const {
-  return m_nodes;
-}
-void NodeList::PushBack(Node node) {
-  m_nodes.push_back(node);
-}
-void NodeList::PushBack(NodeList nodes) {
-  for (Node node : nodes.Nodes()) {
-    m_nodes.push_back(node);
-  }
-}
 
-void NodeList::PushFront(Node node) {
-  m_nodes.insert(m_nodes.begin(), node);
-}
+// /*******************************
+//  ** NodeList
+//  *******************************/
 
-void NodeList::PushFront(NodeList nodes) {
-  std::vector<Node> _nodes = nodes.Nodes();
-  m_nodes.insert(m_nodes.begin(), _nodes.begin(), _nodes.end());
-}
-void NodeList::Clear() {
-  m_nodes.clear();
-}
+// NodeList::NodeList() {}
+// NodeList::~NodeList() {}
 
-Node NodeList::Get(int index) const {
-  if (index < 0 || (size_t)index >= m_nodes.size()) return Node();
-  return m_nodes[index];
-}
+// // if node is a child noe of m_nodes. Caution: not node is in m_node!
+// bool NodeList::Contains(Node n) const {
+//   for (Node node : m_nodes) {
+//     if (node.Contains(n)) return true;
+//   }
+//   return false;
+// }
+// std::vector<Node> NodeList::Nodes() const {
+//   return m_nodes;
+// }
+// void NodeList::PushBack(Node node) {
+//   m_nodes.push_back(node);
+// }
+// void NodeList::PushBack(NodeList nodes) {
+//   for (Node node : nodes.Nodes()) {
+//     m_nodes.push_back(node);
+//   }
+// }
 
-bool NodeList::Empty() const {
-  return m_nodes.empty();
-}
+// void NodeList::PushFront(Node node) {
+//   m_nodes.insert(m_nodes.begin(), node);
+// }
+
+// void NodeList::PushFront(NodeList nodes) {
+//   std::vector<Node> _nodes = nodes.Nodes();
+//   m_nodes.insert(m_nodes.begin(), _nodes.begin(), _nodes.end());
+// }
+// void NodeList::Clear() {
+//   m_nodes.clear();
+// }
+
+// Node NodeList::Get(int index) const {
+//   if (index < 0 || (size_t)index >= m_nodes.size()) return Node();
+//   return m_nodes[index];
+// }
+
+// bool NodeList::Empty() const {
+//   return m_nodes.empty();
+// }
 
 
 
@@ -220,6 +240,20 @@ simplify_variable_name(std::string& s) {
   s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
 }
 
+
+std::map<std::string, std::string> DeclStmtNode::Decls() {
+  std::map<std::string, std::string> result;
+  pugi::xml_node node = m_node.child("decl");
+  std::string type_str = get_text_content(node.child("type"));
+  std::string name_str = get_text_content(node.child("name"));
+  if (name_str.find('[') != std::string::npos) {
+    type_str += name_str.substr(name_str.find('['));
+  }
+  name_str = name_str.substr(0, name_str.find('['));
+  result[name_str] = type_str;
+  return result;
+}
+
 std::vector<std::string> ExprNode::IDs() {
   std::vector<std::string> ids;
   for (pugi::xml_node n : m_node.children("name")) {
@@ -229,16 +263,3 @@ std::vector<std::string> ExprNode::IDs() {
   }
   return ids;
 }
-
-
-FunctionNode::FunctionNode() {
-}
-FunctionNode::~FunctionNode() {}
-std::string FunctionNode::ReturnType() {}
-std::map<std::string, std::string> FunctionNode::ParamList() {}
-Node FunctionNode::Body() {}
-
-
-std::map<std::string, std::string> ForNode::InitDecls() {}
-
-std::map<std::string, std::string> DeclStmtNode::Decls() {}

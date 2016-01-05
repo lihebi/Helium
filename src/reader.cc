@@ -61,7 +61,7 @@ Reader::~Reader() {}
 static bool watch_dog_skip = false;
 
 static jmp_buf jmpbuf; // jumbuf for long jump
-static bool skip_file = false;
+// static bool skip_file = false;
 
 // void watch_dog(int sig) {
 //   global_error_number++;
