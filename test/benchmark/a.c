@@ -3,10 +3,13 @@
 
 int main() {
   int sum = 0;
-  // @HeliumStart
+  int a = 2;
   for (int i=0;i<100;i++) {
     sum += i;
   }
-  // @HeliumStop
+  int b = 3;
+  // this is a comment
+  b ++;
+  int d = 9;
   return 0;
 }

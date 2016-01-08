@@ -118,33 +118,33 @@ Variable::operator bool() {
 
 
 
-VariableList var_from_node(ast::Node node) {
+VariableList var_from_node(ast::Node* node) {
   VariableList vars;
   std::map<std::string, std::string> plain_vars;
-  switch (node.Kind()) {
+  switch (node->Kind()) {
   case ast::NK_Function: {
     // plain_vars = dynamic_cast<ast::FunctionNode&>(node).ParamList();
-    ParamNodeList params = dynamic_cast<ast::FunctionNode&>(node).Params();
+    ParamNodeList params = dynamic_cast<ast::FunctionNode*>(node)->Params();
     for (ParamNode param : params) {
       DeclNode decl = param.Decl();
       std::string name = decl.Name();
-      TypeNode type = decl.Type();
+      TypeNode* type = decl.Type();
       // FIXME this may be just part of it. Or very long.
-      std::string type_str = type.Name();
+      std::string type_str = type->Name();
       vars.Add(Variable(type_str, name));
     }
     break;
   }
   case ast::NK_DeclStmt: {
     // from name to type
-    plain_vars = dynamic_cast<ast::DeclStmtNode&>(node).Decls();
+    plain_vars = dynamic_cast<ast::DeclStmtNode*>(node)->Decls();
     for (auto it=plain_vars.begin();it!=plain_vars.end();++it) {
       vars.Add(Variable(it->second, it->first));
     }
     break;
   }
   case ast::NK_For: {
-    plain_vars = dynamic_cast<ast::ForNode&>(node).InitDecls();
+    plain_vars = dynamic_cast<ast::ForNode*>(node)->InitDecls();
     for (auto it=plain_vars.begin();it!=plain_vars.end();++it) {
       vars.Add(Variable(it->second, it->first));
     }

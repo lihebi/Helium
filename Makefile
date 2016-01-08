@@ -17,6 +17,7 @@ TEST_TARGET := bin/test
 
 SRCEXT := cc
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+HEADERS := $(shell find $(SRCDIR) -type f -name "*.h")
 
 MAIN := $(SRCDIR)/main.cc
 TEST_MAIN := $(SRCDIR)/test_main.cc
@@ -36,6 +37,8 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 # endif
 
 # TARGET_LIB := $(BUILDDIR)/$(SONAME) # This is the libhelium filename
+
+DEP = $(OBJECTS:%.o=%.d)
 
 
 ##############################
@@ -64,9 +67,13 @@ C_LIB += -lgtest
 ##############################
 ## Targets
 ##############################
-.PHONY: all clean doc libhelium test install tmp
+.PHONY: all clean doc libhelium test install tmp depend
 
 all: client
+
+# Include all .d files
+-include $(DEP)
+
 
 ##############################
 ## Helium executable
@@ -107,7 +114,13 @@ $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
 # compile it into the target
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+
+
+# %.d: %.cc ${SOURCES}
+# 	$(CC) -MM $< -o $@
+
+# -include ${SOURCES:.cc=.d}
 
 ##############################
 ## other trival staff
@@ -135,5 +148,5 @@ systype.tags:
 		-R /usr/include/ /usr/local/include
 
 # this is what every that is handy
-tmp:
+tmp: $(TARGET)
 	helium test/benchmark

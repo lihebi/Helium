@@ -17,6 +17,7 @@ ArgParser::ArgParser(int argc, char** argv)
   po::options_description util_options("Utils");
   util_options.add_options()
     ("create-tagfile", "create tag file")
+    ("print-config", "print current config")
     ;
     
 
@@ -53,11 +54,11 @@ ArgParser::ArgParser(int argc, char** argv)
             );
   po::notify(m_vm);
 
-  /* validate the options */
-  if (!validate()) {
-    PrintHelp();
-    exit(1);
-  }
+  // /* validate the options */
+  // if (!validate()) {
+  //   PrintHelp();
+  //   exit(1);
+  // }
 }
 
 ArgParser::~ArgParser() {}
@@ -88,15 +89,7 @@ std::string ArgParser::GetString(std::string name) {
   }
 }
 
-bool ArgParser::validate() {
-  if (Has("folder")) return true;
-  else return false;
-}
-
-bool ArgParser::HasCmdUtils() {
-  if (Has("split") || Has("remove-comment") || Has("ctags") || Has("cond-comp") || Has("pre")) {
-    return true;
-  } else {
-    return false;
-  }
-}
+// bool ArgParser::validate() {
+//   if (Has("folder")) return true;
+//   else return false;
+// }

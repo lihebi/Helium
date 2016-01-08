@@ -20,6 +20,7 @@ public:
   std::string GetString(std::string name);
   int GetInt(std::string name);
   void Overwrite(ArgParser &args);
+  std::string ToString();
 private:
   Config();
   void parse(std::istream& is);

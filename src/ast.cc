@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <iostream>
 
 using namespace utils;
 
@@ -30,69 +31,88 @@ using namespace ast;
 Doc::Doc() {}
 Doc::~Doc() {
   if (m_doc) m_doc.reset();
-  assert(!m_doc);
+  assert(!m_doc.document_element());
 }
 
 bool Doc::IsValid() {
-  if (m_doc) return true;
+  if (m_doc && m_doc.document_element()) return true;
   else return false;
 }
 
-Node Doc::Root() {
-  return Node(this, m_doc.document_element());
+/**
+ * Return the root node.
+ * CAUTION This is not the root of ast, but the root of the xml document.
+ * It is not practical to get the root of ast, for example, a c file has many ASTs
+ */
+Node* Doc::Root() {
+  /**
+   * 
+#include<xxx.h>
+
+#define
+
+func() {
+}
+
+func() {
+}
+
+So it just matters about the function node.
+Thus even if we get the funciton node, we cannot query #define value.
+So, no need to get the actual AST root.
+Just use the root of xml, and query like FindNodes(NK_Function) to get the function AST root.
+   */
+  // m_doc.document_element().print(std::cout);
+  Node* node = create_node(this, m_doc.document_element());
+  return node;
 }
 
 /**
  * Init ast_doc* from file. Needs to be destroyed.
  */
 void Doc::InitFromFile(const std::string &filename) {
-  Doc *doc = (Doc*)malloc(sizeof(Doc));
-  file2xml(filename, doc->m_doc);
+  // Doc *doc = (Doc*)malloc(sizeof(Doc));
+  file2xml(filename, m_doc);
 }
 
 /**
  * Init doc* from string. Need to be destroyed.
  */
 void Doc::InitFromString(const std::string& code) {
-  Doc *doc = (Doc*)malloc(sizeof(Doc));
-  string2xml(code, doc->m_doc);
+  // Doc *doc = (Doc*)malloc(sizeof(Doc));
+  string2xml(code, m_doc);
 }
 
 /*******************************
  ** Node
  *******************************/
 
-Node::Node() {}
-Node::Node(Doc* doc, pugi::xml_node node) : m_doc(doc), m_node(node) {}
-Node::Node(const Node&) {}
-Node::~Node() {}
-NodeKind Node::Kind() {
-  return m_kind;
-}
-bool Node::IsValid() const {
-  if (m_doc && m_doc->IsValid()) return true;
-  else return false;
-}
-Node Node::Root() {
-  return Node(m_doc, m_node.root());
-}
-
-Node Node::PreviousSibling() {
-  pugi::xml_node node = m_node.previous_sibling();
-  if (node) {
-    return Node(m_doc, node);
-  } else {
-    return Node(); // null node.
+Node* Node::PreviousSibling() {
+  pugi::xml_node n = m_node;
+  while ( (n = n.previous_sibling()) ) {
+    if (is_valid_ast(n)) {
+      return create_node(m_doc, n);
+    }
   }
+  return NULL;
 }
-
-Node Node::NextSibling() {
-  pugi::xml_node node = m_node.next_sibling();
-  if (node) {
-    return Node(m_doc, node);
-  } else {
-    return Node();
+Node* Node::NextSibling() {
+  pugi::xml_node n = m_node;
+  while ( (n = n.previous_sibling())) {
+    if (is_valid_ast(n)) {
+      return create_node(m_doc, n);
+    }
   }
+  return NULL;
+}
+Node* Node::Parent() {
+  pugi::xml_node n = m_node;
+  while ( (n = n.parent())) {
+    if (is_valid_ast(n)) {
+      return create_node(m_doc, n);
+    }
+  }
+  return NULL;
 }
 
 
@@ -112,25 +132,6 @@ Node::GetFirstLineNumber() const {
   return -1;
 }
 
-/* traverse */
-
-Node Node::Parent() {
-  pugi::xml_node node = m_node.parent();
-  while (node && !is_valid_ast(node)) {
-    node = node.parent();
-  }
-  if (!node) return Node();
-  return Node(m_doc, node);
-}
-
-NodeList Node::Children() {
-  NodeList nodes;
-  for (pugi::xml_node n : m_node.children()) {
-    nodes.push_back(Node(m_doc, n));
-  }
-  return nodes;
-}
-
 std::string Node::Text() const {
   return get_text_content(m_node);
 }
@@ -138,8 +139,8 @@ std::string Node::TextExceptComment() const {
   return get_text_content_except_tag(m_node, "comment");
 }
 
-bool Node::Contains(Node n) {
-  return (lub(n.m_node, m_node) == m_node);
+bool Node::Contains(Node* n) {
+  return (lub(n->m_node, m_node) == m_node);
 }
 
 /**
@@ -156,22 +157,43 @@ bool Node::Contains(Node n) {
 //   return false;
 // }
 
+NodeList Node::FindAll(NodeKind kind) {
+  std::cout <<"finding all.."  << "\n";
+  NodeList result;
+  std::string tag;
+  switch (kind) {
+  case NK_Function: {
+    tag = "//function";
+  }
+  default: {
+    ;
+  }
+  }
+  pugi::xpath_node_set nodes = m_node.select_nodes(tag.c_str());
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    FunctionNode *function = static_cast<FunctionNode*>(create_node(m_doc, it->node()));
+    function->Kind();
+    result.push_back(function);
+  }
+  return result;
+}
+
 
 
 /*******************************
  ** helper functions
  *******************************/
-bool ast::in_node(Node node, NodeKind kind) {
-  while ( (node = node.Parent()) ) {
-    if (node.Kind() == kind) return true;
+bool ast::in_node(Node* node, NodeKind kind) {
+  while ( (node = node->Parent()) ) {
+    if (node->Kind() == kind) return true;
   }
   return false;
 }
 
 
-bool ast::contains(NodeList nodes, Node node) {
-  for (Node n : nodes) {
-    if (n.Contains(node)) return true;
+bool ast::contains(NodeList nodes, Node* node) {
+  for (Node* n : nodes) {
+    if (n->Contains(node)) return true;
   }
   return false;
 }
@@ -262,4 +284,12 @@ std::vector<std::string> ExprNode::IDs() {
     ids.push_back(s);
   }
   return ids;
+}
+
+
+Node* ast::create_node(Doc* doc, pugi::xml_node node) {
+  const char * name = node.name();
+  if (strcmp(name, "function")) return new FunctionNode(doc, node);
+  if (strcmp(name, "if")) return new IfNode(doc, node);
+  return NULL;
 }

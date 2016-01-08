@@ -3,6 +3,7 @@
 #include <pugixml.hpp>
 #include <vector>
 #include <map>
+#include <iostream>
 
 /**
  * This module is an overlay of AST, for srcml.
@@ -11,19 +12,29 @@
 namespace ast { // begin of namespace ast
 
   class Node;
+  class Doc;
+  Node* create_node(Doc* doc, pugi::xml_node node);
+
+  class Node;
 
 
 
   /**
    * Doc is a pointer, because it should be init and destroyed.
    * Should not copy!
+
+Doc is where host the pugi::xml_document.
+It is possibly the same role as AST::Context in Clang, which is passed as a parameter for every AST class's constructor.
+The role it takes is to host the AST tree itself during the analysis of the nodes.
+Once the Doc is destroied(reseted), all nodes associated with it will become invalid.
+
    */
   class Doc {
   public:
     Doc();
     ~Doc();
     bool IsValid();
-    Node Root();
+    Node* Root();
     void InitFromString(const std::string &code);
     void InitFromFile(const std::string &filename);
   private:
@@ -51,7 +62,7 @@ namespace ast { // begin of namespace ast
   //   std::vector<Node> m_nodes;
   // };
 
-  typedef std::vector<Node> NodeList;
+  typedef std::vector<Node*> NodeList;
   
   typedef enum _NodeKind {
     NK_Function,
@@ -80,54 +91,79 @@ namespace ast { // begin of namespace ast
     NK_Struct,
     NK_Union,
     NK_Enum,
+    NK_Root,
     NK_NULL
   } NodeKind;
 
   /**
    * Node just maintain the xml_node itself, as well as the pointer to the ast_doc it corresponds to.
    * this is lightweight, can (and should) be copied.
+
+Node should be designed as the structure. But for simplicity, or because of my lack of experience currently, I imbeded the parse of xml inside the class.
+That means, every node's constructor receive a Doc*, and a pugi::xml_node, and it will check and parse the children nodes itself.
+For example, IfNode will validate the tag of pugi::xml_node to be <if>, and get the <condition>,<then>,<else> tag and create the corresponding nodes for them, all inside the constructor of IfNode.
+
+The Node is an abstract class. It should never be instantiated.
+There may be some subclasses, like DeclNode, which can have subclasses like StmtDeclNode and ExprDeclNode.
+Should I only allow instantiation of the most concrete classes?
+Or should I design the Decl,Stmt,Expr all as interfaces?
+
    */
   class Node {
   public:
-    Node();
-    Node(Doc* doc, pugi::xml_node node);
-    Node(const Node&);
-    virtual ~Node();
+    Node() {}
+    // Node(const Node&);
+    virtual ~Node() {}
     bool IsValid() const;
-    Node Root();
-    NodeKind Kind();
-    bool Contains(Node node);
+    Node* Root();
+    virtual NodeKind Kind() = 0;
+    bool Contains(Node* node);
     /* travese */
-    Node PreviousSibling();
-    Node NextSibling();
-    Node Parent();
-    Node FirstChild();
-    NodeList Children();
+    /**
+     * TODO Since I'm doing AST modeling, should I include these XML traversal methods here?
+     * Or I think I can just use a bunch of helper functions to traversal?
+     */
+    Node* PreviousSibling();
+    Node* NextSibling();
+    Node* Parent();
+    // Node* FirstChild();
+    // NodeList Children();
     /* text */
+    std::string ToString() const; // for human read purpose only.
     std::string Text() const;
-    std::string TextExceptComment() const;
+    std::string TextExceptComment() const; // TODO why I need to except comment? I'm extracting ID from code based on regexp matching, and that part should be changed by semantic way.
     int GetFirstLineNumber() const;
-    /* ast resolving now move here */
-    virtual std::vector<std::string> UndefinedVarNames() const {
-      // TODO This function should be overwritten for several sub-classes
-      return std::vector<std::string>();
-    }
-    // type as string ..
-    // or better return a Node?
-    // but anyhow can't return a Variable
-    virtual std::string ResolveVar(const std::string& name) const {
-      // TODO this function should be overwritten for several sub-classes
-      return "";
-    }
+
+    /**
+     * TODO These ast resolving method should really not here.
+     * Put them into help functions.
+     */
+    // /* ast resolving now move here */
+    // virtual std::vector<std::string> UndefinedVarNames() const {
+    //   // TODO This function should be overwritten for several sub-classes
+    //   return std::vector<std::string>();
+    // }
+    // // type as string ..
+    // // or better return a Node?
+    // // but anyhow can't return a Variable
+    // virtual std::string ResolveVar(const std::string& name) const {
+    //   // TODO this function should be overwritten for several sub-classes
+    //   return "";
+    // }
     
     operator bool() const {
       return IsValid();
     }
+
+    /**
+     * This is the feature that srcml offers, which is very nice.
+     * Given the AST as xml, we can easily query, e.g. the children nodes of tag <xx>.
+     */
+    NodeList FindAll(NodeKind kind);
     
   protected:
     Doc *m_doc;
     pugi::xml_node m_node;
-    NodeKind m_kind;
   };
   
 
@@ -135,6 +171,16 @@ namespace ast { // begin of namespace ast
   /*******************************
    ** Subclass Node
    *******************************/
+  
+  class RootNode : public Node {
+  public:
+    virtual NodeKind Kind() {return NK_Root;}
+    RootNode(Doc* doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
+    ~RootNode() {}
+  };
 
   class StructNode;
   class UnionNode;
@@ -146,6 +192,7 @@ namespace ast { // begin of namespace ast
       m_node = node;
     }
     ~TypeNode() {}
+    virtual NodeKind Kind() {return NK_Typedef;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -162,14 +209,15 @@ namespace ast { // begin of namespace ast
   public:
     BlockNode(Doc* doc, pugi::xml_node node) {
       m_doc = doc;
-      m_node = node;
+      m_node =node;
     }
     ~BlockNode() {}
+    virtual NodeKind Kind() {return NK_Block;}
     NodeList Nodes() {
       NodeList nodes;
       for (pugi::xml_node n : m_node.children()) {
         if (n.type() == pugi::node_element) {
-          nodes.push_back(Node(m_doc, n));
+          nodes.push_back(create_node(m_doc, n));
         }
       }
       return nodes;
@@ -183,6 +231,7 @@ namespace ast { // begin of namespace ast
       m_node = node;
     }
     ~StmtNode() {}
+    virtual NodeKind Kind() {return NK_Stmt;}
   };
   
   class DeclNode : public Node {
@@ -190,8 +239,10 @@ namespace ast { // begin of namespace ast
     DeclNode(Doc* doc, pugi::xml_node node) {
       m_doc = doc;
       m_node = node;
+
     }
     ~DeclNode() {}
+    virtual NodeKind Kind() {return NK_Decl;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -199,13 +250,13 @@ namespace ast { // begin of namespace ast
       // FIXME need to find an example
       return m_node.child_value("init");
     }
-    TypeNode Type() {
-      return TypeNode(m_doc, m_node.child("type"));
+    TypeNode* Type() {
+      return new TypeNode(m_doc, m_node.child("type"));
     }
     std::map<std::string, std::string> GetTypeNameMapping() {
       std::map<std::string, std::string> m;
       std::string name = Name();
-      std::string type = Type().Name();
+      std::string type = Type()->Name();
       m[name] = type;
       return m;
     }
@@ -227,6 +278,7 @@ namespace ast { // begin of namespace ast
       m_node = node;
     }
     ~ExprNode() {}
+    virtual NodeKind Kind() {return NK_Expr;}
     std::vector<std::string> IDs();
   };
   class ExprStmtNode : public StmtNode {
@@ -239,8 +291,12 @@ namespace ast { // begin of namespace ast
   /* structures */
   class IfNode : public Node {
   public:
-    IfNode() {}
+    IfNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~IfNode() {}
+    virtual NodeKind Kind() {return NK_If;}
     ExprNode Condition() {
       pugi::xml_node node = m_node.child("condition").child("expr");
       return ExprNode(m_doc, node);
@@ -264,6 +320,7 @@ namespace ast { // begin of namespace ast
       m_node = node;
     }
     ~CaseNode() {}
+    virtual NodeKind Kind() {return NK_Case;}
     ExprNode Expr() {
       pugi::xml_node node = m_node.child("expr");
       return ExprNode(m_doc, node);
@@ -299,8 +356,12 @@ namespace ast { // begin of namespace ast
 
   class SwitchNode : public Node {
   public:
-    SwitchNode() {}
+    SwitchNode(Doc* doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~SwitchNode() {}
+    virtual NodeKind Kind() {return NK_Switch;}
     ExprNode Condition() {
       pugi::xml_node node = m_node.child("condition").child("expr");
       return ExprNode(m_doc, node);
@@ -322,41 +383,49 @@ namespace ast { // begin of namespace ast
   /* loop */
   class ForNode : public Node {
   public:
-    ForNode() {}
+    ForNode(Doc* doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~ForNode() {}
+    virtual NodeKind Kind() {return NK_For;}
     std::map<std::string, std::string> InitDecls() {
       std::map<std::string, std::string> result;
-      Node node = Init();
-      if (node.Kind() == NK_Decl) {
-        DeclNode n = dynamic_cast<DeclNode&>(node);
-        std::string name = n.Name();
-        std::string type = n.Type().Name();
+      Node* node = Init();
+      if (node->Kind() == NK_Decl) {
+        DeclNode* n = dynamic_cast<DeclNode*>(node);
+        std::string name = n->Name();
+        std::string type = n->Type()->Name();
         result[name] = type;
       }
       return result;
     }
-    Node Init() {
+    Node* Init() {
       pugi::xml_node node = m_node.child("control").child("init").child("expr");
-      return Node(m_doc, node);
+      return create_node(m_doc, node);
     }
-    ExprNode Condition() {
+    ExprNode* Condition() {
       pugi::xml_node node = m_node.child("control").child("condition").child("expr");
-      return ExprNode(m_doc, node);
+      return new ExprNode(m_doc, node);
     }
-    ExprNode Incr() {
+    ExprNode* Incr() {
       pugi::xml_node node = m_node.child("control").child("incr").child("expr");
-      return ExprNode(m_doc, node);
+      return new ExprNode(m_doc, node);
     }
-    BlockNode Block() {
+    BlockNode* Block() {
       pugi::xml_node node = m_node.child("block");
-      return BlockNode(m_doc, node);
+      return new BlockNode(m_doc, node);
     }
   };
 
   class WhileNode : public Node {
   public:
-    WhileNode() {}
+    WhileNode(Doc* doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~WhileNode() {}
+    virtual NodeKind Kind() {return NK_While;}
     ExprNode Condition() {
       pugi::xml_node node = m_node.child("condition").child("expr");
       return ExprNode(m_doc, node);
@@ -369,8 +438,12 @@ namespace ast { // begin of namespace ast
 
   class DoNode : public Node {
   public:
-    DoNode() {}
+    DoNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~DoNode() {}
+    virtual NodeKind Kind() {return NK_Do;}
     BlockNode Block() {
       pugi::xml_node node = m_node.child("block");
       return BlockNode(m_doc, node);
@@ -390,8 +463,8 @@ namespace ast { // begin of namespace ast
       m_doc = doc;
       m_node = node;
     }
-    CallNode() {}
     ~CallNode() {}
+    virtual NodeKind Kind() {return NK_Call;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -408,11 +481,12 @@ namespace ast { // begin of namespace ast
     /**
      * TODO param is here, instead of raw DeclNode, is because we want to model int foo(a) int a; {}
      */
-    ParamNode(Doc *doc, pugi::xml_node node) {
+    ParamNode(Doc* doc, pugi::xml_node node) {
       m_doc = doc;
       m_node = node;
     }
     ~ParamNode() {}
+    virtual NodeKind Kind() {return NK_Param;}
     DeclNode Decl() {
       pugi::xml_node node = m_node.child("decl");
       return DeclNode(m_doc, node);
@@ -423,8 +497,12 @@ namespace ast { // begin of namespace ast
 
   class FunctionNode : public Node {
   public:
-    FunctionNode() {}
+    FunctionNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~FunctionNode() {}
+    virtual NodeKind Kind() {return NK_Function;}
     std::string Type() {
       return m_node.child("type").child_value("name");
     }
@@ -439,51 +517,71 @@ namespace ast { // begin of namespace ast
       }
       return nodes;
     }
-    BlockNode Block() {
+    BlockNode* Block() {
       pugi::xml_node node = m_node.child("block");
-      return BlockNode(m_doc, node);
+      return new BlockNode(m_doc, node);
     }
-    CallNode GetCallNode() {
+    CallNode* GetCallNode() {
       std::string name = Name();
       pugi::xpath_node_set call_nodes = m_node.root().select_nodes("//call");
       for (auto it=call_nodes.begin();it!=call_nodes.end();it++) {
         if (strcmp(it->node().child_value("name"), name.c_str()) == 0) {
-          return (CallNode(m_doc, it->node()));
+          return new CallNode(m_doc, it->node());
         }
       }
-      return CallNode();
+      return NULL;
     }
   };
 
   /* special */
   class BreakNode : public Node {
   public:
-    BreakNode() {}
+    BreakNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~BreakNode() {}
+    virtual NodeKind Kind() {return NK_Break;}
   };
   class ContinueNode : public Node {
   public:
-    ContinueNode() {}
+    ContinueNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~ContinueNode() {}
+    virtual NodeKind Kind() {return NK_Continue;}
   };
   class ReturnNode : public Node {
   public:
-    ReturnNode() {}
+    ReturnNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~ReturnNode() {}
+    virtual NodeKind Kind() {return NK_Return;}
   };
   /* goto */
   class LabelNode : public Node {
   public:
-    LabelNode() {}
+    LabelNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~LabelNode() {}
+    virtual NodeKind Kind() {return NK_Label;}
     std::string Name() {
       return m_node.child_value("name");
     }
   };
   class GotoNode : public Node {
   public:
-    GotoNode() {}
+    GotoNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~GotoNode() {}
+    virtual NodeKind Kind() {return NK_Goto;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -493,14 +591,22 @@ namespace ast { // begin of namespace ast
 
   class TypedefNode : public Node {
   public:
-    TypedefNode() {}
+    TypedefNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~TypedefNode() {}
+    virtual NodeKind Kind() {return NK_Typedef;}
   };
   typedef std::vector<DeclStmtNode> DeclStmtNodeList;
   class StructNode : public Node {
   public:
-    StructNode() {}
+    StructNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~StructNode() {}
+    virtual NodeKind Kind() {return NK_Struct;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -514,8 +620,12 @@ namespace ast { // begin of namespace ast
   };
   class UnionNode : public Node {
   public:
-    UnionNode() {}
+    UnionNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~UnionNode() {}
+    virtual NodeKind Kind() {return NK_Union;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -531,8 +641,12 @@ namespace ast { // begin of namespace ast
   
   class EnumNode : public Node {
   public:
-    EnumNode() {}
+    EnumNode(Doc *doc, pugi::xml_node node) {
+      m_doc = doc;
+      m_node = node;
+    }
     ~EnumNode() {}
+    virtual NodeKind Kind() {return NK_Enum;}
     std::string Name() {
       return m_node.child_value("name");
     }
@@ -553,7 +667,7 @@ namespace ast { // begin of namespace ast
    ** Helper function
    *******************************/
 
-  bool in_node(Node node, NodeKind kind);
+  bool in_node(Node* node, NodeKind kind);
   // /**
   //  * node is a NK_Function node.
   //  * @return the Node <call> of the function.
@@ -564,14 +678,11 @@ namespace ast { // begin of namespace ast
   /**
    * true if one node in nodelist contains node
    */
-  bool contains(NodeList nodes, Node node);
-
-
-    
-    
-
-  
+  bool contains(NodeList nodes, Node* node);
 } // end of namespace ast
+
+
+
 
 
 

@@ -58,6 +58,20 @@ std::string Config::GetString(std::string name) {
   if (m_map.find(name) == m_map.end()) return "";
   return m_map[name];
 }
+
+std::string Config::ToString() {
+  std::string result;
+  std::vector<std::string> keys;
+  for (auto item : m_map) {
+    keys.push_back(item.first);
+  }
+  for (std::string key : keys) {
+    result += key + " = " + m_map[key];
+    result += "\n";
+  }
+  utils::trim(result);
+  return result;
+}
 /**
  * -1 means something wrong. Should stop program.
  */

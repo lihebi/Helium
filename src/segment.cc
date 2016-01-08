@@ -10,7 +10,7 @@ using namespace ast;
 Segment::Segment () {}
 Segment::~Segment () {}
 
-void Segment::PushBack(Node node) {
+void Segment::PushBack(Node* node) {
   m_nodes.push_back(node);
   updateMeta();
 }
@@ -18,7 +18,7 @@ void Segment::PushBack(NodeList nodes) {
   m_nodes.insert(m_nodes.end(), nodes.begin(), nodes.end());
   updateMeta();
 }
-void Segment::PushFront(Node node) {
+void Segment::PushFront(Node* node) {
   m_nodes.insert(m_nodes.begin(), node);
   updateMeta();
 }
@@ -38,9 +38,9 @@ void Segment::Clear() {
 }
 
 int Segment::GetLineNumber() const {
-  for (Node n : m_nodes) {
+  for (Node* n : m_nodes) {
     // FIXME 0 is a magic number! The acutal value inside Node is -1 ..
-    if (n.GetFirstLineNumber() > 0) return n.GetFirstLineNumber();
+    if (n->GetFirstLineNumber() > 0) return n->GetFirstLineNumber();
   }
   return 0;
 }
@@ -49,11 +49,11 @@ NodeList Segment::GetNodes() const {
   return m_nodes;
 }
 
-Node
+Node*
 Segment::GetFirstNode() const {
   if (m_nodes.empty()) {
     // this should be a node_null
-    return Node();
+    return NULL;
   } else {
     return m_nodes[0];
   }
@@ -62,8 +62,8 @@ Segment::GetFirstNode() const {
 std::string
 Segment::GetText() {
   std::string s;
-  for (Node node : m_nodes) {
-    s += node.Text();
+  for (Node* node : m_nodes) {
+    s += node->Text();
     // s += '\n'; // FIXME need this?
   }
   return s;
@@ -72,16 +72,16 @@ Segment::GetText() {
 std::string
 Segment::GetTextExceptComment() {
   std::string s;
-  for (Node node : m_nodes) {
-    s += node.TextExceptComment();
+  for (Node* node : m_nodes) {
+    s += node->TextExceptComment();
   }
   return s;
 }
 
 bool
-Segment::HasNode(Node node) const {
-  for (Node node : m_nodes) {
-    if (node.Contains(node)) return true;
+Segment::HasNode(Node *node) const {
+  for (Node *node : m_nodes) {
+    if (node->Contains(node)) return true;
   }
   return false;
 }
@@ -91,24 +91,24 @@ void Segment::Grow() {
     m_valid = false;
     return;
   }
-  Node first_node = m_nodes[0];
-  Node n = first_node.PreviousSibling();
+  Node *first_node = m_nodes[0];
+  Node *n = first_node->PreviousSibling();
   // has previous sibling
   if (n) {
     this->PushFront(n);
     m_valid = true;
     goto after;
   }
-  n = first_node.Parent();
+  n = first_node->Parent();
   // don't have parent
   if (!n) {
     m_valid = false;
     return;
   }
   // parent is function
-  if (n.Kind() == NK_Function) {
+  if (n->Kind() == NK_Function) {
     m_function_nodes.push_back(n);
-    CallNode call_node = dynamic_cast<FunctionNode&>(n).GetCallNode();
+    CallNode *call_node = dynamic_cast<FunctionNode*>(n)->GetCallNode();
     n = call_node;
     // can't get function callsite
     if (!n) {
@@ -140,7 +140,7 @@ SPU::~SPU() {
 void SPU::SetSegment(const Segment &s) {
   m_segment = s;
 }
-void SPU::AddNode(Node node) {
+void SPU::AddNode(Node* node) {
   m_segment.PushBack(node);
 }
 void SPU::AddNodes(NodeList nodes) {
@@ -170,7 +170,7 @@ SPU::IsValid() {
   // FIXME maybe the segment itself is not in a enum function,
   // but when doing context search, it may go into a interprocedure that is in enum function
   // So check m_context every time doing context search should be complete solution.
-  Node node = m_segment.GetFirstNode();
+  Node *node = m_segment.GetFirstNode();
   if (node && in_node(node, NK_Function)) {
     return true;
   } else {

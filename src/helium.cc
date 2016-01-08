@@ -42,8 +42,28 @@ Helium::Helium(int argc, char** argv) {
   std::string helium_home = load_helium_home();
   /* parse arguments */
   ArgParser args(argc, argv);
+
+
+
+  /* load config */
+  Config::Instance()->ParseFile(helium_home+"/helium.conf");
+  Config::Instance()->Overwrite(args);
+
+  if (args.Has("print-config")) {
+    std::cout << Config::Instance()->ToString() << "\n";
+    exit(0);
+  }
+
+  /*******************************
+   ** BEGIN need folder argument
+   *******************************/
+  
   // target folder
   m_folder = args.GetString("folder");
+  if (m_folder.empty()) {
+    args.PrintHelp();
+    exit(1);
+  }
   while (m_folder.back() == '/') m_folder.pop_back();
 
 
@@ -60,8 +80,6 @@ Helium::Helium(int argc, char** argv) {
     }
     exit(0);
   }
-
-
 
 
 
@@ -87,9 +105,6 @@ Helium::Helium(int argc, char** argv) {
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   HeaderSorter::Instance()->Load(m_folder);
 
-  /* load config */
-  Config::Instance()->ParseFile(helium_home+"/helium.conf");
-  Config::Instance()->Overwrite(args);
   
   std::string output_folder = Config::Instance()->GetString("output-folder");
   assert(!output_folder.empty() && "output-folder is not set");

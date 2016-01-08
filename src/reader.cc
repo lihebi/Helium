@@ -12,6 +12,7 @@
 #include "analyzer.h"
 
 using namespace utils;
+using namespace ast;
 
 int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
@@ -24,16 +25,16 @@ int Reader::m_cur_seg_no = 0;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
   std::cout<<m_filename<<std::endl;
-  m_doc = std::make_shared<pugi::xml_document>();
-  file2xml(m_filename, *m_doc);
+  m_doc.InitFromFile(filename);
   getSegments();
-  std::cout<<"total seg: " << m_spus.size()<<std::endl;
+  // std::cout<<"total seg: " << m_spus.size()<<std::endl;
   // if (m_spus.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
   //   getchar();
   // }
   // m_skip_segment = Config::Instance()->GetSkipSegment();
 }
-Reader::~Reader() {}
+Reader::~Reader() {
+}
 
 /*
  * True if variables contains type "name", "number" types
@@ -175,11 +176,11 @@ Reader::Read() {
 }
 
 void Reader::getSegments() {
-  if (Config::Instance()->GetString("code-selection-method") == "loop") {
+  if (Config::Instance()->GetString("code-selection") == "loop") {
     getLoopSegments();
-  } else if (Config::Instance()->GetString("code-selection-method") == "annotation") {
+  } else if (Config::Instance()->GetString("code-selection") == "annotation") {
     getAnnotationSegments();
-  } else if (Config::Instance()->GetString("code-selection-method") == "divide") {
+  } else if (Config::Instance()->GetString("code-selection") == "divide") {
     getDivideSegments();
   }
 }
@@ -254,9 +255,25 @@ is_loop(pugi::xml_node n) {
 /*
  * for every function, divide code by comments, start of loop, start of branch condition.
  * combine these blocks
+ 
+ treat comment as ast block
+for every block, if it is simple statement, combine into a NodeList.
+If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
+ 
  */
 void
 Reader::getDivideSegments() {
+  Node* root = m_doc.Root();
+  NodeList nodes = root->FindAll(NK_Function);
+  for (Node* node : nodes) {
+    FunctionNode* function = static_cast<FunctionNode*>(node);
+    BlockNode* block = function->Block();
+    getDivideRecursive(block->Nodes());
+    delete block;
+    delete node;
+  }
+  
+  
   // pugi::xml_node root = m_doc->document_element();
   // pugi::xpath_node_set function_nodes = root.select_nodes("//function");
   // for (auto it=function_nodes.begin();it!=function_nodes.end();it++) {
@@ -298,4 +315,23 @@ Reader::getDivideSegments() {
   //     }
   //   }
   // }
+}
+
+void
+Reader::getDivideRecursive(NodeList nodes) {
+  std::cout <<"get divide segment"  << "\n";
+  for (Node* node : nodes) {
+    switch (node->Kind()) {
+    case NK_ExprStmt:
+    case NK_DeclStmt: {
+      // need to combine
+    }
+    case NK_If:
+    case NK_For:
+    case NK_Do: {
+      // end last combine, it is itself a block
+    }
+    default: {}
+    }
+  }
 }

@@ -10,9 +10,9 @@ public:
   Segment ();
   virtual ~Segment ();
   /* construct */
-  void PushBack(ast::Node node);
+  void PushBack(ast::Node* node);
   void PushBack(ast::NodeList nodes);
-  void PushFront(ast::Node node);
+  void PushFront(ast::Node* node);
   void PushFront(ast::NodeList nodes);
   void Clear();
   void Print();
@@ -22,14 +22,14 @@ public:
   
   /* Getter */
   ast::NodeList GetNodes() const;
-  ast::Node GetFirstNode() const;
+  ast::Node* GetFirstNode() const;
   /* text */
   std::string GetText();
   std::string GetTextExceptComment();
   int GetLineNumber() const;
   int GetLOC() const {return m_loc;}
   /* attr */
-  bool HasNode(ast::Node node) const;
+  bool HasNode(ast::Node* node) const;
   bool IsValid() const {return m_valid;}
 private:
   void updateMeta();
@@ -45,7 +45,7 @@ public:
   ~SPU();
   // Reader functions
   void SetSegment(const Segment &s);
-  void AddNode(ast::Node);
+  void AddNode(ast::Node*);
   void AddNodes(ast::NodeList);
   void Process();
   bool IncreaseContext();
@@ -90,13 +90,13 @@ private:
   Segment m_context;
   VariableList m_inv;
   VariableList m_outv;
-  ast::Node m_output_node;
+  ast::Node* m_output_node;
   std::set<Snippet*> m_snippets;
 
-  std::vector<ast::Node> m_functions;
+  std::vector<ast::Node*> m_functions;
   int m_linear_search_value = 0;
   bool m_can_continue = true;
-  std::vector<ast::Node> m_omit_nodes;
+  std::vector<ast::Node*> m_omit_nodes;
 };
 
 
