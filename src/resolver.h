@@ -67,8 +67,8 @@ namespace resolver {
    ** variable
    *******************************/
   
-  void get_alive_vars(ast::Node* node, ast::NodeList nodes, VariableList &result);
-  Variable resolve_var(ast::Node* node, const std::string& name);
+  void get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList &result);
+  Variable resolve_var(ast::Node node, const std::string& name);
   void get_undefined_vars(ast::NodeList nodes, VariableList &result);
   void get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result);
 }

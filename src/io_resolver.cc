@@ -14,9 +14,9 @@ There're two kinds of stmts that defines a variable:
 Bottom Up
  
  */
-Variable resolver::resolve_var(ast::Node* node, const std::string& name) {
+Variable resolver::resolve_var(ast::Node node, const std::string& name) {
   if (!node) return Variable(); // node is empty, return empty Variable
-  switch (node->Kind()) {
+  switch (kind(node)) {
   case NK_Function: {
     // examine function parameters
     VariableList vars = var_from_node(node);
@@ -31,8 +31,8 @@ Variable resolver::resolve_var(ast::Node* node, const std::string& name) {
   }
   default: {
     // go to next sibling or parent to recurse.
-    if (node->NextSibling()) return resolve_var(node->NextSibling(), name);
-    if (node->Parent()) return resolve_var(node->Parent(), name);
+    if (next_sibling(node)) return resolve_var(next_sibling(node), name);
+    if (parent(node)) return resolve_var(parent(node), name);
     // if no sibling and parent, return Null variable
     return Variable();
   }
@@ -57,11 +57,11 @@ This is somehow a symbol table. We need to use the inner most declaration for th
 Bottom Up
  */
 
-void resolver::get_alive_vars(ast::Node* node, ast::NodeList nodes, VariableList &result) {
+void resolver::get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList &result) {
   if (!node) return;
   // if (!nodes.Contains(node)) return; // must be inside node list given. It is not the node in the list, but the node is inside some node in the list.
   if (ast::contains(nodes, node)) return;
-  switch (node->Kind()) {
+  switch (kind(node)) {
   case NK_Function:
   case NK_DeclStmt: {
     VariableList vars = var_from_node(node);
@@ -69,8 +69,8 @@ void resolver::get_alive_vars(ast::Node* node, ast::NodeList nodes, VariableList
     break;
   }
   default: {
-    if (node->NextSibling()) return get_alive_vars(node->NextSibling(), nodes, result);
-    if (node->Parent()) return get_alive_vars(node->Parent(), nodes, result);
+    if (next_sibling(node)) return get_alive_vars(next_sibling(node), nodes, result);
+    if (parent(node)) return get_alive_vars(parent(node), nodes, result);
     return;
   }
   }
@@ -104,8 +104,8 @@ Variables can be defined in
  */
 void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result) {
   // FIXME who free the nodes in NodeList?
-  for (ast::Node* node : nodes) {
-    switch (node->Kind()) {
+  for (ast::Node node : nodes) {
+    switch (kind(node)) {
     case NK_DeclStmt: {
       VariableList vars = var_from_node(node);
       st.AddSymbol(vars);
@@ -115,15 +115,14 @@ void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, Variable
       VariableList vars = var_from_node(node);
       st.PushLevel();
       st.AddSymbol(vars);
-      BlockNode *block = dynamic_cast<ForNode*>(node)->Block();
-      get_undefined_vars(block->Nodes(), st, result);
+      Node block = for_get_block(node);
+      get_undefined_vars(block_get_nodes(block), st, result);
       st.PopLevel();
       break;
     }
     case NK_Expr: {
-      
-      std::vector<std::string> names = dynamic_cast<ExprNode*>(node)->IDs();//  = parse_expr(node); // TODO replace it with semantic one
-      for (auto it=names.begin();it!=names.end();++it) {
+      std::set<std::string> ids = expr_get_ids(node); // TODO replace with semantic one
+      for (auto it=ids.begin();it!=ids.end();++it) {
         if (st.LookUp(*it)) continue;
         Variable v = resolve_var(node, *it);
         // also add unique name, because I can't think up a scenario that an inner variable with the same name is not defined
@@ -134,7 +133,7 @@ void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, Variable
     }
     case NK_Block: {
       st.PushLevel();
-      get_undefined_vars(dynamic_cast<BlockNode*>(node)->Nodes(), st, result);
+      get_undefined_vars(block_get_nodes(node), st, result);
       st.PopLevel();
     }
     default: {

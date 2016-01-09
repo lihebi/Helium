@@ -163,7 +163,7 @@ private:
   std::vector<Variable> m_vars;
 };
 
-VariableList var_from_node(ast::Node* node);
+VariableList var_from_node(ast::Node node);
 std::string get_input_code(Variable v);
 
 

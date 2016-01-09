@@ -25,7 +25,7 @@ int Reader::m_cur_seg_no = 0;
 Reader::Reader(const std::string &filename)
 : m_filename(filename) {
   std::cout<<m_filename<<std::endl;
-  m_doc.InitFromFile(filename);
+  file2xml(filename, m_doc);
   getSegments();
   // std::cout<<"total seg: " << m_spus.size()<<std::endl;
   // if (m_spus.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
@@ -263,14 +263,10 @@ If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
  */
 void
 Reader::getDivideSegments() {
-  Node* root = m_doc.Root();
-  NodeList nodes = root->FindAll(NK_Function);
-  for (Node* node : nodes) {
-    FunctionNode* function = static_cast<FunctionNode*>(node);
-    BlockNode* block = function->Block();
-    getDivideRecursive(block->Nodes());
-    delete block;
-    delete node;
+  NodeList functions = find_nodes(m_doc, NK_Function);
+  for (Node function : functions) {
+    Node block = function_get_block(function);
+    getDivideRecursive(block_get_nodes(block));
   }
   
   
@@ -320,8 +316,8 @@ Reader::getDivideSegments() {
 void
 Reader::getDivideRecursive(NodeList nodes) {
   std::cout <<"get divide segment"  << "\n";
-  for (Node* node : nodes) {
-    switch (node->Kind()) {
+  for (Node node : nodes) {
+    switch (kind(node)) {
     case NK_ExprStmt:
     case NK_DeclStmt: {
       // need to combine

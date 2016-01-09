@@ -4,53 +4,6 @@
  ** DomUtil
  *******************************/
 
-
-
-/**
- * valid ast includes: expr, decl, break, macro, for, while, if, function
- */
-bool is_valid_ast(const char* name) {
-  if (strcmp(name, "expr_stmt") == 0
-    || strcmp(name, "decl_stmt") == 0
-    || strcmp(name, "break") == 0
-    || strcmp(name, "macro") == 0
-    || strcmp(name, "for") == 0
-    || strcmp(name, "while") == 0
-    || strcmp(name, "if") == 0
-    || strcmp(name, "function") == 0
-  ) return true;
-  else return false;
-}
-
-bool is_valid_ast(pugi::xml_node node) {
-  return is_valid_ast(node.name());
-}
-
-pugi::xml_node get_previous_ast_element(pugi::xml_node node) {
-  while (node) {
-    node = node.previous_sibling();
-    if (node) {
-      if (is_valid_ast(node.name())) {
-        return node;
-      }
-    }
-  }
-  // This should be node_null
-  return node;
-}
-
-pugi::xml_node get_parent_ast_element(pugi::xml_node node) {
-  while (node) {
-    node = node.parent();
-    if (node) {
-      if (is_valid_ast(node.name())) {
-        return node;
-      }
-    }
-  }
-  return node;
-}
-
 /**
  * Get the call place of the function in node.
  * @param[in] node the <function> node in xml
@@ -147,54 +100,3 @@ get_text_content_except_tag(pugi::xml_node node, std::string name) {
 
 
 
-/**
- * least upper bound of two nodes
- */
-pugi::xml_node
-lub(pugi::xml_node n1, pugi::xml_node n2) {
-  if (n1.root() != n2.root()) return pugi::xml_node();
-  pugi::xml_node root = n1.root();
-  int num1=0, num2=0;
-  pugi::xml_node n;
-  n = n1;
-  while (n!=root) {
-    n = n.parent();
-    num1++;
-  }
-  n = n2;
-  while(n!=root) {
-    n = n.parent();
-    num2++;
-  }
-  if (num1 > num2) {
-    // list 1 is longer
-    while(num1-- != num2) {
-      n1 = n1.parent();
-    }
-  } else {
-    while(num2-- != num1) {
-      n2 = n2.parent();
-    }
-  }
-  // will end because the root is the same
-  while (n1 != n2) {
-    n1 = n1.parent();
-    n2 = n2.parent();
-  }
-  return n1;
-}
-
-
-/**
- * test if node is within <level> levels inside a <tagname>
- */
-bool
-dom_in_node(pugi::xml_node node, std::string tagname, int level) {
-  while (node.parent() && level>0) {
-    node = node.parent();
-    level--;
-    if (node.type() != pugi::node_element) return false;
-    if (node.name() == tagname) return true;
-  }
-  return false;
-}

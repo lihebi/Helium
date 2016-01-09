@@ -1,295 +1,531 @@
 #include "ast.h"
+#include "ast.h"
+#include "gtest/gtest.h"
 #include "utils.h"
-#include <stdlib.h>
-#include <assert.h>
-#include <iostream>
 
-using namespace utils;
+namespace ast {
 
-/*******************************
- ** Dom Related Util functions
- *******************************/
+  static const std::map<NodeKind, const char*> kind_to_map {
+    {NK_Function, "function"}
+    , {NK_DeclStmt, "decl_stmt"}
+    , {NK_ExprStmt, "expr_stmt"}
+    , {NK_Expr,     "expr"}
+    , {NK_For,      "for"}
+    , {NK_Type,     "type"}
+    , {NK_Block,    "block"}
+    , {NK_Stmt,     "stmt"}
+    , {NK_If,       "if"}
+    , {NK_Case,     "case"}
+    , {NK_Default,  "default"}
+    , {NK_Switch,   "switch"}
+    , {NK_While,    "while"}
+    , {NK_Do,       "do"}
+    , {NK_Call,     "call"}
+    , {NK_Param,    "param"}
+    , {NK_Break,    "break"}
+    , {NK_Continue, "continue"}
+    , {NK_Return,   "return"}
+    , {NK_Label,    "label"}
+    , {NK_Goto,     "goto"}
+    , {NK_Typedef,  "typedef"}
+    , {NK_Struct,   "struct"}
+    , {NK_Union,    "union"}
+    , {NK_Enum,     "enum"}
+  };
 
-bool is_valid_ast(const char* name);
-bool is_valid_ast(pugi::xml_node node);
-pugi::xml_node get_previous_ast_element(pugi::xml_node node);
-pugi::xml_node get_parent_ast_element(pugi::xml_node node);
-// pugi::xml_node get_function_call(pugi::xml_node node);
+  static const std::map<const char*, NodeKind> name_to_kind {
+    {"function",  NK_Function}
+    , {"decl_stmt", NK_DeclStmt}
+    , {"decl",      NK_Decl}
+    , {"expr_stmt", NK_ExprStmt}
+    , {"expr_stmt", NK_ExprStmt}
+    , {"expr",      NK_Expr}
+    , {"for",       NK_For}
+    , {"type",      NK_Type}
+    , {"block",     NK_Block}
+    , {"stmt",      NK_Stmt}
+    , {"if",        NK_If}
+    , {"case",      NK_Case}
+    , {"default",   NK_Default}
+    , {"switch",    NK_Switch}
+    , {"while",     NK_While}
+    , {"do",        NK_Do}
+    , {"call",      NK_Call}
+    , {"param",     NK_Param}
+    , {"break",     NK_Break}
+    , {"continue",  NK_Continue}
+    , {"return",    NK_Return}
+    , {"label",     NK_Label}
+    , {"goto",      NK_Goto}
+    , {"typedef",   NK_Typedef}
+    , {"struct",    NK_Struct}
+    , {"union",     NK_Union}
+    , {"enum",      NK_Enum}
+  };
+  
+  NodeKind kind(Node node) {
+    if (!node) return NK_NULL;
+    if (!node.name()) return NK_NULL;
+    const char *name = node.name();
+    // if (name_to_kind.find(name) != name_to_kind.end()) return name_to_kind.at(name);
+    try {
+      return name_to_kind.at(name);
+    } catch (const std::out_of_range& e) {
+      // FIXME should not reach here if I have a complete list.
+      return NK_NULL;
+    }
+  }
 
-std::string get_text_content(pugi::xml_node node);
-std::string get_text_content_except_tag(pugi::xml_node, std::string name);
-
-pugi::xml_node lub(pugi::xml_node n1, pugi::xml_node n2);
-bool dom_in_node(pugi::xml_node node, std::string tagname, int level);
-
-/*******************************
- ** ast::Doc
- *******************************/
-
-using namespace ast;
-
-Doc::Doc() {}
-Doc::~Doc() {
-  if (m_doc) m_doc.reset();
-  assert(!m_doc.document_element());
-}
-
-bool Doc::IsValid() {
-  if (m_doc && m_doc.document_element()) return true;
-  else return false;
-}
-
-/**
- * Return the root node.
- * CAUTION This is not the root of ast, but the root of the xml document.
- * It is not practical to get the root of ast, for example, a c file has many ASTs
- */
-Node* Doc::Root() {
   /**
-   * 
-#include<xxx.h>
-
-#define
-
-func() {
-}
-
-func() {
-}
-
-So it just matters about the function node.
-Thus even if we get the funciton node, we cannot query #define value.
-So, no need to get the actual AST root.
-Just use the root of xml, and query like FindNodes(NK_Function) to get the function AST root.
+   * Find the children of node of kind "kind".
+   * It doesn't need to be direct child.
    */
-  // m_doc.document_element().print(std::cout);
-  Node* node = create_node(this, m_doc.document_element());
-  return node;
-}
-
-/**
- * Init ast_doc* from file. Needs to be destroyed.
- */
-void Doc::InitFromFile(const std::string &filename) {
-  // Doc *doc = (Doc*)malloc(sizeof(Doc));
-  file2xml(filename, m_doc);
-}
-
-/**
- * Init doc* from string. Need to be destroyed.
- */
-void Doc::InitFromString(const std::string& code) {
-  // Doc *doc = (Doc*)malloc(sizeof(Doc));
-  string2xml(code, m_doc);
-}
-
-/*******************************
- ** Node
- *******************************/
-
-Node* Node::PreviousSibling() {
-  pugi::xml_node n = m_node;
-  while ( (n = n.previous_sibling()) ) {
-    if (is_valid_ast(n)) {
-      return create_node(m_doc, n);
+  NodeList find_nodes(Node node, NodeKind kind) {
+    NodeList result;
+    std::string tag = "//";
+    try {
+      tag += kind_to_map.at(kind);
+    } catch (const std::out_of_range& e) {
+      return result;
     }
-  }
-  return NULL;
-}
-Node* Node::NextSibling() {
-  pugi::xml_node n = m_node;
-  while ( (n = n.previous_sibling())) {
-    if (is_valid_ast(n)) {
-      return create_node(m_doc, n);
+    pugi::xpath_node_set nodes = node.select_nodes(tag.c_str());
+    for (auto it=nodes.begin();it!=nodes.end();++it) {
+      result.push_back(it->node());
     }
+    return result;
   }
-  return NULL;
-}
-Node* Node::Parent() {
-  pugi::xml_node n = m_node;
-  while ( (n = n.parent())) {
-    if (is_valid_ast(n)) {
-      return create_node(m_doc, n);
+  NodeList find_nodes(const Doc& doc, NodeKind kind) {
+    Node root = doc.document_element();
+    return find_nodes(root, kind);
+  }
+  NodeList find_nodes_from_root(Node node, NodeKind kind) {
+    Node root = node.root();
+    return find_nodes(root, kind);
+  }
+
+  /*******************************
+   ** traversal
+   *******************************/
+
+  /**
+   * Next sibling on AST level
+   */
+  Node next_sibling(Node node) {
+    Node n = node;
+    while ((n = n.next_sibling())) {
+      if (is_valid_ast(n)) return n;
     }
+    return Node();
   }
-  return NULL;
-}
-
-
-/*
- * return the first line markup of the node
- * -1 if no markup found
- */
-int
-Node::GetFirstLineNumber() const {
-  pugi::xml_node node;
-  try {
-    node = m_node.select_node("//*[@pos::line]").node();
-  } catch (pugi::xpath_exception) {
-    // TODO
+  Node previous_sibling(Node node) {
+    Node n =node;
+    while ((n = n.previous_sibling())) {
+      if (is_valid_ast(n)) return n;
+    }
+    return Node();
   }
-  if (node) return atoi(node.attribute("pos::line").value());
-  return -1;
-}
-
-std::string Node::Text() const {
-  return get_text_content(m_node);
-}
-std::string Node::TextExceptComment() const {
-  return get_text_content_except_tag(m_node, "comment");
-}
-
-bool Node::Contains(Node* n) {
-  return (lub(n->m_node, m_node) == m_node);
-}
-
-/**
- * test if node is within <level> levels inside a <tagname>
- */
-// bool
-// in_node(pugi::xml_node node, std::string tagname, int level) {
-//   while (node.parent() && level>0) {
-//     node = node.parent();
-//     level--;
-//     if (node.type() != pugi::node_element) return false;
-//     if (node.name() == tagname) return true;
-//   }
-//   return false;
-// }
-
-NodeList Node::FindAll(NodeKind kind) {
-  std::cout <<"finding all.."  << "\n";
-  NodeList result;
-  std::string tag;
-  switch (kind) {
-  case NK_Function: {
-    tag = "//function";
+  Node parent(Node node) {
+    Node n = node;
+    while ((n = n.parent())) {
+      if (is_valid_ast(n)) return n;
+    }
+    return Node();
   }
-  default: {
-    ;
+
+  /**
+   * valid ast includes: expr, decl, break, macro, for, while, if, function
+   */
+
+  bool is_valid_ast(const char* name) {
+    if (strcmp(name, "expr_stmt") == 0
+        || strcmp(name, "decl_stmt") == 0
+        || strcmp(name, "break") == 0
+        || strcmp(name, "macro") == 0
+        || strcmp(name, "for") == 0
+        || strcmp(name, "while") == 0
+        || strcmp(name, "if") == 0
+        || strcmp(name, "function") == 0
+        ) return true;
+    else return false;
   }
+
+
+  bool is_valid_ast(pugi::xml_node node) {
+    return is_valid_ast(node.name());
   }
-  pugi::xpath_node_set nodes = m_node.select_nodes(tag.c_str());
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    FunctionNode *function = static_cast<FunctionNode*>(create_node(m_doc, it->node()));
-    function->Kind();
-    result.push_back(function);
+
+  /**
+   * least upper bound of two nodes
+   */
+  pugi::xml_node
+  lub(pugi::xml_node n1, pugi::xml_node n2) {
+    if (n1.root() != n2.root()) return pugi::xml_node();
+    pugi::xml_node root = n1.root();
+    int num1=0, num2=0;
+    pugi::xml_node n;
+    n = n1;
+    while (n!=root) {
+      n = n.parent();
+      num1++;
+    }
+    n = n2;
+    while(n!=root) {
+      n = n.parent();
+      num2++;
+    }
+    if (num1 > num2) {
+      // list 1 is longer
+      while(num1-- != num2) {
+        n1 = n1.parent();
+      }
+    } else {
+      while(num2-- != num1) {
+        n2 = n2.parent();
+      }
+    }
+    // will end because the root is the same
+    while (n1 != n2) {
+      n1 = n1.parent();
+      n2 = n2.parent();
+    }
+    return n1;
   }
-  return result;
+
+
+
+  /**
+   * Check if node is a sub node of any one of parent_nodes
+   */
+  bool contains(NodeList parent_nodes, Node node) {
+    for (Node parent : parent_nodes) {
+      if (contains(parent, node)) return true;
+    }
+    return false;
+  }
+  /**
+   * Check if child is a sub node of parent
+   */
+  bool contains(Node parent, Node child) {
+    if (lub(parent, child) == parent) return true;
+    else return false;
+  }
+
+  int get_first_line_number(Node node) {
+    Node n;
+    try {
+      n = node.select_node("//*[@pos::line]").node();
+    } catch (pugi::xpath_exception) {
+      // TODO
+    }
+    if (n) return atoi(n.attribute("pos::line").value());
+    return -1;
+  }
+  
+  std::string get_text(Node node) {
+    std::string text;
+    if (!node) return "";
+    for (pugi::xml_node n : node.children()) {
+      if (n.type() == pugi::node_element) {
+        if (!node.attribute("helium-omit")) {
+          // add text only if it is not in helium-omit
+          text += get_text(n);
+        } else if (strcmp(node.name(), "else") == 0 ||
+                   strcmp(node.name(), "then") == 0 ||
+                   strcmp(node.name(), "elseif") == 0 ||
+                   strcmp(node.name(), "default") == 0
+                   ) {
+          // FIXME Why??????
+          // For simplification of code.
+          // I will add "helium-omit" attribute on the AST to mark deletion.
+          // Those tag will be deleted.
+          // But to make the syntax valid, I need to add some "{}"
+          text += "{}";
+        } else if (strcmp(node.name(), "case") == 0) {
+          // FIXME why??????
+          text += "{break;}";
+        }
+      } else {
+        text += n.value();
+      }
+    }
+    return text;
+  }
+  std::string get_text_except(Node node, std::string tag) {
+    if (!node) return "";
+    std::string text;
+    for (pugi::xml_node n : node.children()) {
+      if (n.type() == pugi::node_element) {
+        if (!node.attribute("helium-omit")) {
+          if (strcmp(n.name(), tag.c_str()) != 0) {
+            text += get_text_except(n, tag);
+          }
+        }
+        // TODO this version does not use the trick for simplification,
+        // so it doesnot work with simplification
+      } else {
+        text += n.value();
+      }
+    }
+    return text;
+  }
+
+  /**
+   * True if node is inside a node of kind "kind"
+   */
+  bool in_node(Node node, NodeKind kind) {
+    while ((node = parent(node))) {
+      if (ast::kind(node) == kind) return true;
+    }
+    return false;
+  }
+
+
+
+  /*******************************
+   ** Specific node
+   *******************************/
+
+  
+  static void
+  simplify_variable_name(std::string& s) {
+    s = s.substr(0, s.find('['));
+    s = s.substr(0, s.find("->"));
+    s = s.substr(0, s.find('.'));
+    // TODO wiki the erase-remove-idiom
+    s.erase(std::remove(s.begin(), s.end(), '('), s.end());
+    s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
+    s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
+    s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
+  }
+
+  /**
+   * Expr
+   */
+  std::set<std::string> expr_get_ids(Node node) {
+    std::set<std::string> result;
+    for (Node n : node.children("name")) {
+      std::string s = get_text(n);
+      simplify_variable_name(s);
+      result.insert(s);
+    }
+    return result;
+  }
+
+  /**
+   * Call
+   */
+  std::string call_get_name(Node node) {
+    return node.child_value("name");
+  }
+
+
+  /**
+   * decl_stmt
+   */
+  NodeList decl_stmt_get_decls(Node node) {
+    NodeList nodes;
+    for (Node n : node.children("decl")) {
+      nodes.push_back(n);
+    }
+    return nodes;
+  }
+
+  std::string decl_get_name(Node node) {
+    return node.child_value("name");
+  }
+  std::string decl_get_type(Node node) {
+    return node.child("type").child_value("name");
+  }
+
+
+  
+  /**
+   * block
+   */
+  NodeList block_get_nodes(Node node) {
+    NodeList result;
+    for (Node n : node.children()) {
+      if (n.type() == pugi::node_element) result.push_back(n);
+    }
+    return result;
+  }
+
+
+
+  /**
+   * Function
+   */
+  
+  std::string function_get_return_type(Node node) {
+    return node.child("type").child_value("name");
+  }
+  
+  std::string function_get_name(Node node) {
+    return node.child_value("name");
+  }
+  
+  NodeList function_get_params(Node node) {
+    NodeList nodes;
+    Node parameter_list = node.child("parameter_list");
+    for (Node param : parameter_list.children("param")) {
+      nodes.push_back(param);
+    }
+    return nodes;
+  }
+  Node function_get_block(Node node) {
+    return node.child("block");
+  }
+
+  std::string param_get_type(Node node) {
+    // FIXME should contains modifiers, pointers, etc. Or should do semantic analysis further?
+    return node.child("decl").child("type").child_value("name");
+  }
+  std::string param_get_name(Node node) {
+    return node.child("decl").child_value("name");
+  }
+
+
+
+  TEST(ast_test_case, function_test) {
+    Doc doc;
+    const char *raw = R"prefix(
+
+int myfunc(int a, int b) {
+  int b;
 }
 
-
-
-/*******************************
- ** helper functions
- *******************************/
-bool ast::in_node(Node* node, NodeKind kind) {
-  while ( (node = node->Parent()) ) {
-    if (node->Kind() == kind) return true;
+)prefix";
+    utils::string2xml(raw, doc);
+    NodeList nodes = find_nodes(doc, NK_Function);
+    EXPECT_EQ(nodes.size(), 1);
+    Node myfunc = nodes[0];
+    EXPECT_EQ(function_get_return_type(myfunc), "int");
+    EXPECT_EQ(function_get_name(myfunc), "myfunc");
+    NodeList params = function_get_params(myfunc);
+    EXPECT_EQ(params.size(), 2);
+    EXPECT_EQ(param_get_type(params[0]), "int");
+    EXPECT_EQ(param_get_name(params[0]), "a");
+    EXPECT_EQ(param_get_type(params[1]), "int");
+    EXPECT_EQ(param_get_name(params[1]), "b");
   }
-  return false;
-}
 
-
-bool ast::contains(NodeList nodes, Node* node) {
-  for (Node* n : nodes) {
-    if (n->Contains(node)) return true;
+  /**
+   * get a map from name to type.
+   * e.g. int a,b; char c;
+   * will return:
+   * {(a,int), (b,int), (c,char)}
+   */
+  std::map<std::string, std::string> get_decl_detail(std::string code) {
+    std::map<std::string, std::string> result;
+    utils::trim(code);
+    if (code.back() != ';') code += ';';
+    Doc doc;
+    utils::string2xml(code, doc);
+    NodeList decl_stmts = find_nodes(doc, NK_DeclStmt);
+    for (Node decl_stmt : decl_stmts) {
+      std::string type = decl_stmt.child("decl").child("type").child_value("name");
+      for (Node decl : decl_stmt.children("decl")) {
+        for (Node name : decl.children("name")) {
+          std::string s = name.child_value();
+          result[s] = type;
+        }
+      }
+    }
+    return result;
   }
-  return false;
-}
 
-// /*******************************
-//  ** NodeList
-//  *******************************/
-
-// NodeList::NodeList() {}
-// NodeList::~NodeList() {}
-
-// // if node is a child noe of m_nodes. Caution: not node is in m_node!
-// bool NodeList::Contains(Node n) const {
-//   for (Node node : m_nodes) {
-//     if (node.Contains(n)) return true;
-//   }
-//   return false;
-// }
-// std::vector<Node> NodeList::Nodes() const {
-//   return m_nodes;
-// }
-// void NodeList::PushBack(Node node) {
-//   m_nodes.push_back(node);
-// }
-// void NodeList::PushBack(NodeList nodes) {
-//   for (Node node : nodes.Nodes()) {
-//     m_nodes.push_back(node);
-//   }
-// }
-
-// void NodeList::PushFront(Node node) {
-//   m_nodes.insert(m_nodes.begin(), node);
-// }
-
-// void NodeList::PushFront(NodeList nodes) {
-//   std::vector<Node> _nodes = nodes.Nodes();
-//   m_nodes.insert(m_nodes.begin(), _nodes.begin(), _nodes.end());
-// }
-// void NodeList::Clear() {
-//   m_nodes.clear();
-// }
-
-// Node NodeList::Get(int index) const {
-//   if (index < 0 || (size_t)index >= m_nodes.size()) return Node();
-//   return m_nodes[index];
-// }
-
-// bool NodeList::Empty() const {
-//   return m_nodes.empty();
-// }
-
-
-
-/*******************************
- ** AST subclasses
- *******************************/
-static void
-simplify_variable_name(std::string& s) {
-  s = s.substr(0, s.find('['));
-  s = s.substr(0, s.find("->"));
-  s = s.substr(0, s.find('.'));
-  // TODO wiki the erase-remove-idiom
-  s.erase(std::remove(s.begin(), s.end(), '('), s.end());
-  s.erase(std::remove(s.begin(), s.end(), ')'), s.end());
-  s.erase(std::remove(s.begin(), s.end(), '*'), s.end());
-  s.erase(std::remove(s.begin(), s.end(), '&'), s.end());
-}
-
-
-std::map<std::string, std::string> DeclStmtNode::Decls() {
-  std::map<std::string, std::string> result;
-  pugi::xml_node node = m_node.child("decl");
-  std::string type_str = get_text_content(node.child("type"));
-  std::string name_str = get_text_content(node.child("name"));
-  if (name_str.find('[') != std::string::npos) {
-    type_str += name_str.substr(name_str.find('['));
+  /**
+   * This node can be <decl_stmt>, or <init>(for), both of which may contains a list of <decl>s
+   */
+  std::map<std::string, std::string> get_decl_detail(Node node) {
+    std::map<std::string, std::string> result;
+    std::string type = node.child("decl").child("type").child_value("name");
+    if (type.empty()) return result;
+    for (Node decl : node.children("decl")) {
+      for (Node name : decl.children("name")) {
+        std::string s = name.child_value();
+        result[s] = type;
+      }
+    }
+    return result;
   }
-  name_str = name_str.substr(0, name_str.find('['));
-  result[name_str] = type_str;
-  return result;
-}
 
-std::vector<std::string> ExprNode::IDs() {
-  std::vector<std::string> ids;
-  for (pugi::xml_node n : m_node.children("name")) {
-    std::string s = get_text_content(n);
-    simplify_variable_name(s);
-    ids.push_back(s);
+  TEST(ast_test_case, decl_test) {
+    std::string code;
+    std::map<std::string, std::string> decls;
+    // single
+    code = "int a;";
+    decls = get_decl_detail(code);
+    EXPECT_EQ(decls.size(), 1);
+    EXPECT_EQ(decls["a"], "int");
+    // without ;
+    code = "int a";
+    decls = get_decl_detail(code);
+    EXPECT_EQ(decls.size(), 1);
+    EXPECT_EQ(decls["a"], "int");
+    // double ;;
+    code = "int a;;";
+    decls = get_decl_detail(code);
+    EXPECT_EQ(decls.size(), 1);
+    EXPECT_EQ(decls["a"], "int");
+    // double
+    code = "int a;char b;";
+    decls = get_decl_detail(code);
+    EXPECT_EQ(decls.size(), 2);
+    EXPECT_EQ(decls["a"], "int");
+    EXPECT_EQ(decls["b"], "char");
+    // same type
+    code = "int a,b;";
+    decls = get_decl_detail(code);
+    EXPECT_EQ(decls.size(), 2);
+    EXPECT_EQ(decls["a"], "int");
+    EXPECT_EQ(decls["b"], "int");
   }
-  return ids;
+
+  
+  /**
+   * For
+   */
+
+  // NodeList for_get_init_decls(Node node) {
+  //   NodeList nodes;
+  //   for (Node n : node.child("init").children("decl")) {
+  //     nodes.push_back(n);
+  //   }
+  //   return nodes;
+  // }
+  std::map<std::string, std::string> for_get_init_detail(Node node) {
+    return get_decl_detail(node.child("init"));
+  }
+  Node for_get_condition_expr(Node node) {
+    return node.child("condition").child("expr");
+  }
+  Node for_get_incr_expr(Node node) {
+    return node.child("incr").child("expr");
+  }
+  Node for_get_block(Node node) {
+    return node.child("block");
+  }
+
+  TEST(ast_test_case, for_test) {
+    Doc doc;
+    const char *raw = R"prefix(
+
+for (int i=0,c=2;i<8;++i) {
 }
 
+)prefix";
+    utils::string2xml(raw, doc);
+    NodeList nodes = find_nodes(doc, NK_For);
+    ASSERT_EQ(nodes.size(), 1);
+    Node myfor = nodes[0];
+    std::map<std::string, std::string> vars = for_get_init_detail(myfor);
+    ASSERT_EQ(vars.size(), 2);
+    EXPECT_EQ(vars["i"], "int");
+    EXPECT_EQ(vars["c"], "int");
+    // Node condition_expr = for_get_condition_expr(myfor);
+    // Node incr_expr = for_get_incr_expr(myfor);
+    // Node block = for_get_block(myfor);
+  }
 
-Node* ast::create_node(Doc* doc, pugi::xml_node node) {
-  const char * name = node.name();
-  if (strcmp(name, "function")) return new FunctionNode(doc, node);
-  if (strcmp(name, "if")) return new IfNode(doc, node);
-  return NULL;
 }
