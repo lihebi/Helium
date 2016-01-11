@@ -114,6 +114,29 @@ Helium::Helium(int argc, char* argv[]) {
 
   /* get files in target folder */
   get_files_by_extension(m_folder, m_files, "c");
+
+  /*******************************
+   ** More advanced utils(needs to run some functionality of Helium)
+   *******************************/
+
+  if (args.Has("print-segments")) {
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      Reader reader(*it);
+      reader.SelectSegments();
+      std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
+      reader.PrintSegments();
+    }
+    exit(0);
+  }
+  if (args.Has("print-segment-info")) {
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      Reader reader(*it);
+      reader.SelectSegments();
+      std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
+      std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
+    }
+    exit(0);
+  }
 }
 Helium::~Helium() {}
 

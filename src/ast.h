@@ -103,6 +103,19 @@ namespace ast {
   // if
   Node if_get_then_block(Node node);
   Node if_get_else_block(Node node);
+
+  // switch
+  Node switch_get_condition_expr(Node);
+  NodeList switch_get_cases(Node);
+  NodeList case_get_nodes(Node);
+  
+  // do
+  Node do_get_condition_expr(Node);
+  Node do_get_block(Node);
+
+  // while
+  Node while_get_condition_expr(Node);
+  Node while_get_block(Node);
   
   std::set<std::string> expr_get_ids(Node);
 

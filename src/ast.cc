@@ -558,6 +558,55 @@ for (int i=0,c=2;i<8;++i) {
   Node if_get_else_block(Node node) {
     return node.child("else").child("block");
   }
+
+  /*******************************
+   ** Switch
+   *******************************/
+
+  Node switch_get_condition_expr(Node node) {
+    return node.child("condition").child("expr");
+  }
+  NodeList switch_get_cases(Node node) {
+    NodeList result;
+    for (Node n : node.child("block").children("case")) {
+      result.push_back(n);
+    }
+    return result;
+  }
+  NodeList case_get_nodes(Node node) {
+    NodeList result;
+    if (node.child("block")) {
+      // FIXME this child may be a inner block, not the first one
+      Node block = node.child("block");
+      result = block_get_nodes(block);
+    } else {
+      // the first expr and a : are conditino.
+      // TODO
+    }
+    return result;
+  }
+
+  /*******************************
+   ** Do
+   *******************************/
+  Node do_get_condition_expr(Node node) {
+    return node.child("condition").child("expr");
+  }
+  Node do_get_block(Node node) {
+    return node.child("block");
+  }
+
+  /*******************************
+   ** While
+   *******************************/
+  Node while_get_condition_expr(Node node) {
+    return node.child("condition").child("expr");
+  }
+  Node while_get_block(Node node) {
+    return node.child("block");
+  }
+
+
   
 
 } // namespace ast ends here

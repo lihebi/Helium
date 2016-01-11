@@ -151,6 +151,9 @@ static bool is_leaf_node(Node node) {
   case NK_DeclStmt: return true;
   case NK_If:
   case NK_Comment:
+  case NK_Do:
+  case NK_While:
+  case NK_Switch:
   case NK_For: return false;
   default:
     std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
@@ -180,6 +183,24 @@ std::vector<NodeList> get_block_bodies(Node node) {
   case NK_For: {
     Node block = ast::for_get_block(node);
     result.push_back(block_get_nodes(block));
+    break;
+  }
+  case NK_Switch: {
+    NodeList cases = ast::switch_get_cases(node);
+    for (Node case_node : cases) {
+      result.push_back(ast::case_get_nodes(case_node));
+    }
+    break;
+  }
+  case NK_Do: {
+    Node block = ast::do_get_block(node);
+    result.push_back(block_get_nodes(block));
+    break;
+  }
+  case NK_While: {
+    Node block = ast::while_get_block(node);
+    result.push_back(block_get_nodes(block));
+    break;
   }
   default: ;
   }
@@ -284,6 +305,15 @@ int main() {
   delete reader;
 
 }
+
+
+void Reader::PrintSegments() {
+  for (Segment &seg : m_segments) {
+    std::cout <<"==========="  << "\n";
+    std::cout << seg.GetText() << "\n";
+  }
+}
+  
 
 
 /*******************************

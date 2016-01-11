@@ -18,7 +18,18 @@ public:
   int GetSegmentCount() {
     return m_segments.size();
   }
-  
+  void PrintSegments();
+  /**
+   * get loc of all segments
+   */
+  int GetSegmentLOC() {
+    int result = 0;
+    for (Segment &seg : m_segments) {
+      std::string code = seg.GetText();
+      result += std::count(code.begin(), code.end(), '\n');
+    }
+    return result;
+  }
 private:
   void getSegments();
   void getLoopSegments();
