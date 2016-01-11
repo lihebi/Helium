@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+#include "utils.h"
 #include "arg_parser.h"
 
 class Config {
@@ -21,6 +22,10 @@ public:
   int GetInt(std::string name);
   void Overwrite(ArgParser &args);
   std::string ToString();
+  
+  void Set(const std::string& key, const std::string& value) {
+    m_map[key] = value;
+  }
 private:
   Config();
   void parse(std::istream& is);

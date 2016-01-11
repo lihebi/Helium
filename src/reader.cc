@@ -1,15 +1,18 @@
 #include "reader.h"
 
+#include <stdio.h>
+
 #include <cstring>
 #include <signal.h>
 #include <setjmp.h>
 #include <iostream>
 
-#include "utils.h"
 #include "config.h"
 #include "builder.h"
 #include "tester.h"
 #include "analyzer.h"
+
+#include <gtest/gtest.h>
 
 using namespace utils;
 using namespace ast;
@@ -18,80 +21,10 @@ int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
 
 
-/*
- * 1. srcml the file into m_doc
- * 2. call getSegments()
- */
-Reader::Reader(const std::string &filename)
-: m_filename(filename) {
-  std::cout<<m_filename<<std::endl;
-  file2xml(filename, m_doc);
+void
+Reader::SelectSegments() {
   getSegments();
-  // std::cout<<"total seg: " << m_spus.size()<<std::endl;
-  // if (m_spus.size() > 0 && Config::Instance()->WillInteractReadSegment()) {
-  //   getchar();
-  // }
-  // m_skip_segment = Config::Instance()->GetSkipSegment();
 }
-Reader::~Reader() {
-}
-
-/*
- * True if variables contains type "name", "number" types
- */
-// bool
-// has_variable(std::set<std::shared_ptr<Variable> > variables, std::string name, int number) {
-//   std::shared_ptr<Type> type = TypeFactory(name).CreateType();
-//   if (number <= 0) return true;
-//   for (auto it=variables.begin();it!=variables.end();it++) {
-//     std::shared_ptr<Type> vtype = (*it)->GetType();
-//     if (type->GetName() == vtype->GetName()) {
-//         // && type->GetDimension() == vtype->GetDimension()
-//         // && type->GetPointerLevel() == vtype->GetPointerLevel()) {
-//       number--;
-//       if (number <=0) return true;
-//     }
-//   }
-//   return false;
-// }
-
-// bool
-// has_variables(std::set<std::shared_ptr<Variable> > variables, std::string);
-
-
-static bool watch_dog_skip = false;
-
-static jmp_buf jmpbuf; // jumbuf for long jump
-// static bool skip_file = false;
-
-// void watch_dog(int sig) {
-//   global_error_number++;
-//   if (global_error_number>100) exit(1);
-//   // file_error_number++;
-//   // if (file_error_number>30) {
-//   //   skip_file = true;
-//   // }
-//   watch_dog_skip = true;
-//   ualarm(Config::Instance()->GetSegmentTimeout()*1000, 0);
-//   longjmp(jmpbuf, 1); // jump back to previous stack
-// }
-
-// std::string
-// get_match_library_name(std::set<std::shared_ptr<Variable> > inv) {
-//   std::vector< std::set<std::string> > libraries;
-//   libraries.push_back({"char", "int"});
-//   for (auto it=libraries.begin();it!=libraries.end();it++) {
-//     for (auto jt=it->begin();jt!=it->end();jt++) {
-//       // if (!has_variable(inv, *jt, 1))
-//     }
-//   }
-//   if (has_variable(inv, "char*", 1)
-//       && has_variable(inv, "int", 1)) {
-//     std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
-//     // std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
-//     // OK, the input variable matches
-//   } 
-// }
 
 /*
  * For every segment:
@@ -104,14 +37,14 @@ static jmp_buf jmpbuf; // jumbuf for long jump
 void
 Reader::Read() {
   // signal(SIGALRM, watch_dog);
-  ualarm(Config::Instance()->GetInt("segment_timeout")*1000, 0);
+  // ualarm(Config::Instance()->GetInt("segment_timeout")*1000, 0);
   for (auto it=m_spus.begin();it!=m_spus.end();it++) {
     //    if (setjmp(jmpbuf) != 0) perror("setjmp");
-    setjmp(jmpbuf);
-    if (watch_dog_skip) {
-      watch_dog_skip = false;
-      continue;
-    }
+    // setjmp(jmpbuf);
+    // if (watch_dog_skip) {
+    //   watch_dog_skip = false;
+    //   continue;
+    // }
     m_cur_seg_no ++;
     if (m_skip_segment > m_cur_seg_no) {
       continue;
@@ -123,39 +56,6 @@ Reader::Read() {
       // library call experiment
       VariableList inv = (*it).GetInputVariables();
       VariableList outv = (*it).GetOutputVariables();
-
-      // output inv, outv
-      // std::cout<<"\tinput:";
-      // for (auto it=inv.begin();it!=inv.end();it++) {
-      //   std::cout<<(*it)->GetType()->GetName()<<", ";
-      // }
-      // std::cout<<"\n\toutput:";
-      // for (auto it=outv.begin();it!=outv.end();it++) {
-      //   std::cout<<"\t"<<(*it)->GetType()->GetName()<<std::endl;
-      // }
-      // std::cout<<std::endl;
-      
-      // TODO how to compare variable?
-      // prototype from string.h
-      // (char*, int) (char*, char*)
-      // prototype from ctype.h
-      // (int, int)
-      // if (has_variable(inv, "char", 1)
-      //     && has_variable(inv, "int", 1)) {
-      //   std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
-      //   std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
-
-
-      //   // std::string filename = "/Users/hebi/benchmark/char_int.txt";
-      //   std::string filename = "./char_int.txt";
-      //   FileUtil::Append(filename, "\n================\n");
-      //   FileUtil::Append(filename, "\tSegNO: "+std::to_string(m_cur_seg_no)+"\n");
-      //   FileUtil::Append(filename, "\tFilename: "+m_filename+"\n");
-      //   FileUtil::Append(filename, (*it)->GetSegment()->GetText());
-      //   // OK, the input variable matches
-      // }
-      // continue;
-
       
       Builder builder(*it);
       builder.Build();
@@ -227,31 +127,6 @@ void Reader::getAnnotationSegments() {
   // }
 }
 
-bool
-is_comment(pugi::xml_node n) {
-  if (!n) return false;
-  if (strcmp(n.name(), "comment") == 0) return true;
-  return false;
-}
-
-bool
-is_branch(pugi::xml_node n) {
-  if (!n) return false;
-  if (strcmp(n.name(), "if") == 0 || strcmp(n.name(), "switch") == 0) return true;
-  return false;
-}
-
-bool
-is_loop(pugi::xml_node n) {
-  if (!n) return false;
-  if (strcmp(n.name(), "for") == 0
-      || strcmp(n.name(), "while") == 0
-      || strcmp(n.name(), "do") == 0) {
-    return true;
-  }
-  return false;
-}
-
 /*
  * for every function, divide code by comments, start of loop, start of branch condition.
  * combine these blocks
@@ -259,7 +134,6 @@ is_loop(pugi::xml_node n) {
  treat comment as ast block
 for every block, if it is simple statement, combine into a NodeList.
 If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
- 
  */
 void
 Reader::getDivideSegments() {
@@ -268,66 +142,209 @@ Reader::getDivideSegments() {
     Node block = function_get_block(function);
     getDivideRecursive(block_get_nodes(block));
   }
-  
-  
-  // pugi::xml_node root = m_doc->document_element();
-  // pugi::xpath_node_set function_nodes = root.select_nodes("//function");
-  // for (auto it=function_nodes.begin();it!=function_nodes.end();it++) {
-  //   // for each function
-  //   // divide into blocks (vector of vector of nodes)
-  //   std::vector< std::vector<pugi::xml_node> > blocks;
-  //   pugi::xml_node node = it->node();
-  //   pugi::xml_node block_node = node.child("block");
-  //   if (block_node) {
-  //     pugi::xml_node n = block_node.first_child();
-  //     n = n.next_sibling(); // the first child of block is {, so we start from the second
-  //     std::vector<pugi::xml_node> block;
-  //     while (n && n != block_node.last_child()) { // should also remove the case of the last child (})
-  //       if (is_comment(n) || is_branch(n) || is_loop(n)) {
-  //         // block can be empty: 1) at the beginning 2) consequtive comments
-  //         if (!block.empty()) {
-  //           blocks.push_back(block);
-  //           block.clear();
-  //         }
-  //       }
-  //       // push if not comment
-  //       if (!is_comment(n)) {
-  //         block.push_back(n);
-  //       }
-  //       n = n.next_sibling();
-  //     }
-  //   }
-  //   // combine blocks into segments
-  //   for (int i=0;i<blocks.size();i++) {
-  //     for (int j=i+1;j<blocks.size();j++) {
-  //       // create SPU and insert
-  //       SPU su = std::make_shared<SegmentProcessUnit>(m_filename);
-  //       for (int k=i;k<j;k++) {
-  //         su->AddNodes(blocks[k]);
-  //       }
-  //       if (su->IsValid()) {
-  //         m_spus.push_back(su);
-  //       }
-  //     }
-  //   }
-  // }
 }
 
-void
-Reader::getDivideRecursive(NodeList nodes) {
-  std::cout <<"get divide segment"  << "\n";
-  for (Node node : nodes) {
-    switch (kind(node)) {
-    case NK_ExprStmt:
-    case NK_DeclStmt: {
-      // need to combine
-    }
-    case NK_If:
-    case NK_For:
-    case NK_Do: {
-      // end last combine, it is itself a block
-    }
-    default: {}
-    }
+static bool is_leaf_node(Node node) {
+  switch(ast::kind(node)) {
+  case NK_ExprStmt:
+  case NK_Return:
+  case NK_DeclStmt: return true;
+  case NK_If:
+  case NK_Comment:
+  case NK_For: return false;
+  default:
+    std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
+    assert(false);
+    return false;
   }
 }
+
+/**
+ * Get body node list of block.
+ * This block is not <block>, but AST level.
+ * Such as <if>
+ * If can have two blocks, <then><block> and <else><block>.
+ * The algorithm is to enumerate the type, and get the one we want.
+ */
+std::vector<NodeList> get_block_bodies(Node node) {
+  std::vector<NodeList> result;
+  switch(ast::kind(node)) {
+  case NK_If: {
+    Node then_block = ast::if_get_then_block(node);
+    // TODO should move this into the uppr function, if all blocks here have a <block> tag.
+    result.push_back(block_get_nodes(then_block));
+    Node else_block = ast::if_get_else_block(node);
+    result.push_back(block_get_nodes(else_block));
+    break;
+  }
+  case NK_For: {
+    Node block = ast::for_get_block(node);
+    result.push_back(block_get_nodes(block));
+  }
+  default: ;
+  }
+  return result;
+}
+
+
+void Reader::getDivideRecursive(NodeList nodes) {
+  std::vector<NodeList> seg_cands;
+  NodeList block_nodes;
+  NodeList tmp_group;
+
+  // step 1
+  for (Node node : nodes) {
+    if (is_leaf_node(node)) {
+      tmp_group.push_back(node);
+    } else {
+      if (!tmp_group.empty()) seg_cands.push_back(tmp_group);
+      tmp_group.clear();
+      if (ast::kind(node) != NK_Comment) {
+        NodeList l = {node}; // need this in document algorithm?
+        seg_cands.push_back(l);
+        block_nodes.push_back(node);
+      }
+    }
+  }
+  if (!tmp_group.empty()) {
+    seg_cands.push_back(tmp_group);
+    tmp_group.clear();
+  }
+
+  // constructing the final segments from segment candidates
+  for (size_t i=0;i<seg_cands.size();i++) {
+    for (size_t j=i;j<seg_cands.size();j++) {
+      Segment seg;
+      for (size_t k=i;k<=j;k++) {
+        seg.PushBack(seg_cands[k]);
+      }
+      m_segments.push_back(seg);
+    }
+  }
+
+  // process block
+  for (Node block : block_nodes) {
+    std::vector<NodeList> bodies = get_block_bodies(block);
+    for (NodeList body : bodies) {
+      getDivideRecursive(body);
+    }
+  }
+  
+}
+
+
+TEST(reader_test_case, divide_segment) {
+  Config::Instance()->ParseFile("./helium.conf");
+  Config::Instance()->Set("code-selection-method", "divide");
+  char tmp_dir[] = "/tmp/helium-test-temp.XXXXX";
+  char *result = mkdtemp(tmp_dir);
+  ASSERT_TRUE(result != NULL);
+  std::string dir = tmp_dir;
+  std::string filename = dir+"/a.c";
+  const char *code = R"prefix(
+
+int main() {
+  int sum = 0;
+  int a = 2;
+  for (int i=0;i<100;i++) {
+    sum += i;
+  }
+  int b = 3;
+  // this is a comment
+  b ++;
+  int d = 9;
+  return 0;
+}
+
+
+)prefix";
+  utils::write_file(filename, code);
+  // create reader
+  Reader *reader = new Reader(filename);
+  reader->SelectSegments();
+  // 4+3+2+1 + 1 = 11
+  EXPECT_EQ(reader->GetSegmentCount(), 11);
+  delete reader;
+  
+  code = R"prefix(
+
+int main() {
+  int sum = 0;
+  int a = 2;
+  for (int i=0;i<100;i++) {
+    sum += i;
+  }
+}
+)prefix";
+  utils::write_file(filename, code);
+  // create reader
+  reader = new Reader(filename);
+  reader->SelectSegments();
+  EXPECT_EQ(reader->GetSegmentCount(), 4);
+  delete reader;
+
+}
+
+
+/*******************************
+ ** Deprecated code
+ *******************************/
+
+/*
+ * True if variables contains type "name", "number" types
+ */
+// bool
+// has_variable(std::set<std::shared_ptr<Variable> > variables, std::string name, int number) {
+//   std::shared_ptr<Type> type = TypeFactory(name).CreateType();
+//   if (number <= 0) return true;
+//   for (auto it=variables.begin();it!=variables.end();it++) {
+//     std::shared_ptr<Type> vtype = (*it)->GetType();
+//     if (type->GetName() == vtype->GetName()) {
+//         // && type->GetDimension() == vtype->GetDimension()
+//         // && type->GetPointerLevel() == vtype->GetPointerLevel()) {
+//       number--;
+//       if (number <=0) return true;
+//     }
+//   }
+//   return false;
+// }
+
+// bool
+// has_variables(std::set<std::shared_ptr<Variable> > variables, std::string);
+
+
+
+static bool watch_dog_skip = false;
+
+static jmp_buf jmpbuf; // jumbuf for long jump
+// static bool skip_file = false;
+
+// void watch_dog(int sig) {
+//   global_error_number++;
+//   if (global_error_number>100) exit(1);
+//   // file_error_number++;
+//   // if (file_error_number>30) {
+//   //   skip_file = true;
+//   // }
+//   watch_dog_skip = true;
+//   ualarm(Config::Instance()->GetSegmentTimeout()*1000, 0);
+//   longjmp(jmpbuf, 1); // jump back to previous stack
+// }
+
+// std::string
+// get_match_library_name(std::set<std::shared_ptr<Variable> > inv) {
+//   std::vector< std::set<std::string> > libraries;
+//   libraries.push_back({"char", "int"});
+//   for (auto it=libraries.begin();it!=libraries.end();it++) {
+//     for (auto jt=it->begin();jt!=it->end();jt++) {
+//       // if (!has_variable(inv, *jt, 1))
+//     }
+//   }
+//   if (has_variable(inv, "char*", 1)
+//       && has_variable(inv, "int", 1)) {
+//     std::cout<<"FOUND segment that has the same input variable as library call"<<std::endl;
+//     // std::cout<< "\033[1;30m " << (*it)->GetSegment()->GetText()<< " \033[0m" <<std::endl;
+//     // OK, the input variable matches
+//   } 
+// }
+

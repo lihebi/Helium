@@ -39,6 +39,8 @@ private:
   bool m_valid = false;
 };
 
+typedef std::vector<Segment> SegmentList;
+
 class SPU {
 public:
   SPU(const std::string& filename);

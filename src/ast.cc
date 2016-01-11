@@ -5,9 +5,10 @@
 
 namespace ast {
 
-  static const std::map<NodeKind, const char*> kind_to_map {
+  static const std::map<NodeKind, std::string> kind_to_name_map {
     {NK_Function, "function"}
     , {NK_DeclStmt, "decl_stmt"}
+    , {NK_Decl,     "decl"}
     , {NK_ExprStmt, "expr_stmt"}
     , {NK_Expr,     "expr"}
     , {NK_For,      "for"}
@@ -31,13 +32,14 @@ namespace ast {
     , {NK_Struct,   "struct"}
     , {NK_Union,    "union"}
     , {NK_Enum,     "enum"}
+    , {NK_Comment,  "comment"}
+    , {NK_Null,     "NULL"}
   };
 
-  static const std::map<const char*, NodeKind> name_to_kind {
+  static const std::map<std::string, NodeKind> name_to_kind_map {
     {"function",  NK_Function}
     , {"decl_stmt", NK_DeclStmt}
     , {"decl",      NK_Decl}
-    , {"expr_stmt", NK_ExprStmt}
     , {"expr_stmt", NK_ExprStmt}
     , {"expr",      NK_Expr}
     , {"for",       NK_For}
@@ -61,18 +63,35 @@ namespace ast {
     , {"struct",    NK_Struct}
     , {"union",     NK_Union}
     , {"enum",      NK_Enum}
+    , {"comment",   NK_Comment}
+    , {"NULL",      NK_Null}
   };
+
+  /*
+   * To make sure the above two mapping are consistant
+   */
+  TEST(ast_test_case, kind_name_test) {
+    ASSERT_EQ(kind_to_name_map.size(), name_to_kind_map.size());
+    for (auto m : kind_to_name_map) {
+      EXPECT_EQ(name_to_kind_map.at(m.second), m.first);
+    }
+  }
+
+  std::string kind_to_name(NodeKind k) {
+    return kind_to_name_map.at(k);
+  }
+
   
   NodeKind kind(Node node) {
-    if (!node) return NK_NULL;
-    if (!node.name()) return NK_NULL;
+    if (!node) return NK_Null;
+    if (!node.name()) return NK_Null;
     const char *name = node.name();
     // if (name_to_kind.find(name) != name_to_kind.end()) return name_to_kind.at(name);
     try {
-      return name_to_kind.at(name);
+      return name_to_kind_map.at(name);
     } catch (const std::out_of_range& e) {
-      // FIXME should not reach here if I have a complete list.
-      return NK_NULL;
+      assert(false && "should not reach here if I have a complete list.");
+      return NK_Null;
     }
   }
 
@@ -84,7 +103,7 @@ namespace ast {
     NodeList result;
     std::string tag = "//";
     try {
-      tag += kind_to_map.at(kind);
+      tag += kind_to_name_map.at(kind);
     } catch (const std::out_of_range& e) {
       return result;
     }
@@ -528,4 +547,17 @@ for (int i=0,c=2;i<8;++i) {
     // Node block = for_get_block(myfor);
   }
 
-}
+
+  /*******************************
+   ** If
+   *******************************/
+  Node if_get_then_block(Node node) {
+    return node.child("then").child("block");
+  }
+
+  Node if_get_else_block(Node node) {
+    return node.child("else").child("block");
+  }
+  
+
+} // namespace ast ends here

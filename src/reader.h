@@ -3,12 +3,22 @@
 
 #include "segment.h"
 #include "ast.h"
+#include "utils.h"
 
 class Reader {
 public:
-  Reader(const std::string &filename);
-  virtual ~Reader();
+  Reader(const std::string &filename) : m_filename(filename) {
+    utils::file2xml(filename, m_doc);
+  }
+  virtual ~Reader() {}
+  void SelectSegments();
   void Read();
+  
+  /* meta data for test */
+  int GetSegmentCount() {
+    return m_segments.size();
+  }
+  
 private:
   void getSegments();
   void getLoopSegments();
@@ -18,6 +28,7 @@ private:
 
 
   std::vector<SPU> m_spus;
+  SegmentList m_segments;
   ast::Doc m_doc;
   std::string m_filename;
   static int m_skip_segment; // store config number

@@ -1,7 +1,9 @@
 #include "arg_parser.h"
 #include <iostream>
 
-ArgParser::ArgParser(int argc, char** argv)
+#include <gtest/gtest.h>
+
+ArgParser::ArgParser(int argc, char* argv[])
 {
   // create options_description
   po::options_description options("Arguments");
@@ -23,7 +25,25 @@ ArgParser::ArgParser(int argc, char** argv)
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
-    ("folder", "project folder");
+    ("folder", "project folder")
+    // config options. Should be kept the same as in helium.conf file
+    ("analyze-timeout", po::value<std::string>())
+    ("analyze-type", po::value<std::string>())
+    ("code-selection", po::value<std::string>())
+    ("context-search-method", po::value<std::string>())
+    ("context-search-value", po::value<std::string>())
+    ("instrument-position", po::value<std::string>())
+    ("instrument-type", po::value<std::string>())
+    ("max-context-size", po::value<std::string>())
+    ("max-segment-size", po::value<std::string>())
+    ("max-snippet-number", po::value<std::string>())
+    ("max-snippet-size", po::value<std::string>())
+    ("output-folder", po::value<std::string>())
+    ("segment-timeout", po::value<std::string>())
+    ("test-generation-method", po::value<std::string>())
+    ("test-number", po::value<std::string>())
+    ("test-timeout", po::value<std::string>())
+    ;
   // positional options: used for the option that don't need to use a --prefix
   po::positional_options_description positional;
   // this "folder" option include only one item
@@ -93,3 +113,13 @@ std::string ArgParser::GetString(std::string name) {
 //   if (Has("folder")) return true;
 //   else return false;
 // }
+
+TEST(arg_parser_test_case, arg_parser) {
+  int argc = 3;
+  char *argv[] =
+    {"helium", "--context-search-method=hello-world", "folder"};
+  ArgParser args(argc, argv);
+  EXPECT_FALSE(args.Has("context-search-value"));
+  EXPECT_TRUE(args.Has("context-search-method"));
+  EXPECT_EQ(args.GetString("context-search-method"), "hello-world");
+}

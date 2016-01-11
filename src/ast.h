@@ -37,8 +37,10 @@ namespace ast {
     NK_Struct,
     NK_Union,
     NK_Enum,
-    NK_NULL
+    NK_Comment,
+    NK_Null
   } NodeKind;
+  std::string kind_to_name(NodeKind k);  
 
   /*******************************
    ** Help function
@@ -97,6 +99,10 @@ namespace ast {
   Node for_get_condition_expr(Node node);
   Node for_get_incr_expr(Node node);
   Node for_get_block(Node node);
+  
+  // if
+  Node if_get_then_block(Node node);
+  Node if_get_else_block(Node node);
   
   std::set<std::string> expr_get_ids(Node);
 

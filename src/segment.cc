@@ -64,7 +64,7 @@ Segment::GetText() {
   std::string s;
   for (Node node : m_nodes) {
     s += get_text(node);
-    // s += '\n'; // FIXME need this?
+    s += '\n'; // FIXME need this?
   }
   return s;
 }

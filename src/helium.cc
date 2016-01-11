@@ -37,7 +37,7 @@ create_tagfile(const std::string& folder, const std::string& file) {
 }
 
 
-Helium::Helium(int argc, char** argv) {
+Helium::Helium(int argc, char* argv[]) {
   /* load HELIUM_HOME */
   std::string helium_home = load_helium_home();
   /* parse arguments */
@@ -120,7 +120,9 @@ Helium::~Helium() {}
 void
 Helium::Run() {
   for (auto it=m_files.begin();it!=m_files.end();it++) {
-    Reader(*it).Read();
+    Reader reader(*it);
+    reader.SelectSegments();
+    reader.Read();
   }
 }
 
