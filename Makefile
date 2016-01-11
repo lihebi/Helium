@@ -60,7 +60,7 @@ CFLAGS := -g -Wall --std=c++11
 # C_TEST_LIB += -lgtest # google test framework
 # C_TEST_LIB += -lboost_unit_test_framework # boost test framework
 
-C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_log_setup # other boost libraries used in Helium
+C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
 C_LIB += -lgtest
 

@@ -33,7 +33,14 @@ create_tagfile(const std::string& folder, const std::string& file) {
   cmd += file;
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
   cmd += folder;
-  std::system(cmd.c_str());
+  // std::system(cmd.c_str());
+  int status;
+  utils::exec(cmd.c_str(), &status);
+  if (status != 0) {
+    std::cerr << "create tagfile failed" << "\n";
+    std::cerr << cmd << "\n";
+    exit(1);
+  }
 }
 
 
