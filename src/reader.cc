@@ -148,6 +148,13 @@ static bool is_leaf_node(Node node) {
   switch(ast::kind(node)) {
   case NK_ExprStmt:
   case NK_Return:
+  case NK_Continue:
+  case NK_Break:
+  case NK_Define:
+  case NK_IfnDef:
+  case NK_IfDef:
+  case NK_DefElse:
+  case NK_EndIf:
   case NK_DeclStmt: return true;
   case NK_If:
   case NK_Comment:
@@ -158,7 +165,7 @@ static bool is_leaf_node(Node node) {
   default:
     std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
     assert(false);
-    return false;
+    return true;
   }
 }
 

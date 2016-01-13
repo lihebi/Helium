@@ -40,10 +40,12 @@ function generate_tags () {
 
 # generate_tags $1
 
+# exit 0
+
 for fname in $1/*
 do
     project_name=${fname##*/}
-    cmd="helium $fname --tagfile tagfiles/$project_name.tag"
+    cmd="helium --print-segment-info $fname --tagfile tagfiles/$project_name.tag"
     echo $cmd
     # $cmd >/dev/null 2>&1
     $cmd

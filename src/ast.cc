@@ -33,6 +33,11 @@ namespace ast {
     , {NK_Union,    "union"}
     , {NK_Enum,     "enum"}
     , {NK_Comment,  "comment"}
+    , {NK_Define,   "cpp:define"}
+    , {NK_IfnDef,   "cpp:ifndef"}
+    , {NK_IfDef,    "cpp:ifdef"}
+    , {NK_DefElse,  "cpp:else"}
+    , {NK_EndIf,    "cpp:endif"}
     , {NK_Null,     "NULL"}
   };
 
@@ -64,6 +69,11 @@ namespace ast {
     , {"union",     NK_Union}
     , {"enum",      NK_Enum}
     , {"comment",   NK_Comment}
+    , {"cpp:define",    NK_Define}
+    , {"cpp:ifndef", NK_IfnDef}
+    , {"cpp:ifdef", NK_IfDef}
+    , {"cpp:else",  NK_DefElse}
+    , {"cpp:endif", NK_EndIf}
     , {"NULL",      NK_Null}
   };
 
@@ -90,6 +100,7 @@ namespace ast {
     try {
       return name_to_kind_map.at(name);
     } catch (const std::out_of_range& e) {
+      std::cerr << name << " is not handled." << "\n";
       assert(false && "should not reach here if I have a complete list.");
       return NK_Null;
     }

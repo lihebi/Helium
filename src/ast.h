@@ -38,6 +38,11 @@ namespace ast {
     NK_Union,
     NK_Enum,
     NK_Comment,
+    NK_Define,
+    NK_IfDef,
+    NK_IfnDef,
+    NK_DefElse,
+    NK_EndIf,
     NK_Null
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
