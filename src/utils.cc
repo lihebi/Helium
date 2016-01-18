@@ -283,8 +283,8 @@ utils::create_folder(const std::string& folder) {
  */
 void utils::file2xml(const std::string &filename, pugi::xml_document& doc) {
   std::string cmd;
-  cmd = "src2srcml --position " + filename;
-  // cmd = "src2srcml " + filename;
+  cmd = "srcml --position " + filename;
+  // cmd = "srcml " + filename;
   std::string xml = exec(cmd.c_str(), NULL);
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
 }
@@ -296,8 +296,8 @@ void utils::file2xml(const std::string &filename, pugi::xml_document& doc) {
  * @param[out] doc
  */
 void utils::string2xml(const std::string &code, pugi::xml_document& doc) {
-  std::string cmd = "src2srcml --position -lC";
-  // std::string cmd = "src2srcml -lC";
+  std::string cmd = "srcml --position -lC";
+  // std::string cmd = "srcml -lC";
   std::string xml = exec(cmd.c_str(), code.c_str(), NULL);
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
 }

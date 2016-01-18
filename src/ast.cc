@@ -397,7 +397,7 @@ namespace ast {
   NodeList function_get_params(Node node) {
     NodeList nodes;
     Node parameter_list = node.child("parameter_list");
-    for (Node param : parameter_list.children("param")) {
+    for (Node param : parameter_list.children("parameter")) {
       nodes.push_back(param);
     }
     return nodes;
@@ -432,7 +432,7 @@ int myfunc(int a, int b) {
     EXPECT_EQ(function_get_return_type(myfunc), "int");
     EXPECT_EQ(function_get_name(myfunc), "myfunc");
     NodeList params = function_get_params(myfunc);
-    EXPECT_EQ(params.size(), 2);
+    ASSERT_EQ(params.size(), 2);
     EXPECT_EQ(param_get_type(params[0]), "int");
     EXPECT_EQ(param_get_name(params[0]), "a");
     EXPECT_EQ(param_get_type(params[1]), "int");
@@ -466,6 +466,7 @@ int myfunc(int a, int b) {
 
   /**
    * This node can be <decl_stmt>, or <init>(for), both of which may contains a list of <decl>s
+   * deprecated.
    */
   std::map<std::string, std::string> get_decl_detail(Node node) {
     std::map<std::string, std::string> result;
