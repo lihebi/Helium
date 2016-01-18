@@ -147,6 +147,9 @@ systype.tags:
 		--exclude=xorg\
 		-R /usr/include/ /usr/local/include
 
+bootstrap: systype.tags
+	cp helium.conf.sample helium.conf
+
 # this is what every that is handy
 tmp: $(TARGET)
 	helium test/benchmark
