@@ -1,0 +1,35 @@
+* Benchmarking for Helium
+
+This is currently a TODO list for the benchmarking I need to try.
+
+  * Bufbench
+  * Gzip
+
+** bufbench
+| name     | CVE ID        | bug version | patched version    | Bad count | comments                                | further classify                                                                                      |
+|----------+---------------+-------------+--------------------+-----------+-----------------------------------------+-------------------------------------------------------------------------------------------------------|
+| bind     | CA-1999-14    |             |                    |         1 | memcpy not checked                      | OK, will crash, valgrind can find. But cannot compile on mac.                                         |
+|          | CA-1999-14    |             |                    |         1 | memcpy                                  | OK, will crash, valgrind can find.                                                                    |
+|          | CVE-1999-0009 |             |                    |         2 | memcpy                                  |                                                                                                       |
+|          | CVE-2001-0013 |             |                    |         2 | sprintf bound checking                  |                                                                                                       |
+|----------+---------------+-------------+--------------------+-----------+-----------------------------------------+-------------------------------------------------------------------------------------------------------|
+| sendmail | CA-2003-07    |             |                    |        28 |                                         |                                                                                                       |
+|          | CVE-1999-0131 |             |                    |         2 |                                         |                                                                                                       |
+|          | CVE-1999-0206 |             |                    |         3 |                                         |                                                                                                       |
+|          | CVE-1999-0047 |             |                    |         7 |                                         |                                                                                                       |
+|          | CA-2003-12    |             |                    |         3 |                                         |                                                                                                       |
+|          | CVE-2001-0653 |             |                    |         1 |                                         |                                                                                                       |
+|          | CVE-2002-0906 |             |                    |         2 |                                         |                                                                                                       |
+|----------+---------------+-------------+--------------------+-----------+-----------------------------------------+-------------------------------------------------------------------------------------------------------|
+| wu-ftpd  | CVE-1999-0878 |             |                    |         4 |                                         |                                                                                                       |
+|          | CAN-2003-0466 |             |                    |         1 |                                         | No crash. Valgrind cannot find anything. But "buffer-overflow" is printed out, because "strlen()>xxx" |
+|          | CVE-1999-0368 |             |                    |        27 |                                         |                                                                                                       |
+|----------+---------------+-------------+--------------------+-----------+-----------------------------------------+-------------------------------------------------------------------------------------------------------|
+| gzip     | CVE-2001-1228 |       1.2.4 | have patch (1.3.3) |           | crash when filename is longer than 1024 |                                                                                                       |
+
+
+file names:
+10: abcdefghij
+100: abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij
+1000: abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij
+1025: abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij10245abcdefghijabcdefghij

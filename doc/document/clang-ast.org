@@ -1,0 +1,142 @@
+class structure from clang:
+
+Stmt
+
+[-]Class
+ | DeclStmt
+ | NullStmt
+ | CompoundStmt
+ | SwitchCase
+ | CaseStmt
+ | DefaultStmt
+ | LabelStmt
+ | AttributedStmt
+ | IfStmt
+ | SwitchStmt
+ | WhileStmt
+ | DoStmt
+ | ForStmt
+ | GotoStmt
+ | IndirectGotoStmt
+ | ContinueStmt
+ | BreakStmt
+ | ReturnStmt
+ | AsmStmt
+ | GCCAsmStmt
+ | MSAsmStmt
+ | SEHExceptStmt
+ | SEHFinallyStmt
+ | SEHTryStmt
+ | SEHLeaveStmt
+ `-CapturedStmt
+
+Expr
+
+[-]Class
+ | SubobjectAdjustment
+ | Expr
+ | OpaqueValueExpr
+ | PredefinedExpr
+ | APNumericStorage
+ | APIntStorage
+ | APFloatStorage
+ | IntegerLiteral
+ | CharacterLiteral
+ | FloatingLiteral
+ | ImaginaryLiteral
+ | StringLiteral
+ | ParenExpr
+ | UnaryOperator
+ | OffsetOfNode
+ | UnaryExprOrTypeTraitExpr
+ | ArraySubscriptExpr
+ | CallExpr
+ | MemberExprNameQualifier
+ | CompoundLiteralExpr
+ | CastExpr
+ | ExplicitCastExpr
+ | BinaryOperator
+ | CompoundAssignOperator
+ | AbstractConditionalOperator
+ | ConditionalOperator
+ | BinaryConditionalOperator
+ | AddrLabelExpr
+ | StmtExpr
+ | ShuffleVectorExpr
+ | ConvertVectorExpr
+ | ChooseExpr
+ | GNUNullExpr
+ | VAArgExpr
+ | InitListExpr
+ | NoInitExpr
+ | DesignatedInitUpdateExpr
+ | ImplicitValueInitExpr
+ | ParenListExpr
+ | GenericSelectionExpr
+ | ExtVectorElementExpr
+ | BlockExpr
+ | AsTypeExpr
+ | AtomicExpr
+ `-TypoExpr
+Type
+
+[-]Class
+ | Qualifiers
+ | SplitQualType
+ | QualType
+ | PointerLikeTypeTraits<clang::QualType>
+ | ExtQualsTypeCommonBase
+ | ExtQuals
+ | Type
+ | BuiltinType
+ | ComplexType
+ | ParenType
+ | PointerType
+ | AdjustedType
+ | DecayedType
+ | BlockPointerType
+ | ReferenceType
+ | LValueReferenceType
+ | RValueReferenceType
+ | MemberPointerType
+ | ArrayType
+ | ConstantArrayType
+ | IncompleteArrayType
+ | VariableArrayType
+ | DependentSizedArrayType
+ | DependentSizedExtVectorType
+ | VectorType
+ | ExtVectorType
+ | FunctionType
+ | FunctionNoProtoType
+ | FunctionProtoType
+ | UnresolvedUsingType
+ | TypedefType
+ | TypeOfExprType
+ | DependentTypeOfExprType
+ | TypeOfType
+ | DecltypeType
+ | DependentDecltypeType
+ | UnaryTransformType
+ | TagType
+ | RecordType
+ | EnumType
+ | AttributedType
+ | TemplateTypeParmType
+ | SubstTemplateTypeParmType
+ | SubstTemplateTypeParmPackType
+ | AutoType
+ | InjectedClassNameType
+ | TypeWithKeyword
+ | ElaboratedType
+ | DependentNameType
+ | PackExpansionType
+ | ObjCObjectType
+ | ObjCObjectTypeImpl
+ | ObjCInterfaceType
+ | ObjCObjectPointerType
+ | AtomicType
+ | QualifierCollector
+ `-ArrayType_cannot_be_used_with_getAs
+
+

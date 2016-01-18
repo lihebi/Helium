@@ -1,0 +1,36 @@
+* Design document for AST modelling upon srcml
+
+We are operating on AST level,
+so we need to have a wrapper over xml.
+
+#+begin_src plantuml :file ast.png
+
+title AST design
+
+class Doc {
+Root()
+operator bool()
+InitFromFile()
+InitFromString()
+
+pugi::xml_document doc
+}
+
+abstract class Node {
+Node() // empty node
+virtual ~Node() = 0; // this should not 
+virtual Node(Doc* doc, pugi::xml_node node);
+virtual Kind();
+Node* PreviousSibling();
+}
+
+class IfNode {
+IfNode(Doc* doc, Node* ifnode, Node* condition)
+}
+Node <|-- IfNode
+
+#+end_src
+
+#+RESULTS:
+[[file:ast.png]]
+
