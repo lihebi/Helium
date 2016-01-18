@@ -76,7 +76,6 @@ namespace ast {
     , {"cpp:endif", NK_EndIf}
     , {"NULL",      NK_Null}
   };
-
   /*
    * To make sure the above two mapping are consistant
    */
@@ -86,6 +85,7 @@ namespace ast {
       EXPECT_EQ(name_to_kind_map.at(m.second), m.first);
     }
   }
+
 
   std::string kind_to_name(NodeKind k) {
     return kind_to_name_map.at(k);
@@ -101,6 +101,14 @@ namespace ast {
       return name_to_kind_map.at(name);
     } catch (const std::out_of_range& e) {
       std::cerr << name << " is not handled." << "\n";
+      std::cout << "-- text:" << "\n";
+      std::cout << get_text(node) << "\n";
+      std::cout << "-- node name:" << "\n";
+      std::cout << node.name() << "\n";
+      std::cout << "-- xml structure:" << "\n";
+      node.print(std::cout);
+      // std::cout << "-- parent:" << "\n";
+      // node.parent().print(std::cout);
       assert(false && "should not reach here if I have a complete list.");
       return NK_Null;
     }
@@ -180,8 +188,10 @@ namespace ast {
   }
 
 
-  bool is_valid_ast(pugi::xml_node node) {
-    return is_valid_ast(node.name());
+  bool is_valid_ast(Node node) {
+    // return is_valid_ast(node.name());
+    if (node.type() == pugi::node_element) return true;
+    else return false;
   }
 
   /**
@@ -364,6 +374,14 @@ namespace ast {
     return node.child_value("name");
   }
   std::string decl_get_type(Node node) {
+    // if (!node || strcmp(node.name(), "decl") != 0) {
+    //   assert(false && "node should be <decl>");
+    // }
+    if (node.child("type").attribute("ref")) {
+      assert(strcmp(node.child("type").attribute("ref").value(), "prev") == 0);
+      Node previous_decl = previous_sibling(node);
+      return decl_get_type(previous_decl);
+    }
     return node.child("type").child_value("name");
   }
 
@@ -416,28 +434,6 @@ namespace ast {
 
 
 
-  TEST(ast_test_case, function_test) {
-    Doc doc;
-    const char *raw = R"prefix(
-
-int myfunc(int a, int b) {
-  int b;
-}
-
-)prefix";
-    utils::string2xml(raw, doc);
-    NodeList nodes = find_nodes(doc, NK_Function);
-    EXPECT_EQ(nodes.size(), 1);
-    Node myfunc = nodes[0];
-    EXPECT_EQ(function_get_return_type(myfunc), "int");
-    EXPECT_EQ(function_get_name(myfunc), "myfunc");
-    NodeList params = function_get_params(myfunc);
-    ASSERT_EQ(params.size(), 2);
-    EXPECT_EQ(param_get_type(params[0]), "int");
-    EXPECT_EQ(param_get_name(params[0]), "a");
-    EXPECT_EQ(param_get_type(params[1]), "int");
-    EXPECT_EQ(param_get_name(params[1]), "b");
-  }
 
   /**
    * get a map from name to type.
@@ -481,7 +477,7 @@ int myfunc(int a, int b) {
     return result;
   }
 
-  TEST(ast_test_case, decl_test) {
+  TEST(ast_test_case, decl_test_deprecated) {
     std::string code;
     std::map<std::string, std::string> decls;
     // single
@@ -518,13 +514,14 @@ int myfunc(int a, int b) {
    * For
    */
 
-  // NodeList for_get_init_decls(Node node) {
-  //   NodeList nodes;
-  //   for (Node n : node.child("init").children("decl")) {
-  //     nodes.push_back(n);
-  //   }
-  //   return nodes;
-  // }
+  NodeList for_get_init_decls(Node node) {
+    NodeList nodes;
+    for (Node n : node.child("control").child("init").children("decl")) {
+      nodes.push_back(n);
+    }
+    return nodes;
+  }
+  
   std::map<std::string, std::string> for_get_init_detail(Node node) {
     return get_decl_detail(node.child("init"));
   }
@@ -538,26 +535,6 @@ int myfunc(int a, int b) {
     return node.child("block");
   }
 
-  TEST(ast_test_case, for_test) {
-    Doc doc;
-    const char *raw = R"prefix(
-
-for (int i=0,c=2;i<8;++i) {
-}
-
-)prefix";
-    utils::string2xml(raw, doc);
-    NodeList nodes = find_nodes(doc, NK_For);
-    ASSERT_EQ(nodes.size(), 1);
-    Node myfor = nodes[0];
-    std::map<std::string, std::string> vars = for_get_init_detail(myfor);
-    ASSERT_EQ(vars.size(), 2);
-    EXPECT_EQ(vars["i"], "int");
-    EXPECT_EQ(vars["c"], "int");
-    // Node condition_expr = for_get_condition_expr(myfor);
-    // Node incr_expr = for_get_incr_expr(myfor);
-    // Node block = for_get_block(myfor);
-  }
 
 
   /*******************************
