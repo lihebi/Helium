@@ -5,7 +5,7 @@
 TEST(reader_test_case, DISABLED_divide_segment) {
   Config::Instance()->ParseFile("./helium.conf");
   Config::Instance()->Set("code-selection-method", "divide");
-  char tmp_dir[] = "/tmp/helium-test-temp.XXXXX";
+  char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
   char *result = mkdtemp(tmp_dir);
   ASSERT_TRUE(result != NULL);
   std::string dir = tmp_dir;
@@ -30,7 +30,6 @@ int main() {
   utils::write_file(filename, code);
   // create reader
   Reader *reader = new Reader(filename);
-  reader->SelectSegments();
   // 4+3+2+1 + 1 = 11
   EXPECT_EQ(reader->GetSegmentCount(), 11);
   delete reader;
@@ -48,7 +47,6 @@ int main() {
   utils::write_file(filename, code);
   // create reader
   reader = new Reader(filename);
-  reader->SelectSegments();
   EXPECT_EQ(reader->GetSegmentCount(), 4);
   delete reader;
 

@@ -188,7 +188,7 @@ void utils::get_files_by_extension(
 }
 
 bool
-utils::file_exist(const std::string& file) {
+utils::file_exists(const std::string& file) {
   fs::path file_path(file);
   return fs::exists(file_path);
 }

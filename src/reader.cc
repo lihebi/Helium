@@ -20,11 +20,40 @@ using namespace ast;
 int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
 
-
-void
-Reader::SelectSegments() {
-  getSegments();
+/**
+ * Constructor of Reader should read the filename, and select segments.
+ */
+Reader::Reader(const std::string &filename) : m_filename(filename) {
+  utils::file2xml(filename, m_doc);
+  std::string method = Config::Instance()->GetString("code-selection");
+  if (method == "loop") {
+    getLoopSegments();
+  } else if (method == "annotation") {
+    getAnnotationSegments();
+  } else if (method == "divide") {
+    getDivideSegments();
+  } else {
+    // assert(false && "segment selection method is not recognized: " && method.c_str());
+    std::cerr<<"segment selection method is not recognized: " <<method<<"\n";
+    assert(false);
+  }
 }
+
+Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
+  : m_filename(filename)
+{
+  utils::file2xml(filename, m_doc);
+  std::vector<NodeKind> kinds;
+  kinds.push_back(NK_DeclStmt);
+  kinds.push_back(NK_ExprStmt);
+  NodeList nodes = ast::find_nodes_on_lines(m_doc, kinds, line_numbers);
+  for (Node n : nodes) {
+    Segment seg;
+    seg.PushBack(n);
+    m_segments.push_back(seg);
+  }
+}
+
 
 /*
  * For every segment:
@@ -72,16 +101,6 @@ Reader::Read() {
       //   }
       // }
     } while ((*it).IncreaseContext());
-  }
-}
-
-void Reader::getSegments() {
-  if (Config::Instance()->GetString("code-selection") == "loop") {
-    getLoopSegments();
-  } else if (Config::Instance()->GetString("code-selection") == "annotation") {
-    getAnnotationSegments();
-  } else if (Config::Instance()->GetString("code-selection") == "divide") {
-    getDivideSegments();
   }
 }
 
@@ -300,9 +319,9 @@ void Reader::PrintSegments() {
 
 
 
-static bool watch_dog_skip = false;
+// static bool watch_dog_skip = false;
 
-static jmp_buf jmpbuf; // jumbuf for long jump
+// static jmp_buf jmpbuf; // jumbuf for long jump
 // static bool skip_file = false;
 
 // void watch_dog(int sig) {

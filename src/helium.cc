@@ -8,6 +8,8 @@
 #include "utils.h"
 #include "reader.h"
 
+#include <gtest/gtest.h>
+
 using namespace utils;
 
 /**
@@ -88,6 +90,21 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  if (args.Has("create-srcml")) {
+    ast::Doc doc;
+    utils::file2xml(m_folder, doc);
+    if (args.Has("output")) {
+      std::string output_file = args.GetString("output");
+      if (output_file.empty()) {
+        // FIXME not working
+        doc.print(std::cout);
+      } else {
+        doc.save_file(output_file.c_str());
+      }
+    }
+    exit(0);
+  }
+
 
 
   /*******************************
@@ -129,7 +146,6 @@ Helium::Helium(int argc, char* argv[]) {
   if (args.Has("print-segments")) {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
-      reader.SelectSegments();
       std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
       reader.PrintSegments();
     }
@@ -138,7 +154,6 @@ Helium::Helium(int argc, char* argv[]) {
   if (args.Has("print-segment-info")) {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
-      reader.SelectSegments();
       std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
       std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
     }
@@ -147,12 +162,82 @@ Helium::Helium(int argc, char* argv[]) {
 }
 Helium::~Helium() {}
 
+/**
+ * Get segments based on config file.
+ * this should be a config file with the filename:line_number format
+ * the detailed formats:
+ * a.c:504
+ * TODO a.c:504-510
+ * TODO to support function name
+ * @return a.c -> 102,208
+ */
+std::map<std::string, std::vector<int> > parse_selection_conf(const std::string& file) {
+  std::map<std::string, std::vector<int> > result;
+  std::string content = utils::read_file(file);
+  // delimiter by *space*
+  std::vector<std::string> lines = utils::split(content);
+  for (std::string &line : lines) {
+    std::vector<std::string> tmp = utils::split(line, ':');
+    assert(tmp.size() == 2 && "Config file error for code selection.");
+    std::string f = tmp[0];
+    std::string l_str = tmp[1];
+    utils::trim(f);
+    utils::trim(l_str);
+    int l = atoi(l_str.c_str());
+    if (result.find(f) == result.end()) {
+      result[f] = std::vector<int>();
+    }
+    // FIXME value or reference?
+    result[f].push_back(l);
+  }
+  return result;
+}
+
+TEST(helium_test_case, parse_selection_conf_test) {
+  char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
+  char *result = mkdtemp(tmp_dir);
+  ASSERT_TRUE(result != NULL);
+  std::string dir = tmp_dir;
+  std::string filename = dir+"/a.c";
+  const char *code = R"prefix(
+
+a.c:100
+a.c:235
+sub/dir/b.cpp:364
+
+)prefix";
+  utils::write_file(filename, code);
+
+  std::map<std::string, std::vector<int> > m = parse_selection_conf(filename);
+  ASSERT_EQ(m.size(), 2);
+  std::vector<int> a = m["a.c"];
+  ASSERT_EQ(a.size(), 2);
+  EXPECT_EQ(a[0], 100);
+  EXPECT_EQ(a[1], 235);
+  std::vector<int> b = m["sub/dir/b.cpp"];
+  ASSERT_EQ(b.size(), 1);
+  EXPECT_EQ(b[0], 364);
+}
+
 void
 Helium::Run() {
-  for (auto it=m_files.begin();it!=m_files.end();it++) {
-    Reader reader(*it);
-    reader.SelectSegments();
-    reader.Read();
+  if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
+    // code selection method is a config file, we only need to check those files in the config.
+    std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));
+    for (auto c : conf) {
+      std::string filename = m_folder + "/" + c.first;
+      if (utils::file_exists(filename)) {
+        std::cout << "processing: " << filename << " ...\n";
+        Reader reader(filename, c.second);
+        reader.PrintSegments();
+        reader.Read();
+      }
+    }
+  } else {
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      Reader reader(*it);
+      reader.Read();
+    }
   }
 }
 

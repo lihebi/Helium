@@ -3,6 +3,8 @@
 #include "snippet.h"
 #include "utils.h"
 
+#include "ast.h"
+
 using namespace utils;
 
 /*******************************
@@ -311,79 +313,6 @@ std::string Snippet::GetName() const {
  ** Functions for get code from file based on ctags entry
  *******************************/
 
-/*
- * use depth-first-search for the first pos:line attribute
- * return -1 if no pos:line attr found
- */
-int
-get_element_line(pugi::xml_node node) {
-  // check if pos:line is enabled on this xml
-  pugi::xml_node root = node.root();
-  if (!root.child("unit").attribute("xmlns:pos")) {
-    std::cerr<<"position is not enabled in srcml"<<std::endl;
-    exit(1);
-    return -1;
-  }
-  // the node itself has pos:line attr, just use it
-  if (node.attribute("pos:line")) {
-    return atoi(node.attribute("pos:line").value());
-  } else {
-    pugi::xml_node n = node.select_node("//*[@pos:line]").node();
-    if (n) {
-      return atoi(n.attribute("pos:line").value());
-    }
-  }
-  return -1;
-}
-
-/*
- * The last pos:line in the current node element
- * Useful to track the range of the current AST node.
- */
-int
-get_element_last_line(pugi::xml_node node) {
-  pugi::xml_node root = node.root();
-  if (!root.child("unit").attribute("xmlns:pos")) {
-    std::cerr<<"position is not enabled in srcml"<<std::endl;
-    exit(1);
-    return -1;
-  }
-  pugi::xml_node n = node.select_node("(//*[@pos:line])[last()]").node();
-  
-  // pugi::xpath_node_set nodes = node.select_nodes("//*[@pos:line]");
-  // pugi::xml_node last_node = nodes[nodes.size()-1].node();
-  // return atoi(last_node.attribute("pos:line").value());
-  
-  if (n) {
-    return atoi(n.attribute("pos:line").value());
-  } else if (node.attribute("pos:line")) {
-    return atoi(node.attribute("pos:line").value());
-  }
-  return -1;
-}
-
-std::string get_text_content(pugi::xml_node node);
-
-/**
- * Get code as string of <tag_name> node in filename that encloses line_number
- */
-std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name) {
-  pugi::xml_document doc;
-  file2xml(filename, doc);
-  pugi::xml_node root =doc.document_element();
-  std::string query = "//" + tag_name;
-  pugi::xpath_node_set nodes = root.select_nodes(query.c_str());
-  for (auto it=nodes.begin();it!=nodes.end();it++) {
-    pugi::xml_node node = it->node();
-    int first_line = get_element_line(node);
-    int last_line = get_element_last_line(node);
-    // FIXME the equal is necessary? Be precise.
-    if (first_line <= line_number && last_line >= line_number) {
-      return get_text_content(node);
-    }
-  }
-  return "";
-}
 
 /**
  * Use filename and line number to match a <funciton> that contains that line.
@@ -391,7 +320,7 @@ std::string get_code_enclosing_line(const std::string& filename, int line_number
 std::string get_func_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return get_code_enclosing_line(filename, line_number, "function");
+  return ast::get_code_enclosing_line(filename, line_number, "function");
 }
 
 /**
@@ -402,8 +331,8 @@ std::string get_func_code(const CtagsEntry& entry) {
 std::string get_enum_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string enum_code = get_code_enclosing_line(filename, line_number, "enum");
-  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
+  std::string enum_code = ast::get_code_enclosing_line(filename, line_number, "enum");
+  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
   if (!typedef_code.empty()) {
     return typedef_code;
   } else {
@@ -417,13 +346,13 @@ std::string get_def_code(const CtagsEntry& entry) {
                             // std::string filename, int line) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return get_code_enclosing_line(filename, line_number, "cpp:define");
+  return ast::get_code_enclosing_line(filename, line_number, "cpp:define");
 }
 
 std::string get_typedef_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return get_code_enclosing_line(filename, line_number, "typedef");
+  return ast::get_code_enclosing_line(filename, line_number, "typedef");
 }
 
 /**
@@ -436,8 +365,8 @@ std::string get_typedef_code(const CtagsEntry& entry) {
 std::string get_struct_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string struct_code =  get_code_enclosing_line(filename, line_number, "struct");
-  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
+  std::string struct_code =  ast::get_code_enclosing_line(filename, line_number, "struct");
+  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
   /*
     If there's also a <typedef> enclosing this line, than we use it,
     because we don't want same code in different Snippets.
@@ -455,8 +384,8 @@ std::string get_struct_code(const CtagsEntry& entry) {
 std::string get_union_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string union_code =  get_code_enclosing_line(filename, line_number, "union");
-  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
+  std::string union_code =  ast::get_code_enclosing_line(filename, line_number, "union");
+  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
   if (!typedef_code.empty()) {
     return typedef_code;
   } else {
@@ -470,5 +399,5 @@ std::string get_union_code(const CtagsEntry& entry) {
 std::string get_var_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return get_code_enclosing_line(filename, line_number, "decl_stmt");
+  return ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
 }

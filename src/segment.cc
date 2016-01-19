@@ -40,7 +40,7 @@ void Segment::Clear() {
 int Segment::GetLineNumber() const {
   for (Node n : m_nodes) {
     // FIXME 0 is a magic number! The acutal value inside Node is -1 ..
-    if (get_first_line_number(n) > 0) return get_first_line_number(n);
+    if (get_node_line(n) > 0) return get_node_line(n);
   }
   return 0;
 }

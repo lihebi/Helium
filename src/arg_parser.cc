@@ -19,6 +19,7 @@ ArgParser::ArgParser(int argc, char* argv[])
   po::options_description util_options("Utils");
   util_options.add_options()
     ("create-tagfile", "create tag file")
+    ("create-srcml", "create xml from C source file")
     ("print-config", "print current config")
     ("print-segments", "print segments and exit")
     ("print-segment-info", "print segment count, segment size LOC in total, for every file")

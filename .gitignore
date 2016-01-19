@@ -8,6 +8,7 @@ bin/*
 .DS_Store
 tags
 *.tags
+TAGS
 
 a.out
 

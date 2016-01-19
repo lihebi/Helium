@@ -4,7 +4,9 @@
 
 using namespace ast;
 
-
+/*******************************
+ ** AST sub classes
+ *******************************/
 
 TEST(ast_test_case, decl_test) {
   Doc doc;
@@ -78,4 +80,45 @@ for (int i=0,c=2;i<8;++i) {
   // Node condition_expr = for_get_condition_expr(myfor);
   // Node incr_expr = for_get_incr_expr(myfor);
   // Node block = for_get_block(myfor);
+}
+
+/*******************************
+ ** helper functions
+ *******************************/
+
+TEST(ast_test_case, find_nodes_test) {
+  Doc doc;
+  const char* raw = R"prefix(
+int func() {
+int a;
+int b;
+memcpy(a,b);
+
+// this is comment
+  strcpy(a,b);
+}
+)prefix";
+
+  // remove leading spaces
+  while (isspace(*raw)) raw++;
+
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_Function);
+  ASSERT_EQ(nodes.size(), 1);
+  EXPECT_EQ(kind(nodes[0]), NK_Function);
+  nodes = find_nodes(doc, NK_ExprStmt);
+  ASSERT_EQ(nodes.size(), 2);
+  Node node;
+  node = find_node_on_line(doc, NK_ExprStmt, 4);
+  ASSERT_TRUE(node);
+
+  std::vector<NodeKind> kinds;
+  kinds.push_back(NK_DeclStmt);
+  kinds.push_back(NK_ExprStmt);
+
+  std::vector<int> lines  {4,7};
+  nodes = find_nodes_on_lines(doc, kinds, lines);
+  ASSERT_EQ(nodes.size(), 2);
+  // std::cout <<get_text(nodes[0])  << "\n";
+  // std::cout <<get_text(nodes[1])  << "\n";
 }

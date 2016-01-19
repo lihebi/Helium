@@ -7,11 +7,9 @@
 
 class Reader {
 public:
-  Reader(const std::string &filename) : m_filename(filename) {
-    utils::file2xml(filename, m_doc);
-  }
+  Reader(const std::string &filename);
+  Reader(const std::string &filename, std::vector<int> line_numbers);
   virtual ~Reader() {}
-  void SelectSegments();
   void Read();
   
   /* meta data for test */
@@ -31,7 +29,6 @@ public:
     return result;
   }
 private:
-  void getSegments();
   void getLoopSegments();
   void getAnnotationSegments();
   void getDivideSegments();

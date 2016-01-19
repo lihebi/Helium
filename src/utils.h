@@ -39,7 +39,7 @@ namespace utils {
   void get_files(const std::string &folder, std::vector<std::string>& vs);
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::string& s);
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::vector<std::string>& extension);
-  bool file_exist(const std::string& file);
+  bool file_exists(const std::string& file);
 
 
   /*******************************

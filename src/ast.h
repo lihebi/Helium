@@ -46,39 +46,9 @@ namespace ast {
     NK_Null
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
-
-  /*******************************
-   ** Help function
-   *******************************/
-  bool is_valid_ast(pugi::xml_node node);
-
-  NodeList find_nodes(Node node, NodeKind kind);
-  NodeList find_nodes(const Doc& doc, NodeKind kind);
-  NodeList find_nodes_from_root(Node node, NodeKind kind);
-
-  Node next_sibling(Node node);
-  Node previous_sibling(Node node);
-  Node parent(Node node);
-
-  /**
-   * Check if node is a sub node of any one of parent_nodes
-   */
-  bool contains(NodeList parent_nodes, Node node);
-  /**
-   * Check if child is a sub node of parent
-   */
-  bool contains(Node parent, Node child);
-
-  int get_first_line_number(Node n);
-  std::string get_text(Node n);
-  std::string get_text_except(Node n, std::string tag);
-
-  /**
-   * True if node is inside a node of kind "kind"
-   */
-  bool in_node(Node node, NodeKind kind);
-
   NodeKind kind(Node node);
+
+
   /*******************************
    ** For specific type of node
    *******************************/
@@ -125,6 +95,61 @@ namespace ast {
   std::set<std::string> expr_get_ids(Node);
 
   std::string call_get_name(Node);
+
+  /*******************************
+   ** Help function
+   *******************************/
+  bool is_valid_ast(pugi::xml_node node);
+
+
+  Node next_sibling(Node node);
+  Node previous_sibling(Node node);
+  Node parent(Node node);
+
+  /**
+   * Check if node is a sub node of any one of parent_nodes
+   */
+  bool contains(NodeList parent_nodes, Node node);
+  /**
+   * Check if child is a sub node of parent
+   */
+  bool contains(Node parent, Node child);
+
+  std::string get_text(Node n);
+  std::string get_text_except(Node n, std::string tag);
+
+  /**
+   * True if node is inside a node of kind "kind"
+   */
+  bool in_node(Node node, NodeKind kind);
+
+
+  int get_node_line(pugi::xml_node node);
+  int get_node_last_line(pugi::xml_node node);
+
+  /*******************************
+   ** find nodes
+   *******************************/
+  // by kind
+  NodeList find_nodes(Node node, NodeKind kind);
+  NodeList find_nodes(const Doc& doc, NodeKind kind);
+  NodeList find_nodes_from_root(Node node, NodeKind kind);
+  // by kinds
+  NodeList find_nodes(Node node, std::vector<NodeKind> kinds);
+  NodeList find_nodes(const Doc& doc, std::vector<NodeKind> kinds);
+  NodeList find_nodes_from_root(Node node, std::vector<NodeKind> kinds);
+
+  // based on line
+  Node find_node_on_line(Node node, NodeKind k, int line_number);
+  Node find_node_on_line(Node node, std::vector<NodeKind> kinds, int line_number);
+  NodeList find_nodes_on_lines(Node node, NodeKind k, std::vector<int> lines);
+  NodeList find_nodes_on_lines(Node node, std::vector<NodeKind> kinds, std::vector<int> lines);
+  // enclosing line
+  // TODO kinds
+  Node find_node_enclosing_line(Node node, NodeKind k, int line_number);
+  Node find_outer_node_enclosing_line(Node node, NodeKind k, int line_number);
+
+  std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name);
 
 }// end namespace ast
 
