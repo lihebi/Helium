@@ -18,15 +18,20 @@ namespace ast {
     NK_Expr,
     NK_For,
     NK_Type,
+    NK_Name,
     NK_Block,
     NK_Stmt,
     NK_If,
+    NK_Condition,
+    NK_Then,
+    NK_Else,
     NK_Case,
     NK_Default,
     NK_Switch,
     NK_While,
     NK_Do,
     NK_Call,
+    NK_ParamList,
     NK_Param,
     NK_Break,
     NK_Continue,
@@ -47,6 +52,28 @@ namespace ast {
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
   NodeKind kind(Node node);
+
+  const std::set<NodeKind> helium_valid_ast {
+    NK_Function,
+      NK_DeclStmt,
+      NK_ExprStmt,
+      NK_For,
+      NK_Block,
+      NK_Stmt,
+      NK_If,
+      NK_Switch,
+      NK_While,
+      NK_Do,
+      NK_Break,
+      NK_Continue,
+      NK_Return,
+      NK_Typedef,
+      NK_Struct,
+      NK_Union,
+      NK_Enum,
+      NK_Comment,
+      NK_Define
+  };
 
 
   /*******************************
@@ -99,12 +126,19 @@ namespace ast {
   /*******************************
    ** Help function
    *******************************/
-  bool is_valid_ast(pugi::xml_node node);
+  bool is_valid_ast(Node node);
 
 
   Node next_sibling(Node node);
   Node previous_sibling(Node node);
   Node parent(Node node);
+
+  // helium specific ast
+  // using helium_valid_ast
+  bool helium_is_valid_ast(Node n);
+  Node helium_next_sibling(Node n);
+  Node helium_previous_sibling(Node n);
+  Node helium_parent(Node n);
 
   /**
    * Check if node is a sub node of any one of parent_nodes
@@ -157,6 +191,15 @@ namespace ast {
   // TODO kinds
   Node find_node_enclosing_line(Node node, NodeKind k, int line_number);
   Node find_outer_node_enclosing_line(Node node, NodeKind k, int line_number);
+
+  // based on content (mainly comment)
+  Node find_node_containing_str(Node node, NodeKind k, std::string s);
+  NodeList find_nodes_containing_str(Node node, NodeKind k, std::string s);
+  Node find_node_containing_str(const Doc &doc, NodeKind k, std::string s);
+  NodeList find_nodes_containing_str(const Doc &doc, NodeKind k, std::string s);
+
+  
+  
 
   std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name);
 

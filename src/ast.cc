@@ -13,16 +13,21 @@ namespace ast {
     , {NK_Expr,     "expr"}
     , {NK_For,      "for"}
     , {NK_Type,     "type"}
+    , {NK_Name,     "name"}
     , {NK_Block,    "block"}
     , {NK_Stmt,     "stmt"}
     , {NK_If,       "if"}
+    , {NK_Condition, "condition"}
+    , {NK_Then,     "then"}
+    , {NK_Else,     "else"}
     , {NK_Case,     "case"}
     , {NK_Default,  "default"}
     , {NK_Switch,   "switch"}
     , {NK_While,    "while"}
     , {NK_Do,       "do"}
     , {NK_Call,     "call"}
-    , {NK_Param,    "param"}
+    , {NK_ParamList, "parameter_list"}
+    , {NK_Param,    "parameter"}
     , {NK_Break,    "break"}
     , {NK_Continue, "continue"}
     , {NK_Return,   "return"}
@@ -49,16 +54,21 @@ namespace ast {
     , {"expr",      NK_Expr}
     , {"for",       NK_For}
     , {"type",      NK_Type}
+    , {"name",      NK_Name}
     , {"block",     NK_Block}
     , {"stmt",      NK_Stmt}
     , {"if",        NK_If}
+    , {"condition", NK_Condition}
+    , {"then",      NK_Then}
+    , {"else",      NK_Else}
     , {"case",      NK_Case}
     , {"default",   NK_Default}
     , {"switch",    NK_Switch}
     , {"while",     NK_While}
     , {"do",        NK_Do}
     , {"call",      NK_Call}
-    , {"param",     NK_Param}
+    , {"parameter_list", NK_ParamList}
+    , {"parameter",     NK_Param}
     , {"break",     NK_Break}
     , {"continue",  NK_Continue}
     , {"return",    NK_Return}
@@ -103,6 +113,7 @@ namespace ast {
     if (!node) return NK_Null;
     if (!node.name()) return NK_Null;
     const char *name = node.name();
+    if (strlen(name) == 0) return NK_Null;
     // if (name_to_kind.find(name) != name_to_kind.end()) return name_to_kind.at(name);
     try {
       return name_to_kind_map.at(name);

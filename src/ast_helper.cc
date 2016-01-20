@@ -59,6 +59,49 @@ namespace ast {
     else return false;
   }
 
+
+  /*******************************
+   ** helium specific ast
+   ** using helium_valid_ast
+   *******************************/
+  bool helium_is_valid_ast(Node n) {
+    if (helium_valid_ast.find(kind(n)) != helium_valid_ast.end()) return true;
+    else return false;
+  }
+  Node helium_next_sibling(Node node) {
+    Node n = node;
+    while ((n = n.next_sibling())) {
+      // case is special. It is not parent of its block. It's sibling of the block.
+      if (kind(n) == NK_Case) return Node();
+      if (helium_is_valid_ast(n)) return n;
+    }
+    return Node();
+  }
+  Node helium_previous_sibling(Node node) {
+    Node n = node;
+    while ((n = n.previous_sibling())) {
+      if (kind(n) == NK_Case) return Node();
+      if (helium_is_valid_ast(n)) return n;
+    }
+    return Node();
+  }
+  Node helium_parent(Node node) {
+    Node n = node;
+    while ((n = n.parent())) {
+      if (helium_is_valid_ast(n)) {
+        // block directly under switch is not valid, because case: is invalid outside switch.
+        if (kind(n) == NK_Block) {
+          if (kind(n.parent()) == NK_Switch) {
+            continue;
+          }
+        }
+        return n;
+      }
+    }
+    return Node();
+  }
+
+
   /**
    * least upper bound of two nodes
    */
@@ -416,6 +459,40 @@ namespace ast {
     // may be an empty one
     return result;
   }
+
+  /*******************************
+   ** based on content (mainly comment)
+   *******************************/
+  /**
+   * find the *first* node of kind k, under "node", whose text contains "s".
+   */
+  Node find_node_containing_str(Node node, NodeKind k, std::string s) {
+    NodeList nodes = find_nodes(node, k);
+    for (Node n : nodes) {
+      std::string text = get_text(n);
+      if (text.find(s) != std::string::npos) return n;
+    }
+    return Node();
+  }
+  /**
+   * find *all* the nodes of kind k, under "node", whose text contains "s".
+   */
+  NodeList find_nodes_containing_str(Node node, NodeKind k, std::string s) {
+    NodeList result;
+    NodeList nodes = find_nodes(node, k);
+    for (Node n : nodes) {
+      std::string text = get_text(n);
+      if (text.find(s) != std::string::npos) result.push_back(n);
+    }
+    return result;
+  }
+  Node find_node_containing_str(const Doc &doc, NodeKind k, std::string s) {
+    return find_node_containing_str(doc.document_element(), k, s);
+  }
+  NodeList find_nodes_containing_str(const Doc &doc, NodeKind k, std::string s) {
+    return find_nodes_containing_str(doc.document_element(), k, s);
+  }
+
 
 
   /*******************************

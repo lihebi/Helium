@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <gtest/gtest.h>
+
 using namespace ast;
 
 /*******************************
@@ -100,13 +102,13 @@ bool Segment::Grow() {
   }
   // from first node
   Node first_node = m_nodes[0];
-  Node n = previous_sibling(first_node);
+  Node n = helium_previous_sibling(first_node);
   // has previous sibling
   if (n) {
     this->PushFront(n);
     return true;
   }
-  n = parent(first_node);
+  n = helium_parent(first_node);
   // don't have parent
   if (!n) {
     return false;
@@ -131,6 +133,8 @@ bool Segment::Grow() {
   this->PushFront(n);
   return true;
 }
+
+
 void Segment::IncreaseContext() {
   // after increasing context, should check if the segment is valid
   // 1. segment size limit
@@ -146,6 +150,10 @@ void Segment::IncreaseContext() {
 }
 
 bool Segment::IsValid() const {
+  // this is an empty segment, invalid
+  if (m_nodes.empty()) {
+    return false;
+  }
   // check context search value
   if (m_context_search_time > Config::Instance()->GetInt("context-search-value")) {
     std::cout <<'1'  << "\n";
