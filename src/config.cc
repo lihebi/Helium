@@ -54,10 +54,6 @@ Config::parse(std::istream &is) {
   }
 }
 
-std::string Config::GetString(std::string name) {
-  if (m_map.find(name) == m_map.end()) return "";
-  return m_map[name];
-}
 
 std::string Config::ToString() {
   std::string result;
@@ -72,11 +68,27 @@ std::string Config::ToString() {
   utils::trim(result);
   return result;
 }
+
+/*******************************
+ ** Querying
+ *******************************/
+
+std::string Config::GetString(std::string name) {
+  if (m_map.find(name) == m_map.end()) {
+    std::cerr << "warning: cannot find key: " << name << " in config file.\n";
+     return "";
+  }
+  return m_map[name];
+}
+
 /**
  * -1 means something wrong. Should stop program.
  */
 int Config::GetInt(std::string name) {
-  if (m_map.find(name) == m_map.end()) return -1;
+  if (m_map.find(name) == m_map.end()) {
+    std::cerr << "warning: cannot find key: " << name << " in config file.\n";
+    return -1;
+  }
   // may throw
   // std::invalid_argument
   // std::out_of_range

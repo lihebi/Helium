@@ -69,9 +69,12 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
 
 void
 Reader::Read() {
-  for (Segment seg : m_segments) {
-    // TODO replace the following Read method.
+  for (Segment &seg : m_segments) {
+    std::cout <<"processing segment .."  << "\n";
     for(;seg.IsValid();) {
+      std::cout <<"round 1"  << "\n";
+      std::cout <<"================"  << "\n";
+      std::cout <<seg.GetText()  << "\n";
       seg.ResolveInput();
       seg.ResolveOutput();
       seg.ResolveSnippets();

@@ -15,29 +15,20 @@ Segment::~Segment () {}
 
 void Segment::PushBack(Node node) {
   m_nodes.push_back(node);
-  updateMeta();
 }
 void Segment::PushBack(NodeList nodes) {
   m_nodes.insert(m_nodes.end(), nodes.begin(), nodes.end());
-  updateMeta();
 }
 void Segment::PushFront(Node node) {
   m_nodes.insert(m_nodes.begin(), node);
-  updateMeta();
 }
 
 void Segment::PushFront(NodeList nodes) {
   m_nodes.insert(m_nodes.begin(), nodes.begin(), nodes.end());
-  updateMeta();
 }
 
-void Segment::updateMeta() {
-  std::string text = GetText();
-  m_loc = std::count(text.begin(), text.end(), '\n');
-}
 void Segment::Clear() {
   m_nodes.clear();
-  m_loc = 0;
 }
 
 /*******************************
@@ -60,7 +51,7 @@ Segment::GetFirstNode() const {
 }
 
 std::string
-Segment::GetText() {
+Segment::GetText() const {
   std::string s;
   for (Node node : m_nodes) {
     s += get_text(node);
@@ -77,6 +68,12 @@ Segment::GetTextExceptComment() {
   }
   return s;
 }
+
+// int GetLOC() const {
+//   std::string text = GetText();
+//   return std::count(text.begin(), text.end(), '\n');
+// }
+
 
 int Segment::GetLineNumber() const {
   for (Node n : m_nodes) {
@@ -96,24 +93,23 @@ Segment::HasNode(Node node) const {
  * context search
  *******************************/
 
-void Segment::Grow() {
+bool Segment::Grow() {
+  // this is an empty segment, invalid
   if (m_nodes.empty()) {
-    m_valid = false;
-    return;
+    return false;
   }
+  // from first node
   Node first_node = m_nodes[0];
   Node n = previous_sibling(first_node);
   // has previous sibling
   if (n) {
     this->PushFront(n);
-    m_valid = true;
-    goto after;
+    return true;
   }
   n = parent(first_node);
   // don't have parent
   if (!n) {
-    m_valid = false;
-    return;
+    return false;
   }
   // parent is function
   if (kind(n) == NK_Function) {
@@ -128,15 +124,12 @@ void Segment::Grow() {
     }
     if (call_node) n = call_node;
     else {
-      m_valid = false;
-      return;
+      return false;
     }
   }
   this->Clear();
   this->PushFront(n);
- after:
-  // TODO check size of segment
-  return;
+  return true;
 }
 void Segment::IncreaseContext() {
   // after increasing context, should check if the segment is valid
@@ -148,6 +141,47 @@ void Segment::IncreaseContext() {
   // if (size > Config::Instance()->GetInt("max_segment_size")) {
   //   return false;
   // }
+  if (!Grow()) m_context_search_failed = true;
+  m_context_search_time ++;
+}
+
+bool Segment::IsValid() const {
+  // check context search value
+  if (m_context_search_time > Config::Instance()->GetInt("context-search-value")) {
+    std::cout <<'1'  << "\n";
+    return false;
+  }
+  // check segment size
+  std::string text = GetText();
+  int loc = std::count(text.begin(), text.end(), '\n');
+  if (loc > Config::Instance()->GetInt("max-segment-size")) {
+    std::cout <<'2'  << "\n";
+    return false;
+  }
+  if (m_context_search_failed) return false;
+
+  // check snippet limit
+  // prepare the containers
+  std::set<Snippet*> all_snippets;
+  all_snippets = SnippetRegistry::Instance()->GetAllDeps(m_snippets);
+  // simplify code: break when snippet number larger than config
+  // FIXME max_snippet_number is negative?
+  if (all_snippets.size() > (size_t)Config::Instance()->GetInt("max-snippet-number")) {
+    std::cout <<'3'  << "\n";
+    return false;
+  }
+  // simplify code: break when snippet size larger than config
+  int _loc = 0;
+  for (auto it=all_snippets.begin();it!=all_snippets.end();it++) {
+    _loc += (*it)->GetLOC();
+  }
+  if (_loc > Config::Instance()->GetInt("max-snippet-size")) {
+    std::cout <<'4'  << "\n";
+    return false;
+  }
+
+  
+  return true;
 }
 
 /*******************************
@@ -280,19 +314,6 @@ std::string Segment::GetSupport() {
   // prepare the containers
   std::set<Snippet*> all_snippets;
   all_snippets = SnippetRegistry::Instance()->GetAllDeps(m_snippets);
-  // simplify code: break when snippet number larger than config
-  // FIXME max_snippet_number is negative?
-  if (all_snippets.size() > (size_t)Config::Instance()->GetInt("max_snippet_number")) {
-    m_valid = false;
-  }
-  // simplify code: break when snippet size larger than config
-  int _loc = 0;
-  for (auto it=all_snippets.begin();it!=all_snippets.end();it++) {
-    _loc += (*it)->GetLOC();
-  }
-  if (_loc > Config::Instance()->GetInt("max_snippet_size")) {
-    m_valid = false;
-  }
   // sort the snippets
   std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
   // return the snippet code

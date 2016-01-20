@@ -70,12 +70,11 @@ void PushBack(ast::NodeList nodes);
 void PushFront(ast::Node node);
 void PushFront(ast::NodeList nodes);
 void Clear();
-void Print();
 
 /*******************************
  ** context search
  *******************************/
-void Grow();
+bool Grow();
 void IncreaseContext();
   
 /* Getter */
@@ -84,12 +83,11 @@ void IncreaseContext();
  *******************************/
 ast::NodeList GetNodes() const;
 ast::Node GetFirstNode() const;
-std::string GetText();
+std::string GetText() const;
 std::string GetTextExceptComment();
 int GetLineNumber() const;
-int GetLOC() const {return m_loc;}
 bool HasNode(ast::Node node) const;
-bool IsValid() const {return m_valid;}
+bool IsValid() const;
 
 /*******************************
  ** Code output
@@ -121,7 +119,6 @@ void ResolveSnippets();
 
 
 private:
-void updateMeta();
 std::string getHeader();
 std::string getInputCode();
 std::string getContext();
@@ -140,8 +137,9 @@ VariableList m_outv;
  ** Snippets
  *******************************/
 std::set<Snippet*> m_snippets;
-int m_loc = 0;
-bool m_valid = false;
+int m_context_search_time = 0;
+bool m_context_search_failed = false;
+
 };
 
 typedef std::vector<Segment> SegmentList;
