@@ -4,7 +4,7 @@
 
 class Builder {
 public:
-  Builder(SPU spu);
+  Builder(Segment seg);
   virtual ~Builder();
   void Build();
   void Compile();
@@ -14,7 +14,7 @@ private:
   void writeMain();
   void writeSupport();
   void writeMakefile();
-  SPU m_spu;
+  Segment m_seg;
   // Segment m_context;
   std::string m_main;
   std::string m_support;

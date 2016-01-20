@@ -143,25 +143,30 @@ private:
 
 
 
-class VariableList {
-public:
-  VariableList();
-  ~VariableList();
-  /* construct */
-  void Add(Variable v);
-  void Add(VariableList vars);
-  /* meta */
-  size_t Size() const;
-  bool Empty() const;
-  void Clear();
-  /* add only if the name is unique */
-  void AddUniqueName(Variable v);
-  void AddUniqueName(VariableList vars);
-  Variable LookUp(const std::string &name);
-  std::vector<Variable> Variables() const;
-private:
-  std::vector<Variable> m_vars;
-};
+// class VariableList {
+// public:
+//   VariableList();
+//   ~VariableList();
+//   /* construct */
+//   void Add(Variable v);
+//   void Add(VariableList vars);
+//   /* meta */
+//   size_t Size() const;
+//   bool Empty() const;
+//   void Clear();
+//   /* add only if the name is unique */
+//   void AddUniqueName(Variable v);
+//   void AddUniqueName(VariableList vars);
+//   Variable LookUp(const std::string &name);
+//   std::vector<Variable> Variables() const;
+// private:
+//   std::vector<Variable> m_vars;
+// };
+
+typedef std::vector<Variable> VariableList;
+
+Variable look_up(VariableList vars, const std::string& name);
+void add_unique(VariableList vars, Variable var);
 
 VariableList var_from_node(ast::Node node);
 std::string get_input_code(Variable v);

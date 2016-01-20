@@ -3,8 +3,8 @@
 #include "utils.h"
 #include "config.h"
 
-Builder::Builder(SPU spu)
-: m_spu(spu), m_success(false) {
+Builder::Builder(Segment seg)
+: m_seg(seg), m_success(false) {
 }
 Builder::~Builder() {}
 
@@ -30,9 +30,9 @@ Builder::writeMakefile() {
 
 void
 Builder::Build() {
-  m_main = m_spu.GetMain();
-  m_support = m_spu.GetSupport();
-  m_makefile = m_spu.GetMakefile();
+  m_main = m_seg.GetMain();
+  m_support = m_seg.GetSupport();
+  m_makefile = m_seg.GetMakefile();
   writeMain();
   writeSupport();
   writeMakefile();

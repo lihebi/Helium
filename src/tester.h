@@ -5,7 +5,7 @@
 
 class Tester {
 public:
-  Tester (const std::string &executable, SPU spu);
+  Tester (const std::string &executable, Segment seg);
   virtual ~Tester ();
   void Test();
   bool Success();
@@ -18,7 +18,7 @@ private:
   std::vector<Variable> m_inv;
   std::vector<Variable> m_outv;
   // TestResult m_test_result;
-  SPU m_spu;
+  Segment m_seg;
   bool m_success;
 };
 

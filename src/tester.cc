@@ -12,8 +12,8 @@ myrand(int low, int high) {
   return low + (high-low)*d;
 }
 
-Tester::Tester(const std::string &executable, SPU spu)
-: m_executable(executable), m_spu(spu), m_success(false) {
+Tester::Tester(const std::string &executable, Segment seg)
+: m_executable(executable), m_seg(seg), m_success(false) {
   srand(time(0));
   // the first random number is highly related to the time, so we don't use it
   rand();
@@ -48,7 +48,7 @@ get_input_by_spec(std::string spec) {
 std::string
 Tester::generateInput() {
   // get input specification
-  VariableList inv = m_spu.GetInputVariables();
+  VariableList inv = m_seg.GetInputVariables();
   std::string text;
   // for (auto it=inv.begin();it!=inv.end();it++) {
   //   std::string input_spec = (*it)->GetInputSpecification();
@@ -73,8 +73,8 @@ Tester::Test() {
     m_success = false;
   }
   // get output
-  VariableList outv = m_spu.GetOutputVariables();
-  int size = outv.Size();
+  VariableList outv = m_seg.GetOutputVariables();
+  int size = outv.size();
   std::vector<std::string> results = split(result);
   std::string outcsv = Config::Instance()->GetString("output-folder") + "/out.csv";
   std::ofstream os;

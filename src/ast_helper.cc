@@ -114,6 +114,10 @@ namespace ast {
     if (lub(parent, child) == parent) return true;
     else return false;
   }
+
+  /*******************************
+   ** get_text family
+   *******************************/
   
   std::string get_text(Node node) {
     std::string text;
@@ -144,24 +148,67 @@ namespace ast {
     }
     return text;
   }
-  std::string get_text_except(Node node, std::string tag) {
+
+  std::string get_text(NodeList nodes) {
+    std::string result;
+    for (Node n : nodes) {
+      result += get_text(n);
+    }
+    return result;
+  }
+  // std::string get_text_except(Node node, std::string tag) {
+  //   if (!node) return "";
+  //   std::string text;
+  //   for (pugi::xml_node n : node.children()) {
+  //     if (n.type() == pugi::node_element) {
+  //       if (!node.attribute("helium-omit")) {
+  //         if (strcmp(n.name(), tag.c_str()) != 0) {
+  //           text += get_text_except(n, tag);
+  //         }
+  //       }
+  //       // TODO this version does not use the trick for simplification,
+  //       // so it doesnot work with simplification
+  //     } else {
+  //       text += n.value();
+  //     }
+  //   }
+  //   return text;
+  // }
+  std::string get_text_except(Node node, NodeKind k) {
+    return get_text_except(node, std::vector<NodeKind>(k));
+  }
+  std::string get_text_except(Node node, std::vector<NodeKind> kinds) {
     if (!node) return "";
-    std::string text;
-    for (pugi::xml_node n : node.children()) {
+    std::string result;
+    for (Node n : node.children()) {
       if (n.type() == pugi::node_element) {
-        if (!node.attribute("helium-omit")) {
-          if (strcmp(n.name(), tag.c_str()) != 0) {
-            text += get_text_except(n, tag);
+        for (NodeKind k : kinds) {
+          if (kind(n) == k) {
+            continue;
           }
         }
-        // TODO this version does not use the trick for simplification,
-        // so it doesnot work with simplification
+        result += get_text_except(n, kinds);
       } else {
-        text += n.value();
+        result += n.value();
       }
     }
-    return text;
+    return result;
   }
+  std::string get_text_except(NodeList nodes, NodeKind k) {
+    std::string result;
+    for (Node n : nodes) {
+      result += get_text_except(n, k);
+    }
+    return result;
+  }
+  std::string get_text_except(NodeList nodes, std::vector<NodeKind> kinds) {
+    std::string result;
+    for (Node n : nodes) {
+      result += get_text_except(n, kinds);
+    }
+    return result;
+  }
+
 
   /**
    * True if node is inside a node of kind "kind"

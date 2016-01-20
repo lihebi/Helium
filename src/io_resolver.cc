@@ -20,13 +20,13 @@ Variable resolver::resolve_var(ast::Node node, const std::string& name) {
   case NK_Function: {
     // examine function parameters
     VariableList vars = var_from_node(node);
-    if (vars.LookUp(name)) return vars.LookUp(name);
+    if (look_up(vars, name)) return look_up(vars, name);
     break;
   }
   case NK_DeclStmt: {
     // examine decl_stmt
     VariableList vars = var_from_node(node);
-    if (vars.LookUp(name)) return vars.LookUp(name);
+    if (look_up(vars, name)) return look_up(vars, name);
     break;
   }
   default: {
@@ -65,7 +65,9 @@ void resolver::get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList 
   case NK_Function:
   case NK_DeclStmt: {
     VariableList vars = var_from_node(node);
-    result.AddUniqueName(vars);
+    for (Variable v : vars) {
+      add_unique(result, v);
+    }
     break;
   }
   default: {
@@ -128,7 +130,7 @@ void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, Variable
         // also add unique name, because I can't think up a scenario that an inner variable with the same name is not defined
         // and there's no way to init them anyhow.
         // The only problem that will arise is that the block is not continuous
-        if (v) result.AddUniqueName(v);
+        if (v) add_unique(result, v);
       }
     }
     case NK_Block: {

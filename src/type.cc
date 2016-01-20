@@ -129,7 +129,7 @@ VariableList var_from_node(ast::Node node) {
       // FIXME this may be just part of it. Or very long.
       std::string type = param_get_type(param);
       std::string name = param_get_name(param);
-      vars.Add(Variable(type, name));
+      vars.push_back(Variable(type, name));
     }
     break;
   }
@@ -139,7 +139,7 @@ VariableList var_from_node(ast::Node node) {
     for (Node decl : decls) {
       std::string type = decl_get_type(decl);
       std::string name = decl_get_name(decl);
-      vars.Add(Variable(type, name));
+      vars.push_back(Variable(type, name));
     }
     break;
   }
@@ -152,7 +152,7 @@ VariableList var_from_node(ast::Node node) {
     // }
     std::map<std::string, std::string> for_vars = for_get_init_detail(node);
     for (auto &m : for_vars) {
-      vars.Add(Variable(m.first, m.second));
+      vars.push_back(Variable(m.first, m.second));
     }
     break;
   }
@@ -225,59 +225,27 @@ std::string get_input_code(Variable v) {
  *******************************/
 
 
-
-VariableList::VariableList() {}
-VariableList::~VariableList() {}
-/* construct */
-void VariableList::Add(Variable v) {
-  m_vars.push_back(v);
-}
-void VariableList::Add(VariableList vars) {
-  for (Variable v : vars.Variables()) {
-    m_vars.push_back(v);
-  }
-}
-/* meta */
-size_t VariableList::Size() const {
-  return m_vars.size();
-}
-bool VariableList::Empty() const {
-  return m_vars.empty();
-}
-
-void VariableList::Clear() {
-  m_vars.clear();
-}
-/* add only if the name is unique */
-void VariableList::AddUniqueName(Variable var) {
-  std::string name = var.Name();
-  // m_vars.erase(std::remove_if(
-  //                             m_vars.begin(), m_vars.end(),
-  //                             [](Variable v) {return v.Name() == name;}
-  //                             ));
-  if (!var) return;
-  for (auto it=m_vars.begin();it!=m_vars.end();) {
-    if (it->Name() == var.Name()) {
-      it = m_vars.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  Add(var);
-}
-void VariableList::AddUniqueName(VariableList vars) {
-  for (Variable var : vars.Variables()) {
-    AddUniqueName(var);
-  }
-}
-Variable VariableList::LookUp(const std::string &name) {
-  for (Variable v : m_vars) {
+Variable look_up(VariableList vars, const std::string& name) {
+  for (Variable v : vars) {
     if (v.Name() == name) {
       return v;
     }
   }
   return Variable();
 }
-std::vector<Variable> VariableList::Variables() const {
-  return m_vars;
+
+/**
+ * Add var to vars only if the name of var does not appear in vars.
+ */
+void add_unique(VariableList vars, Variable var) {
+  std::string name = var.Name();
+  if (!var) return;
+  for (auto it=vars.begin();it!=vars.end();) {
+    if (it->Name() == var.Name()) {
+      it = vars.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  vars.push_back(var);
 }

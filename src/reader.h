@@ -34,8 +34,6 @@ private:
   void getDivideSegments();
   void getDivideRecursive(ast::NodeList nodes);
 
-
-  std::vector<SPU> m_spus;
   SegmentList m_segments;
   ast::Doc m_doc;
   std::string m_filename;

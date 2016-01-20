@@ -61,7 +61,7 @@ void SymbolTable::AddSymbol(Variable v) {
   m_tables.back()[v.Name()] = v;
 }
 void SymbolTable::AddSymbol(VariableList vars) {
-  for (Variable v : vars.Variables()) {
+  for (Variable v : vars) {
     m_tables.back()[v.Name()] = v;
   }
 }

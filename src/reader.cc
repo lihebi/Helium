@@ -39,6 +39,9 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   }
 }
 
+/**
+ * Use line numbers for a segment selection.
+ */
 Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
   : m_filename(filename)
 {
@@ -63,46 +66,63 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
  * - create tester
  * - create analyzer
  */
+
 void
 Reader::Read() {
-  // signal(SIGALRM, watch_dog);
-  // ualarm(Config::Instance()->GetInt("segment_timeout")*1000, 0);
-  for (auto it=m_spus.begin();it!=m_spus.end();it++) {
-    //    if (setjmp(jmpbuf) != 0) perror("setjmp");
-    // setjmp(jmpbuf);
-    // if (watch_dog_skip) {
-    //   watch_dog_skip = false;
-    //   continue;
-    // }
-    m_cur_seg_no ++;
-    if (m_skip_segment > m_cur_seg_no) {
-      continue;
-    }
-    // process the segment unit.
-    // do input resolve, output resovle, context search, support resolve
-    (*it).Process();
-    do {
-      // library call experiment
-      VariableList inv = (*it).GetInputVariables();
-      VariableList outv = (*it).GetOutputVariables();
-      
-      Builder builder(*it);
+  for (Segment seg : m_segments) {
+    // TODO replace the following Read method.
+    for(;seg.IsValid();) {
+      seg.ResolveInput();
+      seg.ResolveOutput();
+      seg.ResolveSnippets();
+      Builder builder(seg);
       builder.Build();
-      if (!(*it).CanContinue()) {
-        break;
-      }
       builder.Compile();
-      // if (builder.Success() && Config::Instance()->WillRunTest()) {
-      //   std::shared_ptr<Tester> tester = std::make_shared<Tester>(builder.GetExecutable(), *it);
-      //   tester->Test();
-      //   if (tester->Success() && Config::Instance()->WillRunAnalyze()) {
-      //     std::shared_ptr<Analyzer> analyzer = std::make_shared<Analyzer>(tester->GetOutput());
-      //     analyzer->Analyze();
-      //   }
-      // }
-    } while ((*it).IncreaseContext());
+      seg.IncreaseContext();
+    }
   }
 }
+
+// void
+// Reader::Read() {
+//   // signal(SIGALRM, watch_dog);
+//   // ualarm(Config::Instance()->GetInt("segment_timeout")*1000, 0);
+//   for (auto it=m_spus.begin();it!=m_spus.end();it++) {
+//     //    if (setjmp(jmpbuf) != 0) perror("setjmp");
+//     // setjmp(jmpbuf);
+//     // if (watch_dog_skip) {
+//     //   watch_dog_skip = false;
+//     //   continue;
+//     // }
+//     m_cur_seg_no ++;
+//     if (m_skip_segment > m_cur_seg_no) {
+//       continue;
+//     }
+//     // process the segment unit.
+//     // do input resolve, output resovle, context search, support resolve
+//     (*it).Process();
+//     do {
+//       // library call experiment
+//       VariableList inv = (*it).GetInputVariables();
+//       VariableList outv = (*it).GetOutputVariables();
+      
+//       Builder builder(*it);
+//       builder.Build();
+//       if (!(*it).CanContinue()) {
+//         break;
+//       }
+//       builder.Compile();
+//       // if (builder.Success() && Config::Instance()->WillRunTest()) {
+//       //   std::shared_ptr<Tester> tester = std::make_shared<Tester>(builder.GetExecutable(), *it);
+//       //   tester->Test();
+//       //   if (tester->Success() && Config::Instance()->WillRunAnalyze()) {
+//       //     std::shared_ptr<Analyzer> analyzer = std::make_shared<Analyzer>(tester->GetOutput());
+//       //     analyzer->Analyze();
+//       //   }
+//       // }
+//     } while ((*it).IncreaseContext());
+//   }
+// }
 
 void Reader::getLoopSegments() {
   // pugi::xpath_query loop_query("//while|//for");

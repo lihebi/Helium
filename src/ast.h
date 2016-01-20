@@ -116,7 +116,16 @@ namespace ast {
   bool contains(Node parent, Node child);
 
   std::string get_text(Node n);
-  std::string get_text_except(Node n, std::string tag);
+  std::string get_text(NodeList nodes);
+
+  // deprecated
+  // std::string get_text_except(Node n, std::string tag);
+  // std::string get_text_except(NodeList nodes, std::string tag);
+
+  std::string get_text_except(Node n, NodeKind k);
+  std::string get_text_except(Node n, std::vector<NodeKind> kinds);
+  std::string get_text_except(NodeList nodes, NodeKind k);
+  std::string get_text_except(NodeList nodes, std::vector<NodeKind> kinds);
 
   /**
    * True if node is inside a node of kind "kind"
