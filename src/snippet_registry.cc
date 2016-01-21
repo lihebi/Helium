@@ -63,12 +63,17 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   std::set<Snippet*> result;
   std::set<Snippet*> all_snippets;
   std::set<Snippet*> direct_snippets;
-  std::vector<CtagsEntry> entries = ctags_parse(name);
+  std::vector<CtagsEntry> entries = ctags_parse(name); // parse ctags
   // construct all snippets that is directly related to name(the entries returned by ctags lookup), for ALL kinds
   if (!entries.empty()) {
     for (auto it=entries.begin();it!=entries.end();it++) {
       CtagsEntry ce = *it;
       Snippet *s = new Snippet(ce);
+      if (s==NULL) continue;
+      if (!s->IsValid()) {
+        delete s;
+        continue;
+      }
       direct_snippets.insert(s);
     }
   }
@@ -200,3 +205,39 @@ SnippetRegistry::addDeps(Snippet *from, std::set<Snippet*> to) {
   }
 }
 
+
+/**
+ * Human readable printing, for debug.
+ */
+std::string SnippetRegistry::ToString() const {
+  std::string result;
+  result += "total snippet: " + std::to_string(m_snippets.size()) +'\n';
+  for (auto m : m_id_map) {
+    std::string key = m.first;
+    std::set<Snippet*> snippets = m.second;
+    result += "key: " + key + " kinds: ";
+    for (Snippet* s : snippets) {
+      std::set<SnippetKind> kinds = s->GetSignature(key);
+      for (SnippetKind k : kinds) {
+        result += snippet_kind_to_char(k);
+      }
+    }
+    result += '\n';
+  }
+  result += "=========\n";
+  for (auto s : m_snippets) {
+    snippet_signature sig = s->GetSignature();
+    if (sig.empty()) {
+      result += "empty**";
+      result += s->GetCode();
+    }
+    for (auto m : sig) {
+      std::string key = m.first;
+      SnippetKind k = m.second;
+      result += "key: " + key + " kinds: " + snippet_kind_to_char(k);
+      result += '\n';
+    }
+    result += "-------\n";
+  }
+  return result;
+}

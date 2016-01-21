@@ -102,13 +102,13 @@ typedef enum _SnippetKind {
 
 
 SnippetKind
-char_to_snippet_type(char t);
+char_to_snippet_kind(char t);
 std::set<SnippetKind>
-string_to_snippet_types(std::string s);
+string_to_snippet_kinds(std::string s);
 char
-snippet_type_to_char(SnippetKind t);
+snippet_kind_to_char(SnippetKind t);
 std::string
-snippet_types_to_string(std::set<SnippetKind> types);
+snippet_kinds_to_string(std::set<SnippetKind> types);
 
 /*******************************
  ** Functions for get code from file based on ctags entry
@@ -150,6 +150,7 @@ public:
   int GetLineNumber() const {return m_line_number;}
   std::string GetFileName() const {return m_filename;}
   int GetLOC() const {return m_loc;}
+  bool IsValid() const {return !m_code.empty();}
 private:
   snippet_signature m_sig;
   std::string m_code;
@@ -157,6 +158,9 @@ private:
   std::string m_filename;
   int m_loc;
 };
+
+std::vector<std::string> query_code(const std::string& code, const std::string& query);
+std::string query_code_first(const std::string& code, const std::string& query);
 
 
 /*
@@ -256,6 +260,8 @@ public:
   // recursively get dependence
   std::set<Snippet*> GetAllDeps(Snippet* snippet);
   std::set<Snippet*> GetAllDeps(std::set<Snippet*> snippets);
+
+  std::string ToString() const;
 
 private:
   /* lookup */

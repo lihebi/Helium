@@ -84,6 +84,7 @@ Reader::Read() {
       //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
       // }
       // std::cout <<out_vars.size()  << "\n";
+      // std::cout << seg.GetMain() << '\0';
       // Builder builder(seg);
       // builder.Build();
       // builder.Compile();

@@ -63,6 +63,7 @@ static const std::map<NodeKind, std::string> kind_to_name_map {
   , {NK_Asm,      "asm"}
   , {NK_Op,       "op:operator"}
   , {NK_Sizeof,   "sizeof"}
+  , {NK_Pragma,   "cpp:pragma"}
 };
 
 static const std::map<std::string, NodeKind> name_to_kind_map {
@@ -123,6 +124,7 @@ static const std::map<std::string, NodeKind> name_to_kind_map {
   , {"asm",   NK_Asm}
   , {"op:operator", NK_Op}
   , {"sizeof",  NK_Sizeof}
+  , {"cpp:pragma", NK_Pragma}
 
 };
 /*

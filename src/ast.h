@@ -69,6 +69,7 @@ namespace ast {
     NK_DefElse,
     NK_EndIf,
     NK_Include,
+    NK_Pragma,
     // trival srcml staff
     NK_Comment,
     NK_Position,

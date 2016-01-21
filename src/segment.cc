@@ -425,31 +425,33 @@ get_to_resolve(
 
 
 void Segment::ResolveSnippets() {
-  std::cout <<"resolving snippet"  << "\n";
+  // getting the initial set to resolve
   std::set<std::string> known_not_resolve;
   std::set<std::string> known_to_resolve;
   for (const Variable v : m_inv) {
+    // the IO variable names are not needed to resolve
     known_not_resolve.insert(v.Name());
+    // The type name need
     known_to_resolve.insert(v.GetType().SimpleName());
   }
-  get_to_resolve(m_context, known_to_resolve, known_not_resolve);
+  std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
   
   m_snippets.clear();
   // the initial code to resolve is: context + input variable(input code)
   // std::string code = m_context->GetText();
   // Now we assume the comments exist in the code (no longer do the remove comment preprocessing)
   // We should not resolve the words in comments as identifiers
-  std::string code = ast::get_text_except(m_context, NK_Comment);
-  code += getInputCode();
+  // std::string code = ast::get_text_except(m_context, NK_Comment);
+  // code += getInputCode();
   // TODO use semantic when resolving
-  std::set<std::string> ids = extract_id_to_resolve(code);
-  // remove ids that is indeed a name
+  // std::set<std::string> ids = extract_id_to_resolve(code);
   for (const std::string &id : ids) {
-    std::cout <<"id: "<<id  << "\n";
+    // std::cout <<"id: "<<id  << "\n";
     std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(id);
     m_snippets.insert(snippets.begin(), snippets.end());
   }
-  std::cout <<m_snippets.size()  << "\n";
+  //std::cout << SnippetRegistry::Instance()->ToString() <<"\0";
+  // utils::print(SnippetRegistry::Instance()->ToString(), utils::CK_Blue);
 }
 
 

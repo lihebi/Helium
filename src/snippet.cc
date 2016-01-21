@@ -64,7 +64,7 @@ std::vector<CtagsEntry> ctags_parse(const std::string& name) {
  ** ctags_type enum related
  *******************************/
 
-SnippetKind char_to_ctags_type(char t) {
+SnippetKind char_to_snippet_kind(char t) {
   switch (t) {
   case 'f': return SK_Function;
   case 's': return SK_Structure;
@@ -80,15 +80,15 @@ SnippetKind char_to_ctags_type(char t) {
   }
 }
 
-std::set<SnippetKind> string_to_ctags_types(std::string s) {
+std::set<SnippetKind> string_to_snippet_kinds(std::string s) {
   std::set<SnippetKind> types;
   for (auto it=s.begin();it!=s.end();it++) {
-    types.insert(char_to_ctags_type(*it));
+    types.insert(char_to_snippet_kind(*it));
   }
   return types;
 }
 
-char ctags_type_to_char(SnippetKind t) {
+char snippet_kind_to_char(SnippetKind t) {
   switch (t) {
   case SK_Function : return 'f';
   case SK_Structure : return 's';
@@ -104,10 +104,10 @@ char ctags_type_to_char(SnippetKind t) {
   }
 }
 
-std::string ctags_types_to_string(std::set<SnippetKind> types) {
+std::string snippet_kinds_to_string(std::set<SnippetKind> types) {
   std::string s;
   for (auto it=types.begin();it!=types.end();it++) {
-    s += ctags_type_to_char(*it);
+    s += snippet_kind_to_char(*it);
   }
   return s;
 }
@@ -157,7 +157,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
    * 1. get code
    * 2. get signature
    */
-  SnippetKind type = char_to_ctags_type(entry.GetType());
+  SnippetKind type = char_to_snippet_kind(entry.GetType());
   switch(type) {
   case SK_Function: {
     m_code = get_func_code(entry);
@@ -173,7 +173,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_code = get_enum_code(entry);
     m_sig.emplace(entry.GetName(), SK_Enum);
     // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
-    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
+    std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
     for (std::string m : members) {
       m_sig.emplace(m, SK_EnumMember);
     }
@@ -196,7 +196,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
   }
   case SK_EnumMember: {
     m_code = get_enum_code(entry);
-    std::vector<std::string> members = query_code(m_code, "//enum/decl/name");
+    std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
     for (std::string m : members) {
       m_sig.emplace(m, SK_EnumMember);
     }
@@ -223,6 +223,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
   default:
     // should we reach here?
     // null snippet?
+    // this is SK_Const, or more likely, SK_Member
     m_code = "";
   }
 }
