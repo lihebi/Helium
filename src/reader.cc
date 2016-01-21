@@ -104,6 +104,16 @@ Reader::Read() {
 
       std::cout << "code outputed to: "<<dir << " .." << "\n";
       // getchar();
+
+      /*******************************
+       * debugging
+       *******************************/
+
+      // std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve("ns_nameok");
+      // std::cout <<"ns_nameok:"  << "\n";
+      // std::cout <<snippets.size()  << "\n";
+
+      
       /*******************************
        ** Compiling
        *******************************/
@@ -126,6 +136,7 @@ Reader::Read() {
       // builder.Compile();
       seg.IncreaseContext();
     }
+    std::cout <<seg.GetInvalidReason()  << "\n";
   }
 }
 

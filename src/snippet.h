@@ -142,6 +142,8 @@ public:
   /* snippet will be looked-up by name. */
   std::set<SnippetKind> GetSignature(const std::string& name);
   std::set<std::string> GetSignatureKey() const;
+  SnippetKind MainKind() const {return m_main_kind;}
+  std::string MainName() const {return m_main_name;}
   /* this is not name has all types, but name has a mapping to one of types */
   bool SatisfySignature(const std::string& name, std::set<SnippetKind> types);
 
@@ -151,10 +153,14 @@ public:
   std::string GetFileName() const {return m_filename;}
   int GetLOC() const {return m_loc;}
   bool IsValid() const {return !m_code.empty();}
+
+  std::string ToString() const;
 private:
   snippet_signature m_sig;
+  std::string m_main_name;
+  SnippetKind m_main_kind;
   std::string m_code;
-  int m_line_number;
+  int m_line_number; // TODO NOW
   std::string m_filename;
   int m_loc;
 };

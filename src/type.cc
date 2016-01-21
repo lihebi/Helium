@@ -109,6 +109,8 @@ Type::Type(const std::string& raw)
     // TODO check type
     // TODO store snippet pointer
     if (snippets.empty()) {
+      utils::print("warning: unknown Type Kind", utils::CK_Red);
+      utils::print(raw, utils::CK_Red);
       m_kind = TK_Unknown;
     } else {
       m_kind = TK_Snippet;
@@ -278,23 +280,34 @@ std::string get_input_code(Type type, const std::string& var) {
         result += "scanf(\"%ld\", &"+var+");";
       }
     } else if (type.m_type_specifier.is_char) {
-      if (type.Pointer() == 0) {
+      if (type.Pointer() == 0 && type.Dimension() == 0) {
         result += type.Raw() + " " + var + ";\n";
         result += "scanf(\"%c\", &"+var+");";
-      } else if (type.Pointer() == 1) {
+      } else if (type.Pointer() == 1 || type.Dimension() == 1) {
         result += "scanf(\"%d\", &helium_size);\n";
-        result += type.Raw() + " "+var+";\n";
+        result += type.Name() + "* "+var+";\n";
         result += "if (helium_size == 0) {\n";
         result += "  " + var + " = NULL;\n";
         result += "} else {\n";
-        result += "  " + var + " = ("+type.Raw()+")malloc(sizeof("+type.Name()+")*helium_size);\n";
+        result += "  " + var + " = ("+type.Name()+"*)malloc(sizeof("+type.Name()+")*helium_size);\n";
         result += "  scanf(\"%s\", "+var+");\n}";
       }
     }
     break;
   }
+  case TK_Snippet: {
+    result += type.Raw() + var + ";\n";
+    result += "/*snippet type input code unimplemented.*/\n";
+    break;
+  }
+  case TK_System: {
+    result += type.Raw() + var + ";\n";
+    result += "/*system type " + type.Raw() + "input code unimplemented.*/\n";
+    break;
+  }
   default: {
-    result += "Unimplemented.";
+    assert(false);
+    result += "/*Unimplemented.*/";
   }
   }
 

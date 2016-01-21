@@ -94,9 +94,8 @@ public:
    * The name only! Simplest format.
    */
   std::string Name() const;
-  int Pointer() const {
-    return m_pointer;
-  }
+  int Pointer() const {return m_pointer;}
+  int Dimension() const {return m_dimension;}
   friend std::string get_input_code(Type type, const std::string &name);
 protected:
   std::string m_raw;

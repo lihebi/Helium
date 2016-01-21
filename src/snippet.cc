@@ -158,18 +158,32 @@ Snippet::Snippet(const CtagsEntry& entry) {
    * 2. get signature
    */
   SnippetKind type = char_to_snippet_kind(entry.GetType());
+  m_filename = entry.GetFileName();
+  m_line_number = entry.GetLineNumber();
   switch(type) {
   case SK_Function: {
+    m_main_kind = SK_Function;
+    m_main_name = entry.GetName();
     m_code = get_func_code(entry);
     m_sig.emplace(entry.GetName(), SK_Function);
     break;
   }
   case SK_Structure: {
+    m_main_kind = SK_Structure;
+    m_main_name = entry.GetName();
     m_code = get_struct_code(entry);
     m_sig.emplace(entry.GetName(), SK_Structure);
+    // TODO NOW may also be a typedef
+    if (m_code.find("typedef") == 0) {
+      m_main_kind = SK_Typedef;
+      m_main_name = query_code_first(m_code, "//typedef/name");
+      m_sig.emplace(m_main_name, SK_Typedef);
+    }
     break;
   }
   case SK_Enum: {
+    m_main_kind = SK_Enum;
+    m_main_name = entry.GetName();
     m_code = get_enum_code(entry);
     m_sig.emplace(entry.GetName(), SK_Enum);
     // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
@@ -177,19 +191,38 @@ Snippet::Snippet(const CtagsEntry& entry) {
     for (std::string m : members) {
       m_sig.emplace(m, SK_EnumMember);
     }
+    // TODO NOW may also be a typedef
+    if (m_code.find("typedef") == 0) {
+      m_main_kind = SK_Typedef;
+      m_main_name = query_code_first(m_code, "//typedef/name");
+      m_sig.emplace(m_main_name, SK_Typedef);
+    }
+
     break;
   }
   case SK_Union: {
+    m_main_kind = SK_Union;
+    m_main_name = entry.GetName();
     m_code = get_union_code(entry);
     m_sig.emplace(entry.GetName(), SK_Union);
+    // TODO NOW may also be a typedef
+    if (m_code.find("typedef") == 0) {
+      m_main_kind = SK_Typedef;
+      m_main_name = query_code_first(m_code, "//typedef/name");
+      m_sig.emplace(m_main_name, SK_Typedef);
+    }
     break;
   }
   case SK_Define: {
+    m_main_kind = SK_Define;
+    m_main_name = entry.GetName();
     m_code = get_def_code(entry);
     m_sig.emplace(entry.GetName(), SK_Define);
     break;
   }
   case SK_Variable: {
+    m_main_kind = SK_Variable;
+    m_main_name = entry.GetName();
     m_code = get_var_code(entry);
     m_sig.emplace(entry.GetName(), SK_Variable);
     break;
@@ -202,18 +235,50 @@ Snippet::Snippet(const CtagsEntry& entry) {
     }
     // enum name
     std::string name = query_code_first(m_code, "//enum/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Enum);
+    if (!name.empty()) {
+      m_sig.emplace(name, SK_Enum);
+      // set main 1
+      m_main_kind = SK_Enum;
+      m_main_name = name;
+    }
     // possibly typedef
     name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
+    if (!name.empty()) {
+      m_sig.emplace(name, SK_Typedef);
+      // set main 2
+      m_main_kind = SK_Typedef;
+      m_main_name = name;
+    }
     break;
   }
   case SK_Typedef: {
+    m_main_kind = SK_Typedef;
+    m_main_name = entry.GetName();
     m_code = get_typedef_code(entry);
     // tyepdef
     std::string name = query_code_first(m_code, "//typedef/name");
     if (!name.empty()) m_sig.emplace(name, SK_Typedef);
     // TODO NOW also needs to test if it is a struct, union, or enum
+    // FIXME possible direct one
+    std::string inner = query_code_first(m_code, "//typedef/type/struct/name");
+    if (!inner.empty()) {
+      m_sig.emplace(inner, SK_Structure);
+      break;
+    }
+    inner = query_code_first(m_code, "//typedef/type/enum/name");
+    if (!inner.empty()) {
+      m_sig.emplace(inner, SK_Enum);
+      std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
+      for (std::string m : members) {
+        m_sig.emplace(m, SK_EnumMember);
+      }
+      break;
+    }
+    inner = query_code_first(m_code, "//typedef/type/union/name");
+    if (!inner.empty()) {
+      m_sig.emplace(inner, SK_Union);
+      break;
+    }
     break;
   }
   // case SK_Const:
@@ -226,6 +291,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
     // this is SK_Const, or more likely, SK_Member
     m_code = "";
   }
+  m_loc = std::count(m_code.begin(), m_code.end(), '\n');
 }
 
 
@@ -306,6 +372,16 @@ Snippet::~Snippet() {}
 // used only for print purpose! Human readable.
 std::string Snippet::GetName() const {
   return "NO NAME";
+}
+
+std::string Snippet::ToString() const {
+  std::string result;
+  for (auto m : m_sig) {
+    std::string key = m.first;
+    SnippetKind k =m.second;
+    result += "key: " + key + " type: " + snippet_kind_to_char(k) + "\n";
+  }
+  return result;
 }
 
 

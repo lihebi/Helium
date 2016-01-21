@@ -88,6 +88,7 @@ public:
   int GetLineNumber() const;
   bool HasNode(ast::Node node) const;
   bool IsValid();
+  std::string GetInvalidReason() const {return m_invalid_reason;}
 
   /*******************************
    ** Code output

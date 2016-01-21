@@ -276,6 +276,9 @@ void Segment::ResolveSnippets() {
   }
   //std::cout << SnippetRegistry::Instance()->ToString() <<"\0";
   // utils::print(SnippetRegistry::Instance()->ToString(), utils::CK_Blue);
+  // for (Snippet* s : m_snippets) {
+  //   std::cout << s->ToString() << "\n";
+  // }
 }
 
 
@@ -410,35 +413,52 @@ sortSnippets(std::set<Snippet*> all) {
   return sorted;
 }
 
+std::string get_function_decl(std::string code) {
+  std::string decl = code.substr(0, code.find('{')) + ";";
+  if (std::count(decl.begin(), decl.end(), ';') > 1) return "";
+  else return decl;
+}
+
 std::string Segment::GetSupport() {
   // prepare the containers
   std::set<Snippet*> all_snippets;
   all_snippets = SnippetRegistry::Instance()->GetAllDeps(m_snippets);
   // sort the snippets
   std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
+  // FIXME This sorted is 0
   // return the snippet code
   std::string code = "";
   // head
   code += get_head();
   code += SystemResolver::Instance()->GetHeaders();
+  code += "\n/****** codes *****/\n";
   // snippets
   std::string code_func_decl;
   std::string code_func;
-  for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
-    // FIXME the type of a snippet is signature, containing multiple SnippetKind
-    // if ((*it)->Type() == SK_Function) {
-    //   // functions
-    //   code_func_decl += dynamic_cast<FunctionSnippet*>(*it)->GetDecl()+"\n";
-    //   code_func +=
-    //   "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
-    //   + "\n" + (*it)->GetCode() + '\n';
-    // } else {
-    //   // all other codes
-    //   code +=
-    //   "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
-    //   + "\n" + (*it)->GetCode() + '\n';
-    // }
+  for (Snippet* s : sorted_all_snippets) {
+    // std::cout <<s->MainName()  << "\n";
+    if (s->MainKind() == SK_Function) {
+      code_func_decl += get_function_decl(s->GetCode())+"\n";
+      code_func += s->GetCode() + '\n';
+    } else {
+      code += s->GetCode() + '\n';
+    }
   }
+  // for (auto it=sorted_all_snippets.begin();it!=sorted_all_snippets.end();it++) {
+  //   // FIXME the type of a snippet is signature, containing multiple SnippetKind
+  //   if ((*it)->Type() == SK_Function) {
+  //     // functions
+  //     code_func_decl += dynamic_cast<FunctionSnippet*>(*it)->GetDecl()+"\n";
+  //     code_func +=
+  //     "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
+  //     + "\n" + (*it)->GetCode() + '\n';
+  //   } else {
+  //     // all other codes
+  //     code +=
+  //     "// " + (*it)->GetFileName() + ":" + std::to_string((*it)->GetLineNumber())
+  //     + "\n" + (*it)->GetCode() + '\n';
+  //   }
+  // }
   code += "\n// function declarations\n";
   code += code_func_decl;
   code += "\n// functions\n";
@@ -454,7 +474,9 @@ std::string Segment::GetMakefile() {
   // FIXME The -levent is 3rd party! Need to install first!
   // FIXME library should be changed according to CondComp
   // TODO configurable include paths
-  + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    // who added c99??? cao!
+  // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+  + "\tcc main.c " + SystemResolver::Instance()->GetLibs() + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;

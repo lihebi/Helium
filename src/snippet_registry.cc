@@ -77,9 +77,35 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
       direct_snippets.insert(s);
     }
   }
-  // TODO remove duplicate in direct_snippets
-  // CAUTION: need to be freed if duplicate
-  ;
+  /*******************************
+   * remove duplicate in direct_snippets
+   *******************************/
+  std::set<std::string> codes;
+  std::set<Snippet*> to_remove;
+  for (Snippet *s : direct_snippets) {
+    // std::cout << "**********" << "\n";
+    // std::cout << s->MainName() << "\n";
+    // std::cout <<snippet_kind_to_char(s->MainKind())  << "\n";
+    // for (std::string key : s->GetSignatureKey()) {
+    //   std::cout << key;
+    //   for (SnippetKind k : s->GetSignature(key)) {
+    //     std::cout << snippet_kind_to_char(k);
+    //   }
+    // }
+    // std::cout << "\n";
+    // std::cout <<s->GetCode()  << "\n";
+    if (codes.find(s->GetCode()) != codes.end()) {
+      to_remove.insert(s);
+    } else {
+      codes.insert(s->GetCode());
+    }
+  }
+  for (Snippet *s : to_remove) {
+    direct_snippets.erase(s);
+    // CAUTION: need to be freed if duplicate
+    delete s;
+  }
+
   // get the specific kinds. NOTE: this is the only place that check the kinds
   for (auto it=direct_snippets.begin();it!=direct_snippets.end();++it) {
     if ((*it)->SatisfySignature(name, kinds)) {
