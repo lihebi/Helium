@@ -87,7 +87,7 @@ std::string GetText() const;
 std::string GetTextExceptComment();
 int GetLineNumber() const;
 bool HasNode(ast::Node node) const;
-bool IsValid() const;
+bool IsValid();
 
 /*******************************
  ** Code output
@@ -138,6 +138,7 @@ VariableList m_outv;
  *******************************/
 std::set<Snippet*> m_snippets;
 int m_context_search_time = 0;
+std::string m_invalid_reason;
 bool m_context_search_failed = false;
 
 };

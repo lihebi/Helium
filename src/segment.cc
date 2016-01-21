@@ -17,20 +17,25 @@ Segment::~Segment () {}
 
 void Segment::PushBack(Node node) {
   m_nodes.push_back(node);
+  m_context = m_nodes;
 }
 void Segment::PushBack(NodeList nodes) {
   m_nodes.insert(m_nodes.end(), nodes.begin(), nodes.end());
+  m_context = m_nodes;
 }
 void Segment::PushFront(Node node) {
   m_nodes.insert(m_nodes.begin(), node);
+  m_context = m_nodes;
 }
 
 void Segment::PushFront(NodeList nodes) {
   m_nodes.insert(m_nodes.begin(), nodes.begin(), nodes.end());
+  m_context = m_nodes;
 }
 
 void Segment::Clear() {
   m_nodes.clear();
+  m_context.clear();
 }
 
 /*******************************
@@ -149,24 +154,31 @@ void Segment::IncreaseContext() {
   m_context_search_time ++;
 }
 
-bool Segment::IsValid() const {
+/**
+ * Check validity status of this segment.
+ * Set m_invalid_reason.
+ */
+bool Segment::IsValid() {
   // this is an empty segment, invalid
   if (m_nodes.empty()) {
     return false;
   }
   // check context search value
   if (m_context_search_time > Config::Instance()->GetInt("context-search-value")) {
-    std::cout <<'1'  << "\n";
+    m_invalid_reason = "context search times larger than context-search-value limit.";
     return false;
   }
   // check segment size
   std::string text = GetText();
   int loc = std::count(text.begin(), text.end(), '\n');
   if (loc > Config::Instance()->GetInt("max-segment-size")) {
-    std::cout <<'2'  << "\n";
+    m_invalid_reason = "size of segment larger than max-segment-size limit.";
     return false;
   }
-  if (m_context_search_failed) return false;
+  if (m_context_search_failed) {
+    m_invalid_reason = "context search failed.";
+    return false;
+  }
 
   // check snippet limit
   // prepare the containers
@@ -175,7 +187,7 @@ bool Segment::IsValid() const {
   // simplify code: break when snippet number larger than config
   // FIXME max_snippet_number is negative?
   if (all_snippets.size() > (size_t)Config::Instance()->GetInt("max-snippet-number")) {
-    std::cout <<'3'  << "\n";
+    m_invalid_reason = "dependent snippets larger than max-snippet-number limit.";
     return false;
   }
   // simplify code: break when snippet size larger than config
@@ -184,11 +196,11 @@ bool Segment::IsValid() const {
     _loc += (*it)->GetLOC();
   }
   if (_loc > Config::Instance()->GetInt("max-snippet-size")) {
-    std::cout <<'4'  << "\n";
+    m_invalid_reason = "snippet size larger than max-snippet-size limit.";
     return false;
   }
 
-  
+  m_invalid_reason = "";
   return true;
 }
 

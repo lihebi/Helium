@@ -18,16 +18,44 @@ int a=0,b;
 int a,b=0;
 int a=0,b=1;
 int a=0,b,c=3;
-
+// 8
+u_char *eom, *cp, *cp1, *rdatap;
+// 9
+int a[3][8];
 )prefix";
   utils::string2xml(raw, doc);
   NodeList nodes = find_nodes(doc, NK_DeclStmt);
-  ASSERT_EQ(nodes.size(), 7);
+  ASSERT_EQ(nodes.size(), 9);
   NodeList decls;
+  // 1
   decls = decl_stmt_get_decls(nodes[0]);
   ASSERT_EQ(decls.size(), 1);
   EXPECT_EQ(decl_get_name(decls[0]), "a");
   EXPECT_EQ(decl_get_type(decls[0]), "int");
+  // a=0
+  decls = decl_stmt_get_decls(nodes[1]);
+  ASSERT_EQ(decls.size(), 1);
+  EXPECT_EQ(decl_get_name(decls[0]), "a");
+  EXPECT_EQ(decl_get_type(decls[0]), "int");
+  // a,b
+  decls = decl_stmt_get_decls(nodes[2]);
+  ASSERT_EQ(decls.size(), 2);
+  EXPECT_EQ(decl_get_name(decls[0]), "a");
+  EXPECT_EQ(decl_get_type(decls[0]), "int");
+  EXPECT_EQ(decl_get_name(decls[1]), "b");
+  EXPECT_EQ(decl_get_type(decls[1]), "int");
+  // 8 u_char
+  decls = decl_stmt_get_decls(nodes[7]);
+  ASSERT_EQ(decls.size(), 4);
+  EXPECT_EQ(decl_get_name(decls[0]), "eom");
+  EXPECT_EQ(decl_get_type(decls[0]), "u_char*");
+  EXPECT_EQ(decl_get_name(decls[1]), "cp");
+  EXPECT_EQ(decl_get_type(decls[1]), "u_char*");
+  // 9 int a[3][8]
+  decls = decl_stmt_get_decls(nodes[8]);
+  ASSERT_EQ(decls.size(), 1);
+  EXPECT_EQ(decl_get_name(decls[0]), "a");
+  EXPECT_EQ(decl_get_type(decls[0]), "int[][]"); // TODO the constant size need to be cpatured?
 }
 
 
@@ -122,3 +150,81 @@ memcpy(a,b);
   // std::cout <<get_text(nodes[0])  << "\n";
   // std::cout <<get_text(nodes[1])  << "\n";
 }
+
+/**
+ * Test if the id to resolve from expr_stmt is correct.
+ */
+TEST(ast_test_case, expr_stmt_test) {
+  Doc doc;
+  const char* raw = R"prefix(
+
+a = a+b;
+memcpy(a,b);
+memcpy(cp1, cp, dlen - n);
+cp1 = data + strlen((char *)data) + 1;
+
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_ExprStmt);
+  ASSERT_EQ(nodes.size(), 4);
+  // a = a+b;
+  std::set<std::string> ids;
+  // ids = expr_stmt_get_var_ids(nodes[0]);
+  ids = get_var_ids(nodes[0]);
+  ASSERT_EQ(ids.size(), 2);
+  EXPECT_TRUE(ids.find("a") != ids.end());
+  EXPECT_TRUE(ids.find("b") != ids.end());
+  // memcpy(a,b)
+  // ids = expr_stmt_get_var_ids(nodes[1]);
+  ids = get_var_ids(nodes[1]);
+  ASSERT_EQ(ids.size(), 2);
+  EXPECT_TRUE(ids.find("a") != ids.end());
+  EXPECT_TRUE(ids.find("b") != ids.end());
+  // memcpy(cp1, cp)
+  // ids = expr_stmt_get_var_ids(nodes[2]);
+  ids = get_var_ids(nodes[2]);
+  ASSERT_EQ(ids.size(), 4);
+  EXPECT_TRUE(ids.find("cp1") != ids.end());
+  EXPECT_TRUE(ids.find("cp") != ids.end());
+  EXPECT_TRUE(ids.find("dlen") != ids.end());
+  EXPECT_TRUE(ids.find("n") != ids.end());
+  // cp1 =
+  // ids = expr_stmt_get_var_ids(nodes[3]);
+  ids = get_var_ids(nodes[3]);
+  // FIXME srcml doesn't tell me if (char) is a type or an id. I need more precise information to continue.
+  // ASSERT_EQ(ids.size(), 2);
+  // EXPECT_TRUE(ids.find("cp1") != ids.end());
+  // EXPECT_TRUE(ids.find("data") != ids.end());
+}
+
+// TEST(ast_test_case, DISABLED_decl_test_deprecated) {
+//   std::string code;
+//   std::map<std::string, std::string> decls;
+//   // single
+//   code = "int a;";
+//   decls = get_decl_detail(code);
+//   EXPECT_EQ(decls.size(), 1);
+//   EXPECT_EQ(decls["a"], "int");
+//   // without ;
+//   code = "int a";
+//   decls = get_decl_detail(code);
+//   EXPECT_EQ(decls.size(), 1);
+//   EXPECT_EQ(decls["a"], "int");
+//   // double ;;
+//   code = "int a;;";
+//   decls = get_decl_detail(code);
+//   EXPECT_EQ(decls.size(), 1);
+//   EXPECT_EQ(decls["a"], "int");
+//   // double
+//   code = "int a;char b;";
+//   decls = get_decl_detail(code);
+//   EXPECT_EQ(decls.size(), 2);
+//   EXPECT_EQ(decls["a"], "int");
+//   EXPECT_EQ(decls["b"], "char");
+//   // same type
+//   code = "int a,b;";
+//   decls = get_decl_detail(code);
+//   EXPECT_EQ(decls.size(), 2);
+//   EXPECT_EQ(decls["a"], "int");
+//   EXPECT_EQ(decls["b"], "int");
+// }

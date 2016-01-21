@@ -84,6 +84,9 @@ protected:
   std::string m_id;             // identifier that left when removing qualifiers
 private:
   void decompose();
+  // TODO pointer and dimension information should be treated as a structure?
+  int m_pointer;
+  int m_dimension;
 };
 
 
@@ -135,10 +138,6 @@ private:
   // pugi::xml_node m_node; // the node where the variable is declared // TODO is it really used??
   Type m_type;
   std::string m_name;
-  std::string m_type_str;
-  // TODO pointer and dimension information should be treated as a structure?
-  int m_pointer;
-  int m_dimension;
 };
 
 
@@ -165,8 +164,8 @@ private:
 
 typedef std::vector<Variable> VariableList;
 
-Variable look_up(VariableList vars, const std::string& name);
-void add_unique(VariableList vars, Variable var);
+Variable look_up(const VariableList &vars, const std::string& name);
+void add_unique(VariableList &vars, Variable var);
 
 VariableList var_from_node(ast::Node node);
 std::string get_input_code(Variable v);

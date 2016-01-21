@@ -6,6 +6,41 @@
 
 namespace fs = boost::filesystem;
 
+namespace utils {
+  const char* RED = "\033[31m";
+  const char* GREEN = "\033[1;32m";
+  const char* YELLOW = "\033[1;33m";
+  const char* BLUE = "\033[1;34m";
+  const char* PURPLE = "\033[1;35m";
+  const char* CYAN = "\033[1;36m";
+  const char* RESET = "\033[0m";
+
+  void print(const char*s, ColorKind k) {
+    const char *c;
+    switch (k) {
+    case CK_Red: c = RED; break;
+    case CK_Green: c = GREEN; break;
+    case CK_Yellow: c = YELLOW; break;
+    case CK_Blue: c = BLUE; break;
+    case CK_Purple: c = PURPLE; break;
+    case CK_Cyan: c = CYAN; break;
+    default:
+      return;
+    }
+    printf("%s%s%s\n", c, s, RESET);
+  }
+
+  void print(const std::string &s, ColorKind k) {
+    print(s.c_str(), k);
+  }
+  void print(int i, ColorKind k) {
+    print(std::to_string(i), k);
+  }
+
+
+} // end namespace utils
+
+
 /*******************************
  ** string utils
  *******************************/

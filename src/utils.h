@@ -3,9 +3,47 @@
 
 #include "common.h"
 #include <pugixml.hpp>
+#include <stdlib.h>
 
 namespace utils {
 
+  extern const char* RED;
+  extern const char* GREEN;
+  extern const char* YELLOW;
+  extern const char* BLUE;
+  extern const char* PURPLE;
+  extern const char* CYAN;
+  extern const char* RESET;
+
+  typedef enum {
+    CK_Red,
+    CK_Green,
+    CK_Yellow,
+    CK_Blue,
+    CK_Purple,
+    CK_Cyan,
+    CK_Reset
+  } ColorKind;
+
+  void print(const char*s, ColorKind k);
+
+  void print(const std::string &s, ColorKind k);
+  void print(int i, ColorKind k);
+
+  // inline void red(const std::string&s)   {print(s, CK_Red);}
+  // inline void red(const char*s)          {print(s, CK_Red);}
+  // inline void red(int i)                 {print(i, CK_Red);}
+  // inline void green(const std::string&s) {print(s, CK_Green);}
+  // inline void green(const char*s)        {print(s, CK_Green);}
+  // inline void cyan(const std::string&s)  {print(s, CK_Cyan);}
+  // inline void cyan(const char*s)         {print(s, CK_Cyan);}
+
+  // inline void purple(const std::string&s){print(s, CK_Purple);}
+  // inline void purple(const char*s)       {print(s, CK_Purple);}
+  // inline void blue(const std::string&s)  {print(s, CK_Blue);}
+  // inline void blue(const char*s)         {print(s, CK_Blue);}
+  // inline void yellow(const std::string&s){print(s, CK_Yellow);}
+  // inline void yellow(const char*s)       {print(s, CK_Yellow);}
   // inline std::string& ltrim(std::string &s);
   // inline std::string& rtrim(std::string &s);
   // inline std::string& trim(std::string &s);

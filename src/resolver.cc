@@ -17,7 +17,7 @@ static const std::set<std::string> c_common_keyword = {
   // type qualifier
   "const", "volatile",
   // undefined
-  "sizeof", "return", "asm"
+  "sizeof", "return", "asm", "NULL"
 };
 
 /** Extract id which is not c keyword
@@ -46,7 +46,10 @@ is_c_keyword(const std::string& s) {
 }
 
 
-SymbolTable::SymbolTable() {}
+SymbolTable::SymbolTable() {
+  // ensure there's at least one table. Calling back() on empty vector is undefined.
+  PushLevel();
+}
 SymbolTable::~SymbolTable() {}
 int SymbolTable::CurrentLevel() {
   return m_tables.size();

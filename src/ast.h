@@ -11,16 +11,28 @@ namespace ast {
   typedef std::vector<Node> NodeList;
 
   typedef enum _NodeKind {
-    NK_Function,
+    // general structure
     NK_DeclStmt,
     NK_Decl,
     NK_ExprStmt,
     NK_Expr,
-    NK_For,
+    NK_EmptyStmt,
+    // more general
     NK_Type,
     NK_Name,
     NK_Block,
     NK_Stmt,
+    NK_Operator,
+    NK_Op, // why op:operator?
+    NK_Asm,
+    NK_Literal,
+    NK_Specifier,
+    NK_Modifier,
+    NK_Extern,
+    NK_Range, // bit field
+    NK_Sizeof,
+    // control flow
+    NK_For,
     NK_If,
     NK_Condition,
     NK_Then,
@@ -30,24 +42,37 @@ namespace ast {
     NK_Switch,
     NK_While,
     NK_Do,
-    NK_Call,
-    NK_ParamList,
-    NK_Param,
     NK_Break,
     NK_Continue,
     NK_Return,
     NK_Label,
     NK_Goto,
+    // function
+    NK_Call,
+    NK_Function,
+    NK_FuncDecl,
+    NK_ArgList,
+    NK_Arg,
+    NK_ParamList,
+    NK_Param,
+    // structures
     NK_Typedef,
     NK_Struct,
+    NK_StructDecl,
     NK_Union,
+    NK_UnionDecl,
     NK_Enum,
-    NK_Comment,
     NK_Define,
+    // conditional compile
     NK_IfDef,
     NK_IfnDef,
     NK_DefElse,
     NK_EndIf,
+    NK_Include,
+    // trival srcml staff
+    NK_Comment,
+    NK_Position,
+    NK_Unit,
     NK_Null
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
@@ -97,12 +122,13 @@ namespace ast {
   std::string decl_get_type(Node node);
 
   NodeList for_get_init_decls(Node node);
-  std::map<std::string, std::string> for_get_init_detail(Node node);
+  // std::map<std::string, std::string> for_get_init_detail(Node node);
   Node for_get_condition_expr(Node node);
   Node for_get_incr_expr(Node node);
   Node for_get_block(Node node);
   
   // if
+  Node if_get_condition_expr(Node node);
   Node if_get_then_block(Node node);
   Node if_get_else_block(Node node);
 
@@ -118,9 +144,16 @@ namespace ast {
   // while
   Node while_get_condition_expr(Node);
   Node while_get_block(Node);
-  
-  std::set<std::string> expr_get_ids(Node);
 
+  // expr
+  // std::set<std::string> expr_stmt_get_ids(Node);
+  // std::set<std::string> expr_get_ids(Node);
+  std::set<std::string> expr_stmt_get_var_ids(Node);
+  std::set<std::string> expr_get_var_ids(Node);
+  std::set<std::string> decl_stmt_get_var_ids(Node node);  
+  std::set<std::string> node_get_var_ids(Node node);
+  std::set<std::string> get_var_ids(Node node);
+  
   std::string call_get_name(Node);
 
   /*******************************

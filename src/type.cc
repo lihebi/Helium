@@ -5,6 +5,10 @@
 using namespace utils;
 using namespace ast;
 
+/*******************************
+ ** helper
+ *******************************/
+
 static bool
 search_and_remove(std::string &s, boost::regex reg) {
   if (boost::regex_search(s, reg)) {
@@ -67,7 +71,8 @@ Type::Type(const std::string& raw)
   : m_raw(raw) {
   decompose();
   if (m_id.empty()) m_kind = TK_Primitive;
-  else if (SystemResolver::Instance()->Has(m_id)) m_kind = TK_System;
+  // FIXME will cause crash if I run unit tests without setting system resolver
+  // else if (SystemResolver::Instance()->Has(m_id)) m_kind = TK_System;
   // TODO local type: struct, union, or enum?
 }
 Type::~Type() {}
@@ -109,15 +114,17 @@ Variable::Variable(Type type, const std::string& name)
 
 Variable::Variable(const std::string& type, const std::string& name) {
   m_name = name;
-  m_type_str = type;
   m_type = Type(type);
 }
 Variable::operator bool() {
+  if (!m_name.empty()) return true;
   return false;
 }
 
 
-
+/**
+ * Get newly defined/declared variables in node.
+ */
 VariableList var_from_node(ast::Node node) {
   VariableList vars;
   std::map<std::string, std::string> plain_vars;
@@ -144,16 +151,16 @@ VariableList var_from_node(ast::Node node) {
     break;
   }
   case ast::NK_For: {
-    // NodeList init_decls = for_get_init_decls(node);
-    // for (Node decl : init_decls) {
-    //   std::string type = decl_get_type(decl);
-    //   std::string name = decl_get_name(decl);
-    //   vars.Add(Variable(type, name));
-    // }
-    std::map<std::string, std::string> for_vars = for_get_init_detail(node);
-    for (auto &m : for_vars) {
-      vars.push_back(Variable(m.first, m.second));
+    NodeList init_decls = for_get_init_decls(node);
+    for (Node decl : init_decls) {
+      std::string type = decl_get_type(decl);
+      std::string name = decl_get_name(decl);
+      vars.push_back(Variable(type, name));
     }
+    // std::map<std::string, std::string> for_vars = for_get_init_detail(node);
+    // for (auto &m : for_vars) {
+    //   vars.push_back(Variable(m.first, m.second));
+    // }
     break;
   }
   default: {}
@@ -225,7 +232,7 @@ std::string get_input_code(Variable v) {
  *******************************/
 
 
-Variable look_up(VariableList vars, const std::string& name) {
+Variable look_up(const VariableList &vars, const std::string& name) {
   for (Variable v : vars) {
     if (v.Name() == name) {
       return v;
@@ -237,7 +244,7 @@ Variable look_up(VariableList vars, const std::string& name) {
 /**
  * Add var to vars only if the name of var does not appear in vars.
  */
-void add_unique(VariableList vars, Variable var) {
+void add_unique(VariableList &vars, Variable var) {
   std::string name = var.Name();
   if (!var) return;
   for (auto it=vars.begin();it!=vars.end();) {
