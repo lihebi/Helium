@@ -43,75 +43,75 @@ typedef enum {
  * Possible code simplification strategy should be implemented.
  */
 class Segment {
-/**
- * Common practice of Segment:
- * Segment seg;
- * while (seg.IncreaseContext()) {
- *   // constructing
- *   seg.ResolveInput();
- *   seg.ResolveOutput();
- *   seg.ResolveSnippet();
- *   // building
- *   seg.GetMain();
- *   seg.GetSupport();
- *   seg.GetMakefile();
- *   // testing
- *   seg.GetInputVar();
- *   seg.GetOutputVar();
- * }
- */
+  /**
+   * Common practice of Segment:
+   * Segment seg;
+   * while (seg.IncreaseContext()) {
+   *   // constructing
+   *   seg.ResolveInput();
+   *   seg.ResolveOutput();
+   *   seg.ResolveSnippet();
+   *   // building
+   *   seg.GetMain();
+   *   seg.GetSupport();
+   *   seg.GetMakefile();
+   *   // testing
+   *   seg.GetInputVar();
+   *   seg.GetOutputVar();
+   * }
+   */
 
 public:
-Segment ();
-virtual ~Segment ();
-/* construct */
-void PushBack(ast::Node node);
-void PushBack(ast::NodeList nodes);
-void PushFront(ast::Node node);
-void PushFront(ast::NodeList nodes);
-void Clear();
+  Segment ();
+  virtual ~Segment ();
+  /* construct */
+  void PushBack(ast::Node node);
+  void PushBack(ast::NodeList nodes);
+  void PushFront(ast::Node node);
+  void PushFront(ast::NodeList nodes);
+  void Clear();
 
-/*******************************
- ** context search
- *******************************/
-bool Grow();
-void IncreaseContext();
+  /*******************************
+   ** context search
+   *******************************/
+  bool Grow();
+  void IncreaseContext();
   
-/* Getter */
-/*******************************
- ** Meta info
- *******************************/
-ast::NodeList GetNodes() const;
-ast::Node GetFirstNode() const;
-std::string GetText() const;
-std::string GetTextExceptComment();
-int GetLineNumber() const;
-bool HasNode(ast::Node node) const;
-bool IsValid();
+  /* Getter */
+  /*******************************
+   ** Meta info
+   *******************************/
+  ast::NodeList GetNodes() const;
+  ast::Node GetFirstNode() const;
+  std::string GetText() const;
+  std::string GetTextExceptComment();
+  int GetLineNumber() const;
+  bool HasNode(ast::Node node) const;
+  bool IsValid();
 
-/*******************************
- ** Code output
- *******************************/
-std::string GetMain();
-std::string GetSupport();
-std::string GetMakefile();
+  /*******************************
+   ** Code output
+   *******************************/
+  std::string GetMain();
+  std::string GetSupport();
+  std::string GetMakefile();
 
-/*******************************
- ** IO Variables
- *******************************/
-void ResolveInput();
-void ResolveOutput();
-VariableList GetInputVariables() const {return m_inv;}
-VariableList GetOutputVariables() const {return m_outv;}
+  /*******************************
+   ** IO Variables
+   *******************************/
+  void ResolveInput();
+  void ResolveOutput();
+  VariableList GetInputVariables() const {return m_inv;}
+  VariableList GetOutputVariables() const {return m_outv;}
 
-/*******************************
- ** Resolving
- *******************************/
-void ResolveSnippets();
+  /*******************************
+   ** Resolving
+   *******************************/
+  void ResolveSnippets();
 
-/*******************************
- ** Code simplification
- *******************************/
+  /*******************************
+   ** Code simplification
+   *******************************/
 
 
    
@@ -119,31 +119,39 @@ void ResolveSnippets();
 
 
 private:
-std::string getHeader();
-std::string getInputCode();
-std::string getContext();
-std::string m_filename;
-ast::NodeList m_nodes;
-ast::NodeList m_function_nodes;
-// TODO on the way to remove the ugly SPU
-ast::NodeList m_context;
+  std::string getHeader();
+  std::string getInputCode();
+  std::string getContext();
+  std::string m_filename;
+  ast::NodeList m_nodes;
+  ast::NodeList m_function_nodes;
+  // TODO on the way to remove the ugly SPU
+  ast::NodeList m_context;
 
-/*******************************
- ** Variables
- *******************************/
-VariableList m_inv;
-VariableList m_outv;
-/*******************************
- ** Snippets
- *******************************/
-std::set<Snippet*> m_snippets;
-int m_context_search_time = 0;
-std::string m_invalid_reason;
-bool m_context_search_failed = false;
+  /*******************************
+   ** Variables
+   *******************************/
+  VariableList m_inv;
+  VariableList m_outv;
+  /*******************************
+   ** Snippets
+   *******************************/
+  std::set<Snippet*> m_snippets;
+  int m_context_search_time = 0;
+  std::string m_invalid_reason;
+  bool m_context_search_failed = false;
 
 };
 
 typedef std::vector<Segment> SegmentList;
+
+std::set<std::string>
+get_to_resolve(
+               ast::NodeList nodes,
+               std::set<std::string> known_to_resolve,
+               std::set<std::string> known_not_resolve
+               );
+
 
 // class SPU {
 // public:

@@ -86,6 +86,15 @@ std::string Type::Raw() const {
   return m_raw;
 }
 
+std::string Type::Name() const {
+  return "";
+}
+// only identifier
+std::string Type::SimpleName() const {
+  return "";
+}
+
+
 void Type::decompose() {
   std::string tmp = m_raw;
   if (tmp.find('[') != std::string::npos) {

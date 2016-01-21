@@ -74,6 +74,8 @@ public:
   std::string ToString() const;
   TypeKind Kind() const;
   std::string Raw() const;
+  std::string Name() const;
+  std::string SimpleName() const; // only identifier
 protected:
   std::string m_raw;
   TypeKind m_kind;

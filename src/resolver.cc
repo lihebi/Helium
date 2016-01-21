@@ -1,25 +1,6 @@
 #include "resolver.h"
 #include <boost/regex.hpp>
 
-static const std::set<std::string> c_common_keyword = {
-  // def, head
-  "define", "undef", "ifdef", "ifndef",
-  "main",  "include",
-  // control branch keyword
-  "if", "else", "switch", "case", "default", "for", "do", "while", "break", "goto", "break", "continue",
-  // type
-  "bool", "true", "false"
-  // storage class specifier
-  "auto", "register", "static", "extern", "typedef",
-  // type specifier
-  "void", "char", "short", "int", "long", "float", "double", "signed", "unsigned",
-  "struct", "enum",
-  // type qualifier
-  "const", "volatile",
-  // undefined
-  "sizeof", "return", "asm", "NULL"
-};
-
 /** Extract id which is not c keyword
  * @param code [in] input code
  * @return a set of IDs
@@ -33,7 +14,7 @@ extract_id_to_resolve(const std::string& code) {
   std::set<std::string> ss;
   for (boost::sregex_iterator it=begin;it!=end;it++) {
     std::string tmp = (*it).str();
-    if (c_common_keyword.find(tmp) == c_common_keyword.end()) {
+    if (c_common_keywords.find(tmp) == c_common_keywords.end()) {
       ss.insert(tmp);
     }
   }
@@ -42,7 +23,7 @@ extract_id_to_resolve(const std::string& code) {
 
 bool
 is_c_keyword(const std::string& s) {
-  return c_common_keyword.find(s) != c_common_keyword.end();
+  return c_common_keywords.find(s) != c_common_keywords.end();
 }
 
 

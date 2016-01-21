@@ -9,4 +9,6 @@
 
 #include <boost/regex.hpp>
 
+extern const std::set<std::string> c_common_keywords;
+
 #endif

@@ -103,3 +103,27 @@ int c;
   EXPECT_EQ(b.GetType().ToString(), "int");
   EXPECT_EQ(c.GetType().ToString(), "int");
 }
+
+TEST(segment_test_case, get_to_resolve_test) {
+  Doc doc;
+  const char* raw = R"prefix(
+
+// @Helium
+mystruct a;
+a = func(b);
+a = NULL; // c common will not be in.
+/* also, comments will not in either */
+
+)prefix";
+  utils::string2xml(raw, doc);
+  Node comment = ast::find_node_containing_str(doc, NK_Comment, "@Helium");
+  NodeList nodes;
+  Node n = next_sibling(comment);
+  nodes.push_back(n);
+  nodes.push_back(next_sibling(n));
+
+  std::set<std::string> to {"test"};
+  std::set<std::string> no {"a", "b"};
+  std::set<std::string> result = get_to_resolve(nodes, to, no);
+  ASSERT_EQ(result.size(), 3);
+}

@@ -152,7 +152,15 @@ namespace ast {
   std::set<std::string> expr_get_var_ids(Node);
   std::set<std::string> decl_stmt_get_var_ids(Node node);  
   std::set<std::string> node_get_var_ids(Node node);
+  // the above are all deprecated
   std::set<std::string> get_var_ids(Node node);
+  std::set<std::string> get_var_ids(NodeList nodes);
+
+  std::set<std::string> get_type_ids(Node node);
+  std::set<std::string> get_type_ids(NodeList nodes);
+
+  std::set<std::string> get_call_ids(Node node);
+  std::set<std::string> get_call_ids(NodeList nodes);
   
   std::string call_get_name(Node);
 

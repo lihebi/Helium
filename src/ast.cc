@@ -239,6 +239,55 @@ std::set<std::string> ast::get_var_ids(Node node) {
   return result;
 }
 
+std::set<std::string> ast::get_var_ids(NodeList nodes) {
+  std::set<std::string> result;
+  for (Node n : nodes) {
+    std::set<std::string> tmp = get_var_ids(n);
+    result.insert(tmp.begin(), tmp.end());
+  }
+  return result;
+}
+
+/**
+ * //type/name
+ */
+std::set<std::string> ast::get_type_ids(Node node) {
+  std::set<std::string> result;
+  for (auto name_node : node.select_nodes(".//type/name")) {
+    result.insert(name_node.node().child_value());
+  }
+  return result;
+}
+std::set<std::string> ast::get_type_ids(NodeList nodes) {
+  std::set<std::string> result;
+  for (Node n : nodes) {
+    std::set<std::string> tmp = get_type_ids(n);
+    result.insert(tmp.begin(), tmp.end());
+  }
+  return result;
+}
+
+
+/**
+ * //call/name
+ */
+std::set<std::string> ast::get_call_ids(Node node) {
+  std::set<std::string> result;
+  for (auto name_node : node.select_nodes(".//call/name")) {
+    result.insert(name_node.node().child_value());
+  }
+  return result;
+}
+std::set<std::string> ast::get_call_ids(NodeList nodes) {
+  std::set<std::string> result;
+  for (Node n : nodes) {
+    std::set<std::string> tmp = get_call_ids(n);
+    result.insert(tmp.begin(), tmp.end());
+  }
+  return result;
+}
+
+
 /**
  * decl_stmt's variables except the declared variables.
  * e.g. int a = b; int a = func(b,c);

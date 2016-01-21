@@ -73,16 +73,16 @@ Reader::Read() {
     std::cout <<"processing segment .."  << "\n";
     for(;seg.IsValid();) {
       std::cout <<"================"  << "\n";
-      std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
+      // std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
       seg.ResolveInput();
       // seg.ResolveOutput();
-      // seg.ResolveSnippets();
+      seg.ResolveSnippets();
       VariableList vars = seg.GetInputVariables();
       // VariableList out_vars = seg.GetOutputVariables();
-      std::cout <<"input vars: "<<vars.size()  << "\n";
-      for (Variable v : vars) {
-        std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
-      }
+      // std::cout <<"input vars: "<<vars.size()  << "\n";
+      // for (Variable v : vars) {
+      //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
+      // }
       // std::cout <<out_vars.size()  << "\n";
       // Builder builder(seg);
       // builder.Build();
