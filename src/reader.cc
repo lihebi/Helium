@@ -70,21 +70,57 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
 void
 Reader::Read() {
   for (Segment &seg : m_segments) {
-    std::cout <<"processing segment .."  << "\n";
+    // std::cout <<"processing segment .."  << "\n";
     for(;seg.IsValid();) {
       std::cout <<"================"  << "\n";
       // std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
       seg.ResolveInput();
       // seg.ResolveOutput();
       seg.ResolveSnippets();
+
+      /** outputing input variables */
       VariableList vars = seg.GetInputVariables();
       // VariableList out_vars = seg.GetOutputVariables();
       // std::cout <<"input vars: "<<vars.size()  << "\n";
       // for (Variable v : vars) {
       //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
       // }
+      
       // std::cout <<out_vars.size()  << "\n";
-      // std::cout << seg.GetMain() << '\0';
+      std::string main_text = seg.GetMain();
+      std::string support = seg.GetSupport();
+      std::string makefile = seg.GetMakefile();
+
+      // std::cout <<main_text  << "\n";
+      
+      // use tmp dir everytime
+      char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
+      char *result = mkdtemp(tmp_dir);
+      assert(result != NULL);
+      std::string dir = tmp_dir;
+      utils::write_file(dir+"/main.c", main_text);
+      utils::write_file(dir+"/support.h", support);
+      utils::write_file(dir + "/Makefile", makefile);
+
+      std::cout << "code outputed to: "<<dir << " .." << "\n";
+      // getchar();
+      /*******************************
+       ** Compiling
+       *******************************/
+      std::string clean_cmd = "make clean -C " + dir;
+      std::string cmd = "make -C " + dir;
+      cmd += " 2>&1";
+      utils::exec(clean_cmd.c_str(), NULL);
+      int return_code;
+      std::string error_msg = utils::exec(cmd.c_str(), &return_code);
+      if (return_code == 0) {
+        utils::print("success", utils::CK_Green);
+      } else {
+        utils::print("error", utils::CK_Red);
+      }
+
+
+
       // Builder builder(seg);
       // builder.Build();
       // builder.Compile();

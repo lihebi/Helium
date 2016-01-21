@@ -59,33 +59,56 @@ struct struct_specifier {
 };
 
 typedef enum _TypeKind {
-  TK_Enum,
+  TK_Unknown,
+  // TK_Enum,
   TK_Primitive,
-  TK_Structure,
+  // TK_Structure,
   TK_System,
-  TK_Union
+  // TK_Union
+  TK_Snippet,
 } TypeKind;
+
+bool is_primitive(std::string s);
 
 class Type {
 public:
-  Type();
+  Type() {}
   Type(const std::string& raw);
-  virtual ~Type();
-  std::string ToString() const;
-  TypeKind Kind() const;
-  std::string Raw() const;
+  ~Type() {}
+  /**
+   * This is for human only!
+   */
+  std::string ToString() const {
+    return m_raw;
+  }
+  TypeKind Kind() const {
+    return m_kind;
+  }
+  /**
+   * Raw!
+   */
+  std::string Raw() const {
+    return m_raw;
+  }
+  /**
+   * The name only! Simplest format.
+   */
   std::string Name() const;
-  std::string SimpleName() const; // only identifier
+  int Pointer() const {
+    return m_pointer;
+  }
+  friend std::string get_input_code(Type type, const std::string &name);
 protected:
   std::string m_raw;
+  std::string m_name;
+  std::string m_id;             // identifier that left when removing qualifiers
   TypeKind m_kind;
   struct storage_specifier m_storage_specifier;
   struct type_specifier m_type_specifier;
   struct type_qualifier m_type_qualifier;
   struct struct_specifier m_struct_specifier;
-  std::string m_id;             // identifier that left when removing qualifiers
 private:
-  void decompose();
+  void decompose(std::string tmp);
   // TODO pointer and dimension information should be treated as a structure?
   int m_pointer;
   int m_dimension;
@@ -170,7 +193,7 @@ Variable look_up(const VariableList &vars, const std::string& name);
 void add_unique(VariableList &vars, Variable var);
 
 VariableList var_from_node(ast::Node node);
-std::string get_input_code(Variable v);
 
+std::string get_input_code(Variable v);
 
 #endif

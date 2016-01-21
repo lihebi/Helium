@@ -1,6 +1,10 @@
 #include "type.h"
 #include "common.h"
 #include "utils.h"
+#include "resolver.h"
+#include "snippet.h"
+
+#include <gtest/gtest.h>
 
 using namespace utils;
 using namespace ast;
@@ -62,45 +66,66 @@ fill_struct_specifier(std::string& name, struct struct_specifier& specifier) {
   specifier.is_union  = search_and_remove(name, boost::regex("\\bunion\\b"))  ? 1 : 0;
 }
 
+bool is_primitive(std::string s) {
+  if (s.find('[') != std::string::npos) {
+    s = s.substr(0, s.find('['));
+  }
+  count_and_remove(s, '*');
+  struct storage_specifier storage_specifier;
+  struct type_specifier type_specifier;
+  struct type_qualifier type_qualifier;
+  struct struct_specifier struct_specifier;
+  fill_storage_specifier(s, storage_specifier);
+  fill_type_specifier(s, type_specifier);
+  fill_type_qualifier(s, type_qualifier);
+  fill_struct_specifier(s, struct_specifier);
+  trim(s);
+  if (s.empty()) return true;
+  return false;
+}
+
 /*******************************
  ** Type
  *******************************/
 
-Type::Type() {}
 Type::Type(const std::string& raw)
   : m_raw(raw) {
-  decompose();
-  if (m_id.empty()) m_kind = TK_Primitive;
+  decompose(raw);
+  if (m_id.empty()) {
+    m_kind = TK_Primitive;
+  }
+  else if (SystemResolver::Instance()->Has(m_id)) {
+    std::string new_type = SystemResolver::Instance()->ResolveType(m_id);
+    if (!new_type.empty()) {
+      std::string tmp = raw;
+      tmp.replace(tmp.find(m_id), m_id.length(), new_type);
+      decompose(tmp);
+      m_kind = TK_Primitive;
+    } else {
+      m_kind = TK_System;
+    }
+  } else {
+    std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(m_id);
+    // TODO check type
+    // TODO store snippet pointer
+    if (snippets.empty()) {
+      m_kind = TK_Unknown;
+    } else {
+      m_kind = TK_Snippet;
+    }
+  }
   // FIXME will cause crash if I run unit tests without setting system resolver
   // else if (SystemResolver::Instance()->Has(m_id)) m_kind = TK_System;
   // TODO local type: struct, union, or enum?
 }
-Type::~Type() {}
-std::string Type::ToString() const {
-  return m_raw;
-}
-TypeKind Type::Kind() const {
-  return m_kind;
-}
-std::string Type::Raw() const {
-  return m_raw;
-}
 
-std::string Type::Name() const {
-  return "";
-}
-// only identifier
-std::string Type::SimpleName() const {
-  return "";
-}
-
-
-void Type::decompose() {
-  std::string tmp = m_raw;
+void Type::decompose(std::string tmp) {
+  m_dimension = std::count(tmp.begin(), tmp.end(), '[');
   if (tmp.find('[') != std::string::npos) {
     tmp = tmp.substr(0, tmp.find('['));
   }
-  count_and_remove(tmp, '*');
+  m_pointer = count_and_remove(tmp, '*');
+  m_name = tmp;                 // get name right after removing * and []
   fill_storage_specifier(tmp, m_storage_specifier);
   fill_type_specifier(tmp, m_type_specifier);
   fill_type_qualifier(tmp, m_type_qualifier);
@@ -108,7 +133,15 @@ void Type::decompose() {
   trim(tmp);
   
   m_id = tmp;
+  if (!m_id.empty()) {
+    m_name = m_id;
+  }
 }
+
+std::string Type::Name() const {
+  return m_name;
+}
+
 
 /*******************************
  ** Variable
@@ -178,47 +211,103 @@ VariableList var_from_node(ast::Node node) {
 }
 
 /**
+ * Get decl code for a pointer type
+ */
+std::string
+get_decl_code(const std::string& type_name, const std::string& var_name, int pointer_level) {
+  return type_name + std::string(pointer_level, '*')+ " " + var_name+";\n";
+}
+
+static std::string
+qualify_var_name(const std::string& varname) {
+  std::string tmp = varname;
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'), tmp.end());
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '>'), tmp.end());
+  tmp.erase(std::remove(tmp.begin(), tmp.end(), '-'), tmp.end());
+  return tmp;
+}
+/**
+ * Only get the allocate code(malloc, assign), but no decl code.
+ */
+std::string
+get_allocate_code(const std::string& type_name, const std::string& var_name, int pointer_level) {
+  std::string code;
+  std::string var_tmp = qualify_var_name(var_name) + "_tmp";
+  code += type_name + "* " + var_tmp + " = (" + type_name + "*)malloc(sizeof(" + type_name + "));\n";
+  code += var_name + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
+  return code;
+}
+
+/**
  * Get input code for a Variable.
 
 If it is a pointer, allocate memory.
 TODO If it is an array, need a loop, and array size.
 
+variable contains the name, and its type.
+Type contains the type str, the modifier(* &),
+and [].
+
  */
+
 std::string get_input_code(Variable v) {
-  return "";
+  return get_input_code(v.GetType(), v.Name());
 }
+
+std::string get_input_code(Type type, const std::string& var) {
+  std::string result;
+  switch (type.Kind()) {
+  case TK_Primitive: {
+    /*******************************
+     * Primitive type
+     *******************************/
+    if (type.m_type_specifier.is_int) {
+      if (type.Pointer() > 0) {
+        result += get_allocate_code(type.Name(), var, type.Pointer());
+        // TODO free it to shutup valgrind
+      } else {
+        result += type.Raw() + " " + var + ";\n";
+        result += "scanf(\"%d\", &"+var+");";
+      }
+    } else if (type.m_type_specifier.is_long) {
+      if (type.Pointer() > 0) {
+        result += get_allocate_code(type.Name(), var, type.Pointer());
+        // TODO free it to shutup valgrind
+      } else {
+        result += type.Raw() + " " + var + ";\n";
+        result += "scanf(\"%ld\", &"+var+");";
+      }
+    } else if (type.m_type_specifier.is_char) {
+      if (type.Pointer() == 0) {
+        result += type.Raw() + " " + var + ";\n";
+        result += "scanf(\"%c\", &"+var+");";
+      } else if (type.Pointer() == 1) {
+        result += "scanf(\"%d\", &helium_size);\n";
+        result += type.Raw() + " "+var+";\n";
+        result += "if (helium_size == 0) {\n";
+        result += "  " + var + " = NULL;\n";
+        result += "} else {\n";
+        result += "  " + var + " = ("+type.Raw()+")malloc(sizeof("+type.Name()+")*helium_size);\n";
+        result += "  scanf(\"%s\", "+var+");\n}";
+      }
+    }
+    break;
+  }
+  default: {
+    result += "Unimplemented.";
+  }
+  }
+
+  return result;
+}
+
+
 
 /*******************************
  ** Helper function for Variable
  *******************************/
 
-/*
- * Get decl code for a pointer type
- */
-// std::string
-// Type::GetDeclCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
-//   return type_name + std::string(pointer_level, '*')+ " " + var_name+";\n";
-// }
 
-// static std::string
-// qualify_var_name(const std::string& varname) {
-//   std::string tmp = varname;
-//   tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'), tmp.end());
-//   tmp.erase(std::remove(tmp.begin(), tmp.end(), '>'), tmp.end());
-//   tmp.erase(std::remove(tmp.begin(), tmp.end(), '-'), tmp.end());
-//   return tmp;
-// }
-// /**
-//  * Only get the allocate code(malloc, assign), but no decl code.
-//  */
-// std::string
-// Type::GetAllocateCode(const std::string& type_name, const std::string& var_name, int pointer_level) {
-//   std::string code;
-//   std::string var_tmp = qualify_var_name(var_name) + "_tmp";
-//   code += type_name + "* " + var_tmp + " = (" + type_name + "*)malloc(sizeof(" + type_name + "));\n";
-//   code += var_name + " = " + std::string(pointer_level-1, '&') + var_tmp + ";\n";
-//   return code;
-// }
 
 // std::string
 // Type::GetArrayCode(const std::string& type_name, const std::string& var_name, int dimension) {

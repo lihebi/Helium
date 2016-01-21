@@ -82,9 +82,9 @@ SystemResolver::ResolveType(const std::string& name) {
     }
     to_type.pop_back();
     // if it is primitive type, return
-    // if (TypeFactory(to_type).IsPrimitiveType()) {
-    //   return to_type;
-    // }
+    if (is_primitive(to_type)) {
+      return to_type;
+    }
     // depth first resolve
     std::string new_type = ResolveType(to_type);
     if (!new_type.empty()) return new_type;

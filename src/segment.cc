@@ -139,7 +139,6 @@ bool Segment::Grow() {
   return true;
 }
 
-
 void Segment::IncreaseContext() {
   // after increasing context, should check if the segment is valid
   // 1. segment size limit
@@ -204,12 +203,89 @@ bool Segment::IsValid() {
   return true;
 }
 
+
+/*******************************
+ ** Variables
+ *******************************/
+
+void Segment::ResolveInput() {
+  m_inv.clear();
+  resolver::get_undefined_vars(m_context, m_inv);
+}
+
+void Segment::ResolveOutput() {
+}
+
+/*******************************
+ ** Resolving
+ *******************************/
+
+std::set<std::string>
+get_to_resolve(
+               NodeList nodes,
+               std::set<std::string> known_to_resolve,
+               std::set<std::string> known_not_resolve
+               ) {
+  std::set<std::string> result;
+  std::set<std::string> var_ids = get_var_ids(nodes);
+  result.insert(var_ids.begin(), var_ids.end());
+  // var_ids
+  // general types in the nodes
+  std::set<std::string> type_ids = get_type_ids(nodes);
+  result.insert(type_ids.begin(), type_ids.end());
+  // call to functions
+  std::set<std::string> call_ids = get_call_ids(nodes);
+  result.insert(call_ids.begin(), call_ids.end());
+  // constructing
+  result.insert(known_to_resolve.begin(), known_to_resolve.end());
+  for (const std::string &s : known_not_resolve) {
+    result.erase(s);
+  }
+  for (const std::string &s : c_common_keywords) {
+    result.erase(s);
+  }
+  return result;
+}
+
+
+void Segment::ResolveSnippets() {
+  // getting the initial set to resolve
+  std::set<std::string> known_not_resolve;
+  std::set<std::string> known_to_resolve;
+  for (const Variable v : m_inv) {
+    // the IO variable names are not needed to resolve
+    known_not_resolve.insert(v.Name());
+    // The type name need
+    known_to_resolve.insert(v.GetType().Name());
+  }
+  std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
+  
+  m_snippets.clear();
+  // the initial code to resolve is: context + input variable(input code)
+  // std::string code = m_context->GetText();
+  // Now we assume the comments exist in the code (no longer do the remove comment preprocessing)
+  // We should not resolve the words in comments as identifiers
+  // std::string code = ast::get_text_except(m_context, NK_Comment);
+  // code += getInputCode();
+  // TODO use semantic when resolving
+  // std::set<std::string> ids = extract_id_to_resolve(code);
+  for (const std::string &id : ids) {
+    // std::cout <<"id: "<<id  << "\n";
+    std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(id);
+    m_snippets.insert(snippets.begin(), snippets.end());
+  }
+  //std::cout << SnippetRegistry::Instance()->ToString() <<"\0";
+  // utils::print(SnippetRegistry::Instance()->ToString(), utils::CK_Blue);
+}
+
+
+
 /*******************************
  ** Code output
  *******************************/
 std::string
 Segment::getContext() {
-  std::string context = ast::get_text(m_context);
+  std::string context = ast::get_text_ln(m_context);
   boost::regex return_regex("\\breturn\\b[^;]*;");
   context = boost::regex_replace<boost::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
   // FIXME when doing context search, break may appear, while we don't have the outside loop
@@ -245,6 +321,7 @@ std::string Segment::GetMain() {
   std::string s;
   s += getHeader();
   s += "int main() {\n";
+  s += "  size_t helium_size;\n";
   s += "// Input\n";
   s += getInputCode();
   s += "// Context\n";
@@ -264,23 +341,26 @@ get_foot() {
 std::string
 get_head() {
   return
-  "#ifndef __SUPPORT_H__\n"
-  "#define __SUPPORT_H__\n"
-  "typedef int bool;\n"
-  "#define true 1\n"
-  "#define false 0\n"
-  // some code will config to have this variable.
-  // Should not just define it randomly, but this is the best I can do to make it compile ...
-  "#define VERSION \"1\"\n"
-  "#define PACKAGE \"helium\"\n"
-  // GNU Standard
-  "#define PACKAGE_NAME \"helium\"\n"
-  "#define PACKAGE_BUGREPORT \"xxx@xxx.com\"\n"
-  "#define PACKAGE_STRING \"helium 0.1\"\n"
-  "#define PACKAGE_TARNAME \"helium\"\n"
-  "#define PACKAGE_URL \"\"\n"
-  "#define PACKAGE_VERSION \"0.1\"\n"
-  ;
+    "#ifndef __SUPPORT_H__\n"
+    "#define __SUPPORT_H__\n"
+    "typedef int bool;\n"
+    "#define true 1\n"
+    "#define false 0\n"
+    // some code will config to have this variable.
+    // Should not just define it randomly, but this is the best I can do to make it compile ...
+    "#define VERSION \"1\"\n"
+    "#define PACKAGE \"helium\"\n"
+    // GNU Standard
+    "#define PACKAGE_NAME \"helium\"\n"
+    "#define PACKAGE_BUGREPORT \"xxx@xxx.com\"\n"
+    "#define PACKAGE_STRING \"helium 0.1\"\n"
+    "#define PACKAGE_TARNAME \"helium\"\n"
+    "#define PACKAGE_URL \"\"\n"
+    "#define PACKAGE_VERSION \"0.1\"\n"
+    // unstandard primitive typedefs, such as u_char
+    "typedef unsigned char u_char;\n"
+    "typedef unsigned int u_int;\n"
+    ;
 }
 
 bool
@@ -369,91 +449,16 @@ std::string Segment::GetSupport() {
 }
 std::string Segment::GetMakefile() {
   std::string makefile;
-  makefile = makefile + "a.out: generate.c\n"
+  makefile = makefile + "a.out: main.c\n"
   // makefile += "\tcc -std=c99 generate.c " + compile_option +"\n"
   // FIXME The -levent is 3rd party! Need to install first!
   // FIXME library should be changed according to CondComp
   // TODO configurable include paths
-  + "\tcc -std=c99 generate.c " + SystemResolver::Instance()->GetLibs() + "\n"
+  + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;
 }
-
-/*******************************
- ** Variables
- *******************************/
-
-void Segment::ResolveInput() {
-  m_inv.clear();
-  resolver::get_undefined_vars(m_context, m_inv);
-}
-
-void Segment::ResolveOutput() {
-}
-
-/*******************************
- ** Resolving
- *******************************/
-
-std::set<std::string>
-get_to_resolve(
-               NodeList nodes,
-               std::set<std::string> known_to_resolve,
-               std::set<std::string> known_not_resolve
-               ) {
-  std::set<std::string> result;
-  std::set<std::string> var_ids = get_var_ids(nodes);
-  result.insert(var_ids.begin(), var_ids.end());
-  // var_ids
-  // general types in the nodes
-  std::set<std::string> type_ids = get_type_ids(nodes);
-  result.insert(type_ids.begin(), type_ids.end());
-  // call to functions
-  std::set<std::string> call_ids = get_call_ids(nodes);
-  result.insert(call_ids.begin(), call_ids.end());
-  // constructing
-  result.insert(known_to_resolve.begin(), known_to_resolve.end());
-  for (const std::string &s : known_not_resolve) {
-    result.erase(s);
-  }
-  for (const std::string &s : c_common_keywords) {
-    result.erase(s);
-  }
-  return result;
-}
-
-
-void Segment::ResolveSnippets() {
-  // getting the initial set to resolve
-  std::set<std::string> known_not_resolve;
-  std::set<std::string> known_to_resolve;
-  for (const Variable v : m_inv) {
-    // the IO variable names are not needed to resolve
-    known_not_resolve.insert(v.Name());
-    // The type name need
-    known_to_resolve.insert(v.GetType().SimpleName());
-  }
-  std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
-  
-  m_snippets.clear();
-  // the initial code to resolve is: context + input variable(input code)
-  // std::string code = m_context->GetText();
-  // Now we assume the comments exist in the code (no longer do the remove comment preprocessing)
-  // We should not resolve the words in comments as identifiers
-  // std::string code = ast::get_text_except(m_context, NK_Comment);
-  // code += getInputCode();
-  // TODO use semantic when resolving
-  // std::set<std::string> ids = extract_id_to_resolve(code);
-  for (const std::string &id : ids) {
-    // std::cout <<"id: "<<id  << "\n";
-    std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(id);
-    m_snippets.insert(snippets.begin(), snippets.end());
-  }
-  //std::cout << SnippetRegistry::Instance()->ToString() <<"\0";
-  // utils::print(SnippetRegistry::Instance()->ToString(), utils::CK_Blue);
-}
-
 
 
 

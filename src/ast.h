@@ -193,6 +193,8 @@ namespace ast {
 
   std::string get_text(Node n);
   std::string get_text(NodeList nodes);
+  std::string get_text_ln(NodeList nodes);
+
 
   // deprecated
   // std::string get_text_except(Node n, std::string tag);

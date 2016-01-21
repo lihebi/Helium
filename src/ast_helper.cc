@@ -199,6 +199,18 @@ namespace ast {
     }
     return result;
   }
+
+  /**
+   * Add line break between every node.
+   */
+  std::string get_text_ln(NodeList nodes) {
+    std::string result;
+    for (Node n : nodes) {
+      result += get_text(n);
+      result += '\n';
+    }
+    return result;
+  }
   // std::string get_text_except(Node node, std::string tag) {
   //   if (!node) return "";
   //   std::string text;

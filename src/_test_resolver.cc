@@ -36,3 +36,20 @@ if (!ns_nameok((char *)data, class, NULL)) {
   EXPECT_EQ(look_up(result, "hp").GetType().ToString(), "HEADER*");
   
 }
+
+TEST(resolver_test_case, system) {
+  SystemResolver::Instance()->Load("systype.tags");
+  ASSERT_TRUE(SystemResolver::Instance()->Has("uint8_t"));
+  std::string output = SystemResolver::Instance()->ResolveType("uint8_t");
+  EXPECT_EQ(output, "unsigned char");
+  output = SystemResolver::Instance()->ResolveType("u_int");
+  EXPECT_EQ(output, "unsigned int");
+  output = SystemResolver::Instance()->ResolveType("u_long");
+  EXPECT_EQ(output, "unsigned long int");
+  output = SystemResolver::Instance()->ResolveType("u_char");
+  EXPECT_EQ(output, "unsigned char");
+  output = SystemResolver::Instance()->ResolveType("u_int8_t");
+  EXPECT_EQ(output, "unsigned char");
+  output = SystemResolver::Instance()->ResolveType("u_int32_t");
+  EXPECT_EQ(output, "unsigned int");
+}
