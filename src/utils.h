@@ -78,6 +78,8 @@ namespace utils {
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::string& s);
   void get_files_by_extension(const std::string& folder, std::vector<std::string>& vs, const std::vector<std::string>& extension);
   bool file_exists(const std::string& file);
+  bool is_file(const std::string &file);
+  bool is_dir(const std::string &file);
 
 
   /*******************************
@@ -89,6 +91,12 @@ namespace utils {
   // folders
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);
+
+  std::string create_tmp_dir(std::string s);
+
+  std::vector<std::string> query_xml(const std::string& xml_file, const std::string& query);
+  std::string query_xml_first(const std::string& xml_file, const std::string& query);
+
 
   /*******************************
    ** Srcml Utils

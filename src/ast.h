@@ -33,6 +33,7 @@ namespace ast {
     NK_Sizeof,
     // control flow
     NK_For,
+    NK_Control,
     NK_If,
     NK_Condition,
     NK_Then,
@@ -97,7 +98,7 @@ namespace ast {
       NK_Struct,
       NK_Union,
       NK_Enum,
-      NK_Comment,
+      //      NK_Comment,
       NK_Define
   };
 
@@ -113,8 +114,14 @@ namespace ast {
   NodeList function_get_params(Node node);
   Node function_get_block(Node node);
 
+  NodeList function_get_param_decls(Node node);
+
+
+  // deprecated
   std::string param_get_type(Node node);
   std::string param_get_name(Node node);
+  // use this one
+  Node param_get_decl(Node node);
   NodeList block_get_nodes(Node node);
   
   NodeList decl_stmt_get_decls(Node node);
@@ -137,7 +144,9 @@ namespace ast {
   Node switch_get_condition_expr(Node);
   NodeList switch_get_cases(Node);
   NodeList case_get_nodes(Node);
-  
+  NodeList switch_get_blocks(Node node);
+  Node switch_get_block(Node node);
+  // NodeList switch_get_content(Node node);
   // do
   Node do_get_condition_expr(Node);
   Node do_get_block(Node);

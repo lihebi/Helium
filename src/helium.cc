@@ -73,7 +73,13 @@ Helium::Helium(int argc, char* argv[]) {
     args.PrintHelp();
     exit(1);
   }
-  while (m_folder.back() == '/') m_folder.pop_back();
+  if (utils::is_dir(m_folder)) {
+    while (m_folder.back() == '/') m_folder.pop_back();
+  } else if (utils::is_file(m_folder)) {
+  } else {
+    std::cerr<<"no such folder" << m_folder<<'\n';
+    assert(false);
+  }
 
 
 
@@ -130,14 +136,18 @@ Helium::Helium(int argc, char* argv[]) {
   HeaderSorter::Instance()->Load(m_folder);
 
   
-  std::string output_folder = Config::Instance()->GetString("output-folder");
-  assert(!output_folder.empty() && "output-folder is not set");
-  /* prepare folder */
-  remove_folder(output_folder);
-  create_folder(output_folder);
+  // std::string output_folder = Config::Instance()->GetString("output-folder");
+  // assert(!output_folder.empty() && "output-folder is not set");
+  // /* prepare folder */
+  // remove_folder(output_folder);
+  // create_folder(output_folder);
 
   /* get files in target folder */
-  get_files_by_extension(m_folder, m_files, "c");
+  if (utils::is_dir(m_folder)) {
+    get_files_by_extension(m_folder, m_files, "c");
+  } else {
+    m_files.push_back(m_folder);
+  }
 
   /*******************************
    ** More advanced utils(needs to run some functionality of Helium)

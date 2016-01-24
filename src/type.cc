@@ -175,11 +175,17 @@ VariableList var_from_node(ast::Node node) {
   switch (kind(node)) {
   case ast::NK_Function: {
     // plain_vars = dynamic_cast<ast::FunctionNode&>(node).ParamList();
-    NodeList params = function_get_params(node);
-    for (Node param : params) {
-      // FIXME this may be just part of it. Or very long.
-      std::string type = param_get_type(param);
-      std::string name = param_get_name(param);
+    // NodeList params = function_get_params(node);
+    // for (Node param : params) {
+    //   Node decl = param_get_decl(param);
+    //   std::string type = decl_get_type(param);
+    //   std::string name = decl_get_name(param);
+    //   vars.push_back(Variable(type, name));
+    // }
+    NodeList decls = function_get_param_decls(node);
+    for (Node decl : decls) {
+      std::string type = decl_get_type(decl);
+      std::string name = decl_get_name(decl);
       vars.push_back(Variable(type, name));
     }
     break;
@@ -311,6 +317,96 @@ std::string get_input_code(Type type, const std::string& var) {
   }
   }
 
+  return result;
+}
+
+/**
+ * Need to set srand(time(0)) manually.
+ */
+static int
+myrand(int low, int high) {
+  if (high < low) return -1; // FIXME -1 is good?
+  double d = rand();
+  d /= RAND_MAX;
+  return low + (high-low)*d;
+}
+
+char
+rand_char(char low, char high) {
+  int dis = high-low;
+  char c = low + myrand(0,dis);
+  return c;
+}
+
+// TEST(type_test_case, rand_char) {
+//   std::cout <<rand_char('A', 'D')  << "\n";
+// }
+
+std::string
+rand_int(int low, int high) {
+  return std::to_string(myrand(low, high));
+}
+
+std::string
+rand_str(int low_length, int high_length) {
+  int bound = myrand(low_length, high_length);
+  std::string result;
+  for (int i=0;i<bound;i++) {
+    result += rand_char('A', 'z');
+  }
+  return result;
+}
+
+// TEST(type_test_case, rand_str) {
+//   std::cout <<rand_char('A', 'z')  << "\n";
+//   std::cout <<rand_char('A', 'z')  << "\n";
+//   std::cout <<rand_char('A', 'z')  << "\n";
+//   std::cout <<rand_char('A', 'z')  << "\n";
+//   std::cout <<rand_char('A', 'z')  << "\n";
+
+//   std::cout << rand_str(10) << '\n';
+//   std::cout << rand_str(10) << '\n';
+//   std::cout << rand_str(10) << '\n';
+//   std::cout << rand_str(10) << '\n';
+// }
+
+
+std::string get_random_input(Type type) {
+  std::string result;
+  switch (type.Kind()) {
+  case TK_Primitive: {
+    /*******************************
+     ** Primitive
+     *******************************/
+    if (type.m_type_specifier.is_int) {
+      if (type.Pointer() > 0) {
+        ;
+      } else {
+        result += rand_int(0,10000) + " ";
+      }
+    } else if (type.m_type_specifier.is_long) {
+      if (type.Pointer() > 0) {
+        ;
+      } else {
+        result += rand_int(0,10000) + " ";
+      }
+    } else if (type.m_type_specifier.is_char) {
+      if (type.Pointer() == 0 && type.Dimension() == 0) {
+        result += rand_char('A', 'z');
+        result += " ";
+      } else if (type.Pointer() == 1 || type.Dimension() == 1) {
+        int size = myrand(0,1000); // helium_size
+        result += std::to_string(size) + " "; // helium_size
+        if (size > 0) {
+          result += rand_str(1, size-1) + " ";
+        }
+      }
+    }
+  }
+  default: {
+    // TODO
+  }
+  }
   return result;
 }
 

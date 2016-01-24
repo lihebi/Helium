@@ -14,6 +14,7 @@ static const std::map<NodeKind, std::string> kind_to_name_map {
   , {NK_ExprStmt, "expr_stmt"}
   , {NK_Expr,     "expr"}
   , {NK_For,      "for"}
+  , {NK_Control,  "control"}
   , {NK_Type,     "type"}
   , {NK_Name,     "name"}
   , {NK_Block,    "block"}
@@ -75,6 +76,7 @@ static const std::map<std::string, NodeKind> name_to_kind_map {
   , {"expr_stmt", NK_ExprStmt}
   , {"expr",      NK_Expr}
   , {"for",       NK_For}
+  , {"control",   NK_Control}
   , {"type",      NK_Type}
   , {"name",      NK_Name}
   , {"block",     NK_Block}
@@ -214,8 +216,13 @@ simplify_variable_name(std::string& s) {
 // }
 
 std::set<std::string> ast::expr_stmt_get_var_ids(Node node) {
-  pugi::xpath_node_set expr_nodes = node.select_nodes(".//expr");
   std::set<std::string> result;
+  if (kind(node) == NK_Expr) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
+  pugi::xpath_node_set expr_nodes = node.select_nodes(".//expr");
   for (auto n : expr_nodes) {
     std::set<std::string> tmp = expr_get_var_ids(n.node());
     result.insert(tmp.begin(), tmp.end());
@@ -235,6 +242,11 @@ std::set<std::string> ast::expr_get_var_ids(Node node) {
 
 std::set<std::string> ast::get_var_ids(Node node) {
   std::set<std::string> result;
+  if (kind(node) == NK_Expr) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
   for (auto name_node : node.select_nodes(".//expr/name")) {
     result.insert(name_node.node().child_value());
   }
@@ -255,6 +267,12 @@ std::set<std::string> ast::get_var_ids(NodeList nodes) {
  */
 std::set<std::string> ast::get_type_ids(Node node) {
   std::set<std::string> result;
+  if (kind(node) == NK_Type) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
+  // FIXME not sure if this will reach the root
   for (auto name_node : node.select_nodes(".//type/name")) {
     result.insert(name_node.node().child_value());
   }
@@ -275,6 +293,11 @@ std::set<std::string> ast::get_type_ids(NodeList nodes) {
  */
 std::set<std::string> ast::get_call_ids(Node node) {
   std::set<std::string> result;
+  if (kind(node) == NK_Call) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
   for (auto name_node : node.select_nodes(".//call/name")) {
     result.insert(name_node.node().child_value());
   }
@@ -296,6 +319,11 @@ std::set<std::string> ast::get_call_ids(NodeList nodes) {
  */
 std::set<std::string> ast::decl_stmt_get_var_ids(Node node) {
   std::set<std::string> result;
+  if (kind(node) == NK_Expr) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
   pugi::xpath_node_set expr_nodes = node.select_nodes(".//expr");
   for (auto n : expr_nodes) {
     std::set<std::string> tmp = expr_get_var_ids(n.node());
@@ -309,6 +337,11 @@ std::set<std::string> ast::decl_stmt_get_var_ids(Node node) {
  */
 std::set<std::string> ast::node_get_var_ids(Node node) {
   std::set<std::string> result;
+  if (kind(node) == NK_Expr) {
+    for (Node n : node.children("name")) {
+      result.insert(n.child_value());
+    }
+  }
   pugi::xpath_node_set expr_nodes = node.select_nodes(".//expr");
   for (auto n : expr_nodes) {
     std::set<std::string> tmp = expr_get_var_ids(n.node());
@@ -426,6 +459,28 @@ NodeList ast::function_get_params(Node node) {
   }
   return nodes;
 }
+
+/**
+ * Take care of legacy code.
+ */
+NodeList ast::function_get_param_decls(Node node) {
+  NodeList result;
+  if (node.child("parameter_list").child("parameter")) {
+    // have parameter
+    if (node.child("parameter_list").child("parameter").child("decl").child("name")) {
+      // regular
+      for (Node param : node.child("parameter_list").children("parameter")) {
+        result.push_back(param.child("decl"));
+      }
+    } else {
+      // legacy
+      for (Node decl_stmt : node.child("decl_stmt")) {
+        result.push_back(decl_stmt.child("decl"));
+      }
+    }
+  }
+  return result;
+}
 Node ast::function_get_block(Node node) {
   return node.child("block");
 }
@@ -436,6 +491,10 @@ std::string ast::param_get_type(Node node) {
 }
 std::string ast::param_get_name(Node node) {
   return node.child("decl").child_value("name");
+}
+
+Node ast::param_get_decl(Node node) {
+  return node.child("decl");
 }
 
 
@@ -552,6 +611,31 @@ NodeList ast::case_get_nodes(Node node) {
   }
   return result;
 }
+/**
+ * Get case blocks. Skip case.
+ */
+NodeList ast::switch_get_blocks(Node node) {
+  NodeList result;
+  for (Node b : node.child("block").children("block")) {
+    result.push_back(b);
+  }
+  return result;
+}
+/**
+ * This is the first level block. It is not so special.
+ */
+Node ast::switch_get_block(Node node) {
+  return node.child("block");
+}
+/**
+ * Actually switch just has content. No special blocks.
+ */
+// NodeList ast::switch_get_content(Node node) {
+//   NodeList result;
+//   for (Node n : node.child("block").children()) {
+//     if (n.type() == pugi::node_element && kind(n) != NK_Condition && kind())
+//   }
+// }
 
 /*******************************
  ** Do

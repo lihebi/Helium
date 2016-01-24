@@ -37,6 +37,37 @@ if (!ns_nameok((char *)data, class, NULL)) {
   
 }
 
+TEST(resolver_test_case, switch_io) {
+  Doc doc;
+  const char* raw = R"prefix(
+
+int a,b;
+char c,d;
+switch(a) {
+case 1: {
+b=c;
+}
+case 2: {
+d = c;
+}
+}
+
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList switch_nodes = find_nodes(doc, NK_Switch);
+  ASSERT_EQ(switch_nodes.size(), 1);
+  VariableList result;
+  Node expr = switch_get_condition_expr(switch_nodes[0]);
+  // expr.print(std::cout);
+  // for (auto n : expr.select_nodes("..//expr/name")) {
+  //   std::cout << get_text(n.node()) << '\n';
+  // }
+  std::set<std::string> ids = ast::get_var_ids(expr);
+  ASSERT_EQ(ids.size(), 1);
+  resolver::get_undefined_vars(switch_nodes[0], result);
+  ASSERT_EQ(result.size(), 4);
+}
+
 TEST(resolver_test_case, system) {
   SystemResolver::Instance()->Load("systype.tags");
   ASSERT_TRUE(SystemResolver::Instance()->Has("uint8_t"));

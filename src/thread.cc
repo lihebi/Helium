@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
+#include <gtest/gtest.h>
+
 std::string utils::exec(const char* cmd, int *status, int timeout) {
   int pipefd[2];
   if (pipe(pipefd) == -1) {
@@ -117,5 +119,26 @@ std::string utils::exec(const char* cmd, const char* input, int *status, unsigne
     }
   }
   close(pipeout[0]);
+  int _status;
+  waitpid(pid, &_status, 0);
+  if (WIFEXITED(_status) && status != NULL) {
+    *status = WEXITSTATUS(_status);
+  }
   return result;
+  return result;
+}
+
+TEST(thread_test_case, exec) {
+  int status;
+  status = 1;
+  utils::exec("ls", &status);
+  EXPECT_EQ(status, 0);
+  utils::exec("sss", &status);
+  EXPECT_EQ(status, 0);
+  // std::string s = utils::exec("cat", "hello", &status);
+  // EXPECT_EQ(status, 0);
+  // EXPECT_EQ(s, "hello");
+  status = 0;
+  utils::exec("/tmp/helium-test-temp.YF3FoF/a.out", "65 G 8 Mg_Rv 76 1 ^ 3 Z 16", &status);
+  EXPECT_EQ(status, 1);
 }

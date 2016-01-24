@@ -1,0 +1,24 @@
+#+begin_src xml
+<error>
+  <unique>0x1</unique>
+  <tid>1</tid>
+  <kind>InvalidRead</kind>
+  <what>Invalid read of size 1</what>
+  <stack>
+    <frame>
+      <ip>0x4C2CC87</ip>
+      <obj>/usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>strcpy</fn>
+    </frame>
+    <frame>
+      <ip>0x400721</ip>
+      <obj>/tmp/helium-test-temp.4fS9Fa/a.out</obj>
+      <fn>main</fn>
+      <dir>/tmp/helium-test-temp.4fS9Fa</dir>
+      <file>main.c</file>
+      <line>19</line>
+    </frame>
+  </stack>
+  <auxwhat>Address 0x0 is not stack'd, malloc'd or (recently) free'd</auxwhat>
+</error>
+#+end_src

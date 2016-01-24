@@ -159,14 +159,20 @@ void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList 
     break;
   }
   case NK_Switch: {
-    st.PushLevel();
+    // st.PushLevel();
     get_undefined_vars(switch_get_condition_expr(node), st, result);
-    for (Node case_node : switch_get_cases(node)) {
-      st.PushLevel();
-      get_undefined_vars(case_get_nodes(case_node), st, result);
-      st.PopLevel();
-    }
-    st.PopLevel();
+    // for (Node case_node : switch_get_cases(node)) {
+    //   st.PushLevel();
+    //   get_undefined_vars(case_get_nodes(case_node), st, result);
+    //   st.PopLevel();
+    // }
+    // for (Node block : switch_get_blocks(node)) {
+    //   st.PushLevel();
+    //   get_undefined_vars(block, st, result);
+    //   st.PushLevel();
+    // }
+    get_undefined_vars(switch_get_block(node), st, result);
+    // st.PopLevel();
     break;
   }
   case NK_Do: {
@@ -179,7 +185,7 @@ void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList 
   case NK_Expr: {
     // expr can contains multiple sub <expr>
     // e.g. <expr><call><arg><expr>
-    std::set<std::string> ids = node_get_var_ids(node);
+    std::set<std::string> ids = get_var_ids(node);
     process_ids(ids, node, st, result);
     break;
   }

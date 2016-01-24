@@ -83,12 +83,21 @@ public:
    *******************************/
   ast::NodeList GetNodes() const;
   ast::Node GetFirstNode() const;
+  // deprecated
   std::string GetText() const;
   std::string GetTextExceptComment();
+  // use this instead
+  std::string GetSegmentText() const;
+  // this is not used when getting main.
+  // the used one is getContext, which performs the remove of return stmt.
+  std::string GetContextText() const;
   int GetLineNumber() const;
   bool HasNode(ast::Node node) const;
   bool IsValid();
   std::string GetInvalidReason() const {return m_invalid_reason;}
+  void instrumentSeg();
+  void uninstrumentSeg();
+  void uninstrument();
 
   /*******************************
    ** Code output
@@ -126,7 +135,6 @@ private:
   std::string m_filename;
   ast::NodeList m_nodes;
   ast::NodeList m_function_nodes;
-  // TODO on the way to remove the ugly SPU
   ast::NodeList m_context;
 
   /*******************************
@@ -141,6 +149,7 @@ private:
   int m_context_search_time = 0;
   std::string m_invalid_reason;
   bool m_context_search_failed = false;
+  std::vector<ast::Node> m_instruments;
 
 };
 

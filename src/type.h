@@ -97,6 +97,7 @@ public:
   int Pointer() const {return m_pointer;}
   int Dimension() const {return m_dimension;}
   friend std::string get_input_code(Type type, const std::string &name);
+  friend std::string get_random_input(Type type);
 protected:
   std::string m_raw;
   std::string m_name;
@@ -194,5 +195,6 @@ void add_unique(VariableList &vars, Variable var);
 VariableList var_from_node(ast::Node node);
 
 std::string get_input_code(Variable v);
+// std::string get_random_input(Variable v);
 
 #endif

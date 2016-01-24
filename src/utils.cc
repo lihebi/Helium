@@ -188,6 +188,7 @@ void utils::get_files_by_extension(
   std::vector<std::string>& vs,
   const std::string& extension
 ) {
+  if (!is_dir(folder)) return;
   std::vector<std::string> ve {extension};
   get_files_by_extension(folder, vs, ve);
 }
@@ -203,6 +204,7 @@ void utils::get_files_by_extension(
   std::vector<std::string>& vs,
   const std::vector<std::string>& extension
 ) {
+  if (!is_dir(folder)) return;
   fs::path project_folder(folder);
   fs::recursive_directory_iterator it(folder), eod;
   BOOST_FOREACH(fs::path const& p, std::make_pair(it, eod)) {
@@ -228,6 +230,30 @@ utils::file_exists(const std::string& file) {
   return fs::exists(file_path);
 }
 
+bool utils::is_file(const std::string &file) {
+  struct stat sb;
+  if (stat(file.c_str(), &sb) == 0 && S_ISREG(sb.st_mode)) {
+    return true;
+  }
+  return false;
+}
+bool utils::is_dir(const std::string &file) {
+  struct stat sb;
+  if (stat(file.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+    return true;
+  }
+  return false;
+}
+TEST(utils_test_case, is_file_dir) {
+  EXPECT_TRUE(utils::is_file("/usr/include/stdio.h"));
+  EXPECT_FALSE(utils::is_file("/usr/include"));
+  EXPECT_FALSE(utils::is_file("/fjlsdjn/fdj"));
+
+  EXPECT_FALSE(utils::is_dir("/usr/include/stdio.h"));
+  EXPECT_TRUE(utils::is_dir("/usr/include"));
+  EXPECT_FALSE(utils::is_dir("/fjlsdjn/fdj"));
+
+}
 
 /**
  * Write file with content.
@@ -307,9 +333,69 @@ utils::create_folder(const std::string& folder) {
   }
 }
 
+/**
+ * create tmp dir, return it.
+ * @input s /tmp/helium-XXXXXX (must have 6 X at the end.)
+ */
+std::string utils::create_tmp_dir(std::string s) {
+  // char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
+  std::string sub = s.substr(s.find_last_not_of('X'));
+  if (sub.size() !=7) return "";
+  sub = sub.substr(1);
+  assert(sub.size() == 6);
+  if (sub.find_first_not_of('X') != std::string::npos) return "";
+  char tmp_dir[s.size()+1];
+  strcpy(tmp_dir, s.c_str());
+  char *result = mkdtemp(tmp_dir);
+  if (result == NULL) return "";
+  std::string dir = tmp_dir;
+  return dir;
+}
+
+TEST(utils_test_case, tmp_dir) {
+  std::string s = utils::create_tmp_dir("/garjb");
+  EXPECT_EQ(s, "");
+  s = utils::create_tmp_dir("/tmp/helium.XXXXXX");
+  EXPECT_NE(s, "");
+  EXPECT_TRUE(utils::is_dir(s));
+}
+
 /*******************************
  ** SrcmlUtil
  *******************************/
+
+/**
+ * Query query on code.
+ * return the first matching.
+ */
+std::string utils::query_xml_first(const std::string& xml_file, const std::string& query) {
+  pugi::xml_document doc;
+  file2xml(xml_file, doc);
+  pugi::xml_node root_node = doc.document_element();
+  pugi::xml_node node = root_node.select_node(query.c_str()).node();
+  return node.child_value();
+}
+/**
+ * Query "query" on "code".
+ * Return all matching.
+ * Will not use get_text_content, but use child_value() for a xml tag.
+ * Only support tag value currently, not attribute value.
+ */
+std::vector<std::string> utils::query_xml(const std::string& xml_file, const std::string& query) {
+  std::vector<std::string> result;
+  pugi::xml_document doc;
+  file2xml(xml_file, doc);
+  pugi::xml_node root_node = doc.document_element();
+  pugi::xpath_node_set nodes = root_node.select_nodes(query.c_str());
+  for (auto it=nodes.begin();it!=nodes.end();it++) {
+    pugi::xml_node node = it->node();
+    result.push_back(node.child_value());
+  }
+  return result;
+}
+
+
+
 
 /**
  * convert a file into srcml output

@@ -118,17 +118,17 @@ const char *transport_strings[] = { "primary", "secondary", "response", NULL };
 
 
 
-#ifdef CCURED
-extern char *p_secstodate (u_long s);
-#pragma ccuredwrapper("p_secstodate_wrapper", of("p_secstodate"))
+/* #ifdef CCURED */
+/* extern char *p_secstodate (u_long s); */
+/* #pragma ccuredwrapper("p_secstodate_wrapper", of("p_secstodate")) */
 
-char *p_secstodate (u_long s) {
-  char *res;
+/* char *p_secstodate (u_long s) { */
+/*   char *res; */
 
-  res = p_secstodate(s);
-  return (__mkptr_string(res));
-}
-#endif
+/*   res = p_secstodate(s); */
+/*   return (__mkptr_string(res)); */
+/* } */
+/* #endif */
  
 typedef unsigned char u_int8_t;
 typedef unsigned int u_int;

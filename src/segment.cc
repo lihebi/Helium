@@ -81,6 +81,27 @@ Segment::GetTextExceptComment() {
 //   return std::count(text.begin(), text.end(), '\n');
 // }
 
+// use this instead
+std::string Segment::GetSegmentText() const {
+  std::string s;
+  for (Node node : m_nodes) {
+    s += get_text(node);
+    s += '\n'; // FIXME need this?
+  }
+  return s;
+}
+// this is not used when getting main.
+// the used one is getContext, which performs the remove of return stmt.
+std::string Segment::GetContextText() const {
+  std::string s;
+  for (Node node : m_context) {
+    s += get_text(node);
+    s += '\n'; // FIXME need this?
+  }
+  return s;
+}
+
+
 
 int Segment::GetLineNumber() const {
   for (Node n : m_nodes) {
@@ -102,15 +123,15 @@ Segment::HasNode(Node node) const {
 
 bool Segment::Grow() {
   // this is an empty segment, invalid
-  if (m_nodes.empty()) {
+  if (m_context.empty()) {
     return false;
   }
   // from first node
-  Node first_node = m_nodes[0];
+  Node first_node = m_context[0];
   Node n = helium_previous_sibling(first_node);
   // has previous sibling
   if (n) {
-    this->PushFront(n);
+    m_context.insert(m_context.begin(), n);
     return true;
   }
   n = helium_parent(first_node);
@@ -129,13 +150,13 @@ bool Segment::Grow() {
         break;
       }
     }
-    if (call_node) n = call_node;
+    if (call_node) n = helium_parent(call_node);
     else {
       return false;
     }
   }
-  this->Clear();
-  this->PushFront(n);
+  m_context.clear();
+  m_context.push_back(n);
   return true;
 }
 
@@ -170,6 +191,8 @@ bool Segment::IsValid() {
   // check segment size
   std::string text = GetText();
   int loc = std::count(text.begin(), text.end(), '\n');
+  utils::print(loc, utils::CK_Yellow);
+  // std::cout <<text  << "\n";
   if (loc > Config::Instance()->GetInt("max-segment-size")) {
     m_invalid_reason = "size of segment larger than max-segment-size limit.";
     return false;
@@ -299,7 +322,7 @@ std::string
 Segment::getInputCode() {
   std::string s;
   for (Variable var : m_inv) {
-    s += get_input_code(var);
+    s += get_input_code(var) + "\n";
   }
   return s;
 }
@@ -320,18 +343,47 @@ Segment::getHeader() {
   return s;
 }
 
+void Segment::instrumentSeg() {
+  if (m_nodes.empty()) return;
+  Node node = m_nodes[0];
+  Node new_node = node.prepend_child("helium_instrument");
+  new_node.append_child(pugi::node_pcdata).set_value("\n// @HeliumSegment\n");
+  m_instruments.push_back(new_node);
+}
+void Segment::uninstrumentSeg() {}
+void Segment::uninstrument() {
+  for (Node n : m_instruments) {
+    Node tmp = n.parent();
+    tmp.remove_child(n);
+  }
+  m_instruments.clear();
+}
+
 std::string Segment::GetMain() {
+  // segment must in here
+  // add a comment before seg
+  instrumentSeg();
   std::string s;
   s += getHeader();
+
+  s += "\n";
+  for (Node func : m_function_nodes) {
+    s += get_text(func);
+  }
+  s += "\n";
+
   s += "int main() {\n";
-  s += "  size_t helium_size;\n";
+  s += "  size_t helium_size=0;\n";
   s += "// Input\n";
   s += getInputCode();
   s += "// Context\n";
   s += "// " + m_filename + "\n";
   // s += m_context.GetText();
   s += getContext();
+  s += "\nreturn 0;";
   s += "\n}";
+  // restore
+  uninstrument();
   return s;
 }
 
@@ -435,11 +487,21 @@ std::string Segment::GetSupport() {
   // snippets
   std::string code_func_decl;
   std::string code_func;
+  // this is used for removing snippets that is m_function.
+  // m_functions are put into main.c
+  // so we don't want to include the same function in header file.
+  // but we do want to have decls, in support file.
+  std::set<std::string> avoid_functions;
+  for (Node n : m_function_nodes) {
+    avoid_functions.insert(function_get_name(n));
+    code_func_decl += get_function_decl(get_text(n));
+  }
   for (Snippet* s : sorted_all_snippets) {
-    // std::cout <<s->MainName()  << "\n";
     if (s->MainKind() == SK_Function) {
-      code_func_decl += get_function_decl(s->GetCode())+"\n";
-      code_func += s->GetCode() + '\n';
+      if (avoid_functions.find(s->MainName()) == avoid_functions.end()) {
+        code_func += s->GetCode() + '\n';
+        code_func_decl += get_function_decl(s->GetCode())+"\n";
+      }
     } else {
       code += s->GetCode() + '\n';
     }
@@ -476,7 +538,9 @@ std::string Segment::GetMakefile() {
   // TODO configurable include paths
     // who added c99??? cao!
   // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
-  + "\tcc main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    
+  + "\tcc -g main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+  // + "\tcc -fno-stack-protector main.c " + SystemResolver::Instance()->GetLibs() + "\n"
   + "clean:\n"
   + "\trm -rf *.out";
   return makefile;
