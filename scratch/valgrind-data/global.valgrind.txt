@@ -1,0 +1,162 @@
+fail:  4745
+valgrind correct failure:  4745
+success:  2989
+fail:  8259
+valgrind correct failure:  8259
+success:  1418
+success:  234
+fail:  4582
+valgrind correct failure:  4582
+fail:  5683
+valgrind correct failure:  5683
+success:  2025
+success:  1866
+fail:  4055
+valgrind correct failure:  4055
+fail:  8556
+valgrind correct failure:  8556
+fail:  9570
+valgrind correct failure:  9570
+fail:  5456
+valgrind correct failure:  5456
+fail:  6950
+valgrind correct failure:  6950
+fail:  9614
+valgrind correct failure:  9614
+fail:  3644
+valgrind correct failure:  3644
+success:  1112
+fail:  8146
+valgrind correct failure:  8146
+success:  1646
+fail:  9923
+valgrind correct failure:  9923
+success:  1543
+fail:  4609
+valgrind correct failure:  4609
+success:  1978
+fail:  8507
+valgrind correct failure:  8507
+fail:  5820
+valgrind correct failure:  5820
+success:  212
+fail:  5747
+valgrind correct failure:  5747
+success:  2536
+fail:  7457
+valgrind correct failure:  7457
+fail:  5035
+valgrind correct failure:  5035
+fail:  5975
+valgrind correct failure:  5975
+success:  2698
+fail:  8578
+valgrind correct failure:  8578
+fail:  7738
+valgrind correct failure:  7738
+fail:  5098
+valgrind correct failure:  5098
+fail:  9707
+valgrind correct failure:  9707
+fail:  7918
+valgrind correct failure:  7918
+fail:  8896
+valgrind correct failure:  8896
+fail:  4204
+valgrind correct failure:  4204
+success:  1925
+success:  907
+success:  59
+success:  2185
+fail:  4154
+valgrind correct failure:  4154
+fail:  8543
+valgrind correct failure:  8543
+fail:  9166
+valgrind correct failure:  9166
+fail:  9824
+valgrind correct failure:  9824
+fail:  5389
+valgrind correct failure:  5389
+fail:  7945
+valgrind correct failure:  7945
+fail:  7457
+valgrind correct failure:  7457
+fail:  6730
+valgrind correct failure:  6730
+fail:  6439
+valgrind correct failure:  6439
+success:  2808
+fail:  7344
+valgrind correct failure:  7344
+success:  3163
+success:  1866
+fail:  5823
+valgrind correct failure:  5823
+success:  3503
+success:  1593
+success:  3391
+success:  2430
+fail:  8920
+valgrind correct failure:  8920
+fail:  8316
+valgrind correct failure:  8316
+fail:  3761
+valgrind correct failure:  3761
+fail:  7406
+valgrind correct failure:  7406
+fail:  5450
+valgrind correct failure:  5450
+fail:  4325
+valgrind correct failure:  4325
+fail:  9735
+valgrind correct failure:  9735
+fail:  9030
+valgrind correct failure:  9030
+fail:  8372
+valgrind correct failure:  8372
+fail:  5756
+valgrind correct failure:  5756
+success:  1941
+success:  1948
+fail:  3981
+valgrind correct failure:  3981
+fail:  7124
+valgrind correct failure:  7124
+fail:  9891
+valgrind correct failure:  9891
+success:  2827
+fail:  8765
+valgrind correct failure:  8765
+fail:  5986
+valgrind correct failure:  5986
+success:  2920
+success:  1828
+success:  637
+success:  682
+success:  1738
+fail:  9981
+valgrind correct failure:  9981
+fail:  6792
+valgrind correct failure:  6792
+fail:  9531
+valgrind correct failure:  9531
+success:  2566
+success:  2220
+fail:  9148
+valgrind correct failure:  9148
+fail:  8338
+valgrind correct failure:  8338
+success:  1207
+success:  2145
+success:  791
+success:  2485
+fail:  9768
+valgrind correct failure:  9768
+fail:  8421
+valgrind correct failure:  8421
+fail:  6475
+valgrind correct failure:  6475
+fail:  6610
+valgrind correct failure:  6610
+success:  960
