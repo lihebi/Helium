@@ -1,2 +1,4 @@
 a.out: stack-vs-heap.cc
-	g++ --std=c++11 $<
+	g++ -g --std=c++11 $<
+valgrind-parser: valgrind.cc
+	g++ -g --std=c++11 $< -lpugi -o valgrind-parser
