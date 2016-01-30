@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "resolver.h"
 #include "snippet.h"
+#include "config.h"
 
 #include <gtest/gtest.h>
 
@@ -348,10 +349,9 @@ rand_int(int low, int high) {
 }
 
 std::string
-rand_str(int low_length, int high_length) {
-  int bound = myrand(low_length, high_length);
+rand_str(int length) {
   std::string result;
-  for (int i=0;i<bound;i++) {
+  for (int i=0;i<length;i++) {
     result += rand_char('A', 'z');
   }
   return result;
@@ -395,10 +395,11 @@ std::string get_random_input(Type type) {
         result += rand_char('A', 'z');
         result += " ";
       } else if (type.Pointer() == 1 || type.Dimension() == 1) {
-        int size = myrand(0,1000); // helium_size
+        int max_strlen = Config::Instance()->GetInt("test-input-str-length-max");
+        int size = myrand(0,max_strlen); // helium_size
         result += std::to_string(size) + " "; // helium_size
         if (size > 0) {
-          result += rand_str(1, size-1) + " ";
+          result += rand_str(size-1) + " ";
         }
       }
     }

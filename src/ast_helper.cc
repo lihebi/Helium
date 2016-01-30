@@ -192,11 +192,39 @@ namespace ast {
     return text;
   }
 
+  /**
+   * get test of a list of nodes.
+   * These nodes should be in the same level, i.e. nodes are siblings
+   * Should get the pcdata after each node.
+   * The nodes should be contineous? Not necessary.
+   * FIXME deprecated! very buggy!
+   */
   std::string get_text(NodeList nodes) {
     std::string result;
     for (Node n : nodes) {
       result += get_text(n);
+      Node _n = n.next_sibling();
+      while (_n.type() == pugi::node_pcdata) {
+        result += _n.value();
+        _n = _n.next_sibling();
+      }
     }
+    // but should not have the last, because that might be the end of function, }
+    // if (nodes.empty()) return "";
+    // if (nodes.size() == 1) return get_text(nodes[0]);
+    // Node node = nodes[0];
+    // Node node_end = *(nodes.end()-1);
+    // Node n;
+    // for (n=node;n!=node_end;n=n.next_sibling()) {
+    //   assert(n && "n must exist, or the nodes are not in the same level");
+    //   if (n.type() == pugi::node_element) {
+    //     result += get_text(n);
+    //   } else if (n.type() == pugi::node_pcdata) {
+    //     result += n.value();
+    //   } else {
+    //     assert(false);
+    //   }
+    // }
     return result;
   }
 

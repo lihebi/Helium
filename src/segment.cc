@@ -101,8 +101,6 @@ std::string Segment::GetContextText() const {
   return s;
 }
 
-
-
 int Segment::GetLineNumber() const {
   for (Node n : m_nodes) {
     // FIXME 0 is a magic number! The acutal value inside Node is -1 ..
@@ -141,17 +139,22 @@ bool Segment::Grow() {
   }
   // parent is function
   if (kind(n) == NK_Function) {
+    // record the function
     m_function_nodes.push_back(n);
     NodeList calls = ast::find_nodes_from_root(n, NK_Call);
     Node call_node;
+    // TODO try all callsite
+    // TODO try callsite in other file
     for (Node call : calls) {
       if (call_get_name(call) == function_get_name(n)) {
         call_node =call;
         break;
       }
     }
-    if (call_node) n = helium_parent(call_node);
-    else {
+    if (call_node) {
+      n = helium_parent(call_node);
+      m_call_nodes.push_back(n);
+    } else {
       return false;
     }
   }
@@ -191,8 +194,6 @@ bool Segment::IsValid() {
   // check segment size
   std::string text = GetText();
   int loc = std::count(text.begin(), text.end(), '\n');
-  utils::print(loc, utils::CK_Yellow);
-  // std::cout <<text  << "\n";
   if (loc > Config::Instance()->GetInt("max-segment-size")) {
     m_invalid_reason = "size of segment larger than max-segment-size limit.";
     return false;
@@ -311,7 +312,14 @@ void Segment::ResolveSnippets() {
  *******************************/
 std::string
 Segment::getContext() {
-  std::string context = ast::get_text_ln(m_context);
+  if (m_context.empty()) return "\n// empty context\n";
+  std::string context;
+  context += "// @HeliumContext\n";
+  context += "// file: " + ast::get_filename(m_context[0]) + ":" + std::to_string(get_node_line(m_context[0])) + "\n";
+  context +=  ast::get_text_ln(m_context);
+  // context +=  ast::get_text(m_context);
+    
+  // TODO whether to have this replace? if it is a bounds checking?
   boost::regex return_regex("\\breturn\\b[^;]*;");
   context = boost::regex_replace<boost::regex_traits<char>, char>(context, return_regex, ";//replaced return\n");
   // FIXME when doing context search, break may appear, while we don't have the outside loop
@@ -320,11 +328,20 @@ Segment::getContext() {
 
 std::string
 Segment::getInputCode() {
-  std::string s;
+  std::string result;
+  std::string spec;
+  std::string code;
+  // specification // comments for human
+  spec += "// @HeliumInputSpec\n"
+    "// size: " + std::to_string(m_inv.size()) + "\n";
+  code += "// @HeliumInput\n";
+    
+  // actual input
   for (Variable var : m_inv) {
-    s += get_input_code(var) + "\n";
+    spec += "// \t" + var.Name() +":"+ var.GetType().Raw() + "\n";
+    code += get_input_code(var) + "\n";
   }
-  return s;
+  return spec + code;
 }
 
 std::string
@@ -343,14 +360,31 @@ Segment::getHeader() {
   return s;
 }
 
-void Segment::instrumentSeg() {
+/**
+ * Put all instrumentation here.
+ * Remember to add the instrumented node into m_instruments, for later remove.
+ * The instrument is only for output main.c purpose.
+ * In other word, the instrument will be added before write main.c, and removed after.
+ */
+void Segment::instrument() {
   if (m_nodes.empty()) return;
+  // instrument @HeliumSegmentBegin
   Node node = m_nodes[0];
   Node new_node = node.prepend_child("helium_instrument");
-  new_node.append_child(pugi::node_pcdata).set_value("\n// @HeliumSegment\n");
+  new_node.append_child(pugi::node_pcdata).set_value("\n// @HeliumSegmentBegin\n");
   m_instruments.push_back(new_node);
+  // instrument @HeliumSegmentEnd
+  node = *(m_nodes.end()-1);
+  new_node = node.append_child("helium_instrument");
+  new_node.append_child(pugi::node_pcdata).set_value("\n// @HeliumSegmentEnd\n");
+  m_instruments.push_back(new_node);
+  // instrument @HeliumCallSite
+  for (Node n : m_call_nodes) {
+    new_node = n.prepend_child("helium_instrument");
+    new_node.append_child(pugi::node_pcdata).set_value("\n// @HeliumCallSite\n");
+    m_instruments.push_back(new_node);
+  }
 }
-void Segment::uninstrumentSeg() {}
 void Segment::uninstrument() {
   for (Node n : m_instruments) {
     Node tmp = n.parent();
@@ -362,7 +396,7 @@ void Segment::uninstrument() {
 std::string Segment::GetMain() {
   // segment must in here
   // add a comment before seg
-  instrumentSeg();
+  instrument();
   std::string s;
   s += getHeader();
 
@@ -374,12 +408,13 @@ std::string Segment::GetMain() {
 
   s += "int main() {\n";
   s += "  size_t helium_size=0;\n";
-  s += "// Input\n";
+
   s += getInputCode();
-  s += "// Context\n";
-  s += "// " + m_filename + "\n";
   // s += m_context.GetText();
   s += getContext();
+  // HEBI this is where to output each context search details
+  // std::cout <<utils::BLUE <<getContext()  << utils::RESET << "\n";
+
   s += "\nreturn 0;";
   s += "\n}";
   // restore
@@ -390,7 +425,7 @@ std::string Segment::GetMain() {
 std::string
 get_foot() {
   return std::string()
-  + "\n#endif\n";
+    + "\n#endif\n";
 }
 
 std::string
@@ -415,6 +450,8 @@ get_head() {
     // unstandard primitive typedefs, such as u_char
     "typedef unsigned char u_char;\n"
     "typedef unsigned int u_int;\n"
+
+    "#define HELIUM_ASSERT(cond) if (!(cond)) exit(1)\n"
     ;
 }
 
@@ -531,21 +568,38 @@ std::string Segment::GetSupport() {
 }
 std::string Segment::GetMakefile() {
   std::string makefile;
+  makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
-  // makefile += "\tcc -std=c99 generate.c " + compile_option +"\n"
-  // FIXME The -levent is 3rd party! Need to install first!
-  // FIXME library should be changed according to CondComp
-  // TODO configurable include paths
+    // makefile += "\tcc -std=c99 generate.c " + compile_option +"\n"
+    // FIXME The -levent is 3rd party! Need to install first!
+    // FIXME library should be changed according to CondComp
+    // TODO configurable include paths
     // who added c99??? cao!
-  // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
     
-  + "\tcc -g main.c " + SystemResolver::Instance()->GetLibs() + "\n"
-  // + "\tcc -fno-stack-protector main.c " + SystemResolver::Instance()->GetLibs() + "\n"
-  + "clean:\n"
-  + "\trm -rf *.out";
-  return makefile;
+    + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    // + "\tcc -fno-stack-protector main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    + "clean:\n"
+    + "\trm -rf *.out\n"
+    + "test:\n"
+    + "\tbash test.sh";
+    
+    return makefile;
 }
 
+std::vector<std::pair<std::string, std::string> > Segment::GetScripts() {
+  std::vector<std::pair<std::string, std::string> > result;
+  std::string name="test.sh";
+  const char* raw = R"prefix(#!/bin/bash
+for name in test/*
+do
+  ./a.out <$name
+  echo "$name:$?"
+done
+)prefix";
+  result.push_back(std::make_pair(name, raw));
+  return result;
+}
 
 
 /*******************************
@@ -607,55 +661,6 @@ std::string Segment::GetMakefile() {
 // SPU::unsimplifyCode() {
 //   for (auto it=m_omit_nodes.begin();it!=m_omit_nodes.end();it++) {
 //     it->remove_attribute(it->attribute("helium-omit"));
-//   }
-// }
-
-/*******************************
- ** TODO instrument
- *******************************/
-// Node
-// get_outmost_loop_node(Segment segment) {
-//   NodeList nodes = segment.GetNodes();
-//   for (auto it=nodes.begin();it!=nodes.end();it++) {
-//     if (strcmp(it->name(), "for") == 0 || strcmp(it->name(), "while") == 0) {
-//       return *it;
-//     }
-//   }
-//   return Node();
-// }
-
-// void
-// SPU::instrument() {
-//   std::string instrument_position = Config::Instance()->GetInstrumentPosition();
-//   std::string instrument_type = Config::Instance()->GetInstrumentType();
-//   if (instrument_position.empty() || instrument_type.empty()) return;
-//   if (instrument_position == "loop") {
-//     Node loop_node = get_outmost_loop_node(m_segment);
-//     Node block_node = loop_node.child("block");
-//     if (block_node) {
-//       // create only <helium_instrument> node, for latter remove
-//       Node new_node = block_node.insert_child_before(
-//         "helium_instrument", block_node.last_child()
-//       );
-//       new_node.append_child(pugi::node_pcdata).set_value("\n// @Output\n");
-//       m_output_node = new_node;
-//     }
-//   }
-// }
-
-// void
-// SPU::uninstrument() {
-//   // Node seg_parent_node = m_segment.GetFirstNode().parent();
-//   // pugi::xpath_node_set helium_instruments = seg_parent_node.select_nodes("//helium_instrument");
-//   // for (auto it=helium_instruments.begin();it!=helium_instruments.end();it++) {
-//   //   Node tmp = it->parent();
-//   //   tmp.remove_child(it->node());
-//   // }
-//   if (m_output_node) {
-//     Node tmp = m_output_node.parent();
-//     // this remove_child will cause error!!! crash!
-//     tmp.remove_child(m_output_node);
-//     m_output_node = Node();
 //   }
 // }
 

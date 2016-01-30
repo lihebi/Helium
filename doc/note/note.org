@@ -1,0 +1,4 @@
+* miscellany
+
+loop unrolling: combine some iterations of loop
+advantage: 1. reduce index computation and conditional jump branch 2. provide further optimization opportunities.

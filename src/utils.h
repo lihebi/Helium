@@ -128,6 +128,9 @@ namespace utils {
   // with input
   std::string exec(const char* cmd, const char* input, int *status, unsigned int timeout=0);
 
+  int get_line_number(std::string filename, std::string pattern);
+  std::vector<int> get_line_numbers(std::string filename, std::string pattern);
+
 }
 
 #endif

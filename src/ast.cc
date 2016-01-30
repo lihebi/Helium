@@ -65,6 +65,10 @@ static const std::map<NodeKind, std::string> kind_to_name_map {
   , {NK_Op,       "op:operator"}
   , {NK_Sizeof,   "sizeof"}
   , {NK_Pragma,   "cpp:pragma"}
+  , {NK_Init,     "init"}
+  , {NK_Undef,    "cpp:undef"}
+  , {NK_Directive, "cpp:directive"}
+  , {NK_HeliumInstrument, "helium_instrument"}
 };
 
 static const std::map<std::string, NodeKind> name_to_kind_map {
@@ -127,6 +131,10 @@ static const std::map<std::string, NodeKind> name_to_kind_map {
   , {"op:operator", NK_Op}
   , {"sizeof",  NK_Sizeof}
   , {"cpp:pragma", NK_Pragma}
+  , {"init",     NK_Init}
+  , {"cpp:undef", NK_Undef}
+  , {"cpp:directive", NK_Directive}
+  , {"helium_instrument", NK_HeliumInstrument}
 
 };
 /*
@@ -656,6 +664,37 @@ ast::Node ast::while_get_condition_expr(ast::Node node) {
 ast::Node ast::while_get_block(ast::Node node) {
   return node.child("block");
 }
+
+
+/*******************************
+ ** srcml specific
+ *******************************/
+
+std::string ast::get_filename(Node node) {
+  Node unit_node = node.select_node("//unit").node();
+  return unit_node.attribute("filename").value();
+}
+std::string ast::get_filename(Doc &doc) {
+  Node unit_node = doc.select_node("//unit").node();
+  return unit_node.attribute("filename").value();
+}
+
+/**
+ * disable because the output is "tmp/heli..." from srcml
+ */
+TEST(ast_test_case, DISABLED_srcml_test) {
+  std::string dir = utils::create_tmp_dir("/tmp/helium-test.XXXXXX");
+  utils::write_file(dir+"/a.c", "int a;");
+  Doc doc;
+  utils::file2xml(dir+"/a.c", doc);
+  std::string filename = get_filename(doc);
+  EXPECT_EQ(filename, dir+"/a.c");
+  utils::file2xml(dir+"//a.c", doc);
+  // will still have double "//"
+  filename = get_filename(doc.document_element());
+  EXPECT_EQ(filename, dir+"/a.c");
+}
+
 
 
   

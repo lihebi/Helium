@@ -95,8 +95,7 @@ public:
   bool HasNode(ast::Node node) const;
   bool IsValid();
   std::string GetInvalidReason() const {return m_invalid_reason;}
-  void instrumentSeg();
-  void uninstrumentSeg();
+  void instrument();
   void uninstrument();
 
   /*******************************
@@ -105,7 +104,7 @@ public:
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();
-
+  std::vector<std::pair<std::string, std::string> > GetScripts();
   /*******************************
    ** IO Variables
    *******************************/
@@ -132,9 +131,10 @@ private:
   std::string getHeader();
   std::string getInputCode();
   std::string getContext();
-  std::string m_filename;
+  // std::string m_filename;
   ast::NodeList m_nodes;
   ast::NodeList m_function_nodes;
+  ast::NodeList m_call_nodes; // for instrumentation only. Add // @HeliumCallSite
   ast::NodeList m_context;
 
   /*******************************

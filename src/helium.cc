@@ -146,6 +146,7 @@ Helium::Helium(int argc, char* argv[]) {
   if (utils::is_dir(m_folder)) {
     get_files_by_extension(m_folder, m_files, "c");
   } else {
+    // this is just a file.
     m_files.push_back(m_folder);
   }
 
@@ -231,6 +232,9 @@ sub/dir/b.cpp:364
 
 void
 Helium::Run() {
+  /**
+   * Code selection method is given as a file, so this is a config file, contains the <file:line> format
+   */
   if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
     // code selection method is a config file, we only need to check those files in the config.
     std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));

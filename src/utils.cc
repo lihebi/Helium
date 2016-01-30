@@ -84,6 +84,10 @@ TEST(utils_test_case, split_test) {
   EXPECT_EQ(vs[0], "ab");
   EXPECT_EQ(vs[1], "cd");
   EXPECT_EQ(vs[2], "ef");
+  vs = utils::split("hello= ", '=');
+  ASSERT_EQ(vs.size(), 2);
+  vs = utils::split("hello=", '=');
+  ASSERT_EQ(vs.size(), 1);
 }
 
 /**
@@ -342,7 +346,7 @@ std::string utils::create_tmp_dir(std::string s) {
   std::string sub = s.substr(s.find_last_not_of('X'));
   if (sub.size() !=7) return "";
   sub = sub.substr(1);
-  assert(sub.size() == 6);
+  assert(sub.size() == 6 && "tmp dir url format error!");
   if (sub.find_first_not_of('X') != std::string::npos) return "";
   char tmp_dir[s.size()+1];
   strcpy(tmp_dir, s.c_str());
@@ -423,3 +427,69 @@ void utils::string2xml(const std::string &code, pugi::xml_document& doc) {
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
 }
 
+
+/**
+ * Get the line numbers in file "filename", that matches the pattern.
+ */
+std::vector<int> utils::get_line_numbers(std::string filename, std::string pattern) {
+  std::ifstream is;
+  is.open(filename);
+  int line_number = 0;
+  std::vector<int> result;
+  if (is.is_open()) {
+    std::string line;
+    while(getline(is, line)) {
+      line_number++;
+      if (line.find(pattern) != std::string::npos) {
+        result.push_back(line_number);
+      }
+    }
+    is.close();
+  }
+  return result;
+}
+
+
+/**
+ * Get only the first number line matching the pattern
+ */
+int utils::get_line_number(std::string filename, std::string pattern) {
+  std::ifstream is;
+  is.open(filename);
+  int line_number = 0;
+  if (is.is_open()) {
+    std::string line;
+    while(getline(is, line)) {
+      line_number++;
+      if (line.find(pattern) != std::string::npos) {
+        is.close();
+        return line_number;
+      }
+    }
+    is.close();
+  }
+  return 0;
+}
+
+TEST(utils_test_case, get_line_number) {
+const char *raw = R"prefix(
+2
+hello world
+really this /* @HeliumLineMark */
+this lien contains none
+6
+
+8 the previous is empyt line
+@HeliumLineMark
+
+)prefix";
+ std::string dir = utils::create_tmp_dir("/tmp/helium-test.XXXXXX");
+ utils::write_file(dir+"/a.txt", raw);
+ std::cout <<dir+"/a.txt"  << "\n";
+ int line = utils::get_line_number(dir+"/a.txt", "@HeliumLineMark");
+ EXPECT_EQ(line, 4);
+ std::vector<int> lines = utils::get_line_numbers(dir+"/a.txt", "@HeliumLineMark");
+ ASSERT_EQ(lines.size(), 2);
+ EXPECT_EQ(lines[0], 4);
+ EXPECT_EQ(lines[1], 9);
+}

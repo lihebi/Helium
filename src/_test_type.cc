@@ -113,11 +113,11 @@ TEST(type_test_case, uchar_star_input_code) {
   const char* s =        R"prefix(
 
 scanf("%d", &helium_size);
-u_char* myvar;
+unsigned char* myvar;
 if (helium_size == 0) {
   myvar = NULL;
 } else {
-  myvar = (u_char*)malloc(sizeof(unsigned char)*helium_size);
+  myvar = (unsigned char*)malloc(sizeof(unsigned char)*helium_size);
   scanf("%s", myvar);
 }
 

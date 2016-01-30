@@ -14,6 +14,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("tagfile,c", po::value<std::string>(), "tag file")
     ("verbose,v", "verbose output")
     ("output,o", po::value<std::string>(), "output location")
+    ("conf", po::value<std::string>(), "key=value pair of configure to owerwrite items in helium.conf")
     ;
 
   po::options_description util_options("Utils");
@@ -30,22 +31,23 @@ ArgParser::ArgParser(int argc, char* argv[])
   hidden.add_options()
     ("folder", "project folder")
     // config options. Should be kept the same as in helium.conf file
-    ("analyze-timeout", po::value<std::string>())
-    ("analyze-type", po::value<std::string>())
-    ("code-selection", po::value<std::string>())
-    ("context-search-method", po::value<std::string>())
-    ("context-search-value", po::value<std::string>())
-    ("instrument-position", po::value<std::string>())
-    ("instrument-type", po::value<std::string>())
-    ("max-context-size", po::value<std::string>())
-    ("max-segment-size", po::value<std::string>())
-    ("max-snippet-number", po::value<std::string>())
-    ("max-snippet-size", po::value<std::string>())
-    ("output-folder", po::value<std::string>())
-    ("segment-timeout", po::value<std::string>())
-    ("test-generation-method", po::value<std::string>())
-    ("test-number", po::value<std::string>())
-    ("test-timeout", po::value<std::string>())
+    // ("analyze-timeout", po::value<std::string>())
+    // ("analyze-type", po::value<std::string>())
+    // ("code-selection", po::value<std::string>())
+    // ("context-search-method", po::value<std::string>())
+    // ("context-search-value", po::value<std::string>())
+    // ("instrument-position", po::value<std::string>())
+    // ("instrument-type", po::value<std::string>())
+    // ("max-context-size", po::value<std::string>())
+    // ("max-segment-size", po::value<std::string>())
+    // ("max-snippet-number", po::value<std::string>())
+    // ("max-snippet-size", po::value<std::string>())
+    // ("output-folder", po::value<std::string>())
+    // ("segment-timeout", po::value<std::string>())
+    // ("test-generation-method", po::value<std::string>())
+    // ("run-test", po::value<std::string>())
+    // ("test-number", po::value<std::string>())
+    // ("test-timeout", po::value<std::string>())
     ;
   // positional options: used for the option that don't need to use a --prefix
   po::positional_options_description positional;
@@ -117,7 +119,7 @@ std::string ArgParser::GetString(std::string name) {
 //   else return false;
 // }
 
-TEST(arg_parser_test_case, arg_parser) {
+TEST(arg_parser_test_case, DISABLED_arg_parser) {
   int argc = 3;
   char *argv[] =
     {"helium", "--context-search-method=hello-world", "folder"};

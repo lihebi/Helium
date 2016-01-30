@@ -15,6 +15,8 @@
 
 #include "utils.h"
 
+#include <time.h>
+
 #include <gtest/gtest.h>
 
 using namespace utils;
@@ -43,20 +45,6 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
 }
 
 /**
- * Count line breaks in s before pattern.
- */
-int count_line(const std::string &s, std::string pattern) {
-  std::string sub = s.substr(0, s.find(pattern));
-  return std::count(sub.begin(), sub.end(), '\n')+1;
-}
-
-TEST(reader_test_case, count_line) {
-  std::string s = "hello\nworld\nhebi";
-  int count = count_line(s, "hebi");
-  EXPECT_EQ(count, 3);
-}
-
-/**
  * Use line numbers for a segment selection.
  */
 Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
@@ -74,6 +62,15 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
   }
 }
 
+double get_time() {
+  struct timespec ts;
+  ts.tv_sec=0;
+  ts.tv_nsec=0;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  double d = (double)ts.tv_sec + 1.0e-9*ts.tv_nsec;
+  return d;
+}
+
 
 /*
  * For every segment:
@@ -84,15 +81,6 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
  * - create analyzer
  */
 
-void mylog(std::string s) {
-  utils::append_file("./output.txt", s);
-}
-void mylog(int a) {
-  utils::append_file("./output.txt", std::to_string(a));
-}
-void mylogln() {
-  utils::append_file("./output.txt", "\n");
-}
 
 void
 Reader::Read() {
@@ -104,6 +92,10 @@ Reader::Read() {
        ** Processing segment
        *******************************/
       std::cout <<"================"  << "\n";
+      // std::cout <<"segment:"  << "\n";
+      // std::cout <<seg.GetSegmentText()  << "\n";
+      // std::cout <<"context:"  << "\n";
+      // std::cout <<seg.GetContextText()  << "\n";
       // std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
       seg.ResolveInput();
       // seg.ResolveOutput();
@@ -112,159 +104,34 @@ Reader::Read() {
       /** outputing input variables */
       VariableList vars = seg.GetInputVariables();
       // VariableList out_vars = seg.GetOutputVariables();
-      std::cout <<"input vars: "<<vars.size()  << "\n";
-      for (Variable v : vars) {
-        std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
-      }
+      // std::cout <<"input vars: "<<vars.size()  << "\n";
+      // for (Variable v : vars) {
+      //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
+      // }
 
-
-      /*******************************
-       ** Outputing code
-       *******************************/
-      
-      // std::cout <<out_vars.size()  << "\n";
-      std::string main_text = seg.GetMain();
-      std::string support = seg.GetSupport();
-      std::string makefile = seg.GetMakefile();
-
-      utils::print(seg.GetContextText(), utils::CK_Blue);
-      // utils::print(main_text, utils::CK_Blue);
-      // std::cout <<main_text  << "\n";
-      
-      // use tmp dir everytime
-      char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
-      char *result = mkdtemp(tmp_dir);
-      assert(result != NULL);
-      std::string dir = tmp_dir;
-      utils::write_file(dir+"/main.c", main_text);
-      utils::write_file(dir+"/support.h", support);
-      utils::write_file(dir + "/Makefile", makefile);
-
-      std::cout << "code outputed to: "<<dir << " .." << "\n";
-      // main_text.substr(main_text.find("@HeliumStmt"));
-      // int seg_line = std::count(main_text.begin(), main_text.begin()+main_text.find("@HeliumStmt"), '\n');
-      int seg_line = count_line(main_text, "@HeliumSegment")+1;
-      int stmt_line = count_line(main_text, "@HeliumStmt")+1;
-      if (stmt_line == seg_line+1) seg_line++;
-      utils::print(seg_line, CK_Yellow);
-      // getchar();
-
-      /*******************************
-       * debugging
-       *******************************/
-
-      // std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve("ns_nameok");
-      // std::cout <<"ns_nameok:"  << "\n";
-      // std::cout <<snippets.size()  << "\n";
-
-      
       /*******************************
        ** Compiling
        *******************************/
-      std::string clean_cmd = "make clean -C " + dir;
-      std::string cmd = "make -C " + dir;
-      cmd += " 2>&1";
-      utils::exec(clean_cmd.c_str(), NULL);
-      int return_code;
-      std::string error_msg = utils::exec(cmd.c_str(), &return_code);
-      if (return_code == 0) {
-        utils::print("success", utils::CK_Green);
-      } else {
-        utils::print("error", utils::CK_Red);
-      }
-      
-      if (return_code==0) {
-        int val_correct_failure=0;
-        int val_wrong_failure=0;
-        int val_success=0;
-        int return_success = 0;
-        int return_failure = 0;
-        srand(time(0));
-
+      Builder builder(&seg);
+      builder.Write();
+      std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+      builder.Compile();
+      if (builder.Success()) {
+        utils::print("compile success", utils::CK_Green);
         /*******************************
-         ** Running tests
+         ** Testing
          *******************************/
-        std::string executable = dir+"/a.out";
-        std::string test_dir = dir + "/test";
-        utils::create_folder(test_dir);
-        int test_number = Config::Instance()->GetInt("test-number");
-        for (int i=0;i<test_number;i++) { // 10 tests each
-          std::string input;
-          for (Variable v : vars) {
-            input += get_random_input(v.GetType());
-          }
-          std::cout <<"input:"  <<input<< "\n";
-          std::string input_filename = test_dir + "/test-" + std::to_string(i) + "-input.txt";
-          std::string valgrind_xml_filename = test_dir + "/test-" + std::to_string(i) + "-valgrind.xml";
-          utils::write_file(input_filename, input);
-          std::string run_cmd =
-            "valgrind --xml=yes --xml-file="
-            + valgrind_xml_filename
-            + " " + executable + "< " + input_filename + " > /dev/null 2>&1";
-          int status=0;
-          // std::cout <<run_cmd  << "\n";
-          utils::exec(run_cmd.c_str(), &status);
-          if (status == 0) {
-            // utils::print("run success", utils::CK_Cyan);
-            return_success++;
-          } else {
-            // std::cout <<"run fail. Exit code: " << status  << "\n";
-            return_failure++;
-          }
-          /*******************************
-           ** parse valgrind
-           *******************************/
-          pugi::xml_document val_doc;
-          // std::cout <<"segline:"<<seg_line  << "\n";
-          val_doc.load_file(valgrind_xml_filename.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
-          std::set<int> lines;
-          for (auto error : val_doc.select_nodes("//error")) {
-            Node error_node = error.node();
-            std::string kind = error_node.child_value("kind");
-            // std::cout <<kind  << "\n";
-            if (kind != "InvalidRead" && kind != "InvalidWrite") continue;
-            for (Node frame : error_node.child("stack").children("frame")) {
-              std::string filename = frame.child_value("file");
-              std::string line = frame.child_value("line");
-              // std::cout <<line  << "\n";
-              // utils::print(line, utils::CK_Purple);
-              if (filename == "main.c") {
-                lines.insert(atoi(line.c_str()));
-                utils::print(kind+":"+line, utils::CK_Cyan);
-              }
-            }
-          }
-          if (lines.empty()) {
-            val_success ++;
-          } else if (lines.find(seg_line) != lines.end()) {
-            val_correct_failure++;
-          } else {
-            val_wrong_failure++;
-          }
-          // utils::print(seg_line, utils::CK_Yellow);
-        } // tests
-        std::cout << utils::PURPLE <<"val_success: " << val_success  << "\n";
-        std::cout <<"val_correct_failure: " << val_correct_failure  << "\n";
-        std::cout <<"val_wrong_failure: " << val_wrong_failure << "\n";
-        std::cout <<"return success: " << return_success  << "\n";
-        std::cout <<"return fail: " << return_failure  << "\n";
-        std::cout << utils::RESET<< "\n";
-        mylog(val_success);
-        mylog(",");
-        mylog(val_correct_failure);
-        mylog(",");
-        mylog(val_wrong_failure);
-        mylog(",");
-        mylog(return_success);
-        mylog(",");
-        mylog(return_failure);
-        mylog("\n");
-        
-      } // compile success
-
-      // Builder builder(seg);
-      // builder.Build();
-      // builder.Compile();
+        if (Config::Instance()->GetString("run-test") == "true") {
+          Tester tester(builder.GetDir(), &seg);
+          // double t1 = get_time();
+          tester.Test();
+          // double t2 = get_time();
+          // printf("%f\n", t2-t1);
+          tester.WriteCSV();
+        }
+      } else {
+        utils::print("compile error", utils::CK_Red);
+      }
       seg.IncreaseContext();
     }
     std::cout <<seg.GetInvalidReason()  << "\n";
@@ -313,56 +180,60 @@ Reader::Read() {
 // }
 
 void Reader::getLoopSegments() {
-  // pugi::xpath_query loop_query("//while|//for");
-  // pugi::xpath_node_set loop_nodes = loop_query.evaluate_node_set(*m_doc);
-  // // std::cout<<loop_nodes.size()<<std::endl;
-  // if (!loop_nodes.empty()) {
-  //   for (auto it=loop_nodes.begin();it!=loop_nodes.end();it++) {
-  //     // every node is a loop segment!
-  //     SPU su = std::make_shared<SegmentProcessUnit>(m_filename);
-  //     su->AddNode(it->node());
-  //     if (su->IsValid()) {
-  //       m_spus.push_back(su);
-  //     }
-  //   }
-  // }
-
+  std::vector<NodeKind> kinds = {NK_Do, NK_For, NK_While};
+  NodeList loops = find_nodes(m_doc, kinds);
+  for (Node loop : loops) {
+    Segment seg;
+    seg.PushBack(loop);
+    m_segments.push_back(seg);
+  }
 }
 /**
  * Get segemnt based on annotation in source code.
  * 1. @HeliumStmt
- * 2. @HeliumStart -- @HeliumStop TODO
+ * 2. @HeliumSegmentBegin -- @HeliumSegmentEnd
  */
 void Reader::getAnnotationSegments() {
+  // format 1: @HeliumStmt
   NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
   for (Node node : comment_nodes) {
     Segment seg;
     seg.PushBack(helium_next_sibling(node));
     m_segments.push_back(seg);
   }
-  // pugi::xml_node root = m_doc->document_element();
-  // pugi::xpath_node_set comment_nodes = root.select_nodes("//comment");
-  // for (auto it=comment_nodes.begin();it!=comment_nodes.end();it++) {
-  //   pugi::xml_node node = it->node();
-  //   std::string comment_text = DomUtil::GetTextContent(node);
-  //   if (comment_text.find("@HeliumStart") != std::string::npos) {
-  //     SPU su = std::make_shared<SegmentProcessUnit>(m_filename);
-  //     su->AddNode(node);
-  //     while (node.next_sibling()) {
-  //       node = node.next_sibling();
-  //       su->AddNode(node);
-  //       if (node.type() == pugi::node_element && strcmp(node.name(), "comment") == 0) {
-  //         std::string comment_text = DomUtil::GetTextContent(node);
-  //         if (comment_text.find("@HeliumStop") != std::string::npos) {
-  //           break;
-  //         }
-  //       }
-  //     }
-  //     if (su->IsValid()) {
-  //       m_spus.push_back(su);
-  //     }
-  //   }
-  // }
+  // format 2: @HeliumSegmentBegin/End
+  comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumSegmentBegin");
+  for (Node node : comment_nodes) {
+    // do not use helium_xxx version because I need the comment node.
+    Node n = next_sibling(node);
+    Segment seg;
+    for (;;n = next_sibling(n)) {
+      if (kind(n) == NK_Comment) {
+        std::string text = get_text(n);
+        if (text.find("@HeliumSegmentEnd") != std::string::npos) {
+          m_segments.push_back(seg);
+          break;
+        }
+      }
+      seg.PushBack(n);
+    }
+  }
+}
+
+/**
+ * Get segments of the callsite of func_name.
+ * Get helium recognized AST of parent of <call> node.
+ * Example: strcpy
+ */
+void Reader::getFuncCallSegments(std::string func_name) {
+  NodeList call_nodes = find_nodes(m_doc, NK_Call);
+  for (Node n : call_nodes) {
+    if (function_get_name(n) == func_name) {
+      Segment seg;
+      seg.PushBack(helium_parent(n));
+      m_segments.push_back(seg);
+    }
+  }
 }
 
 /*

@@ -1,0 +1,3 @@
+* further ideas on Helium project
+
+** understand asm code

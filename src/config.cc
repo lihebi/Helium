@@ -105,13 +105,26 @@ int Config::GetInt(std::string name) {
  * If yes, substitute the value.
  */
 void Config::Overwrite(ArgParser &args) {
-  std::vector<std::string> keys;
-  for (auto item : m_map) {
-    keys.push_back(item.first);
-  }
-  for (std::string key : keys) {
-    if (args.Has(key)) {
-      m_map[key] = args.GetString(key);
+  std::string conf_str = args.GetString("conf");
+  /**
+   * The format of conf:
+   * --conf="test-number=10, run-test=,xxx"
+   */
+  std::vector<std::string> pairs = utils::split(conf_str, ',');
+  for (std::string &s : pairs) {
+    utils::trim(s);
+    std::vector<std::string> pair = utils::split(s, '=');
+    std::string key, value;
+    if (pair.size() == 1) {
+      key = pair[0];
+    } else if (pair.size() == 2) {
+      key = pair[0];
+      value = pair[1];
+    }
+    utils::trim(key);
+    utils::trim(value);
+    if (m_map.find(key) != m_map.end()) {
+      m_map[key] = value;
     }
   }
 }

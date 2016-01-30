@@ -14,6 +14,7 @@ namespace ast {
     // general structure
     NK_DeclStmt,
     NK_Decl,
+    NK_Init,
     NK_ExprStmt,
     NK_Expr,
     NK_EmptyStmt,
@@ -71,10 +72,13 @@ namespace ast {
     NK_EndIf,
     NK_Include,
     NK_Pragma,
+    NK_Directive,
+    NK_Undef,
     // trival srcml staff
     NK_Comment,
     NK_Position,
     NK_Unit,
+    NK_HeliumInstrument,
     NK_Null
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
@@ -85,7 +89,7 @@ namespace ast {
       NK_DeclStmt,
       NK_ExprStmt,
       NK_For,
-      NK_Block,
+      // NK_Block,
       NK_Stmt,
       NK_If,
       NK_Switch,
@@ -98,7 +102,7 @@ namespace ast {
       NK_Struct,
       NK_Union,
       NK_Enum,
-      //      NK_Comment,
+      // NK_Comment,
       NK_Define
   };
 
@@ -255,6 +259,10 @@ namespace ast {
   
 
   std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name);
+
+  // srcml specific
+  std::string get_filename(Node node);
+  std::string get_filename(Doc &doc);
 
 }// end namespace ast
 
