@@ -83,6 +83,7 @@ all: client
 client: $(TARGET)
 # Compile client based on the object files, instead of the dynamic lib
 $(TARGET): $(MAIN) $(OBJECTS)
+	@mkdir -p $(dir $@)
 	$(CC) $(C_LIB) -o $@ $(MAIN) $(OBJECTS)
 
 
