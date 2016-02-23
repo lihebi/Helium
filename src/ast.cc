@@ -69,6 +69,9 @@ static const std::map<NodeKind, std::string> kind_to_name_map {
   , {NK_Undef,    "cpp:undef"}
   , {NK_Directive, "cpp:directive"}
   , {NK_HeliumInstrument, "helium_instrument"}
+  , {NK_CppIf, "cpp:if"}
+  , {NK_ElseIf, "elseif"}
+  , {NK_CppElif, "cpp:elif"}
 };
 
 static const std::map<std::string, NodeKind> name_to_kind_map {
@@ -135,7 +138,9 @@ static const std::map<std::string, NodeKind> name_to_kind_map {
   , {"cpp:undef", NK_Undef}
   , {"cpp:directive", NK_Directive}
   , {"helium_instrument", NK_HeliumInstrument}
-
+  , {"cpp:if", NK_CppIf}
+  , {"elseif", NK_ElseIf}
+  , {"cpp:elif", NK_CppElif}
 };
 /*
  * To make sure the above two mapping are consistant

@@ -76,7 +76,11 @@ SnippetKind char_to_snippet_kind(char t) {
   case 't': return SK_Typedef;
   case 'c': return SK_Const;
   case 'm': return SK_Member;
-  default: assert(false);
+  case 'x': return SK_Other;
+  default: {
+    std::cerr <<t  << "\n";
+    assert(false);
+  }
   }
 }
 
@@ -100,6 +104,7 @@ char snippet_kind_to_char(SnippetKind t) {
   case SK_Typedef : return 't';
   case SK_Const : return 'c';
   case SK_Member : return 'm';
+  case SK_Other : return 'x';
   default: assert(false);
   }
 }
@@ -256,15 +261,18 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_name = entry.GetName();
     m_code = get_typedef_code(entry);
     // tyepdef
+    // this may be empty
     std::string name = query_code_first(m_code, "//typedef/name");
     if (!name.empty()) m_sig.emplace(name, SK_Typedef);
-    // TODO NOW also needs to test if it is a struct, union, or enum
-    // FIXME possible direct one
-    std::string inner = query_code_first(m_code, "//typedef/type/struct/name");
+    // other values
+    std::string inner;
+    // struct
+    inner = query_code_first(m_code, "//typedef/type/struct/name");
     if (!inner.empty()) {
       m_sig.emplace(inner, SK_Structure);
       break;
     }
+    // enum
     inner = query_code_first(m_code, "//typedef/type/enum/name");
     if (!inner.empty()) {
       m_sig.emplace(inner, SK_Enum);
@@ -274,9 +282,19 @@ Snippet::Snippet(const CtagsEntry& entry) {
       }
       break;
     }
+    // union
     inner = query_code_first(m_code, "//typedef/type/union/name");
     if (!inner.empty()) {
       m_sig.emplace(inner, SK_Union);
+      break;
+    }
+    // function pointer
+    // FIXME typedef uint32_t (*hash_func)(const void *key, size_t length);
+    inner = query_code_first(m_code, "//typedef/function_decl/name");
+    if (!inner.empty()) {
+      // FIXME Do I need to have a seperate class for it?
+      // because the SK_Typedef may have a method to get its name, which will not be consistant with this one.
+      m_sig.emplace(inner, SK_Typedef);
       break;
     }
     break;
@@ -287,6 +305,8 @@ Snippet::Snippet(const CtagsEntry& entry) {
   //   m_code = get_mem_code(entry);
   default:
     // should we reach here?
+    // yes, we should. But, we are not getting anything interesting.
+    // this is because we don't care about 'm' type
     // null snippet?
     // this is SK_Const, or more likely, SK_Member
     m_code = "";

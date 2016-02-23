@@ -97,7 +97,8 @@ typedef enum _SnippetKind {
   SK_EnumMember,    // e: enumerator member                      
   SK_Typedef,       // t: typedef                                
   SK_Const,         // c: constant                               
-  SK_Member         // m: class/struct/union member // not useful
+  SK_Member,         // m: class/struct/union member // not useful
+  SK_Other           // x?
 } SnippetKind;
 
 

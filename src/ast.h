@@ -39,6 +39,7 @@ namespace ast {
     NK_Condition,
     NK_Then,
     NK_Else,
+    NK_ElseIf,
     NK_Case,
     NK_Default,
     NK_Switch,
@@ -66,6 +67,8 @@ namespace ast {
     NK_Enum,
     NK_Define,
     // conditional compile
+    NK_CppIf,
+    NK_CppElif,
     NK_IfDef,
     NK_IfnDef,
     NK_DefElse,
