@@ -561,10 +561,28 @@ Node ast::param_get_decl(Node node) {
  * For
  */
 
-NodeList ast::for_get_init_decls(Node node) {
+/**
+ * Get the init stmts (only consider decl and expr here). Return a list of node, either decl or expr.
+ * Add necessary comma for text convertion.
+ *
+ * The init statement of for is not only decls. It may be expr.
+ * int ii = 0;
+ * for (ii = 0; ii < 8 ; ++ii) {
+ * }
+ * for (int i=0,c=i;;) {}
+
+ * Thus, this is not correct.
+ */
+NodeList ast::for_get_init_decls_or_exprs(Node node) {
   NodeList nodes;
-  for (Node n : node.child("control").child("init").children("decl")) {
-    nodes.push_back(n);
+  // for (Node n : node.child("control").child("init").children("decl")) {
+  //   nodes.push_back(n);
+  // }
+  for (Node n : node.child("control").child("init").children()) {
+    // FIXME I'm omitting everything else here
+    if (kind(n) == NK_Decl || kind(n) == NK_Expr) {
+      nodes.push_back(n);
+    }
   }
   return nodes;
 }

@@ -136,7 +136,7 @@ void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList 
     VariableList vars = var_from_node(node); // inside for init
     st.PushLevel();
     st.AddSymbol(vars);
-    get_undefined_vars(for_get_init_decls(node), st, result);
+    get_undefined_vars(for_get_init_decls_or_exprs(node), st, result);
     get_undefined_vars(for_get_condition_expr(node), st, result);
     get_undefined_vars(for_get_incr_expr(node), st, result);
     get_undefined_vars(for_get_block(node), st, result);

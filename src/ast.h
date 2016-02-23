@@ -136,7 +136,7 @@ namespace ast {
   std::string decl_get_name(Node node);
   std::string decl_get_type(Node node);
 
-  NodeList for_get_init_decls(Node node);
+  NodeList for_get_init_decls_or_exprs(Node node);
   // std::map<std::string, std::string> for_get_init_detail(Node node);
   Node for_get_condition_expr(Node node);
   Node for_get_incr_expr(Node node);

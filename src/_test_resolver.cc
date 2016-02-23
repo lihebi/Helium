@@ -40,6 +40,22 @@ if (!ns_nameok((char *)data, class, NULL)) {
   
 }
 
+TEST(resolver_test_case, for_io) {
+  Doc doc;
+  const char* raw = R"prefix(
+int ii = 0;
+for (ii = 0; ii < 8 ; ++ii) {
+}
+
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList for_nodes = find_nodes(doc, NK_For);
+  ASSERT_EQ(for_nodes.size(), 1);
+  VariableList result;
+  resolver::get_undefined_vars(for_nodes[0], result);
+  ASSERT_EQ(result.size(), 1);
+}
+
 TEST(resolver_test_case, switch_io) {
   Doc doc;
   const char* raw = R"prefix(

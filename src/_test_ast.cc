@@ -94,7 +94,7 @@ for (int i=0,c=2;i<8;++i) {
   NodeList nodes = find_nodes(doc, NK_For);
   ASSERT_EQ(nodes.size(), 1);
   Node myfor = nodes[0];
-  NodeList decls = for_get_init_decls(myfor);
+  NodeList decls = for_get_init_decls_or_exprs(myfor);
   ASSERT_EQ(decls.size(), 2);
   EXPECT_EQ(decl_get_name(decls[0]), "i");
   EXPECT_EQ(decl_get_type(decls[0]), "int");

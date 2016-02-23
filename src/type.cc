@@ -202,11 +202,13 @@ VariableList var_from_node(ast::Node node) {
     break;
   }
   case ast::NK_For: {
-    NodeList init_decls = for_get_init_decls(node);
+    NodeList init_decls = for_get_init_decls_or_exprs(node);
     for (Node decl : init_decls) {
-      std::string type = decl_get_type(decl);
-      std::string name = decl_get_name(decl);
-      vars.push_back(Variable(type, name));
+      if (kind(decl) == NK_Decl) {
+        std::string type = decl_get_type(decl);
+        std::string name = decl_get_name(decl);
+        vars.push_back(Variable(type, name));
+      }
     }
     // std::map<std::string, std::string> for_vars = for_get_init_detail(node);
     // for (auto &m : for_vars) {
