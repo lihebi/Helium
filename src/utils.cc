@@ -485,7 +485,7 @@ this lien contains none
 )prefix";
  std::string dir = utils::create_tmp_dir("/tmp/helium-test.XXXXXX");
  utils::write_file(dir+"/a.txt", raw);
- std::cout <<dir+"/a.txt"  << "\n";
+ // std::cout <<dir+"/a.txt"  << "\n";
  int line = utils::get_line_number(dir+"/a.txt", "@HeliumLineMark");
  EXPECT_EQ(line, 4);
  std::vector<int> lines = utils::get_line_numbers(dir+"/a.txt", "@HeliumLineMark");
