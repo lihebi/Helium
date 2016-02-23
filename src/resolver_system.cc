@@ -121,6 +121,7 @@ SystemResolver::Load(const std::string& tagfile) {
 std::vector<CtagsEntry>
 SystemResolver::Parse(const std::string& name) {
   std::vector<CtagsEntry> vc;
+  assert(m_tagfile != NULL);
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind) {
@@ -136,6 +137,7 @@ SystemResolver::Parse(const std::string& name) {
 std::vector<CtagsEntry>
 SystemResolver::Parse(const std::string& name, const std::string& type) {
   std::vector<CtagsEntry> vc;
+  assert(m_tagfile != NULL);
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind && type.find(*(m_entry->kind)) != std::string::npos) {

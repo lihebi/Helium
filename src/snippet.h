@@ -195,8 +195,8 @@ private:
   ~SystemResolver() {}
   // std::vector<Header> m_headers; // header files used
   static SystemResolver* m_instance;
-  tagFile *m_tagfile;
-  tagEntry *m_entry;
+  tagFile *m_tagfile = NULL;
+  tagEntry *m_entry = NULL;
   // headers that need to be included
   std::set<std::string> m_headers;
   std::set<std::string> m_libs; // library compilation flags

@@ -1,11 +1,14 @@
 #include "resolver.h"
 #include "utils.h"
+#include "helium_utils.h"
 
 #include <gtest/gtest.h>
 
 using namespace ast;
 
 TEST(resolver_test_case, io_resolver_test) {
+  std::string helium_home = load_helium_home();
+  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   Doc doc;
   const char* raw = R"prefix(
 	u_char *eom, *cp, *cp1, *rdatap;
