@@ -119,12 +119,15 @@ std::string ArgParser::GetString(std::string name) {
 //   else return false;
 // }
 
-TEST(arg_parser_test_case, DISABLED_arg_parser) {
-  int argc = 3;
-  char *argv[] =
-    {"helium", "--context-search-method=hello-world", "folder"};
-  ArgParser args(argc, argv);
-  EXPECT_FALSE(args.Has("context-search-value"));
-  EXPECT_TRUE(args.Has("context-search-method"));
-  EXPECT_EQ(args.GetString("context-search-method"), "hello-world");
-}
+/**
+ * commented out to suppress warning.
+ */
+// TEST(arg_parser_test_case, DISABLED_arg_parser) {
+//   int argc = 3;
+//   char *argv[] =
+//     {"helium", "--context-search-method=hello-world", "folder"};
+//   ArgParser args(argc, argv);
+//   EXPECT_FALSE(args.Has("context-search-value"));
+//   EXPECT_TRUE(args.Has("context-search-method"));
+//   EXPECT_EQ(args.GetString("context-search-method"), "hello-world");
+// }
