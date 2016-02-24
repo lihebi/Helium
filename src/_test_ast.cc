@@ -105,8 +105,10 @@ for (int i=0,c=2;i<8;++i) {
   // ASSERT_EQ(vars.size(), 2);
   // EXPECT_EQ(vars["i"], "int");
   // EXPECT_EQ(vars["c"], "int");
-  // Node condition_expr = for_get_condition_expr(myfor);
-  // Node incr_expr = for_get_incr_expr(myfor);
+  Node condition_expr = for_get_condition_expr(myfor);
+  ASSERT_TRUE(condition_expr);
+  Node incr_expr = for_get_incr_expr(myfor);
+  ASSERT_TRUE(incr_expr);
   // Node block = for_get_block(myfor);
 }
 

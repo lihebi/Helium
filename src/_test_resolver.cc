@@ -43,8 +43,13 @@ if (!ns_nameok((char *)data, class, NULL)) {
 TEST(resolver_test_case, for_io) {
   Doc doc;
   const char* raw = R"prefix(
+int hash_bulk_move = 3;
+static bool expanding = false;
+
+void foo() {
 int ii = 0;
-for (ii = 0; ii < 8 ; ++ii) {
+for (ii = 0; ii < hash_bulk_move && expanding; ++ii) {
+}
 }
 
 )prefix";
@@ -53,7 +58,7 @@ for (ii = 0; ii < 8 ; ++ii) {
   ASSERT_EQ(for_nodes.size(), 1);
   VariableList result;
   resolver::get_undefined_vars(for_nodes[0], result);
-  ASSERT_EQ(result.size(), 1);
+  ASSERT_EQ(result.size(), 3);
 }
 
 TEST(resolver_test_case, switch_io) {

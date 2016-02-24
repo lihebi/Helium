@@ -253,6 +253,9 @@ std::set<std::string> ast::expr_get_var_ids(Node node) {
   return result;
 }
 
+/**
+ * <name> and nested <expr><name>
+ */
 std::set<std::string> ast::get_var_ids(Node node) {
   std::set<std::string> result;
   if (kind(node) == NK_Expr) {
@@ -591,10 +594,10 @@ NodeList ast::for_get_init_decls_or_exprs(Node node) {
 //   return get_decl_detail(node.child("init"));
 // }
 Node ast::for_get_condition_expr(Node node) {
-  return node.child("condition").child("expr");
+  return node.child("control").child("condition").child("expr");
 }
 Node ast::for_get_incr_expr(Node node) {
-  return node.child("incr").child("expr");
+  return node.child("control").child("incr").child("expr");
 }
 Node ast::for_get_block(Node node) {
   return node.child("block");
