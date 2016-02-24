@@ -73,7 +73,7 @@ bool is_primitive(std::string s);
 class Type {
 public:
   Type() {}
-  Type(const std::string& raw);
+  Type(const std::string& raw, std::vector<int> dims = std::vector<int>());
   ~Type() {}
   /**
    * This is for human only!
@@ -89,6 +89,17 @@ public:
    */
   std::string Raw() const {
     return m_raw;
+  }
+  /**
+   * Dimension string used after var name.
+   * e.g. int aaa[3];
+   */
+  std::string DimensionSuffix() const {
+    std::string result;
+    for (int d : m_dim_values) {
+      result += "[" + std::to_string(d) + "]";
+    }
+    return result;
   }
   /**
    * The name only! Simplest format.
@@ -112,6 +123,7 @@ private:
   // TODO pointer and dimension information should be treated as a structure?
   int m_pointer;
   int m_dimension;
+  std::vector<int> m_dim_values;
 };
 
 
@@ -151,6 +163,7 @@ class Variable {
 public:
   Variable(Type type, const std::string& name);
   Variable(const std::string& type, const std::string& name);
+  Variable(const std::string& type, std::vector<int> dims, const std::string& name);
   Variable();
   ~Variable() {}
   

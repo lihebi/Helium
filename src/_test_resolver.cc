@@ -34,7 +34,7 @@ if (!ns_nameok((char *)data, class, NULL)) {
   //   std::cout <<var.GetType().ToString()  << "\n";
   // }
   ASSERT_EQ(result.size(), 3);
-  EXPECT_EQ(look_up(result, "data").GetType().ToString(), "u_char[]");
+  EXPECT_EQ(look_up(result, "data").GetType().ToString(), "u_char");
   EXPECT_EQ(look_up(result, "class").GetType().ToString(), "u_int");
   EXPECT_EQ(look_up(result, "hp").GetType().ToString(), "HEADER*");
   

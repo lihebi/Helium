@@ -19,6 +19,7 @@ It will go up to FILE level.
 So global variables defined in another file will not be resolved.
 
 TODO do I resolve global variables in another file HERE?
+TODO or I should stop in function, and treat all global variables equally?
 */
 Variable resolver::resolve_var(ast::Node node, const std::string& name) {
   if (!node) return Variable(); // node is empty, return empty Variable

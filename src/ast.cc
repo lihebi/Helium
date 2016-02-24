@@ -441,15 +441,43 @@ std::string ast::decl_get_type(Node node) {
     }
   }
   // array
-  if (node.child("name").child("index")) {
-    for (Node n : node.child("name").children("index")) {
-      n.value(); // to suppress unused variable warning
-      type += "[]";
-    }
-  }
+  // UPDATE: type doesnot contain array dimension information
+  // if (node.child("name").child("index")) {
+  //   for (Node n : node.child("name").children("index")) {
+  //     n.value(); // to suppress unused variable warning
+  //     // type += "[6]"; // FIXME I hard coded this array size here!
+  //     // Now I use the true value in original code.
+  //     // It can be a literal number
+  //     // or a variable, a macro
+  //     // Or, it may be empty as the parameter of the function.
+  //     type += get_text(n);
+  //   }
+  // }
   return type;
 }
 
+std::vector<std::string> ast::decl_get_dimension(Node node) {
+  std::vector<std::string> result;
+  if (node.child("name").child("index")) {
+    for (Node n : node.child("name").children("index")) {
+      result.push_back(get_text(n.child("expr")));
+    }
+  }
+  return result;
+}
+
+TEST(ast_test_case, decl_get_dimension_test) {
+  Doc doc;
+  const char* raw = R"prefix(
+int aa[5][4];
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_DeclStmt);
+  ASSERT_EQ(nodes.size(), 1);
+  Node decl = nodes[0].child("decl");
+  std::vector<std::string> dims = ast::decl_get_dimension(decl);
+  ASSERT_EQ(dims.size(), 2);
+}
 
   
 /**

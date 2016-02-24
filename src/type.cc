@@ -89,9 +89,13 @@ bool is_primitive(std::string s) {
  ** Type
  *******************************/
 
-Type::Type(const std::string& raw)
+Type::Type(const std::string& raw, std::vector<int> dims)
   : m_raw(raw) {
   decompose(raw);
+  // set dimension
+  m_dimension = dims.size();
+  m_dim_values = dims;
+  // other
   if (m_id.empty()) {
     m_kind = TK_Primitive;
   }
@@ -123,10 +127,11 @@ Type::Type(const std::string& raw)
 }
 
 void Type::decompose(std::string tmp) {
-  m_dimension = std::count(tmp.begin(), tmp.end(), '[');
-  if (tmp.find('[') != std::string::npos) {
-    tmp = tmp.substr(0, tmp.find('['));
-  }
+  // dimension information no longer in the type string
+  // m_dimension = std::count(tmp.begin(), tmp.end(), '[');
+  // if (tmp.find('[') != std::string::npos) {
+  //   tmp = tmp.substr(0, tmp.find('['));
+  // }
   m_pointer = count_and_remove(tmp, '*');
   m_name = tmp;                 // get name right after removing * and []
   fill_storage_specifier(tmp, m_storage_specifier);
@@ -161,11 +166,34 @@ Variable::Variable(const std::string& type, const std::string& name) {
   m_name = name;
   m_type = Type(type);
 }
+Variable::Variable(const std::string& type, std::vector<int> dims, const std::string& name) {
+  m_name = name;
+  m_type = Type(type, dims);
+}
 Variable::operator bool() {
   if (!m_name.empty()) return true;
   return false;
 }
 
+/**
+ * For value
+ // resolve dim level values.
+ // Predefined value if it is not a constant or a macro to a constant
+ // do not consider a variable as its dimension
+ // set const_value field, then pass to Type()
+ * TODO for now, do not resolve. If it is not constant, set it to 5.
+ */
+std::vector<int> resolve_dim(std::vector<std::string> dims) {
+  std::vector<int> result;
+  for (std::string &s : dims) {
+    if (utils::is_number(s)) {
+      result.push_back(atoi(s.c_str()));
+    } else {
+      result.push_back(5); // TODO predefined value
+    }
+  }
+  return result;
+}
 
 /**
  * Get newly defined/declared variables in node.
@@ -185,9 +213,12 @@ VariableList var_from_node(ast::Node node) {
     // }
     NodeList decls = function_get_param_decls(node);
     for (Node decl : decls) {
+      // this type has name and pointer level information.
+      // but doesn't have dimension information
       std::string type = decl_get_type(decl);
       std::string name = decl_get_name(decl);
-      vars.push_back(Variable(type, name));
+      std::vector<std::string> dims = decl_get_dimension(decl);
+      vars.push_back(Variable(type, resolve_dim(dims), name));
     }
     break;
   }
@@ -197,7 +228,8 @@ VariableList var_from_node(ast::Node node) {
     for (Node decl : decls) {
       std::string type = decl_get_type(decl);
       std::string name = decl_get_name(decl);
-      vars.push_back(Variable(type, name));
+      std::vector<std::string> dims = decl_get_dimension(decl);
+      vars.push_back(Variable(type, resolve_dim(dims), name));
     }
     break;
   }
@@ -207,7 +239,8 @@ VariableList var_from_node(ast::Node node) {
       if (kind(decl) == NK_Decl) {
         std::string type = decl_get_type(decl);
         std::string name = decl_get_name(decl);
-        vars.push_back(Variable(type, name));
+        std::vector<std::string> dims = decl_get_dimension(decl);
+        vars.push_back(Variable(type, resolve_dim(dims), name));
       }
     }
     // std::map<std::string, std::string> for_vars = for_get_init_detail(node);
@@ -220,6 +253,10 @@ VariableList var_from_node(ast::Node node) {
   }
   return vars;
 }
+
+/*******************************
+ ** Inputing
+ *******************************/
 
 /**
  * Get decl code for a pointer type
@@ -303,18 +340,18 @@ std::string get_input_code(Type type, const std::string& var) {
       }
     } else {
       // unimplemented primitive
-      result += type.Raw() + " " + var + ";\n";
+      result += type.Raw() + " " + var + type.DimensionSuffix() + ";\n";
       result += "/* primitive type " + type.Raw() + " input code unimplemented.*/\n";
     }
     break;
   }
   case TK_Snippet: {
-    result += type.Raw() + " " + var + ";\n";
+    result += type.Raw() + " " + var + type.DimensionSuffix() + ";\n";
     result += "/*snippet type input code unimplemented.*/\n";
     break;
   }
   case TK_System: {
-    result += type.Raw() + " " + var + ";\n";
+    result += type.Raw() + " " + var + type.DimensionSuffix() + ";\n";
     result += "/*system type " + type.Raw() + " input code unimplemented.*/\n";
     break;
   }

@@ -131,11 +131,15 @@ namespace ast {
   // use this one
   Node param_get_decl(Node node);
   NodeList block_get_nodes(Node node);
-  
+
+
   NodeList decl_stmt_get_decls(Node node);
   // FIXME srcml will give one <decl> for multiple variable, int a=0,b=8;
   std::string decl_get_name(Node node);
   std::string decl_get_type(Node node);
+
+  std::vector<std::string> decl_get_dimension(Node node);
+
 
   NodeList for_get_init_decls_or_exprs(Node node);
   // std::map<std::string, std::string> for_get_init_detail(Node node);

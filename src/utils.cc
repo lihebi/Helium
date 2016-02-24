@@ -149,6 +149,19 @@ void utils::remove(std::string& s, const std::string& pattern) {
   }
 }
 
+bool utils::is_number(const std::string& s) {
+  std::string::const_iterator it = s.begin();
+  while (it != s.end() && std::isdigit(*it)) ++it;
+  return !s.empty() && it == s.end();
+}
+
+TEST(utils_test_case, is_number_test) {
+  EXPECT_TRUE(utils::is_number("442"));
+  EXPECT_TRUE(utils::is_number("10"));
+  EXPECT_FALSE(utils::is_number("5-2"));
+  EXPECT_FALSE(utils::is_number("SIZE"));
+}
+
 
 
 
