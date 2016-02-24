@@ -537,10 +537,13 @@ std::string Segment::GetSupport() {
   for (Snippet* s : sorted_all_snippets) {
     if (s->MainKind() == SK_Function) {
       if (avoid_functions.find(s->MainName()) == avoid_functions.end()) {
+        code_func += "/* " + s->GetFileName() + ":" + std::to_string(s->GetLineNumber()) + "*/\n";
         code_func += s->GetCode() + '\n';
         code_func_decl += get_function_decl(s->GetCode())+"\n";
       }
     } else {
+      // every other support code(structures) first
+      code += "/* " + s->GetFileName() + ":" + std::to_string(s->GetLineNumber()) + "*/\n";
       code += s->GetCode() + '\n';
     }
   }
@@ -578,7 +581,8 @@ std::string Segment::GetMakefile() {
     // who added c99??? cao!
     // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
     
-    + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    // + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    + "\tcc -g main.c " + SystemResolver::Instance()->GetLibs() + "\n" // If use c11, useconds_t is not recognized!
     // + "\tcc -fno-stack-protector main.c " + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
     + "\trm -rf *.out\n"

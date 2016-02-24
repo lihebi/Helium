@@ -104,7 +104,7 @@ ArgParser::ArgParser(int argc, char* argv[])
   options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("config,f", po::value<std::string>(), "config file")
-    ("tagfile,c", po::value<std::string>(), "tag file")
+    ("tagfile,t", po::value<std::string>(), "tag file")
     ("verbose,v", "verbose output")
     ("output,o", po::value<std::string>(), "output location")
     ("conf", po::value<std::string>(), "key=value pair of configure to owerwrite items in helium.conf")
@@ -123,6 +123,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print-config", "print current config")
     ("print-segments", "print segments and exit")
     ("print-segment-info", "print segment count, segment size LOC in total, for every file")
+    ("check-headers", "check if the headers in headers.conf exists on this machine")
     ;
     
 

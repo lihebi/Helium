@@ -44,6 +44,37 @@ SystemResolver::SystemResolver() {
   }
 }
 
+/**
+ * Check headers in headers.conf exist or not.
+ * Print out!
+ */
+void SystemResolver::check_headers() {
+  std::string s = getenv("HELIUM_HOME");
+  std::ifstream is;
+  is.open(s+"/headers.conf");
+  if (is.is_open()) {
+    std::string line;
+    std::string flag;
+    while (getline(is, line)) {
+      trim(line);
+      flag = "";
+      if (!line.empty() && line[0] != '#') {
+        if (line.find(' ') != std::string::npos) {
+          flag = line.substr(line.find(' '));
+          line = line.substr(0, line.find(' '));
+          trim(flag);
+        }
+        if (exists(line)) {
+          utils::print(line, CK_Green);
+        } else {
+          utils::print(line, CK_Red);
+        }
+      }
+    }
+  }
+
+}
+
 std::string
 SystemResolver::GetHeaders() const {
   std::string code;

@@ -47,6 +47,11 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  if (args.Has("check-headers")) {
+    SystemResolver::check_headers();
+    exit(0);
+  }
+
   /*******************************
    ** BEGIN need folder argument
    *******************************/

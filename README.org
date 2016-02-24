@@ -1,0 +1,60 @@
+#+TITLE: Helium Framework
+
+* Install
+** Prerequisite
+*** boost
+*** pugixml
+#+begin_src shell
+cd lib/pugixml
+cp Makefile.linux Makefile # for linux
+cp Makefile.mac Makefile # for mac
+make
+make install
+#+end_src
+
+*** ctags
+#+begin_src shell
+cd lib/ctags
+cp Makefile.linux Makefile # for linux
+cp Makefile.mac Makefile # for mac
+make
+make install
+#+end_src
+
+** compile
+
+#+begin_src shell
+make
+make test
+make install
+#+end_src
+
+* Run
+
+** third party libraries
+Helium relies on ~headers.conf~ for the headers to include.
+Helium will test if the system has that header.
+If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
+
+So, when you run Helium, be sure to check if you have installed that package.
+If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
+
+** before you run
+
+#+begin_src shell
+. env_setup.sh # set up HELIUM_HOME to CURRENT directory, add ./bin to PATH
+make systype.tags # create system type tag file. Need only once on a new platform
+#+end_src
+
+** show help
+Run ~helium~ to show help information.
+Run ~helium -p~ to see print option help info.
+Run ~helium -d~ to see debug option help info.
+
+** config
+The default config file is ~$HELIUM_HOME/helium.conf~.
+It can be specified by ~-f~ argument.
+Use ~helium --print-config~ to show the current config.
+Use ~helium --conf "key=value,key2=value2"~ to change each single config.
+
+~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.

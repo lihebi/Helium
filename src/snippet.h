@@ -191,6 +191,7 @@ public:
   bool Has(const std::string& name);
   std::string GetHeaders() const;
   std::string GetLibs() const;
+  static void check_headers();
 private:
   SystemResolver();
   ~SystemResolver() {}
