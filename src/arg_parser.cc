@@ -14,6 +14,8 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"ce", POK_CompileError}
   , {"add-snippet", POK_AddSnippet}
   , {"as", POK_AddSnippet}
+  , {"t", POK_Trace}
+  , {"trace", POK_Trace}
 };
 
 
@@ -33,6 +35,12 @@ void PrintOption::Load(std::string s) {
     }
   }
 }
+
+void print_trace(const std::string &s) {
+  if (PrintOption::Instance()->Has(POK_Trace)) {
+    std::cout << "[trace] " << s  << "\n";
+  }
+}
 /**
  * print help information for print option.
  */
@@ -41,6 +49,7 @@ void PrintOption::Help() {
 
   std::cout << "\tce: compile-error"  << "\n";
   std::cout << "\tas: add-snippet"  << "\n";
+  std::cout << "\tt: trace"  << "\n";
 }
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;

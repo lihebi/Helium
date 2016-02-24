@@ -154,6 +154,26 @@ memcpy(a,b);
 }
 
 /**
+ * This test is for get_var_ids.
+ * The reason is when the expr is ~a.b->c~, it will be <expr><name><name></name></name></name>
+ */
+TEST(ast_test_case, get_var_ids) {
+  Doc doc;
+  const char* raw = R"prefix(
+for (;;) {
+stats.hash_bytes =0;
+stats.hash_is_expanding = 0;
+}
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList fors = find_nodes(doc, NK_For);
+  ASSERT_EQ(fors.size(), 1);
+  std::set<std::string> ids = get_var_ids(fors[0]);
+  ASSERT_EQ(ids.size(), 1);
+  EXPECT_EQ(ids.count("stats"), 1);
+}
+
+/**
  * Test if the id to resolve from expr_stmt is correct.
  */
 TEST(ast_test_case, expr_stmt_test) {

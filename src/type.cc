@@ -108,12 +108,12 @@ Type::Type(const std::string& raw)
   } else {
     std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(m_id);
     // TODO check type
-    // TODO store snippet pointer
     if (snippets.empty()) {
       utils::print("warning: unknown Type Kind", utils::CK_Red);
       utils::print(raw, utils::CK_Red);
       m_kind = TK_Unknown;
     } else {
+      // TODO store snippet pointer
       m_kind = TK_Snippet;
     }
   }
@@ -301,17 +301,21 @@ std::string get_input_code(Type type, const std::string& var) {
         result += "  " + var + " = ("+type.Name()+"*)malloc(sizeof("+type.Name()+")*helium_size);\n";
         result += "  scanf(\"%s\", "+var+");\n}";
       }
+    } else {
+      // unimplemented primitive
+      result += type.Raw() + " " + var + ";\n";
+      result += "/* primitive type " + type.Raw() + " input code unimplemented.*/\n";
     }
     break;
   }
   case TK_Snippet: {
-    result += type.Raw() + var + ";\n";
+    result += type.Raw() + " " + var + ";\n";
     result += "/*snippet type input code unimplemented.*/\n";
     break;
   }
   case TK_System: {
-    result += type.Raw() + var + ";\n";
-    result += "/*system type " + type.Raw() + "input code unimplemented.*/\n";
+    result += type.Raw() + " " + var + ";\n";
+    result += "/*system type " + type.Raw() + " input code unimplemented.*/\n";
     break;
   }
   default: {
@@ -442,6 +446,10 @@ std::string get_random_input(Type type) {
  *******************************/
 
 
+/**
+ * Look up ~name~ in the variable list.
+ * Return the variable if found, otherwise an empty variable.
+ */
 Variable look_up(const VariableList &vars, const std::string& name) {
   for (Variable v : vars) {
     if (v.Name() == name) {

@@ -35,9 +35,12 @@ private:
   po::variables_map m_vm;
 };
 
+void print_trace(const std::string &s);
+
 typedef enum {
   POK_CompileError,
-  POK_AddSnippet
+  POK_AddSnippet,
+  POK_Trace
 } PrintOptionKind;
 class PrintOption {
 public:

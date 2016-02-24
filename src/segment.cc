@@ -233,6 +233,7 @@ bool Segment::IsValid() {
  *******************************/
 
 void Segment::ResolveInput() {
+  print_trace("resolve input");
   m_inv.clear();
   resolver::get_undefined_vars(m_context, m_inv);
 }
@@ -273,6 +274,7 @@ get_to_resolve(
 
 
 void Segment::ResolveSnippets() {
+  print_trace("resolve snippets");
   // getting the initial set to resolve
   std::set<std::string> known_not_resolve;
   std::set<std::string> known_to_resolve;
@@ -283,7 +285,6 @@ void Segment::ResolveSnippets() {
     known_to_resolve.insert(v.GetType().Name());
   }
   std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
-  
   m_snippets.clear();
   // the initial code to resolve is: context + input variable(input code)
   // std::string code = m_context->GetText();

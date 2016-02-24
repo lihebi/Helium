@@ -72,6 +72,7 @@ static const std::map<NodeKind, std::string> kind_to_name_map {
   , {NK_CppIf, "cpp:if"}
   , {NK_ElseIf, "elseif"}
   , {NK_CppElif, "cpp:elif"}
+  , {NK_ForIncr, "incr"}
 };
 
 static const std::map<std::string, NodeKind> name_to_kind_map {
@@ -141,6 +142,7 @@ static const std::map<std::string, NodeKind> name_to_kind_map {
   , {"cpp:if", NK_CppIf}
   , {"elseif", NK_ElseIf}
   , {"cpp:elif", NK_CppElif}
+  , {"incr", NK_ForIncr}
 };
 /*
  * To make sure the above two mapping are consistant
@@ -243,6 +245,9 @@ std::set<std::string> ast::expr_stmt_get_var_ids(Node node) {
   return result;
 }
 
+/**
+ * Deprecated?
+ */
 std::set<std::string> ast::expr_get_var_ids(Node node) {
   std::set<std::string> result;
   for (Node n : node.children("name")) {
@@ -264,7 +269,12 @@ std::set<std::string> ast::get_var_ids(Node node) {
     }
   }
   for (auto name_node : node.select_nodes(".//expr/name")) {
-    result.insert(name_node.node().child_value());
+    // this may be empty string, e.g. a.b
+    // which will be <expr><name><name>
+    std::string name = name_node.node().child_value();
+    // this will get the first nested name, which is ~a~
+    if (name.empty()) name = name_node.node().child_value("name");
+    if (!name.empty()) {result.insert(name);}
   }
   return result;
 }

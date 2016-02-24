@@ -18,4 +18,3 @@ const std::set<std::string> c_common_keywords = {
   // undefined
   "sizeof", "return", "asm", "NULL"
 };
-

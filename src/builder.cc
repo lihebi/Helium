@@ -205,8 +205,10 @@ Builder::Write() {
   std::string makefile = m_seg->GetMakefile();
 
   // std::cout <<utils::BLUE <<main_text  << utils::RESET << "\n";
-  main_text = add_helium_guard(main_text);
-      
+  if (Config::Instance()->GetString("helium-guard") == "true") {
+    main_text = add_helium_guard(main_text);
+  }
+
   utils::write_file(m_dir+"/main.c", main_text);
   utils::write_file(m_dir+"/support.h", support);
   utils::write_file(m_dir + "/Makefile", makefile);

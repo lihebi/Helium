@@ -13,7 +13,12 @@ using namespace ast;
  - decl_stmt
 
  Bottom Up
- 
+
+This does not stop on function level.
+It will go up to FILE level.
+So global variables defined in another file will not be resolved.
+
+TODO do I resolve global variables in another file HERE?
 */
 Variable resolver::resolve_var(ast::Node node, const std::string& name) {
   if (!node) return Variable(); // node is empty, return empty Variable
@@ -98,6 +103,14 @@ void resolver::get_undefined_vars(ast::Node node, VariableList &result) {
   get_undefined_vars(node, st, result);
 }
 
+/**
+ * Resolve the ids in ~ids~.
+ * 
+ * Assume the id is a variable name.
+ * Get resolved only if it is a variable.
+ * 
+ * @param [out] result
+ */
 static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, VariableList &result) {
   // FIXME cannot handle id htat is a type cast
   for (std::string id : ids) {
@@ -111,6 +124,7 @@ static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, V
       add_unique(result, v);
       st.AddSymbol(v);        // should add this, treat as the variable is defined, to avoid future resolving the same variable.
     } else {
+      // not resolved, may be a global variable, defined in another file.
       // outputing some warning for unresolved ids
       // this can be some user-defined type, enums, in other (header) file
       // utils::print("Warning: cannot resolve: "+id, utils::CK_Red);
@@ -119,6 +133,13 @@ static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, V
   }
 }
 
+/**
+ * Get all the undefined variables(free variables) in AST node.
+ * 
+ * This will invoke snippet registry, because it will call ~var_from_node~, which construct a Variable.
+ * If the variable is a user defined type, it will need to invoke snippet registry to confirm that,
+ * and store the snippet pointer.
+ */
 void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList &result) {
   switch (kind(node)) {
   case NK_DeclStmt: {

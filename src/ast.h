@@ -35,6 +35,7 @@ namespace ast {
     // control flow
     NK_For,
     NK_Control,
+    NK_ForIncr,
     NK_If,
     NK_Condition,
     NK_Then,
