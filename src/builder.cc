@@ -229,6 +229,9 @@ Builder::Compile() {
     m_success = true;
   } else {
     m_success = false;
+    if (PrintOption::Instance()->Has(POK_CompileError)) {
+      std::cout <<error_msg  << "\n";
+    }
   }
 }
 

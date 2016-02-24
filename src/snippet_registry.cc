@@ -6,6 +6,7 @@
 #include "snippet.h"
 #include "utils.h"
 #include "resolver.h"
+#include "arg_parser.h"
 
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
@@ -107,17 +108,28 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   }
 
   // get the specific kinds. NOTE: this is the only place that check the kinds
+  // this result is used for return
+  // everything follows that will not be related to result, but to keep resolving
+  // may need an approach to stop if takes too much time? NO!
+  // actually they will become the dependencies.
+  // FIXME need some test cases to show it is robust enough and does not do something many times.
   for (auto it=direct_snippets.begin();it!=direct_snippets.end();++it) {
     if ((*it)->SatisfySignature(name, kinds)) {
       result.insert(*it);
     }
   }
+  
   // recursively resolve and add to local storage(m_snippets).
   // CAUTION: store pointers and will never be freed.
+  // This is where the snippet is added.
   for (auto it=direct_snippets.begin(), end=direct_snippets.end(); it!=end; ++it) {
     m_snippets.insert(*it);
     // also take care of m_id_map and m_dependence_map
     std::set<std::string> keys = (*it)->GetSignatureKey();
+    if (PrintOption::Instance()->Has(POK_AddSnippet)) {
+      std::cout <<"Adding snippet: ";
+      std::cout << (*it)->ToString()  << "\n";
+    }
     for (std::string key : keys) {
       m_id_map[key].insert(*it);
     }

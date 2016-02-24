@@ -394,13 +394,19 @@ std::string Snippet::GetName() const {
   return "NO NAME";
 }
 
+/**
+ * For print purpose.
+ */
 std::string Snippet::ToString() const {
   std::string result;
+  result += "{";
   for (auto m : m_sig) {
     std::string key = m.first;
     SnippetKind k =m.second;
-    result += "key: " + key + " type: " + snippet_kind_to_char(k) + "\n";
+    // result += "key: " + key + " type: " + snippet_kind_to_char(k) + "\n";
+    result += key + ":" + snippet_kind_to_char(k) + ", ";
   }
+  result += "}";
   return result;
 }
 

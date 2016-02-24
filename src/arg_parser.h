@@ -35,5 +35,52 @@ private:
   po::variables_map m_vm;
 };
 
+typedef enum {
+  POK_CompileError,
+  POK_AddSnippet
+} PrintOptionKind;
+class PrintOption {
+public:
+  static PrintOption* Instance() {
+    if (m_instance == NULL) {
+      m_instance = new PrintOption();
+    }
+    return m_instance;
+  }
+  ~PrintOption();
+  void Load(std::string);
+  bool Has(PrintOptionKind kind);
+  void Help();
+private:
+  PrintOption() {}
+  static PrintOption *m_instance;
+  std::set<PrintOptionKind> m_kinds;
+};
+
+/**
+ * Debug options
+ */
+
+typedef enum {
+  DOK_PauseCompileError
+} DebugOptionKind;
+class DebugOption {
+public:
+  static DebugOption* Instance() {
+    if (m_instance == NULL) {
+      m_instance = new DebugOption();
+    }
+    return m_instance;
+  }
+  ~DebugOption() {}
+  void Load(std::string);
+  bool Has(DebugOptionKind kind);
+  void Help();
+private:
+  DebugOption() {}
+  static DebugOption *m_instance;
+  std::set<DebugOptionKind> m_kinds;
+};
+
 
 #endif

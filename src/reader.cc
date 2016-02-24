@@ -131,6 +131,10 @@ Reader::Read() {
         }
       } else {
         utils::print("compile error", utils::CK_Red);
+        if (DebugOption::Instance()->Has(DOK_PauseCompileError)) {
+          std::cout <<".. print enter to continue .."  << "\n";
+          getchar();
+        }
       }
       seg.IncreaseContext();
     }
