@@ -1,0 +1,21 @@
+
+Macro:
+The macro use c, which is not a parameter of the macro.
+#+begin_src C
+/* memcached/memcached.h:125*/
+#define APPEND_NUM_FMT_STAT(name_fmt, num, name, fmt, val)          \
+    klen = snprintf(key_str, STAT_KEY_LEN, name_fmt, num, name);    \
+    vlen = snprintf(val_str, STAT_VAL_LEN, fmt, val);               \
+    add_stats(key_str, klen, val_str, vlen, c);
+#+end_src
+
+When using the macro, the c is actually a parameter of the surrounding function.
+
+e.g. 
+
+#+begin_src C
+/* memcached/items.c:482 */
+void item_stats_totals(ADD_STAT add_stats, void *c) {
+// use of the macro
+}
+#+end_src
