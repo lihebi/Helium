@@ -19,3 +19,13 @@ void item_stats_totals(ADD_STAT add_stats, void *c) {
 // use of the macro
 }
 #+end_src
+
+similarly:
+
+#+begin_src C
+/* memcached/memcached.h:120*/
+#define APPEND_STAT(name, fmt, val) \
+    append_stat(name, add_stats, c, fmt, val);
+#+end_src
+
+Here, add_stats is also a parameter variable.

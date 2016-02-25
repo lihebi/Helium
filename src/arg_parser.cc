@@ -16,6 +16,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"as", POK_AddSnippet}
   , {"t", POK_Trace}
   , {"trace", POK_Trace}
+  , {"un", POK_UnresolvedID}
 };
 
 
@@ -50,6 +51,7 @@ void PrintOption::Help() {
   std::cout << "\tce: compile-error"  << "\n";
   std::cout << "\tas: add-snippet"  << "\n";
   std::cout << "\tt: trace"  << "\n";
+  std::cout << "\tun: unresolved ids when resolving snippets"  << "\n";
 }
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;
@@ -123,6 +125,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print-config", "print current config")
     ("print-segments", "print segments and exit")
     ("print-segment-info", "print segment count, segment size LOC in total, for every file")
+    ("print-header-deps", "print header dependencies")
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ;
     

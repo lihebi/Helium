@@ -77,6 +77,13 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
       }
       direct_snippets.insert(s);
     }
+  } else {
+    // printing out unresolved ones
+    // not useful at all. Do not use this.
+    if (PrintOption::Instance()->Has(POK_UnresolvedID)) {
+      utils::print(name, utils::CK_Yellow);
+    }
+
   }
   /*******************************
    * remove duplicate in direct_snippets
@@ -103,7 +110,6 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   }
   for (Snippet *s : to_remove) {
     direct_snippets.erase(s);
-    // CAUTION: need to be freed if duplicate
     delete s;
   }
 
@@ -112,7 +118,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   // everything follows that will not be related to result, but to keep resolving
   // may need an approach to stop if takes too much time? NO!
   // actually they will become the dependencies.
-  // FIXME need some test cases to show it is robust enough and does not do something many times.
+  // TODO need some test cases to show it is robust enough and does not do something many times.
   for (auto it=direct_snippets.begin();it!=direct_snippets.end();++it) {
     if ((*it)->SatisfySignature(name, kinds)) {
       result.insert(*it);
@@ -120,7 +126,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   }
   
   // recursively resolve and add to local storage(m_snippets).
-  // CAUTION: store pointers and will never be freed.
+  // stored pointers and will never be freed.
   // This is where the snippet is added.
   for (auto it=direct_snippets.begin(), end=direct_snippets.end(); it!=end; ++it) {
     m_snippets.insert(*it);
@@ -139,6 +145,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   for (auto it=direct_snippets.begin(), end=direct_snippets.end(); it!=end; ++it) {
     std::string code = (*it)->GetCode();
     std::set<std::string> ids = extract_id_to_resolve(code);
+    // std::set<std::string> ids = get_to_resolve(code);
     for (std::string id : ids) {
       std::set<Snippet*> snippets = Resolve(id);
       addDeps(*it, snippets);

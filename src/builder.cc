@@ -219,6 +219,17 @@ Builder::Write() {
 
   // std::cout <<utils::BLUE <<main_text  << utils::RESET << "\n";
 }
+
+std::string simplify_error_msg(std::string error_msg) {
+  std::vector<std::string> msgs = utils::split(error_msg, '\n');
+  std::string result;
+  for (std::string msg : msgs) {
+    if (msg.find("error") != std::string::npos) {
+      result += msg+"\n";
+    }
+  }
+  return result;
+}
 void
 Builder::Compile() {
   std::string clean_cmd = "make clean -C " + m_dir;
@@ -232,7 +243,7 @@ Builder::Compile() {
   } else {
     m_success = false;
     if (PrintOption::Instance()->Has(POK_CompileError)) {
-      std::cout <<error_msg  << "\n";
+      utils::print(simplify_error_msg(error_msg), utils::CK_Yellow);
     }
   }
 }

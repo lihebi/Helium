@@ -100,6 +100,12 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  if (args.Has("print-header-deps")) {
+    HeaderSorter::Instance()->Load(m_folder);
+    HeaderSorter::Instance()->Dump();
+    exit(0);
+  }
+
 
 
   /*******************************

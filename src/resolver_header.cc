@@ -48,8 +48,13 @@ HeaderSorter::addDependence(const std::string& lhs, const std::string& rhs) {
   m_dependence_map[lhs].insert(rhs);
 }
 
+/**
+ * Do some trasformation, i.e. keep only file name part.
+ */
 bool
-HeaderSorter::isDependOn(const std::string& lhs, const std::string& rhs) {
+HeaderSorter::isDependOn(std::string lhs, std::string rhs) {
+  if (lhs.find("/")!=std::string::npos) lhs = lhs.substr(lhs.rfind("/")+1);
+  if (rhs.find("/")!=std::string::npos) rhs = rhs.substr(rhs.rfind("/")+1);
   if (m_dependence_map.find(lhs) != m_dependence_map.end()) {
     std::set<std::string> ss = m_dependence_map[lhs];
     if (ss.find(rhs) != ss.end()) {
@@ -84,4 +89,13 @@ HeaderSorter::Sort(std::set<std::string> headers) {
   }
   while(sortOneRound(sorted_headers)) ;
   return sorted_headers;
+}
+
+void HeaderSorter::Dump() {
+  for (auto &v : m_dependence_map) {
+    std::cout << v.first  << " => \n";
+    for (const std::string &s : v.second) {
+      std::cout << "\t" << s << "\n";
+    }
+  }
 }

@@ -9,8 +9,25 @@
 
 std::set<std::string>
 extract_id_to_resolve(const std::string& code);
+std::set<std::string>
+extract_id_to_resolve(ast::NodeList nodes);
 bool
 is_c_keyword(const std::string& s);
+
+std::set<std::string>
+get_to_resolve(
+               ast::NodeList nodes,
+               std::set<std::string> known_to_resolve,
+               std::set<std::string> known_not_resolve
+               );
+
+std::set<std::string>
+get_to_resolve(
+               std::string code,
+               std::set<std::string> known_to_resolve = std::set<std::string>(),
+               std::set<std::string> known_not_resolve = std::set<std::string>()
+               );
+
 
 
 
@@ -27,9 +44,10 @@ public:
   void Load(const std::string& folder);
   // sort the headers by dependence
   std::vector<std::string> Sort(std::set<std::string> headers);
+  void Dump();
 private:
   bool sortOneRound(std::vector<std::string> &sorted);
-  bool isDependOn(const std::string& lhs, const std::string& rhs);
+  bool isDependOn(std::string lhs, std::string rhs);
   void addDependence(const std::string& lhs, const std::string& rhs);
   HeaderSorter() {}
   ~HeaderSorter() {}

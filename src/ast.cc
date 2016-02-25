@@ -1,5 +1,4 @@
 #include "ast.h"
-#include "ast.h"
 #include "gtest/gtest.h"
 #include "utils.h"
 

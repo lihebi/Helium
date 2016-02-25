@@ -245,34 +245,6 @@ void Segment::ResolveOutput() {
  ** Resolving
  *******************************/
 
-std::set<std::string>
-get_to_resolve(
-               NodeList nodes,
-               std::set<std::string> known_to_resolve,
-               std::set<std::string> known_not_resolve
-               ) {
-  std::set<std::string> result;
-  std::set<std::string> var_ids = get_var_ids(nodes);
-  result.insert(var_ids.begin(), var_ids.end());
-  // var_ids
-  // general types in the nodes
-  std::set<std::string> type_ids = get_type_ids(nodes);
-  result.insert(type_ids.begin(), type_ids.end());
-  // call to functions
-  std::set<std::string> call_ids = get_call_ids(nodes);
-  result.insert(call_ids.begin(), call_ids.end());
-  // constructing
-  result.insert(known_to_resolve.begin(), known_to_resolve.end());
-  for (const std::string &s : known_not_resolve) {
-    result.erase(s);
-  }
-  for (const std::string &s : c_common_keywords) {
-    result.erase(s);
-  }
-  return result;
-}
-
-
 void Segment::ResolveSnippets() {
   print_trace("resolve snippets");
   // getting the initial set to resolve
@@ -284,7 +256,12 @@ void Segment::ResolveSnippets() {
     // The type name need
     known_to_resolve.insert(v.GetType().Name());
   }
-  std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
+  // std::set<std::string> ids = get_to_resolve(m_context, known_to_resolve, known_not_resolve);
+  std::set<std::string> ids = extract_id_to_resolve(m_context);
+  ids.insert(known_to_resolve.begin(), known_to_resolve.end());
+  for (std::string s : known_not_resolve) {
+    ids.erase(s);
+  }
   m_snippets.clear();
   // the initial code to resolve is: context + input variable(input code)
   // std::string code = m_context->GetText();
@@ -495,6 +472,10 @@ sortSnippets(std::set<Snippet*> all) {
   // sort file names
   std::vector<std::string> sorted_files = HeaderSorter::Instance()->Sort(all_h_files);
   std::copy(all_c_files.begin(), all_c_files.end(), std::back_inserter(sorted_files));
+  // std::cout <<"sorted files:"  << "\n";
+  // for (std::string file : sorted_files) {
+  //   std::cout <<file  << " ";
+  // }
   for (auto it=sorted_files.begin();it!=sorted_files.end();it++) {
     for (auto it2=file_to_snippet_map[*it].begin();it2!=file_to_snippet_map[*it].end();it2++) {
       sorted.push_back(*it2);
@@ -509,6 +490,11 @@ std::string get_function_decl(std::string code) {
   else return decl;
 }
 
+/**
+ * TODO if two snippet has exactly the same signature (but different code, because if the same, it is already removed.),
+ * Then we need to try them at different time.
+ * e.g. if conditional compilation, it may define two macros, with the same name.
+ */
 std::string Segment::GetSupport() {
   // prepare the containers
   std::set<Snippet*> all_snippets;
