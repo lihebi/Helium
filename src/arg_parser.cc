@@ -17,6 +17,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"t", POK_Trace}
   , {"trace", POK_Trace}
   , {"un", POK_UnresolvedID}
+  , {"seg", POK_Segment}
 };
 
 
@@ -52,6 +53,7 @@ void PrintOption::Help() {
   std::cout << "\tas: add-snippet"  << "\n";
   std::cout << "\tt: trace"  << "\n";
   std::cout << "\tun: unresolved ids when resolving snippets"  << "\n";
+  std::cout << "\tseg: print out the segment."  << "\n";
 }
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;

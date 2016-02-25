@@ -22,6 +22,7 @@ TODO do I resolve global variables in another file HERE?
 TODO or I should stop in function, and treat all global variables equally?
 */
 Variable resolver::resolve_var(ast::Node node, const std::string& name) {
+  // std::cout <<"resolving " << name  << "\n";
   if (!node) return Variable(); // node is empty, return empty Variable
   switch (kind(node)) {
   case NK_Function: {
@@ -115,6 +116,7 @@ void resolver::get_undefined_vars(ast::Node node, VariableList &result) {
 static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, VariableList &result) {
   // FIXME cannot handle id htat is a type cast
   for (std::string id : ids) {
+    assert(!id.empty());
     if (is_c_keyword(id)) continue; // filter out c keyword
     if (st.LookUp(id)) continue;
     Variable v = resolver::resolve_var(node, id);
@@ -142,6 +144,8 @@ static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, V
  * and store the snippet pointer.
  */
 void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList &result) {
+  // std::cout <<node.name()  << "\n";
+  // std::cout <<get_text(node)  << "\n";
   switch (kind(node)) {
   case NK_DeclStmt: {
     VariableList vars = var_from_node(node);

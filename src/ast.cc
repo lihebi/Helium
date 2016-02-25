@@ -258,13 +258,20 @@ std::set<std::string> ast::expr_get_var_ids(Node node) {
 }
 
 /**
- * <name> and nested <expr><name>
+ * <name> and nested <expr><name>, and also <expr><name><name> for structures.
+ * Will ensure no empty items in the set.
  */
 std::set<std::string> ast::get_var_ids(Node node) {
   std::set<std::string> result;
   if (kind(node) == NK_Expr) {
     for (Node n : node.children("name")) {
-      result.insert(n.child_value());
+      std::string name = n.child_value();
+      if (!name.empty()) result.insert(name);
+      else {
+        // fix the bug that, this level name has structure aa->bb
+        name = n.child_value("name");
+        if (!name.empty()) result.insert(name);
+      }
     }
   }
   for (auto name_node : node.select_nodes(".//expr/name")) {
@@ -272,9 +279,22 @@ std::set<std::string> ast::get_var_ids(Node node) {
     // which will be <expr><name><name>
     std::string name = name_node.node().child_value();
     // this will get the first nested name, which is ~a~
-    if (name.empty()) name = name_node.node().child_value("name");
+    // if (name.empty()) name = name_node.node().child_value("name");
     if (!name.empty()) {result.insert(name);}
   }
+  // fix bug: ii < name->aa
+  // now in this exp, the <name><name> is not the first name, but the second.
+  // also, if there're many such structures in an expr, we need all of them.
+  // FIXME expr/name/name may be something else other than aa->bb?
+  // note this will match <expr><name><name></name><name></name></name></expr>
+  // two times, but actually I only need the first <name> under <name>
+  // That is the aa in aa->bb, we don't need bb.
+  // The [1] select the first.
+  for (auto struct_name_node : node.select_nodes(".//expr/name/name[1]")) {
+    std::string name = struct_name_node.node().child_value();
+    if (!name.empty()) result.insert(name);
+  }
+  assert(result.count("") == 0);
   return result;
 }
 

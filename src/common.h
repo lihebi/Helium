@@ -10,5 +10,6 @@
 #include <boost/regex.hpp>
 
 extern const std::set<std::string> c_common_keywords;
+extern const std::set<std::string> c_extend_keywords;
 extern int global_seg_no;
 #endif

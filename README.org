@@ -64,3 +64,8 @@ Use ~helium --print-config~ to show the current config.
 Use ~helium --conf "key=value,key2=value2"~ to change each single config.
 
 ~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
+
+** some examples
+#+begin_src shell
+helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
+#+end_src

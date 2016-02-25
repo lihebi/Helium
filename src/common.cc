@@ -19,4 +19,8 @@ const std::set<std::string> c_common_keywords = {
   "sizeof", "return", "asm", "NULL"
 };
 
+const std::set<std::string> c_extend_keywords = {
+  "stderr", "stdout", "fprintf"
+};
+
 int global_seg_no = 0;

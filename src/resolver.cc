@@ -79,7 +79,9 @@ get_to_resolve(
 
 bool
 is_c_keyword(const std::string& s) {
-  return c_common_keywords.find(s) != c_common_keywords.end();
+  if (c_common_keywords.count(s) == 1) return true;
+  if (c_extend_keywords.count(s) == 1) return true;
+  return false;
 }
 
 

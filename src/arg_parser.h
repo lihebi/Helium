@@ -40,6 +40,7 @@ void print_trace(const std::string &s);
 typedef enum {
   POK_CompileError,
   POK_AddSnippet,
+  POK_Segment,
   POK_Trace,
   POK_UnresolvedID
 } PrintOptionKind;

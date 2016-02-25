@@ -90,6 +90,9 @@ Reader::Read() {
       continue;
     }
     std::cout <<"processing segment NO." << global_seg_no  << "\n";
+    if (PrintOption::Instance()->Has(POK_Segment)) {
+      utils::print(seg.GetSegmentText(), utils::CK_Blue);
+    }
     for(;seg.IsValid();) {
 
       /*******************************

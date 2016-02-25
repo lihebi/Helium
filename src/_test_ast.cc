@@ -165,13 +165,21 @@ for (;;) {
 stats.hash_bytes =0;
 stats.hash_is_expanding = 0;
 }
+for (ii = 0; ii < search->nkey; ++ii) {
+}
 )prefix";
   utils::string2xml(raw, doc);
   NodeList fors = find_nodes(doc, NK_For);
-  ASSERT_EQ(fors.size(), 1);
+  ASSERT_EQ(fors.size(), 2);
+  // first for
   std::set<std::string> ids = get_var_ids(fors[0]);
   ASSERT_EQ(ids.size(), 1);
   EXPECT_EQ(ids.count("stats"), 1);
+  // second for
+  ids = get_var_ids(fors[1]);
+  ASSERT_EQ(ids.size(), 2);
+  ASSERT_EQ(ids.count("ii"), 1);
+  ASSERT_EQ(ids.count("search"), 1);
 }
 
 /**
