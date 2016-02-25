@@ -218,7 +218,9 @@ VariableList var_from_node(ast::Node node) {
       std::string type = decl_get_type(decl);
       std::string name = decl_get_name(decl);
       std::vector<std::string> dims = decl_get_dimension(decl);
-      vars.push_back(Variable(type, resolve_dim(dims), name));
+      if (!type.empty()) {
+        vars.push_back(Variable(type, resolve_dim(dims), name));
+      }
     }
     break;
   }
@@ -229,7 +231,13 @@ VariableList var_from_node(ast::Node node) {
       std::string type = decl_get_type(decl);
       std::string name = decl_get_name(decl);
       std::vector<std::string> dims = decl_get_dimension(decl);
-      vars.push_back(Variable(type, resolve_dim(dims), name));
+      // if (name == "m") {
+      //   std::cout <<type  << "\n";
+      //   std::cout <<get_text(decl)  << "\n";
+      // }
+      if (!type.empty()) {
+        vars.push_back(Variable(type, resolve_dim(dims), name));
+      }
     }
     break;
   }
@@ -240,7 +248,9 @@ VariableList var_from_node(ast::Node node) {
         std::string type = decl_get_type(decl);
         std::string name = decl_get_name(decl);
         std::vector<std::string> dims = decl_get_dimension(decl);
-        vars.push_back(Variable(type, resolve_dim(dims), name));
+        if (!type.empty()) {
+          vars.push_back(Variable(type, resolve_dim(dims), name));
+        }
       }
     }
     // std::map<std::string, std::string> for_vars = for_get_init_detail(node);

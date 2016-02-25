@@ -453,7 +453,21 @@ std::string ast::decl_get_type(Node node) {
   // this version is even better:
   // 1) will append '*' directly to the type name, without space
   // 2) better control of the content of node, incase there's other unexpected item inside <type>
-  std::string type = node.child("type").child_value("name");
+  // Bug: struct AA yyy;
+  // The <type><name> would be <name></name><name></name>
+  // so the child_value will be empty!
+  // std::string type = node.child("type").child_value("name");
+  // FIXME the corresponding type handle will also be affected.
+  // Consider the type raw is consisted with a couple of words.
+  std::string type = ast::get_text(node.child("type").child("name"));
+  if (type.empty()) {
+    // std::cout <<get_text(node)  << "\n";
+    // node.print(std::cout);
+    // FIXME
+    // it can be ...
+    // void foo(int a, ...) {}
+    return "";
+  }
   for (Node n : node.child("type").children("modifier")) {
     if (strcmp(n.child_value(), "*") == 0) {
       type += '*';
