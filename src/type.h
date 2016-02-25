@@ -79,7 +79,7 @@ public:
    * This is for human only!
    */
   std::string ToString() const {
-    return m_raw;
+    return m_raw + DimensionSuffix();
   }
   TypeKind Kind() const {
     return m_kind;

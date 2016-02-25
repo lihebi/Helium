@@ -304,6 +304,9 @@ std::string get_input_code(Variable v) {
 
 std::string get_input_code(Type type, const std::string& var) {
   std::string result;
+  // declare
+  result += type.Raw() + " " + var + type.DimensionSuffix() + ";\n";
+  return result;
   switch (type.Kind()) {
   case TK_Primitive: {
     /*******************************

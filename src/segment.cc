@@ -316,7 +316,7 @@ Segment::getInputCode() {
     
   // actual input
   for (Variable var : m_inv) {
-    spec += "// \t" + var.Name() +":"+ var.GetType().Raw() + "\n";
+    spec += "// \t" + var.Name() +":"+ var.GetType().ToString() + "\n";
     code += get_input_code(var) + "\n";
   }
   return spec + code;
@@ -566,9 +566,10 @@ std::string Segment::GetMakefile() {
     // TODO configurable include paths
     // who added c99??? cao!
     // + "\tcc -std=c99 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
-    
-    // + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
-    + "\tcc -g main.c " + SystemResolver::Instance()->GetLibs() + "\n" // If use c11, useconds_t is not recognized!
+
+    // -std=c11 or -std=c99 allows for(int i=0;;)
+    + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    // + "\tcc -g main.c " + SystemResolver::Instance()->GetLibs() + "\n" // If use c11, useconds_t is not recognized!
     // + "\tcc -fno-stack-protector main.c " + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
     + "\trm -rf *.out\n"
