@@ -85,7 +85,11 @@ double get_time() {
 void
 Reader::Read() {
   for (Segment &seg : m_segments) {
-    std::cout <<"processing another segment .."  << "\n";
+    global_seg_no++;
+    if (Config::Instance()->GetInt("skip-to-seg") > global_seg_no) {
+      continue;
+    }
+    std::cout <<"processing segment NO." << global_seg_no  << "\n";
     for(;seg.IsValid();) {
 
       /*******************************
