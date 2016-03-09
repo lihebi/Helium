@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <iostream>
 #include "resolver.h"
+#include "options.h"
 
 #include "config.h"
 

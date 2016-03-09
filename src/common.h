@@ -12,4 +12,7 @@
 extern const std::set<std::string> c_common_keywords;
 extern const std::set<std::string> c_extend_keywords;
 extern int global_seg_no;
+extern int g_compile_success_no;
+extern int g_compile_error_no;
+
 #endif

@@ -12,6 +12,7 @@
 #include "tester.h"
 #include "analyzer.h"
 #include "type.h"
+#include "options.h"
 
 #include "utils.h"
 
@@ -89,7 +90,9 @@ Reader::Read() {
     if (Config::Instance()->GetInt("skip-to-seg") > global_seg_no) {
       continue;
     }
-    std::cout <<"processing segment NO." << global_seg_no  << "\n";
+    if (PrintOption::Instance()->Has(POK_SegNo)) {
+      std::cout <<"[Helium] processing segment NO." << global_seg_no  << "\n";
+    }
     if (PrintOption::Instance()->Has(POK_Segment)) {
       utils::print(seg.GetSegmentText(), utils::CK_Blue);
     }
@@ -98,7 +101,7 @@ Reader::Read() {
       /*******************************
        ** Processing segment
        *******************************/
-      std::cout <<"================"  << "\n";
+      // std::cout <<"================"  << "\n";
       // std::cout <<"segment:"  << "\n";
       // std::cout <<seg.GetSegmentText()  << "\n";
       // std::cout <<"context:"  << "\n";
@@ -121,10 +124,15 @@ Reader::Read() {
        *******************************/
       Builder builder(&seg);
       builder.Write();
-      std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+      if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+        std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+      }
       builder.Compile();
       if (builder.Success()) {
-        utils::print("compile success", utils::CK_Green);
+        g_compile_success_no++;
+        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+          utils::print("compile success", utils::CK_Green);
+        }
         /*******************************
          ** Testing
          *******************************/
@@ -137,7 +145,10 @@ Reader::Read() {
           tester.WriteCSV();
         }
       } else {
-        utils::print("compile error", utils::CK_Red);
+        g_compile_error_no++;
+        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+          utils::print("compile error", utils::CK_Red);
+        }
         if (DebugOption::Instance()->Has(DOK_PauseCompileError)) {
           std::cout <<".. print enter to continue .."  << "\n";
           getchar();
@@ -145,7 +156,7 @@ Reader::Read() {
       }
       seg.IncreaseContext();
     }
-    std::cout <<seg.GetInvalidReason()  << "\n";
+    // std::cout <<seg.GetInvalidReason()  << "\n";
   }
 }
 

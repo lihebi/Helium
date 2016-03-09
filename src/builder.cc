@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "utils.h"
 #include "config.h"
+#include "options.h"
 
 #include <gtest/gtest.h>
 

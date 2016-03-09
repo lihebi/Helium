@@ -24,3 +24,5 @@ const std::set<std::string> c_extend_keywords = {
 };
 
 int global_seg_no = 0;
+int g_compile_success_no = 0;
+int g_compile_error_no = 0;

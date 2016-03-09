@@ -1,5 +1,6 @@
+#+TITLE: Compile Errors
 
-Macro:
+* Macro
 The macro use c, which is not a parameter of the macro.
 #+begin_src C
 /* memcached/memcached.h:125*/
@@ -29,3 +30,19 @@ similarly:
 #+end_src
 
 Here, add_stats is also a parameter variable.
+
+* function local structure definition
+#+begin_src C
+// man/src/glob.c:319
+char **
+glob_vector (pat, dir)
+     char *pat;
+     char *dir;
+{
+  struct globval
+  {
+    struct globval *next;
+    char *name;
+  };
+}
+#+end_src

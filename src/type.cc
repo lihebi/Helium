@@ -113,8 +113,9 @@ Type::Type(const std::string& raw, std::vector<int> dims)
     std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(m_id);
     // TODO check type
     if (snippets.empty()) {
-      utils::print("warning: unknown Type Kind", utils::CK_Red);
-      utils::print(raw, utils::CK_Red);
+      // FIXME why empty?
+      // utils::print("warning: unknown Type Kind", utils::CK_Red);
+      // utils::print(raw, utils::CK_Red);
       m_kind = TK_Unknown;
     } else {
       // TODO store snippet pointer

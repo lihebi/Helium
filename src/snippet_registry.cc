@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "resolver.h"
 #include "arg_parser.h"
+#include "options.h"
 
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
@@ -135,6 +136,9 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
     if (PrintOption::Instance()->Has(POK_AddSnippet)) {
       std::cout <<"Adding snippet: ";
       std::cout << (*it)->ToString()  << "\n";
+    }
+    if (PrintOption::Instance()->Has(POK_AddSnippetDot)) {
+      std::cout <<"." << std::flush;
     }
     for (std::string key : keys) {
       m_id_map[key].insert(*it);

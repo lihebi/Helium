@@ -1,6 +1,8 @@
 #include "ast.h"
 #include "gtest/gtest.h"
 #include "utils.h"
+#include "arg_parser.h"
+#include "options.h"
 
 using namespace ast;
 
@@ -175,16 +177,18 @@ NodeKind ast::kind(Node node) {
   try {
     return name_to_kind_map.at(name);
   } catch (const std::out_of_range& e) {
-    std::cerr << name << " is not handled." << "\n";
-    std::cout << "-- text:" << "\n";
-    std::cout << get_text(node) << "\n";
-    std::cout << "-- node name:" << "\n";
-    std::cout << node.name() << "\n";
-    std::cout << "-- xml structure:" << "\n";
-    node.print(std::cout);
-    // std::cout << "-- parent:" << "\n";
-    // node.parent().print(std::cout);
-    assert(false && "should not reach here if I have a complete list.");
+    if (DebugOption::Instance()->Has(DOK_PauseASTUnknownTag)) {
+      std::cerr << "AST node tagname: " << name << " is not handled." << "\n";
+      std::cout << "-- text:" << "\n";
+      std::cout << get_text(node) << "\n";
+      std::cout << "-- node name:" << "\n";
+      std::cout << node.name() << "\n";
+      std::cout << "-- xml structure:" << "\n";
+      node.print(std::cout);
+      // std::cout << "-- parent:" << "\n";
+      // node.parent().print(std::cout);
+      assert(false && "should not reach here if I have a complete list.");
+    }
     return NK_Null;
   }
 }

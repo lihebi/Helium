@@ -45,6 +45,8 @@ To install all the dependencies in this file, use this command:
 cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
 #+end_src
 
+After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
+
 ** before you run
 
 #+begin_src shell

@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "reader.h"
 #include "helium_utils.h"
+#include "options.h"
 
 #include <gtest/gtest.h>
 
@@ -247,6 +248,12 @@ Helium::Run() {
       Reader reader(*it);
       reader.Read();
     }
+  }
+  std::cout << "End of Helium"  << "\n";
+  if (PrintOption::Instance()->Has(POK_BuildRate)) {
+    std::cout << "Compile Success Count: " << g_compile_success_no  << "\n";
+    std::cout << "Compile Error Count: " << g_compile_error_no  << "\n";
+    std::cout << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
   }
 }
 
