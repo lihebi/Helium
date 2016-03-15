@@ -151,6 +151,16 @@ namespace ast {
   Node if_get_condition_expr(Node node);
   Node if_get_then_block(Node node);
   Node if_get_else_block(Node node);
+  Node if_get_then(Node node);
+  Node if_get_else(Node node);
+  NodeList if_get_elseifs(Node node);
+
+  Node then_get_block(Node node);
+  Node else_get_block(Node node);
+  Node elseif_get_block(Node node);
+  // elseif IF related
+  Node elseif_get_condition_expr(Node node);
+  
 
   // switch
   Node switch_get_condition_expr(Node);

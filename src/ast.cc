@@ -694,6 +694,36 @@ Node ast::if_get_else_block(Node node) {
   return node.child("else").child("block");
 }
 
+
+Node ast::if_get_then(Node node) {
+  return node.child("then");
+}
+Node ast::if_get_else(Node node) {
+  return node.child("else");
+}
+NodeList ast::if_get_elseifs(Node node) {
+  NodeList ret;
+  for (Node n : node.children("elseif")) {
+    ret.push_back(n);
+  }
+  return ret;
+}
+
+Node ast::then_get_block(Node node) {
+  return node.child("block");
+}
+Node ast::else_get_block(Node node) {
+  return node.child("block");
+}
+Node ast::elseif_get_block(Node node) {
+  return node.child("if").child("then").child("block");
+}
+// elseif IF related
+Node ast::elseif_get_condition_expr(Node node) {
+  return node.child("if").child("condition").child("expr");
+}
+
+
 /*******************************
  ** Switch
  *******************************/

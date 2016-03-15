@@ -436,7 +436,7 @@ void utils::file2xml(const std::string &filename, pugi::xml_document& doc) {
 void utils::string2xml(const std::string &code, pugi::xml_document& doc) {
   std::string cmd = "srcml --position -lC";
   // std::string cmd = "srcml -lC";
-  std::string xml = exec(cmd.c_str(), code.c_str(), NULL);
+  std::string xml = exec_in(cmd.c_str(), code.c_str(), NULL);
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
 }
 
@@ -505,4 +505,15 @@ this lien contains none
  ASSERT_EQ(lines.size(), 2);
  EXPECT_EQ(lines[0], 4);
  EXPECT_EQ(lines[1], 9);
+}
+
+
+void utils::seed_rand() {
+  srand(time(0));
+}
+
+int utils::rand_int(int low, int high) {
+  assert(high >= low);
+  int a = rand();
+  return a % (high - low + 1) + low;
 }

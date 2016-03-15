@@ -10,6 +10,157 @@ typedef enum {
   CSK_Slice
 } ContextSearchKind;
 
+#define BIT(x, i) (x >> i) & 1
+#define SET_BIT(x, i) x |= (1 << i)
+#define UNSET_BIT(x, i) x &= ~(1 << i)
+
+typedef enum {
+  DCK_Red,
+  DCK_Green,
+  DCK_Blue,
+  DCK_Cyan,
+  DCK_Black,
+  DCK_Yellow,
+  DCK_GreenYellow
+} DotColorKind;
+
+static const std::map<DotColorKind, std::string> DCK_MAP {
+  {DCK_Red, "red"}
+  , {DCK_Green, "green"}
+  , {DCK_Blue, "blue"}
+  , {DCK_Cyan, "cyan"}
+  , {DCK_Black, "black"}
+  , {DCK_Yellow, "yellow"}
+  , {DCK_GreenYellow, "greenyellow"}
+};
+/**
+ * 
+ * 
+ *          a
+ *     b       c          l  m  n
+ *   d   e        f
+ * g    h i      j
+ * 
+ * width first search
+ * 1
+ * 5
+ * 2,1,0,0,0
+ * 1,2,1
+ * 0,0,0,0
+
+ * The string population sig is:
+ * For every node, 0 or 1
+ * x
+ * xxxxx
+ * xxx
+ * xxxx
+ * 
+ * for example:
+ * 1 00110 101 1101
+ */
+
+class ASTNode {
+public:
+  ASTNode() {}
+  ~ASTNode() {}
+  ASTNode *parent;
+  // struct ASTNode *next_sibling;
+  // struct ASTNode *first_child;
+  std::vector<ASTNode*> children;
+  int index;
+  ast::Node value;
+};
+
+class AST {
+public:
+  // this root must be <function>
+  AST(ast::Node root);
+  ~AST() {
+    for (ASTNode* n : m_local_nodes) {
+      delete n;
+    }
+  }
+  // void Load(ast::Node root);
+  std::string GetSigStr();
+  std::vector<int> GetSig();
+  void Dump();
+  int ComputeCommonParent(std::vector<int> indices);
+  std::vector<int> ComputeRetreatingPath(int child, int parent);
+  int ComputeDist(int child, int parent);
+  void Visualize(std::map<int, DotColorKind> color_map=std::map<int, DotColorKind>(), std::string dir="random", bool display=false);
+  std::string GetCode(std::set<int> indices = std::set<int>());
+  std::string GetAllCode();
+private:
+  void load(ast::Node root, ASTNode *astnode);
+  void reset() {
+    m_sig.clear();
+    m_nodes.clear();
+  }
+  // 0101010001110110001111
+  std::vector<int> m_sig;
+  // the sequence of all 0
+  std::vector<ast::Node> m_nodes;
+  std::vector<ASTNode*> m_local_nodes;
+};
+
+std::vector<int> rand_gene(size_t size);
+
+/**
+ * Population is based on AST.
+ *  - able to convert to a string, which enables cross-over and mutation
+ *  - able to map to the actual xml nodes, which enables get the souce code
+ */
+class Individual {
+public:
+  Individual() {}
+  ~Individual() {}
+  // each population must be bound to an AST tree
+  void SetAST(AST *ast) {
+    m_ast = ast;
+    m_gene.clear();
+    std::vector<int> sig = m_ast->GetSig();
+    // +1 because the root
+    m_size = std::count(sig.begin(), sig.end(), 0) + 1;
+  }
+  std::string GetASTSigStr() {
+    if (m_ast == NULL) return "";
+    return m_ast->GetSigStr();
+  }
+  // convert to the sig string
+  std::vector<int> GetGene() {
+    return m_gene;
+  }
+  std::string GetGeneStr() {
+    std::string ret;
+    for (int a : m_gene) {
+      ret += std::to_string(a);
+    }
+    return ret;
+  }
+  std::string GetCGeneStr() {
+    std::string ret;
+    for (int a : m_cgene) {
+      ret += std::to_string(a);
+    }
+    return ret;
+  }
+  // load the population from a string of {0,1}
+  void SetGene(std::vector<int> gene);
+  void SetGene(std::string gene);
+  // when setting gene, ensure the size is the same as this size
+  size_t size() {
+    return m_size;
+  }
+  void Visualize(std::string dir="random", bool display=false);
+  std::vector<int> ComputeCompleteGene();
+private:
+  AST *m_ast;
+  size_t m_size;
+  std::vector<int> m_gene;
+  std::vector<int> m_cgene;
+};
+
+
 /**
  * A block of code that is of interest.
  *

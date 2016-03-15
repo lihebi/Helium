@@ -381,18 +381,18 @@ std::string get_input_code(Type type, const std::string& var) {
 /**
  * Need to set srand(time(0)) manually.
  */
-static int
-myrand(int low, int high) {
-  if (high < low) return -1; // FIXME -1 is good?
-  double d = rand();
-  d /= RAND_MAX;
-  return low + (high-low)*d;
-}
+// static int
+// myrand(int low, int high) {
+//   if (high < low) return -1; // FIXME -1 is good?
+//   double d = rand();
+//   d /= RAND_MAX;
+//   return low + (high-low)*d;
+// }
 
 char
 rand_char(char low, char high) {
   int dis = high-low;
-  char c = low + myrand(0,dis);
+  char c = low + utils::rand_int(0,dis);
   return c;
 }
 
@@ -400,10 +400,10 @@ rand_char(char low, char high) {
 //   std::cout <<rand_char('A', 'D')  << "\n";
 // }
 
-std::string
-rand_int(int low, int high) {
-  return std::to_string(myrand(low, high));
-}
+// std::string
+// rand_int(int low, int high) {
+//   return std::to_string(myrand(low, high));
+// }
 
 std::string
 rand_str(int length) {
@@ -439,13 +439,13 @@ std::string get_random_input(Type type) {
       if (type.Pointer() > 0) {
         ;
       } else {
-        result += rand_int(0,10000) + " ";
+        result += std::to_string(utils::rand_int(0,10000)) + " ";
       }
     } else if (type.m_type_specifier.is_long) {
       if (type.Pointer() > 0) {
         ;
       } else {
-        result += rand_int(0,10000) + " ";
+        result += std::to_string(utils::rand_int(0,10000)) + " ";
       }
     } else if (type.m_type_specifier.is_char) {
       if (type.Pointer() == 0 && type.Dimension() == 0) {
@@ -453,7 +453,7 @@ std::string get_random_input(Type type) {
         result += " ";
       } else if (type.Pointer() == 1 || type.Dimension() == 1) {
         int max_strlen = Config::Instance()->GetInt("test-input-str-length-max");
-        int size = myrand(0,max_strlen); // helium_size
+        int size = utils::rand_int(0,max_strlen); // helium_size
         result += std::to_string(size) + " "; // helium_size
         if (size > 0) {
           result += rand_str(size-1) + " ";

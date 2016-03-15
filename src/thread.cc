@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #include <gtest/gtest.h>
-
 std::string utils::exec(const char* cmd, int *status, int timeout) {
   int pipefd[2];
   if (pipe(pipefd) == -1) {
@@ -67,7 +66,7 @@ static int split(const char *scon, char** &argv) {
   return argc;
 }
 
-std::string utils::exec(const char* cmd, const char* input, int *status, unsigned int timeout) {
+std::string utils::exec_in(const char* cmd, const char* input, int *status, unsigned int timeout) {
   // cmd should not exceed BUFSIZ
   char cmd_buf[BUFSIZ];
   strcpy(cmd_buf, cmd);

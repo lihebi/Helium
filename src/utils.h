@@ -126,13 +126,22 @@ namespace utils {
   /*******************************
    ** thread
    *******************************/
-  std::string exec(const char* cmd, int *status, int timeout=0);
+  std::string exec(const char* cmd, int *status=NULL, int timeout=0);
   // with input
-  std::string exec(const char* cmd, const char* input, int *status, unsigned int timeout=0);
+  std::string exec_in(const char* cmd, const char* input, int *status=NULL, unsigned int timeout=0);
 
   int get_line_number(std::string filename, std::string pattern);
   std::vector<int> get_line_numbers(std::string filename, std::string pattern);
 
+  /*******************************
+   ** random
+   *******************************/
+  void seed_rand();
+  /**
+   * Need to call seed_rand() before this.
+   * [low, high], inclusive
+   */
+  int rand_int(int low, int high);
 }
 
 #endif

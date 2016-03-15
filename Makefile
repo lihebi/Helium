@@ -80,7 +80,7 @@ all: client
 ##############################
 
 # the actual execuable of Helium
-client: $(TARGET)
+client: $(TARGET) $(TEST_TARGET)
 # Compile client based on the object files, instead of the dynamic lib
 $(TARGET): $(MAIN) $(OBJECTS)
 	@mkdir -p $(dir $@)

@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 #include <fstream>
 
 #include <boost/regex.hpp>

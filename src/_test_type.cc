@@ -42,7 +42,7 @@ inline void func(std::string type, std::string name, std::string expect) {
   EXPECT_EQ(code, expect);
 }
 
-TEST(type_test_case, int_input_code) {
+TEST(type_test_case, DISABLED_int_input_code) {
   SystemResolver::Instance()->Load("systype.tags");
   std::string type = "int";
   std::string name = "myvar";
@@ -60,7 +60,7 @@ scanf("%d", &myvar);
   EXPECT_EQ(code, expect);
 }
 
-TEST(type_test_case, char_input_code) {
+TEST(type_test_case, DISABLED_char_input_code) {
   std::string type = "char";
   std::string name = "myvar";
   const char* s =        R"prefix(
@@ -83,7 +83,7 @@ scanf("%c", &myvar);
 //   EXPECT_FALSE(s);
 // }
 
-TEST(type_test_case, char_star_input_code) {
+TEST(type_test_case, DISABLED_char_star_input_code) {
   std::string type = "char*";
   std::string name = "myvar";
   const char* s =        R"prefix(
@@ -106,7 +106,7 @@ if (helium_size == 0) {
   EXPECT_EQ(code, expect);
 }
 
-TEST(type_test_case, uchar_star_input_code) {
+TEST(type_test_case, DISABLED_uchar_star_input_code) {
   SystemResolver::Instance()->Load("systype.tags");
   std::string type = "u_char*";
   std::string name = "myvar";
