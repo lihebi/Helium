@@ -1,6 +1,7 @@
 #include "options.h"
 #include "utils.h"
 
+#include <iostream>
 /*******************************
  ** Print Options
  *******************************/

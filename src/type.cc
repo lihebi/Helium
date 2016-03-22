@@ -171,7 +171,7 @@ Variable::Variable(const std::string& type, std::vector<int> dims, const std::st
   m_name = name;
   m_type = Type(type, dims);
 }
-Variable::operator bool() {
+Variable::operator bool() const {
   if (!m_name.empty()) return true;
   return false;
 }

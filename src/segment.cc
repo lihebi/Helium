@@ -275,8 +275,12 @@ void AST::Visualize(std::map<int, DotColorKind> color_map, std::string dir, bool
   utils::exec(cmd_png.c_str());
   utils::exec(cmd_ps.c_str());
   if (display) {
-    std::string cmd2 = "display "+dir+"/out.png";
-    utils::exec(cmd2.c_str());
+    #ifdef __MACH__
+    std::string display_cmd = "open "+dir+"/out.png";
+    #else
+    std::string display_cmd = "display "+dir+"/out.png";
+    #endif
+    utils::exec(display_cmd.c_str());
   }
   // std::cout <<dot  << "\n";
   return;

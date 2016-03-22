@@ -129,7 +129,10 @@ a = NULL; // c common will not be in.
 }
 
 
-TEST(segment_test_case, population) {
+/**
+ * Disabled because the population is for visualization purpose.
+ */
+TEST(segment_test_case, DISABLED_population) {
   Doc doc;
   const char* raw = R"prefix(
 
@@ -194,7 +197,7 @@ if (x>0) {
   // std::cout <<ast.GetSigStr()  << "\n";
   Individual ind;
   ind.SetAST(ast3);
-  int size = ind.size();
+  // int size = ind.size();
   std::vector<int> gene;
   utils::seed_rand();
 

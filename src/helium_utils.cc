@@ -1,5 +1,5 @@
 #include "helium_utils.h"
-
+#include <iostream>
 /**
  * read env variable HELIUM_HOME
  * @return std::string home folder without trailing '/'

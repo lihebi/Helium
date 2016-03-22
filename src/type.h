@@ -170,7 +170,7 @@ public:
   const std::string& Name() const {return m_name;}
   const Type GetType() const { return m_type;}
 
-  operator bool();
+  operator bool() const;
 
 private:
   // pugi::xml_node m_node; // the node where the variable is declared // TODO is it really used??

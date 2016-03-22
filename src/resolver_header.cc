@@ -1,6 +1,8 @@
 #include "resolver.h"
 #include "utils.h"
 
+#include <iostream>
+
 using namespace utils;
 
 HeaderSorter* HeaderSorter::m_instance = 0;
