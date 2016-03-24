@@ -11,8 +11,6 @@ std::set<std::string>
 extract_id_to_resolve(const std::string& code);
 std::set<std::string>
 extract_id_to_resolve(ast::NodeList nodes);
-bool
-is_c_keyword(const std::string& s);
 
 std::set<std::string>
 get_to_resolve(

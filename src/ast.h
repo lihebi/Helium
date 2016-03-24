@@ -7,8 +7,10 @@
 namespace ast {
 
   typedef pugi::xml_node Node;
+  typedef pugi::xml_node XMLNode;
   typedef pugi::xml_document Doc;
   typedef std::vector<Node> NodeList;
+  typedef NodeList XMLNodeList;
 
   typedef enum _NodeKind {
     // general structure
@@ -83,7 +85,9 @@ namespace ast {
     NK_Position,
     NK_Unit,
     NK_HeliumInstrument,
-    NK_Null
+    NK_Null,
+    NK_Other, // other name
+    NK_Invalid // the node is invalid
   } NodeKind;
   std::string kind_to_name(NodeKind k);  
   NodeKind kind(Node node);

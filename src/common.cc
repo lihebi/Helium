@@ -26,3 +26,10 @@ const std::set<std::string> c_extend_keywords = {
 int global_seg_no = 0;
 int g_compile_success_no = 0;
 int g_compile_error_no = 0;
+
+bool
+is_c_keyword(const std::string& s) {
+  if (c_common_keywords.count(s) == 1) return true;
+  if (c_extend_keywords.count(s) == 1) return true;
+  return false;
+}

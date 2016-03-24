@@ -92,7 +92,9 @@ namespace utils {
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);
 
-  std::string create_tmp_dir(std::string s);
+  void visualize_dot_graph(const std::string& dot);
+
+  std::string create_tmp_dir(std::string s="/tmp/helium-XXXXXX");
 
   std::vector<std::string> query_xml(const std::string& xml_file, const std::string& query);
   std::string query_xml_first(const std::string& xml_file, const std::string& query);

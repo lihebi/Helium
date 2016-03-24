@@ -75,16 +75,6 @@ get_to_resolve(
   return get_to_resolve(nodes, known_to_resolve, known_not_resolve);
 }
 
-
-
-bool
-is_c_keyword(const std::string& s) {
-  if (c_common_keywords.count(s) == 1) return true;
-  if (c_extend_keywords.count(s) == 1) return true;
-  return false;
-}
-
-
 SymbolTable::SymbolTable() {
   // ensure there's at least one table. Calling back() on empty vector is undefined.
   PushLevel();

@@ -350,6 +350,20 @@ utils::create_folder(const std::string& folder) {
   }
 }
 
+void utils::visualize_dot_graph(const std::string& dot) {
+  std::string dir = create_tmp_dir();
+  utils::write_file(dir + "/out.dot", dot);
+  std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
+  utils::exec(cmd_png.c_str());
+  std::cout << "wrote to file: " + dir + "/out.png"  << "\n";
+#ifdef __MACH__
+  std::string display_cmd = "open "+dir+"/out.png";
+#else
+  std::string display_cmd = "display "+dir+"/out.png";
+#endif
+  utils::exec(display_cmd.c_str());
+}
+
 /**
  * create tmp dir, return it.
  * @input s /tmp/helium-XXXXXX (must have 6 X at the end.)
