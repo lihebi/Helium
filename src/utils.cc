@@ -350,14 +350,27 @@ utils::create_folder(const std::string& folder) {
   }
 }
 
-void utils::visualize_dot_graph(const std::string& dot) {
+void utils::visualize_dot_graph(const std::string& dot, std::string filename) {
   std::string dir = create_tmp_dir();
-  utils::write_file(dir + "/out.dot", dot);
-  std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
-  utils::exec(cmd_png.c_str());
-  std::cout << "wrote to file: " + dir + "/out.png"  << "\n";
+  // std::string extension = filename.substr(filename.find_last_of('.'));
+  // if (extension == "dot") {
+  //   utils::write_file(dir + "/" + filename, dot);
+  //   std::cout << "wrote to file: " + dir + "/out.dot"  << "\n";
+  // } else if (extension == "png") {
+  //   assert(false); // TODO
+  // } else {
+  //   // using dot
+  //   filename += ".dot";
+  //   utils::write_file(dir + "/" + filename, dot);
+  //   std::cout << "wrote to file: " + dir + "/" + filename  << "\n";
+  // }
+  filename =  dir + "/" + filename + ".dot";
+  utils::write_file(filename, dot);
+  std::cout << "wrote to file: " + filename << "\n";
+  // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
+  // utils::exec(cmd_png.c_str());
 #ifdef __MACH__
-  std::string display_cmd = "open "+dir+"/out.png";
+  std::string display_cmd = "open " + filename;
 #else
   std::string display_cmd = "display "+dir+"/out.png";
 #endif

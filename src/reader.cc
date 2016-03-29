@@ -15,6 +15,8 @@
 #include "options.h"
 
 #include "utils.h"
+#include "population.h"
+#include <iostream>
 
 
 /*******************************
@@ -30,6 +32,35 @@ using namespace ast;
 int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
 
+void Reader::GA() {
+  std::cout << "Genetic Algorithm"  << "\n";
+  NodeList func_nodes = ast::find_nodes(m_doc, NK_Function);
+  for (Node func : func_nodes) {
+    std::cout << "For func: " << func.child_value("name") << "\n";
+    std::cout << "process Eneter to continue ...\n";
+    getchar();
+    std::cout << ast::get_text(func)  << "\n";
+    Population pop;
+    AST ast(func);
+    pop.SetAST(&ast);
+    pop.RandGenes(1);
+    
+    // std::string code = pop.GetCode(0);
+    // Gene *g = pop.GetGene(0);
+    // if (g) g->dump();
+    // std::cout <<code  << "\n";
+    // pop.Visualize(0);
+
+    for (size_t i=0;i<pop.size();i++) {
+      // Gene *g = pop.GetGene(i);
+      pop.Visualize(i);
+      std::string code = pop.GetCode(i);
+      std::cout << "Code for " << i  << "\n";
+      std::cout << code  << "\n";
+    }
+  }
+}
+
 /**
  * Constructor of Reader should read the filename, and select segments.
  */
@@ -42,11 +73,17 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
     getAnnotationSegments();
   } else if (method == "divide") {
     getDivideSegments();
+  } else if (method == "function") {
+    // use GA. Do not use segment.
+    GA();
+    // DO NOT call READ()
+    return;
   } else {
     // assert(false && "segment selection method is not recognized: " && method.c_str());
     std::cerr<<"segment selection method is not recognized: " <<method<<"\n";
     assert(false);
   }
+  Read();
 }
 
 /**
@@ -65,6 +102,7 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
     seg.PushBack(n);
     m_segments.push_back(seg);
   }
+  Read();
 }
 
 #ifdef __MACH__

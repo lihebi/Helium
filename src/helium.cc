@@ -240,13 +240,13 @@ Helium::Run() {
         std::cout << "processing: " << filename << " ...\n";
         Reader reader(filename, c.second);
         reader.PrintSegments();
-        reader.Read();
+        // reader.Read();
       }
     }
   } else {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
-      reader.Read();
+      // reader.Read();
     }
   }
   std::cout << "End of Helium"  << "\n";

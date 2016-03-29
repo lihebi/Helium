@@ -92,7 +92,14 @@ namespace utils {
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);
 
-  void visualize_dot_graph(const std::string& dot);
+  /**
+   * TODO Will generate format according to "filename"
+   * If filename do not have a valid extension, use ".dot"
+   * Will open the result.
+   * ".dot" will be added
+   * @param [in] filename The simple filename
+   */
+  void visualize_dot_graph(const std::string& dot, std::string filename="out");
 
   std::string create_tmp_dir(std::string s="/tmp/helium-XXXXXX");
 

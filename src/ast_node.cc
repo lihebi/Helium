@@ -14,6 +14,7 @@ static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
   , {NK_Stmt, ANK_Stmt}
   , {NK_ExprStmt, ANK_Stmt}
   , {NK_DeclStmt, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
   // , {NK_EmptyStmt, ANK_Stmt}
   , {NK_Expr, ANK_Expr}
   // condition
@@ -29,6 +30,66 @@ static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
   , {NK_For, ANK_For}
   , {NK_Do, ANK_Do}
 };
+
+/*******************************
+ ** Gene 
+ *******************************/
+void Gene::SetFlat(std::vector<int> flat) {
+  m_size = flat.size();
+  m_indice.clear();
+  m_indice_s.clear();
+  m_flat.clear();
+  m_flat = flat;
+  for (size_t i=0;i<flat.size();i++) {
+    if (flat[i] == 1) {
+      m_indice.push_back(i);
+      m_indice_s.insert(i);
+    }
+  }
+}
+
+void Gene::SetFlat(std::string s) {
+  std::vector<int> flat;
+  for (char c : s) {
+    if (c == '1') flat.push_back(1);
+    else flat.push_back(0);
+  }
+  SetFlat(flat);
+}
+void Gene::SetIndice(std::vector<int> indice, size_t size) {
+  m_size = size;
+  m_indice.clear();
+  m_indice_s.clear();
+  m_flat.clear();
+  m_indice = indice;
+  m_indice_s.insert(indice.begin(), indice.end());
+  for (size_t i=0;i<size;i++) {
+    if (m_indice_s.count(i) == 1) m_flat.push_back(1);
+    else m_flat.push_back(0);
+  }
+}
+void Gene::SetIndiceS(std::set<int> indice_s, size_t size) {
+  m_size = size;
+  m_indice.clear();
+  m_indice_s.clear();
+  m_flat.clear();
+  m_indice_s = indice_s;
+  m_indice = std::vector<int>(indice_s.begin(), indice_s.end());
+  std::sort(m_indice.begin(), m_indice.end());
+  for (size_t i=0;i<size;i++) {
+    if (m_indice_s.count(i) == 1) m_flat.push_back(1);
+    else m_flat.push_back(0);
+  }
+}
+
+void Gene::dump() {
+  for (int g : m_flat) {
+    std::cout << g;
+  }
+  std::cout  << "\n";
+}
+
+
 
 ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
   ast::NodeKind nk = ast::kind(xml_node);
@@ -179,6 +240,10 @@ ASTNode *AST::ComputeLCA(std::set<ASTNode*> nodes) {
   return ret;
 }
 
+/*******************************
+ ** AST 
+ *******************************/
+
 /**
  * Compute the distance from low to high.
  * hight must be an ancestor of low.
@@ -315,60 +380,52 @@ AST::~AST() {
 
 std::string AST::GetCode(std::set<ASTNode*> &nodes) {
   if (!m_root) return "";
+  if (nodes.empty()) return "";
   std::string ret;
-  m_root->GetCode(nodes, ret);
+  m_root->GetCode(nodes, ret, false);
   return ret;
 }
 
-std::string AST::Visualize() {
+std::string AST::Visualize(std::string filename) {
   std::set<int> dia_s;
   // std::set<int> fill_s;
   // return VisualizeI(dia_s, fill_s);
-  return VisualizeI({}, {});
+  return VisualizeI({}, {}, filename);
 }
 
 /**
+ * The workhorse of Visualization.
+ * Other variants calls it.
+ * Will show the graph.
+ * @return the dot source as string.
+ * 
  * first is GreenYellow, second is Cyan
  * first will overwrite second
+ * yellow_s will not completely overwrite cyan_s.
+ * If they overlap, the color will be yellow_s, but the node shape will be dotted.
  */
-std::string AST::VisualizeI(std::set<int> bold_s, std::set<int> fill_s) {
+std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::string filename) {
   std::string dot;
   dot+= "digraph {\n";
 
   for (size_t i=0, size=m_nodes.size();i<size;i++) {
     std::string name = std::to_string(i);
     std::string label = m_nodes[i]->GetLabel();
+    // remove all double quotes because it will conflict with label string
+    label.erase(std::remove(label.begin(), label.end(), '"'));
     std::string attr = "[";
     attr += "label=\"" + name + ":" + label + "\"";
     /**
-     * bold_s will not completely overwrite fill_s.
-     * If they overlap, the color will be bold_s, but the node shape will be dotted.
      */
-    if (bold_s.count(i) == 1) {
-      if (fill_s.count(i) == 1) {
+    if (yellow_s.count(i) == 1) {
+      if (cyan_s.count(i) == 1) {
         attr += ", style=\"filled,dotted\", fillcolor=greenyellow";
       } else {
         attr += ", style=filled, fillcolor=greenyellow";
       }
-    } else if (fill_s.count(i) == 1){
+    } else if (cyan_s.count(i) == 1){
       attr += ", style=filled, fillcolor=cyan";
     }
-    // if (bold_s.count(i) == 1) {
-    //   // attr += ", style=filled";
-    //   attr += ", style=filled, color=greenyellow";
-    // } else if (fill_s.count(i) == 1) {
-    //   // attr += ", style=filled";
-    //   attr += ", style=filled, color=cyan";
-    // }
-    // std::string style;
-    // if (bold_s.count(i) == 1) {
-    //   style += "dotted";
-    // }
-    // if (fill_s.count(i) == 1) {
-    //   if (!style.empty()) style += ",";
-    //   style += "filled";
-    // }
-    // attr += ", style=\""+style+"\"";
     attr += "]";
     dot += name + attr + ";\n";
   }
@@ -383,18 +440,19 @@ std::string AST::VisualizeI(std::set<int> bold_s, std::set<int> fill_s) {
     }
   }
   dot += "}";
+  utils::visualize_dot_graph(dot, filename);
   return dot;
 }
-std::string AST::VisualizeN(std::set<ASTNode*> diagonal_s, std::set<ASTNode*> fill_s) {
-  std::set<int> dia_d_s;
-  std::set<int> fill_d_s;
-  for (ASTNode *n : diagonal_s) {
-    dia_d_s.insert(m_idx_m[n]);
+std::string AST::VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan_s, std::string filename) {
+  std::set<int> yellow_d_s;
+  std::set<int> cyan_d_s;
+  for (ASTNode *n : yellow_s) {
+    yellow_d_s.insert(m_idx_m[n]);
   }
-  for (ASTNode *n : fill_s) {
-    fill_d_s.insert(m_idx_m[n]);
+  for (ASTNode *n : cyan_s) {
+    cyan_d_s.insert(m_idx_m[n]);
   }
-  return VisualizeI(dia_d_s, fill_d_s);
+  return VisualizeI(yellow_d_s, cyan_d_s, filename);
 }
 
 
@@ -449,15 +507,18 @@ std::set<ASTNode*> AST::CompleteVarDefUse(std::set<ASTNode*> nodes) {
   std::set<ASTNode*> ret;
   std::set<ASTNode*> all(nodes.begin(), nodes.end());
   std::vector<ASTNode*> worklist(nodes.begin(), nodes.end());
-  for (ASTNode *node : nodes) {
+  // for (ASTNode *node : nodes) {
+  while (!worklist.empty()) {
+    ASTNode *node = worklist.back();
+    worklist.pop_back();
     // wait, I want to build a symbol table for the AST.
     // It should not be large, and it should not care about inter-procedure
-    std::cout <<" at " << m_idx_m[node] << "\n";
+    // std::cout <<" at " << m_idx_m[node] << "\n";
     std::set<std::string> ids = node->GetVarIds();
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
-      std::cout <<id << " YYY at " << m_idx_m[node] << "\n";
+      // std::cout <<id << " YYY at " << m_idx_m[node] << "\n";
       SymbolTable *tbl = node->GetSymTbl();
       ASTNode *def = tbl->LookUp(id);
       if (def && all.count(def) == 0) {
@@ -471,6 +532,7 @@ std::set<ASTNode*> AST::CompleteVarDefUse(std::set<ASTNode*> nodes) {
       }
     }
   }
+  ret.insert(nodes.begin(), nodes.end());
   return ret;
 }
 
@@ -498,12 +560,10 @@ void Gene::Rand(size_t size) {
   SetFlat(flat);
 }
 
-void Gene::dump() {
-  for (int g : m_flat) {
-    std::cout << g;
-  }
-  std::cout  << "\n";
-}
+
+/*******************************
+ ** AST Node 
+ *******************************/
 
 
 /*******************************
@@ -524,7 +584,10 @@ Expr::Expr(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   std::cout << "---- Expr" << "\n";
   #endif
 }
-void Expr::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
+void Expr::GetCode(std::set<ASTNode*> &nodes,
+                   std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
 }
 
 Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -551,9 +614,13 @@ Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   std::cout << "---- Stmt" << "\n";
   #endif
 }
-void Stmt::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  ret += get_text(m_xmlnode);
+void Stmt::GetCode(std::set<ASTNode*> &nodes,
+                   std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += get_text(m_xmlnode);
+  }
   // ret += "\n";
 }
 
@@ -611,20 +678,27 @@ Function::~Function() {
   }
 }
 
-void Function::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && !nodes.empty() && nodes.count(this) == 0) return;
-  ret += m_ret_ty + " " + m_name + "(";
-  if (!m_params.empty()) {
-    for (Decl *param : m_params) {
-      ret += param->GetType();
-      ret += " ";
-      ret += param->GetName();
-      ret += ",";
+void Function::GetCode(std::set<ASTNode*> &nodes,
+                       std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  // temporarily disable this, i.e. no function decl, only body
+  // so that it is valid to be put in a main function
+  if (selected && false) {
+    ret += m_ret_ty + " " + m_name + "(";
+    if (!m_params.empty()) {
+      for (Decl *param : m_params) {
+        ret += param->GetType();
+        ret += " ";
+        ret += param->GetName();
+        ret += ",";
+      }
+      ret.pop_back(); // remove last ","
     }
-    ret.pop_back(); // remove last ","
+    ret += ")";
   }
-  ret += ")";
-  m_blk->GetCode(nodes, ret);
+  m_blk->GetCode(nodes, ret, false);
 }
 
 Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -651,13 +725,20 @@ Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   }
 }
 
-void Block::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  ret += "{\n";
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret);
+void Block::GetCode(std::set<ASTNode*> &nodes,
+                    std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  if (selected || add_brace) {
+    ret += "{\n";
   }
-  ret += "\n}";
+  for (ASTNode *n : m_children) {
+    n->GetCode(nodes, ret, false);
+  }
+  if (selected || add_brace) {
+    ret += "\n}";
+  }
 }
 
 /*******************************
@@ -680,31 +761,47 @@ If::If(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_cond = if_get_condition_expr(xmlnode);
   XMLNode then_node = if_get_then(xmlnode);
   XMLNode else_node = if_get_else(xmlnode);
-  m_then = new Then(then_node, this, ast); // ASTNodeFactory::CreateASTNode(then_node);
-  m_else = new Else(else_node, this, ast); // ASTNodeFactory::CreateASTNode(else_node);
   XMLNodeList nodes = if_get_elseifs(xmlnode);
+  if (then_node) {
+    m_then = new Then(then_node, this, ast);
+    m_children.push_back(m_then);
+  }
   for (XMLNode node : nodes) {
-    ElseIf *anode = new ElseIf(node, this, ast); // ASTNodeFactory::CreateASTNode(node);
+    ElseIf *anode = new ElseIf(node, this, ast);
     m_elseifs.push_back(anode);
   }
-  m_children.push_back(m_then);
   m_children.insert(m_children.end(), m_elseifs.begin(), m_elseifs.end());
-  m_children.push_back(m_else);
+  if (else_node) {
+    m_else = new Else(else_node, this, ast);
+    m_children.push_back(m_else);
+  }
 }
 
-void If::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  ret += "if (";
-  ret += get_text(m_cond);
-  ret += ")";
-  m_then->GetCode(nodes, ret);
+void If::GetCode(std::set<ASTNode*> &nodes,
+                 std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "if (";
+    ret += get_text(m_cond);
+    ret += ")";
+  }
+  m_then->GetCode(nodes, ret, all, selected);
   for (ElseIf *ei : m_elseifs) {
-    ei->GetCode(nodes, ret);
+    ei->GetCode(nodes, ret, all);
   }
   if (m_else) {
-    m_else->GetCode(nodes, ret);
+    m_else->GetCode(nodes, ret, all);
   }
 }
+
+std::string If::GetLabel() {
+  // with condition
+  std::string ret;
+  ret += "if (" + get_text(m_cond) + ")";
+  return ret;
+}
+
 
 Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_parent = parent;
@@ -721,9 +818,15 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void Then::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  m_blk->GetCode(nodes, ret);
+void Then::GetCode(std::set<ASTNode*> &nodes,
+                   std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  // if (!nodes.empty() && nodes.count(this) == 0) {
+  //   ret += "{}";
+  //   return;
+  // }
+  m_blk->GetCode(nodes, ret, add_brace);
 }
 
 Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -740,10 +843,15 @@ Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_blk = new Block(node, this, ast);
   m_children.push_back(m_blk);
 }
-void Else::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  ret += "else";
-  m_blk->GetCode(nodes, ret);
+void Else::GetCode(std::set<ASTNode*> &nodes,
+                   std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "else";
+  }
+  m_blk->GetCode(nodes, ret, all, selected);
 }
 
 ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -757,15 +865,28 @@ ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
   }
   XMLNode node = elseif_get_block(xmlnode);
+  m_cond = elseif_get_condition_expr(xmlnode);
   m_blk = new Block(node, this, ast);
   m_children.push_back(m_blk);
 }
 
-void ElseIf::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
-  ret += "else if(" + get_text(m_cond) + ")";
-  m_blk->GetCode(nodes, ret);
+void ElseIf::GetCode(std::set<ASTNode*> &nodes,
+                     std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "else if(" + get_text(m_cond) + ")";
+  }
+  m_blk->GetCode(nodes, ret, all, selected);
 }
+
+std::string ElseIf::GetLabel() {
+  std::string ret;
+  ret += "elseif (" + get_text(m_cond) + ")";
+  return ret;
+}
+
 
 /**
  * Switch is not used currently.
@@ -793,8 +914,11 @@ Switch::Switch(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.insert(m_children.end(), m_blks.begin(), m_blks.end());
 }
 
-void Switch::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
+void Switch::GetCode(std::set<ASTNode*> &nodes,
+                     std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
   ret.size();
   return;
 }
@@ -812,7 +936,10 @@ Case::Case(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_parent->GetSymTbl();
   }
 }
-void Case::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
+void Case::GetCode(std::set<ASTNode*> &nodes,
+                   std::string &ret, bool all, bool add_brace) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
 }
 
 Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -826,7 +953,8 @@ Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_parent->GetSymTbl();
   }
 }
-void Default::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
+void Default::GetCode(std::set<ASTNode*> &nodes,
+                      std::string &ret, bool all, bool add_brace) {
 }
 
 /*******************************
@@ -852,13 +980,27 @@ While::While(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void While::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
+void While::GetCode(std::set<ASTNode*> &nodes,
+                    std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "while (";
+    ret += get_text(m_cond);
+    ret += ")";
+  }
+  m_blk->GetCode(nodes, ret, all, selected);
+}
+
+std::string While::GetLabel() {
+  std::string ret;
   ret += "while (";
   ret += get_text(m_cond);
   ret += ")";
-  m_blk->GetCode(nodes, ret);
+  return ret;
 }
+
 
 
 Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -880,14 +1022,31 @@ Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void Do::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
+void Do::GetCode(std::set<ASTNode*> &nodes,
+                 std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "do ";
+  }
+  m_blk->GetCode(nodes, ret, all, selected);
+  if (selected) {
+    ret += "while (";
+    ret += get_text(m_cond);
+    ret += ");";
+  }
+}
+
+std::string Do::GetLabel() {
+  std::string ret;
   ret += "do ";
-  m_blk->GetCode(nodes, ret);
   ret += "while (";
   ret += get_text(m_cond);
   ret += ");";
+  return ret;
 }
+
 
 For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_xmlnode = xmlnode;
@@ -919,8 +1078,28 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   }
 }
 
-void For::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
-  if (!nodes.empty() && nodes.count(this) == 0) return;
+void For::GetCode(std::set<ASTNode*> &nodes,
+                  std::string &ret, bool all, bool add_brace) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "for (";
+    // init
+    if (!m_inits.empty()) {
+      for (XMLNode n : m_inits) {
+        ret += get_text(n);
+        ret += ",";
+      }
+      ret.pop_back();
+    }
+    ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
+  }
+  m_blk->GetCode(nodes, ret, all, selected);
+}
+
+std::string For::GetLabel() {
+  std::string ret;
   ret += "for (";
   // init
   if (!m_inits.empty()) {
@@ -931,8 +1110,9 @@ void For::GetCode(std::set<ASTNode*> &nodes, std::string &ret) {
     ret.pop_back();
   }
   ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
-  m_blk->GetCode(nodes, ret);
+  return ret;
 }
+
 
 /**
  * Disable because it will not check something.
@@ -1008,10 +1188,44 @@ if (x>0) {
  delete ast;
 }
 
+TEST(ASTNodeTestCase, DISABLED_ExtraNodeTest) {
+  ast::Doc doc;
+  const char *raw = R"prefix(
+int
+res_hnok(const char *dn) {
+	int ppch = '\0', pch = PERIOD, ch = *dn++;
+
+	while (ch != '\0') {
+		int nch = *dn++;
+
+		if (periodchar(ch)) {
+			(void)NULL;
+		} else if (periodchar(pch)) {
+			if (!borderchar(ch))
+				return (0);
+		} else if (periodchar(nch) || nch == '\0') {
+			if (!borderchar(ch))
+				return (0);
+		} else {
+			if (!middlechar(ch))
+				return (0);
+		}
+		ppch = pch, pch = ch, ch = nch;
+	}
+	return (1);
+}
+)prefix";
+
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_Function);
+  ASSERT_EQ(nodes.size(), 1);
+  AST *ast = new AST(nodes[0]);
+  ast->Visualize();
+}
 
 TEST(ASTNodeTestCase, DISABLED_VarDefUseTest) {
   ast::Doc doc;
-const char *raw = R"prefix(
+  const char *raw = R"prefix(
 
 
 int foo() {
@@ -1044,46 +1258,46 @@ int foo() {
 }
 )prefix";
 
- utils::string2xml(raw, doc);
- NodeList nodes = find_nodes(doc, NK_Function);
- ASSERT_EQ(nodes.size(), 1);
- AST *ast = new AST(nodes[0]);
- std::string code = ast->GetCode();
- // code = utils::exec_in("indent", code.c_str());
- std::cout <<code  << "\n";
-// THIS IS IMPORTANT! SEED the random.
- utils::seed_rand();
- Gene gene, cgene;
- std::string dot;
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_Function);
+  ASSERT_EQ(nodes.size(), 1);
+  AST *ast = new AST(nodes[0]);
+  std::string code = ast->GetCode();
+  // code = utils::exec_in("indent", code.c_str());
+  std::cout <<code  << "\n";
+  // THIS IS IMPORTANT! SEED the random.
+  utils::seed_rand();
+  Gene gene, cgene;
+  std::string dot;
 
- std::cout <<"begin test suite"  << "\n";
+  std::cout <<"begin test suite"  << "\n";
 
- /**
-  * Suite 1
-  */
- gene.Rand(ast->size());
- std::cout <<"gene: ";
- gene.dump();
- // cgene = ast->CompleteGene(gene);
- // gene.SetFlat("10000110000001010100010010000000");
- cgene = ast->CompleteVarDefUse(gene);
- std::cout <<"cgene: ";
- cgene.dump();
- dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
- utils::visualize_dot_graph(dot);
+  /**
+   * Suite 1
+   */
+  gene.Rand(ast->size());
+  std::cout <<"gene: ";
+  gene.dump();
+  // cgene = ast->CompleteGene(gene);
+  // gene.SetFlat("10000110000001010100010010000000");
+  cgene = ast->CompleteVarDefUse(gene);
+  std::cout <<"cgene: ";
+  cgene.dump();
+  dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
+  // utils::visualize_dot_graph(dot);
 
- /**
-  * Suite 2
-  */
- // gene.Rand(ast->size());
- // std::cout <<"gene: ";
- // gene.dump();
- // cgene = ast->CompleteGene(gene);
- // std::cout <<"cgene: ";
- // cgene.dump();
- // dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
- // utils::visualize_dot_graph(dot);
+  /**
+   * Suite 2
+   */
+  // gene.Rand(ast->size());
+  // std::cout <<"gene: ";
+  // gene.dump();
+  // cgene = ast->CompleteGene(gene);
+  // std::cout <<"cgene: ";
+  // cgene.dump();
+  // dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
+  // utils::visualize_dot_graph(dot);
 
- // std::cout <<dot  << "\n";
- delete ast;
+  // std::cout <<dot  << "\n";
+  delete ast;
 }

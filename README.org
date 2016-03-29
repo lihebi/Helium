@@ -21,6 +21,17 @@ make
 make install
 #+end_src
 
+*** google test (optional, required for running built-in unit tests)
+Follow instructions on [[https://github.com/google/googletest][Google Test]].
+Basically
+
+#+BEGIN_SRC shell
+mkdir build
+cd build
+cmake ..
+make
+make install # will install libgtest.a to standard location
+#+END_SRC
 ** compile
 
 #+begin_src shell
