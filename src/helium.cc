@@ -10,6 +10,9 @@
 #include "helium_utils.h"
 #include "options.h"
 
+#include "ast.h"
+#include "ast_node.h"
+
 #include <gtest/gtest.h>
 
 using namespace utils;
@@ -105,6 +108,23 @@ Helium::Helium(int argc, char* argv[]) {
     HeaderSorter::Instance()->Load(m_folder);
     HeaderSorter::Instance()->Dump();
     exit(0);
+  }
+
+  if (args.Has("create-function-ast")) {
+    // this only works for a single file
+    if (utils::file_exists(m_folder)) {
+      ast::XMLDoc doc;
+      utils::file2xml(m_folder, doc);
+      ast::NodeList func_nodes = ast::find_nodes(doc, ast::NK_Function);
+      for (ast::Node func : func_nodes) {
+        ast::AST ast(func);
+        ast.Visualize();
+      }
+      exit(0);
+    } else {
+      std::cerr << "create-function-ast only works for a single file.\n";
+      exit(1);
+    }
   }
 
 

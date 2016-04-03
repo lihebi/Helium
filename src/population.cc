@@ -27,6 +27,7 @@ std::string Population::GetCode(size_t idx) {
 void Population::Complete() {
   for (Gene *g : m_genes) {
     Gene cg = m_ast->CompleteGene(*g);
+    // FIXME deprecated
     Gene defuseg = m_ast->CompleteVarDefUse(cg);
     m_cgene_m[g] = cg;
     m_defuse_gene_m[g] = defuseg;

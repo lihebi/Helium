@@ -779,6 +779,17 @@ NodeList ast::switch_get_cases(Node node) {
   }
   return result;
 }
+Node ast::switch_get_default(Node node) {
+  return node.child("block").child("default");
+}
+
+Node ast::case_get_condition_expr(Node node) {
+  return node.child("expr");
+}
+
+
+
+// deprecated
 NodeList ast::case_get_nodes(Node node) {
   NodeList result;
   if (node.child("block")) {

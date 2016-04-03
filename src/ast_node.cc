@@ -2,18 +2,19 @@
 #include <gtest/gtest.h>
 #include "utils.h"
 
-#define DEBUG_AST_NODE_TRACE
-#undef DEBUG_AST_NODE_TRACE
-
 
 
 using namespace ast;
 static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}
   , {NK_Block, ANK_Block}
+  // statements
   , {NK_Stmt, ANK_Stmt}
   , {NK_ExprStmt, ANK_Stmt}
   , {NK_DeclStmt, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
+  , {NK_Break, ANK_Stmt}
+  , {NK_Continue, ANK_Stmt}
   , {NK_Return, ANK_Stmt}
   // , {NK_EmptyStmt, ANK_Stmt}
   , {NK_Expr, ANK_Expr}
@@ -113,10 +114,10 @@ ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *a
     ret = new Stmt(xml_node, parent, ast);
     break;
   }
-  case ANK_Expr: {
-    ret = new Expr(xml_node, parent, ast);
-    break;
-  }
+  // case ANK_Expr: {
+  //   ret = new Expr(xml_node, parent, ast);
+  //   break;
+  // }
   case ANK_If: {
     ret = new If(xml_node, parent, ast);
     break;
@@ -355,7 +356,7 @@ void ast::dfs(ASTNode *node, std::vector<ASTNode*> &visited) {
 
 void SymbolTable::local_dump() {
   for (auto m : m_map) {
-    std::cout <<m.first << ":" << m.second->GetLabel()  << "\n";
+    std::cout <<m.first << ":" << m.second->GetNode()->GetLabel()  << "\n";
   }
 }
 void SymbolTable::dump() {
@@ -503,45 +504,50 @@ ASTNode *AST::ComputeLCA(std::set<int> indices) {
   return ComputeLCA(nodes);
 }
 
+/**
+ * FIXME deprecated
+ * 1. Get all used variable names in nodes
+ * 2. Try to look up their symbol table to locate the nodes that defines them
+ */
 std::set<ASTNode*> AST::CompleteVarDefUse(std::set<ASTNode*> nodes) {
   std::set<ASTNode*> ret;
-  std::set<ASTNode*> all(nodes.begin(), nodes.end());
-  std::vector<ASTNode*> worklist(nodes.begin(), nodes.end());
-  // for (ASTNode *node : nodes) {
-  while (!worklist.empty()) {
-    ASTNode *node = worklist.back();
-    worklist.pop_back();
-    // wait, I want to build a symbol table for the AST.
-    // It should not be large, and it should not care about inter-procedure
-    // std::cout <<" at " << m_idx_m[node] << "\n";
-    std::set<std::string> ids = node->GetVarIds();
-    for (std::string id : ids) {
-      if (id.empty()) continue;
-      if (is_c_keyword(id)) continue;
-      // std::cout <<id << " YYY at " << m_idx_m[node] << "\n";
-      SymbolTable *tbl = node->GetSymTbl();
-      ASTNode *def = tbl->LookUp(id);
-      if (def && all.count(def) == 0) {
-        // this should be in result
-        ret.insert(def);
-        all.insert(def);
-        worklist.push_back(def);
-      } else {
-        // std::cout <<": but fail to look up"  << "\n";
-        // node->GetSymTbl()->dump();
-      }
-    }
-  }
-  ret.insert(nodes.begin(), nodes.end());
+  // std::set<ASTNode*> all(nodes.begin(), nodes.end());
+  // std::vector<ASTNode*> worklist(nodes.begin(), nodes.end());
+  // // for (ASTNode *node : nodes) {
+  // while (!worklist.empty()) {
+  //   ASTNode *node = worklist.back();
+  //   worklist.pop_back();
+  //   // wait, I want to build a symbol table for the AST.
+  //   // It should not be large, and it should not care about inter-procedure
+  //   // std::cout <<" at " << m_idx_m[node] << "\n";
+  //   std::set<std::string> ids = node->GetVarIds();
+  //   for (std::string id : ids) {
+  //     if (id.empty()) continue;
+  //     if (is_c_keyword(id)) continue;
+  //     // std::cout <<id << " YYY at " << m_idx_m[node] << "\n";
+  //     SymbolTable *tbl = node->GetSymTbl();
+  //     ASTNode *def = tbl->LookUp(id);
+  //     if (def && all.count(def) == 0) {
+  //       // this should be in result
+  //       ret.insert(def);
+  //       all.insert(def);
+  //       worklist.push_back(def);
+  //     } else {
+  //       // std::cout <<": but fail to look up"  << "\n";
+  //       // node->GetSymTbl()->dump();
+  //     }
+  //   }
+  // }
+  // ret.insert(nodes.begin(), nodes.end());
   return ret;
 }
 
 Gene AST::CompleteVarDefUse(Gene gene) {
-  std::set<int> indice = gene.GetIndiceS();
-  std::set<ASTNode*> nodes = Index2Node(indice);
-  nodes = CompleteVarDefUse(nodes);
-  indice = Node2Index(nodes);
-  gene.SetIndiceS(indice, gene.size());
+  // std::set<int> indice = gene.GetIndiceS();
+  // std::set<ASTNode*> nodes = Index2Node(indice);
+  // nodes = CompleteVarDefUse(nodes);
+  // indice = Node2Index(nodes);
+  // gene.SetIndiceS(indice, gene.size());
   return gene;
 }
 
@@ -558,794 +564,4 @@ void Gene::Rand(size_t size) {
     }
   }
   SetFlat(flat);
-}
-
-
-/*******************************
- ** AST Node 
- *******************************/
-
-
-/*******************************
- ** General
- *******************************/
-
-Expr::Expr(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  assert(false);
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_parent->GetSymTbl();
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- Expr" << "\n";
-  #endif
-}
-void Expr::GetCode(std::set<ASTNode*> nodes,
-                   std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-}
-
-Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_parent->GetSymTbl();
-  }
-  /**
-   * push the symbol table
-   */
-  if (kind(xmlnode) == NK_DeclStmt) {
-    XMLNodeList decls = ast::decl_stmt_get_decls(xmlnode);
-    for (XMLNode decl : decls) {
-      std::string declname = decl_get_name(decl);
-      m_sym_tbl->AddSymbol(declname, this);
-    }
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- Stmt" << "\n";
-  #endif
-}
-void Stmt::GetCode(std::set<ASTNode*> nodes,
-                   std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += get_text(m_xmlnode);
-  }
-  // ret += "\n";
-}
-
-
-/**
- * This is NOT a ASTNode! Just itself.
- */
-Decl::Decl(XMLNode xmlnode) {
-  m_xmlnode = xmlnode;
-  // m_type
-  m_type = decl_get_type(xmlnode);
-  // m_name
-  m_name = decl_get_name(xmlnode);
-}
-
-/******************************
- ** Function
- *******************************/
-
-Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- Function" << "\n";
-  #endif
-  // m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
-  m_ret_ty = function_get_return_type(xmlnode);
-  m_name = xmlnode.child_value("name"); // function_get_name(xmlnode);
-  XMLNode blk_n = xmlnode.child("block"); // function_get_block(xmlnode);
-  m_blk = new Block(blk_n, this, ast);
-  XMLNodeList nodes = function_get_param_decls(xmlnode);
-  for (XMLNode node : nodes) {
-    // needs to be delete'd
-    m_params.push_back(new Decl(node));
-  }
-  // constructnig children
-  m_children.push_back(m_blk);
-  /**
-   * Push the symbol table
-   */
-  for (Decl *decl : m_params) {
-    m_sym_tbl->AddSymbol(decl->GetName(), this);
-  }
-}
-
-Function::~Function() {
-  for (Decl *decl : m_params) {
-    delete decl;
-  }
-}
-
-void Function::GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  // temporarily disable this, i.e. no function decl, only body
-  // so that it is valid to be put in a main function
-  if (selected) {
-    ret += m_ret_ty + " " + m_name + "(";
-    if (!m_params.empty()) {
-      for (Decl *param : m_params) {
-        ret += param->GetType();
-        ret += " ";
-        ret += param->GetName();
-        ret += ",";
-      }
-      ret.pop_back(); // remove last ","
-    }
-    ret += ")";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-}
-
-std::string Function::GetLabel() {
-  // return m_name;
-  std::string ret;
-  ret += m_name + "(";
-  if (!m_params.empty()) {
-    for (Decl *param : m_params) {
-      ret += param->GetType();
-      ret += " ";
-      ret += param->GetName();
-      ret += ",";
-    }
-    ret.pop_back(); // remove last ","
-  }
-  ret += ")";
-  return ret;
-}
-
-
-Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- Block" << "\n";
-  #endif
-  // constructing children
-  XMLNodeList nodes = block_get_nodes(xmlnode);
-  for (XMLNode node : nodes) {
-    ASTNode *anode = ASTNodeFactory::CreateASTNode(node, this, ast);
-    if (anode) {
-      // anode->SetParent(this);
-      m_children.push_back(anode);
-    }
-  }
-}
-
-void Block::GetCode(std::set<ASTNode*> nodes,
-                    std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  if (selected || add_brace) {
-    ret += "{\n";
-  }
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, false);
-  }
-  if (selected || add_brace) {
-    ret += "\n}";
-  }
-}
-
-/*******************************
- ** Condition
- *******************************/
-
-If::If(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- IF" << "\n";
-  #endif
-  m_cond = if_get_condition_expr(xmlnode);
-  XMLNode then_node = if_get_then(xmlnode);
-  XMLNode else_node = if_get_else(xmlnode);
-  XMLNodeList nodes = if_get_elseifs(xmlnode);
-  if (then_node) {
-    m_then = new Then(then_node, this, ast);
-    m_children.push_back(m_then);
-  }
-  for (XMLNode node : nodes) {
-    ElseIf *anode = new ElseIf(node, this, ast);
-    m_elseifs.push_back(anode);
-  }
-  m_children.insert(m_children.end(), m_elseifs.begin(), m_elseifs.end());
-  if (else_node) {
-    m_else = new Else(else_node, this, ast);
-    m_children.push_back(m_else);
-  }
-}
-
-void If::GetCode(std::set<ASTNode*> nodes,
-                 std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "if (";
-    ret += get_text(m_cond);
-    ret += ")";
-  }
-  m_then->GetCode(nodes, ret, all, selected);
-  for (ElseIf *ei : m_elseifs) {
-    ei->GetCode(nodes, ret, all);
-  }
-  if (m_else) {
-    m_else->GetCode(nodes, ret, all);
-  }
-}
-
-std::string If::GetLabel() {
-  // with condition
-  std::string ret;
-  ret += "if (" + get_text(m_cond) + ")";
-  return ret;
-}
-
-
-Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_parent = parent;
-  m_xmlnode = xmlnode;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  XMLNode node = then_get_block(xmlnode);
-  m_blk = new Block(node, this, ast);
-  m_children.push_back(m_blk);
-}
-
-void Then::GetCode(std::set<ASTNode*> nodes,
-                   std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  // if (!nodes.empty() && nodes.count(this) == 0) {
-  //   ret += "{}";
-  //   return;
-  // }
-  m_blk->GetCode(nodes, ret, add_brace);
-}
-
-Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_parent = parent;
-  m_xmlnode = xmlnode;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  XMLNode node = else_get_block(xmlnode);
-  m_blk = new Block(node, this, ast);
-  m_children.push_back(m_blk);
-}
-void Else::GetCode(std::set<ASTNode*> nodes,
-                   std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "else";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-}
-
-ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_parent = parent;
-  m_xmlnode = xmlnode;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  XMLNode node = elseif_get_block(xmlnode);
-  m_cond = elseif_get_condition_expr(xmlnode);
-  m_blk = new Block(node, this, ast);
-  m_children.push_back(m_blk);
-}
-
-void ElseIf::GetCode(std::set<ASTNode*> nodes,
-                     std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "else if(" + get_text(m_cond) + ")";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-}
-
-std::string ElseIf::GetLabel() {
-  std::string ret;
-  ret += "elseif (" + get_text(m_cond) + ")";
-  return ret;
-}
-
-
-/**
- * Switch is not used currently.
- */
-Switch::Switch(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- SWITCH" << "\n";
-  #endif
-  XMLNodeList blocks = switch_get_blocks(xmlnode);
-  for (XMLNode block_node : blocks) {
-    Block* block = new Block(block_node, this, ast);
-    m_blks.push_back(block);
-  }
-  // m_cond = switch_get_condition(xmlnode);
-  // m_cond = xmlnode.child("condition").child("expr");
-  m_children.insert(m_children.end(), m_blks.begin(), m_blks.end());
-}
-
-void Switch::GetCode(std::set<ASTNode*> nodes,
-                     std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  ret.size();
-  return;
-}
-
-Case::Case(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_parent = parent;
-  m_xmlnode = xmlnode;
-  m_ast = ast;
-  // FIXME Should assert(m_parent!=NULL) ?
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    // FIXME symbol table do not change
-    m_sym_tbl = m_parent->GetSymTbl();
-  }
-}
-void Case::GetCode(std::set<ASTNode*> nodes,
-                   std::string &ret, bool all, bool add_brace) {
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-}
-
-Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_parent = parent;
-  m_xmlnode = xmlnode;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_parent->GetSymTbl();
-  }
-}
-void Default::GetCode(std::set<ASTNode*> nodes,
-                      std::string &ret, bool all, bool add_brace) {
-}
-
-/*******************************
- ** Loop
- *******************************/
-
-While::While(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- WHILE" << "\n";
-  #endif
-  XMLNode blk_node = while_get_block(xmlnode);
-  m_blk = new Block(blk_node, this, ast);
-  m_cond = while_get_condition_expr(xmlnode);
-  m_children.push_back(m_blk);
-}
-
-void While::GetCode(std::set<ASTNode*> nodes,
-                    std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "while (";
-    ret += get_text(m_cond);
-    ret += ")";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-}
-
-std::string While::GetLabel() {
-  std::string ret;
-  ret += "while (";
-  ret += get_text(m_cond);
-  ret += ")";
-  return ret;
-}
-
-
-
-Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- DO" << "\n";
-  #endif
-  XMLNode blk_node = while_get_block(xmlnode);
-  m_blk = new Block(blk_node, this, ast);
-  m_cond = while_get_condition_expr(xmlnode);
-  m_children.push_back(m_blk);
-}
-
-void Do::GetCode(std::set<ASTNode*> nodes,
-                 std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "do ";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-  if (selected) {
-    ret += "while (";
-    ret += get_text(m_cond);
-    ret += ");";
-  }
-}
-
-std::string Do::GetLabel() {
-  std::string ret;
-  ret += "do ";
-  ret += "while (";
-  ret += get_text(m_cond);
-  ret += ");";
-  return ret;
-}
-
-
-For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
-  m_xmlnode = xmlnode;
-  m_parent = parent;
-  m_ast = ast;
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
-  }
-  #ifdef DEBUG_AST_NODE_TRACE
-  std::cout << "---- FOR" << "\n";
-  #endif
-  m_cond = for_get_condition_expr(xmlnode);
-  m_incr = for_get_incr_expr(xmlnode);
-  XMLNode blk_n = for_get_block(xmlnode);
-  m_blk = new Block(blk_n, this, ast);
-  m_inits = for_get_init_decls_or_exprs(xmlnode);
-  m_children.push_back(m_blk);
-  /**
-   * Push the symbol table
-   */
-  for (XMLNode init : m_inits) {
-    if (kind(init) == NK_Decl) {
-      std::string name = decl_get_name(init);
-      m_sym_tbl->AddSymbol(name, this);
-    }
-  }
-}
-
-void For::GetCode(std::set<ASTNode*> nodes,
-                  std::string &ret, bool all, bool add_brace) {
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  bool selected = nodes.count(this) == 1;
-  selected |= all;
-  if (selected) {
-    ret += "for (";
-    // init
-    if (!m_inits.empty()) {
-      for (XMLNode n : m_inits) {
-        ret += get_text(n);
-        ret += ",";
-      }
-      ret.pop_back();
-    }
-    ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
-  }
-  m_blk->GetCode(nodes, ret, all, selected);
-}
-
-std::string For::GetLabel() {
-  std::string ret;
-  ret += "for (";
-  // init
-  if (!m_inits.empty()) {
-    for (XMLNode n : m_inits) {
-      ret += get_text(n);
-      ret += ",";
-    }
-    ret.pop_back();
-  }
-  ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
-  return ret;
-}
-
-std::set<std::string> For::GetVarIds() {
-  std::set<std::string> ret;
-  std::set<std::string> ids;
-  ids = get_var_ids(m_cond);
-  ret.insert(ids.begin(), ids.end());
-  for (XMLNode init : m_inits) {
-    ids = get_var_ids(init);
-    ret.insert(ids.begin(), ids.end());
-  }
-  ids = get_var_ids(m_incr);
-  ret.insert(ids.begin(), ids.end());
-  return ret;
-}
-
-
-std::set<std::string> For::GetIdToResolve() {
-  std::set<std::string> ret;
-  std::set<std::string> tmp;
-  tmp = extract_id_to_resolve(get_text(m_cond));
-  ret.insert(tmp.begin(), tmp.end());
-  tmp = extract_id_to_resolve(get_text(m_incr));
-  ret.insert(tmp.begin(), tmp.end());
-  for (XMLNode n : m_inits) {
-    tmp = extract_id_to_resolve(get_text(n));
-    ret.insert(tmp.begin(), tmp.end());
-  }
-  return ret;
-}
-
-/**
- * Disable because it will not check something.
- * It just run some code, visualize it.
- */
-TEST(ASTNodeTestCase, DISABLED_NodeTest) {
-  ast::Doc doc;
-const char *raw = R"prefix(
-
-int foo() {
-if (x>0) {
-  while (x<10) {
-    a=b;
-    c=d;
-    if (a>c) {
-      sum+=c;
-    } else if (a==c) {
-      sum += con1;
-    } else {
-      sum += a;
-    }
-  }
-} else {
-  sum = 0;
-  for (int i=0;i<8;i++) {
-    sum += i;
-  }
-}
-}
-
-)prefix";
-
- utils::string2xml(raw, doc);
- NodeList nodes = find_nodes(doc, NK_Function);
- ASSERT_EQ(nodes.size(), 1);
- AST *ast = new AST(nodes[0]);
- std::string code = ast->GetCode();
- // code = utils::exec_in("indent", code.c_str());
- std::cout <<code  << "\n";
-// THIS IS IMPORTANT! SEED the random.
- utils::seed_rand();
- Gene gene, cgene;
- std::string dot;
-
- std::cout <<"begin test suite"  << "\n";
-
- /**
-  * Suite 1
-  */
- gene.Rand(ast->size());
- // gene.SetFlat("0000111011101010010110000");
- std::cout <<"gene: ";
- gene.dump();
- cgene = ast->CompleteGene(gene);
- std::cout <<"cgene: ";
- cgene.dump();
- dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
- utils::visualize_dot_graph(dot);
-
- /**
-  * Suite 2
-  */
- // gene.Rand(ast->size());
- // std::cout <<"gene: ";
- // gene.dump();
- // cgene = ast->CompleteGene(gene);
- // std::cout <<"cgene: ";
- // cgene.dump();
- // dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
- // utils::visualize_dot_graph(dot);
-
- // std::cout <<dot  << "\n";
- delete ast;
-}
-
-TEST(ASTNodeTestCase, DISABLED_ExtraNodeTest) {
-  ast::Doc doc;
-  const char *raw = R"prefix(
-int
-res_hnok(const char *dn) {
-	int ppch = '\0', pch = PERIOD, ch = *dn++;
-
-	while (ch != '\0') {
-		int nch = *dn++;
-
-		if (periodchar(ch)) {
-			(void)NULL;
-		} else if (periodchar(pch)) {
-			if (!borderchar(ch))
-				return (0);
-		} else if (periodchar(nch) || nch == '\0') {
-			if (!borderchar(ch))
-				return (0);
-		} else {
-			if (!middlechar(ch))
-				return (0);
-		}
-		ppch = pch, pch = ch, ch = nch;
-	}
-	return (1);
-}
-)prefix";
-
-  utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
-  ASSERT_EQ(nodes.size(), 1);
-  AST *ast = new AST(nodes[0]);
-  ast->Visualize();
-}
-
-TEST(ASTNodeTestCase, DISABLED_VarDefUseTest) {
-  ast::Doc doc;
-  const char *raw = R"prefix(
-
-
-int foo() {
-  int x=0;
-  int sum=0;
-  if (x>0) {
-    int a=1;
-    int b=1;
-    int c=2;
-    int d=3;
-    while (x<10) {
-      a=b;
-      c=d;
-      int con1=8;
-      if (a>c) {
-        sum+=c;
-      } else if (a==c) {
-        sum += con1;
-      } else {
-        sum += a;
-      }
-    }
-  } else {
-    sum = 0;
-    for (int i=0;i<8;i++) {
-      sum += i;
-    }
-  }
-  return sum;
-}
-)prefix";
-
-  utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
-  ASSERT_EQ(nodes.size(), 1);
-  AST *ast = new AST(nodes[0]);
-  std::string code = ast->GetCode();
-  // code = utils::exec_in("indent", code.c_str());
-  std::cout <<code  << "\n";
-  // THIS IS IMPORTANT! SEED the random.
-  utils::seed_rand();
-  Gene gene, cgene;
-  std::string dot;
-
-  std::cout <<"begin test suite"  << "\n";
-
-  /**
-   * Suite 1
-   */
-  gene.Rand(ast->size());
-  std::cout <<"gene: ";
-  gene.dump();
-  // cgene = ast->CompleteGene(gene);
-  // gene.SetFlat("10000110000001010100010010000000");
-  cgene = ast->CompleteVarDefUse(gene);
-  std::cout <<"cgene: ";
-  cgene.dump();
-  dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
-  // utils::visualize_dot_graph(dot);
-
-  /**
-   * Suite 2
-   */
-  // gene.Rand(ast->size());
-  // std::cout <<"gene: ";
-  // gene.dump();
-  // cgene = ast->CompleteGene(gene);
-  // std::cout <<"cgene: ";
-  // cgene.dump();
-  // dot = ast->VisualizeI(gene.GetIndiceS(), cgene.GetIndiceS());
-  // utils::visualize_dot_graph(dot);
-
-  // std::cout <<dot  << "\n";
-  delete ast;
 }

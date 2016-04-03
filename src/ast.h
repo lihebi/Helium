@@ -9,6 +9,7 @@ namespace ast {
   typedef pugi::xml_node Node;
   typedef pugi::xml_node XMLNode;
   typedef pugi::xml_document Doc;
+  typedef pugi::xml_document XMLDoc;
   typedef std::vector<Node> NodeList;
   typedef NodeList XMLNodeList;
 
@@ -169,6 +170,10 @@ namespace ast {
   // switch
   Node switch_get_condition_expr(Node);
   NodeList switch_get_cases(Node);
+  Node switch_get_default(Node node);
+  Node case_get_condition_expr(Node node);
+
+  
   NodeList case_get_nodes(Node);
   NodeList switch_get_blocks(Node node);
   Node switch_get_block(Node node);

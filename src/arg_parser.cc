@@ -38,6 +38,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print-segment-info", "print segment count, segment size LOC in total, for every file")
     ("print-header-deps", "print header dependencies")
     ("check-headers", "check if the headers in headers.conf exists on this machine")
+    ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ;
     
 

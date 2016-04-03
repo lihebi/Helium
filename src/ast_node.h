@@ -71,6 +71,17 @@ namespace ast {
     std::set<int> m_indice_s; // (set of above)
   };
 
+  class SymbolTableValue {
+  public:
+    SymbolTableValue(std::string name, ASTNode *node) :m_name(name), m_node(node) {}
+    ~SymbolTableValue() {}
+    std::string GetName() {return m_name;}
+    ASTNode *GetNode() {return m_node;}
+  private:
+    std::string m_name;
+    ASTNode *m_node = NULL;
+  };
+
   class SymbolTable {
   public:
     /**
@@ -81,8 +92,8 @@ namespace ast {
     /**
      * Look up recursively to parent, until empty
      */
-    ASTNode* LookUp(std::string key) {
-      ASTNode *ret;
+    SymbolTableValue* LookUp(std::string key) {
+      SymbolTableValue *ret;
       SymbolTable *tbl = this;
       while (tbl) {
         ret = tbl->LocalLookUp(key);
@@ -91,18 +102,21 @@ namespace ast {
       }
       return NULL;
     }
-    ASTNode *LocalLookUp(std::string key) {
+    SymbolTableValue *LocalLookUp(std::string key) {
       if (m_map.count(key) == 1) return m_map[key];
       else return NULL;
     }
-    void AddSymbol(std::string key, ASTNode* value) {
-      m_map[key] = value;
+    void AddSymbol(std::string key, std::string name, ASTNode* node) {
+      if (m_map.count(key) == 1) {
+        delete m_map[key];
+      }
+      m_map[key] = new SymbolTableValue(name, node);
     }
     void dump();
     void local_dump();
   private:
     SymbolTable *m_parent = NULL;
-    std::map<std::string, ASTNode*> m_map;
+    std::map<std::string, SymbolTableValue*> m_map;
   };
 
   /**
@@ -204,8 +218,7 @@ namespace ast {
      * because it make no sense to get code for an empty set of allowed nodes, which should simply be empty.
      */
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) = 0;
+                         std::string &ret, bool all) = 0;
     virtual std::set<std::string> GetVarIds() {return {};}
     virtual std::set<std::string> GetIdToResolve() {return {};}
 
@@ -260,10 +273,9 @@ namespace ast {
     std::string GetReturnType() {return m_ret_ty;}
     std::string GetName() {return m_name;}
     void GetParams() {}
-    Block* GetBlock() {return m_blk;}
+    // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::set<std::string> GetIdToResolve() override {
       std::set<std::string> ret;
       std::set<std::string> tmp;
@@ -278,7 +290,7 @@ namespace ast {
   private:
     std::string m_ret_ty;
     std::string m_name;
-    Block *m_blk = NULL;
+    // Block *m_blk = NULL;
     std::vector<Decl*> m_params;
   };
   // general
@@ -288,8 +300,7 @@ namespace ast {
     ~Block() {}
     ASTNodeKind Kind() override {return ANK_Block;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Block";}
   private:
   };
@@ -300,8 +311,7 @@ namespace ast {
     virtual ~Stmt() {}
     ASTNodeKind Kind() override {return ANK_Stmt;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::set<std::string> GetVarIds() override {
       std::set<std::string> ids = get_var_ids(m_xmlnode);
       return ids;
@@ -319,27 +329,6 @@ namespace ast {
     }
   private:
   };
-  class Expr : public ASTNode {
-  public:
-    Expr(XMLNode, ASTNode* parent, AST *ast);
-    ~Expr() {}
-    ASTNodeKind Kind() override {return ANK_Expr;}
-    virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
-    virtual std::set<std::string> GetVarIds() override {
-      return get_var_ids(m_xmlnode);
-    }
-    virtual std::string GetLabel() override {
-      std::string ret;
-      std::set<ASTNode*> nodes;
-      GetCode(nodes, ret, true);
-      return ret;
-    }
-  private:
-  };
-
-
 
   // condition
   class If : public ASTNode {
@@ -352,8 +341,7 @@ namespace ast {
     std::vector<ElseIf*> GetElseIfs() {return m_elseifs;}
     Else* GetElse() {return m_else;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override {
       return get_var_ids(m_cond);
@@ -373,14 +361,11 @@ namespace ast {
   public:
     ASTNodeKind Kind() override {return ANK_Else;}
     Else(XMLNode, ASTNode* parent, AST *ast);
-    Block* GetBlock() {return m_blk;}
     ~Else() {}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Else";}
   private:
-    Block *m_blk = NULL;
   };
   
   class ElseIf : public ASTNode {
@@ -388,10 +373,8 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_ElseIf;}
     ElseIf(XMLNode, ASTNode* parent, AST *ast);
     XMLNode GetCondition() {return m_cond;}
-    Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override {
       return get_var_ids(m_cond);
@@ -401,7 +384,6 @@ namespace ast {
     }
   private:
     XMLNode m_cond;
-    Block *m_blk = NULL;
   };
   
   class Then : public ASTNode {
@@ -410,49 +392,49 @@ namespace ast {
     Then(XMLNode, ASTNode* parent, AST *ast);
     Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Then";}
   private:
     Block *m_blk = NULL;
   };
-  
+
+
+  /*******************************
+   * Swith
+   *******************************/
   class Switch : public ASTNode {
   public:
     ASTNodeKind Kind() override {return ANK_Switch;}
     Switch(XMLNode, ASTNode* parent, AST *ast);
     ~Switch() {}
-    // XMLNode Condition() {return m_cond;}
-    // void Cases() {}
-    std::vector<Block*> GetBlocks() {return m_blks;}
+    XMLNode GetCondition() {return m_cond;}
+    std::vector<Case*> GetCases() {return m_cases;}
+    Default* GetDefault() {return m_default;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
-    virtual std::string GetLabel() override {return "Switch";}
+                         std::string &ret, bool all) override;
+    virtual std::string GetLabel() override;
   private:
-    // XMLNode m_cond;
-    std::vector<Block*> m_blks;
+    XMLNode m_cond;
+    std::vector<Case*> m_cases;
+    Default *m_default = NULL;
   };
-  /**
-   * Case is currently not used.
-   */
+
   class Case : public ASTNode {
   public:
     ASTNodeKind Kind() override {return ANK_Case;}
     Case(XMLNode, ASTNode* parent, AST *ast);
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
-    virtual std::string GetLabel() override {return "Case";}
+                         std::string &ret, bool all) override;
+    virtual std::string GetLabel() override;
   private:
+    XMLNode m_cond;
   };
   class Default : public ASTNode {
   public:
     ASTNodeKind Kind() override {return ANK_Default;}
     Default(XMLNode, ASTNode* parent, AST *ast);
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Default";}
   private:
   };
@@ -466,10 +448,9 @@ namespace ast {
     XMLNodeList GetInits() {return m_inits;}
     XMLNode GetCondition() {return m_cond;}
     XMLNode GetIncr() {return m_incr;}
-    Block* GetBlock() {return m_blk;}
+    // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override;
     virtual std::set<std::string> GetIdToResolve() override;
@@ -477,7 +458,7 @@ namespace ast {
     XMLNode m_cond;
     XMLNodeList m_inits;
     XMLNode m_incr;
-    Block* m_blk = NULL;
+    // Block* m_blk = NULL;
   };
   class While : public ASTNode {
   public:
@@ -485,10 +466,9 @@ namespace ast {
     While(XMLNode, ASTNode* parent, AST *ast);
     ~While() {}
     XMLNode GetCondition() {return m_cond;}
-    Block* GetBlock() {return m_blk;}
+    // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override {
       return get_var_ids(m_cond);
@@ -498,7 +478,7 @@ namespace ast {
     }
   private:
     XMLNode m_cond;
-    Block *m_blk = NULL;
+    // Block *m_blk = NULL;
   };
   class Do : public ASTNode {
   public:
@@ -506,10 +486,9 @@ namespace ast {
     Do(XMLNode, ASTNode* parent, AST *ast);
     ~Do() {}
     XMLNode GetCondition() {return m_cond;}
-    Block* GetBlock() {return m_blk;}
+    // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override {
       return get_var_ids(m_cond);
@@ -519,7 +498,7 @@ namespace ast {
     }
   private:
     XMLNode m_cond;
-    Block *m_blk = NULL;
+    // Block *m_blk = NULL;
   };
 
   class ASTOther : public ASTNode {
@@ -527,8 +506,7 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_Other;}
     ASTOther(XMLNode, ASTNode* parent, AST *ast);
     virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all,
-                         bool add_brace=false) override;
+                         std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Other";}
   private:
   };
