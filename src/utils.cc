@@ -366,7 +366,7 @@ void utils::visualize_dot_graph(const std::string& dot, std::string filename) {
   // }
   filename =  dir + "/" + filename + ".dot";
   utils::write_file(filename, dot);
-  std::cout << "wrote to file: " + filename << "\n";
+  // std::cout << "wrote to file: " + filename << "\n";
   // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
   // utils::exec(cmd_png.c_str());
 #ifdef __MACH__

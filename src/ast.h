@@ -150,7 +150,7 @@ namespace ast {
   Node for_get_condition_expr(Node node);
   Node for_get_incr_expr(Node node);
   Node for_get_block(Node node);
-  
+  Node for_get_control(Node node);  
   // if
   Node if_get_condition_expr(Node node);
   Node if_get_then_block(Node node);

@@ -324,8 +324,7 @@ Segment::getInputCode() {
   return spec + code;
 }
 
-std::string
-Segment::getHeader() {
+std::string get_header() {
   std::string s;
   std::vector<std::string> system_headers;
   std::vector<std::string> local_headers;
@@ -378,7 +377,7 @@ std::string Segment::GetMain() {
   // add a comment before seg
   instrument();
   std::string s;
-  s += getHeader();
+  s += get_header();
 
   s += "\n";
   for (Node func : m_function_nodes) {
@@ -442,8 +441,7 @@ compare(const Snippet* s1, const Snippet* s2) {
 
 
 // use HeaderSorter
-std::vector<Snippet*>
-sortSnippets(std::set<Snippet*> all) {
+std::vector<Snippet*> sort_snippets(std::set<Snippet*> all) {
   std::vector<Snippet*> sorted;
   // prepare containers
   std::set<std::string> all_files;
@@ -502,7 +500,7 @@ std::string Segment::GetSupport() {
   std::set<Snippet*> all_snippets;
   all_snippets = SnippetRegistry::Instance()->GetAllDeps(m_snippets);
   // sort the snippets
-  std::vector<Snippet*> sorted_all_snippets = sortSnippets(all_snippets);
+  std::vector<Snippet*> sorted_all_snippets = sort_snippets(all_snippets);
   // FIXME This sorted is 0
   // return the snippet code
   std::string code = "";

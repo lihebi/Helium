@@ -9,6 +9,9 @@ bin/*
 tags
 *.tags
 TAGS
+GTAGS
+GRTAGS
+GPATH
 
 a.out
 

@@ -539,10 +539,13 @@ NodeList ast::block_get_nodes(Node node) {
  */
   
 std::string ast::function_get_return_type(Node node) {
-  return node.child("type").child_value("name");
+  // return node.child("type").child_value("name");
+  // FIXME This may have *, enum, etc. I.e. not clean
+  return get_text(node.child("type"));
 }
   
 std::string ast::function_get_name(Node node) {
+  // FIXME this may fail because ns::foo()
   return node.child_value("name");
 }
   
@@ -569,13 +572,44 @@ NodeList ast::function_get_param_decls(Node node) {
       }
     } else {
       // legacy
-      for (Node decl_stmt : node.child("decl_stmt")) {
+      for (Node decl_stmt : node.children("decl_stmt")) {
         result.push_back(decl_stmt.child("decl"));
       }
     }
   }
   return result;
 }
+
+TEST(ASTTestCase, LegacyFuncTest) {
+  Doc doc;
+  const char *raw = R"prefix(
+
+enum context
+ns_ownercontext(type, transport)
+	int type;
+	enum transport transport;
+{
+}
+
+)prefix";
+  utils::string2xml(raw, doc);
+  NodeList nodes = find_nodes(doc, NK_Function);
+  ASSERT_EQ(nodes.size(), 1);
+  
+  NodeList decls = function_get_param_decls(nodes[0]);
+  ASSERT_EQ(decls.size(), 2);
+  // for (Node decl : decls) {
+  //   std::cout << get_text(decl)  << "\n";
+  // }
+  EXPECT_EQ(decl_get_type(decls[0]), "int");
+  EXPECT_EQ(decl_get_name(decls[0]), "type");
+  EXPECT_EQ(decl_get_type(decls[1]), "enum transport");
+  EXPECT_EQ(decl_get_name(decls[1]), "transport");
+  std::string ret_ty = function_get_return_type(nodes[0]);
+  EXPECT_EQ(ret_ty, "enum context");
+}
+
+
 Node ast::function_get_block(Node node) {
   return node.child("block");
 }
@@ -680,6 +714,9 @@ Node ast::for_get_incr_expr(Node node) {
 }
 Node ast::for_get_block(Node node) {
   return node.child("block");
+}
+Node ast::for_get_control(Node node) {
+  return node.child("control");
 }
 
 

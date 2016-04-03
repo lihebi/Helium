@@ -2,6 +2,7 @@
 #define POPULATION_H
 
 #include "ast_node.h"
+#include "snippet.h"
 
 using namespace ast;
 
@@ -24,6 +25,14 @@ public:
   size_t size() {
     return m_genes.size();
   }
+  void ResolveSnippet();
+  std::string GetMain(size_t idx);
+  std::string GetSupport(size_t idx);
+  std::string GetMakefile();
+  std::set<Snippet*> GetSnippets(size_t idx) {
+    return m_snippets[m_genes[idx]];
+  }
+  void Complete();
 private:
   void clearGene() {
     for (Gene *g : m_genes) {
@@ -33,6 +42,10 @@ private:
   }
   AST *m_ast;
   std::vector<Gene*> m_genes;
+  std::map<Gene*, std::set<Snippet*> > m_snippets;
+  std::map<Gene*, Gene> m_cgene_m;
+  std::map<Gene*, Gene> m_defuse_gene_m;
+  std::map<Gene*, std::string> m_function_m;
 };
 
 #endif /* POPULATION_H */

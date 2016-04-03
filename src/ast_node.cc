@@ -378,7 +378,7 @@ AST::~AST() {
   }
 }
 
-std::string AST::GetCode(std::set<ASTNode*> &nodes) {
+std::string AST::GetCode(std::set<ASTNode*> nodes) {
   if (!m_root) return "";
   if (nodes.empty()) return "";
   std::string ret;
@@ -571,6 +571,7 @@ void Gene::Rand(size_t size) {
  *******************************/
 
 Expr::Expr(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+  assert(false);
   m_xmlnode = xmlnode;
   m_parent = parent;
   m_ast = ast;
@@ -584,7 +585,7 @@ Expr::Expr(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   std::cout << "---- Expr" << "\n";
   #endif
 }
-void Expr::GetCode(std::set<ASTNode*> &nodes,
+void Expr::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -614,7 +615,7 @@ Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   std::cout << "---- Stmt" << "\n";
   #endif
 }
-void Stmt::GetCode(std::set<ASTNode*> &nodes,
+void Stmt::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -653,7 +654,8 @@ Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Function" << "\n";
   #endif
-  m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
+  // m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
+  m_ret_ty = function_get_return_type(xmlnode);
   m_name = xmlnode.child_value("name"); // function_get_name(xmlnode);
   XMLNode blk_n = xmlnode.child("block"); // function_get_block(xmlnode);
   m_blk = new Block(blk_n, this, ast);
@@ -678,14 +680,14 @@ Function::~Function() {
   }
 }
 
-void Function::GetCode(std::set<ASTNode*> &nodes,
+void Function::GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   // temporarily disable this, i.e. no function decl, only body
   // so that it is valid to be put in a main function
-  if (selected && false) {
+  if (selected) {
     ret += m_ret_ty + " " + m_name + "(";
     if (!m_params.empty()) {
       for (Decl *param : m_params) {
@@ -698,8 +700,26 @@ void Function::GetCode(std::set<ASTNode*> &nodes,
     }
     ret += ")";
   }
-  m_blk->GetCode(nodes, ret, false);
+  m_blk->GetCode(nodes, ret, all, selected);
 }
+
+std::string Function::GetLabel() {
+  // return m_name;
+  std::string ret;
+  ret += m_name + "(";
+  if (!m_params.empty()) {
+    for (Decl *param : m_params) {
+      ret += param->GetType();
+      ret += " ";
+      ret += param->GetName();
+      ret += ",";
+    }
+    ret.pop_back(); // remove last ","
+  }
+  ret += ")";
+  return ret;
+}
+
 
 Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_xmlnode = xmlnode;
@@ -725,7 +745,7 @@ Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   }
 }
 
-void Block::GetCode(std::set<ASTNode*> &nodes,
+void Block::GetCode(std::set<ASTNode*> nodes,
                     std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -777,7 +797,7 @@ If::If(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   }
 }
 
-void If::GetCode(std::set<ASTNode*> &nodes,
+void If::GetCode(std::set<ASTNode*> nodes,
                  std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -818,7 +838,7 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void Then::GetCode(std::set<ASTNode*> &nodes,
+void Then::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -843,7 +863,7 @@ Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_blk = new Block(node, this, ast);
   m_children.push_back(m_blk);
 }
-void Else::GetCode(std::set<ASTNode*> &nodes,
+void Else::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -870,7 +890,7 @@ ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void ElseIf::GetCode(std::set<ASTNode*> &nodes,
+void ElseIf::GetCode(std::set<ASTNode*> nodes,
                      std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -914,7 +934,7 @@ Switch::Switch(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.insert(m_children.end(), m_blks.begin(), m_blks.end());
 }
 
-void Switch::GetCode(std::set<ASTNode*> &nodes,
+void Switch::GetCode(std::set<ASTNode*> nodes,
                      std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -936,7 +956,7 @@ Case::Case(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_parent->GetSymTbl();
   }
 }
-void Case::GetCode(std::set<ASTNode*> &nodes,
+void Case::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all, bool add_brace) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
@@ -953,7 +973,7 @@ Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_parent->GetSymTbl();
   }
 }
-void Default::GetCode(std::set<ASTNode*> &nodes,
+void Default::GetCode(std::set<ASTNode*> nodes,
                       std::string &ret, bool all, bool add_brace) {
 }
 
@@ -980,7 +1000,7 @@ While::While(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void While::GetCode(std::set<ASTNode*> &nodes,
+void While::GetCode(std::set<ASTNode*> nodes,
                     std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -1022,7 +1042,7 @@ Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_children.push_back(m_blk);
 }
 
-void Do::GetCode(std::set<ASTNode*> &nodes,
+void Do::GetCode(std::set<ASTNode*> nodes,
                  std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -1078,7 +1098,7 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   }
 }
 
-void For::GetCode(std::set<ASTNode*> &nodes,
+void For::GetCode(std::set<ASTNode*> nodes,
                   std::string &ret, bool all, bool add_brace) {
   // if (!nodes.empty() && nodes.count(this) == 0) return;
   bool selected = nodes.count(this) == 1;
@@ -1113,6 +1133,34 @@ std::string For::GetLabel() {
   return ret;
 }
 
+std::set<std::string> For::GetVarIds() {
+  std::set<std::string> ret;
+  std::set<std::string> ids;
+  ids = get_var_ids(m_cond);
+  ret.insert(ids.begin(), ids.end());
+  for (XMLNode init : m_inits) {
+    ids = get_var_ids(init);
+    ret.insert(ids.begin(), ids.end());
+  }
+  ids = get_var_ids(m_incr);
+  ret.insert(ids.begin(), ids.end());
+  return ret;
+}
+
+
+std::set<std::string> For::GetIdToResolve() {
+  std::set<std::string> ret;
+  std::set<std::string> tmp;
+  tmp = extract_id_to_resolve(get_text(m_cond));
+  ret.insert(tmp.begin(), tmp.end());
+  tmp = extract_id_to_resolve(get_text(m_incr));
+  ret.insert(tmp.begin(), tmp.end());
+  for (XMLNode n : m_inits) {
+    tmp = extract_id_to_resolve(get_text(n));
+    ret.insert(tmp.begin(), tmp.end());
+  }
+  return ret;
+}
 
 /**
  * Disable because it will not check something.

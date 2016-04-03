@@ -39,11 +39,13 @@ void Reader::GA() {
     std::cout << "For func: " << func.child_value("name") << "\n";
     std::cout << "process Eneter to continue ...\n";
     getchar();
-    std::cout << ast::get_text(func)  << "\n";
+    // std::cout << ast::get_text(func)  << "\n";
     Population pop;
     AST ast(func);
     pop.SetAST(&ast);
     pop.RandGenes(1);
+    pop.Complete();
+    pop.ResolveSnippet();
     
     // std::string code = pop.GetCode(0);
     // Gene *g = pop.GetGene(0);
@@ -51,12 +53,34 @@ void Reader::GA() {
     // std::cout <<code  << "\n";
     // pop.Visualize(0);
 
+    bool suc=false;
     for (size_t i=0;i<pop.size();i++) {
       // Gene *g = pop.GetGene(i);
       pop.Visualize(i);
       std::string code = pop.GetCode(i);
-      std::cout << "Code for " << i  << "\n";
-      std::cout << code  << "\n";
+      // std::cout << "Code for " << i  << "\n";
+      // std::cout << code  << "\n";
+      std::string main_code = pop.GetMain(i);
+      std::string support = pop.GetSupport(i);
+      std::string makefile = pop.GetMakefile();
+      Builder builder;
+      builder.SetMain(main_code);
+      builder.SetSupport(support);
+      builder.SetMakefile(makefile);
+      builder.Write();
+      std::cout << "Code output to "  << builder.GetDir() << "\n";
+      builder.Compile();
+      if (builder.Success()) {
+        suc=true;
+        utils::print("Compile success\n", utils::CK_Green);
+      } else {
+        utils::print("Error\n", utils::CK_Red);
+      }
+    }
+    if (suc) {
+      g_compile_success_no++;
+    } else {
+      g_compile_error_no++;
     }
   }
 }
@@ -179,7 +203,13 @@ Reader::Read() {
       /*******************************
        ** Compiling
        *******************************/
-      Builder builder(&seg);
+      Builder builder;
+      builder.SetMain(seg.GetMain());
+      builder.SetSupport(seg.GetSupport());
+      builder.SetMakefile(seg.GetMakefile());
+      for (auto script : seg.GetScripts()) {
+        builder.AddScript(script);
+      }
       builder.Write();
       if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
         std::cout <<"code outputed to " << builder.GetDir()  << "\n";

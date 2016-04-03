@@ -33,3 +33,23 @@ is_c_keyword(const std::string& s) {
   if (c_extend_keywords.count(s) == 1) return true;
   return false;
 }
+
+/** Extract id which is not c keyword
+ * @param code [in] input code
+ * @return a set of IDs
+ */
+std::set<std::string>
+extract_id_to_resolve(const std::string& code) {
+  static boost::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
+  boost::smatch match;
+  boost::sregex_iterator begin(code.begin(), code.end(), id_reg);
+  boost::sregex_iterator end = boost::sregex_iterator();
+  std::set<std::string> ss;
+  for (boost::sregex_iterator it=begin;it!=end;it++) {
+    std::string tmp = (*it).str();
+    if (c_common_keywords.find(tmp) == c_common_keywords.end()) {
+      ss.insert(tmp);
+    }
+  }
+  return ss;
+}

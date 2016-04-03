@@ -8,31 +8,30 @@
 
 using namespace ast;
 
-Builder::Builder(Segment *seg)
-: m_seg(seg), m_success(false) {
+Builder::Builder() {
   m_dir = utils::create_tmp_dir("/tmp/helium-test-tmp.XXXXXX");
 }
 Builder::~Builder() {}
 
-void
-Builder::writeMain() {
-  utils::write_file(Config::Instance()->GetString("output-folder")+"/generate.c", m_main);
-}
+// void
+// Builder::writeMain() {
+//   utils::write_file(Config::Instance()->GetString("output-folder")+"/generate.c", m_main);
+// }
 
-void Builder::writeSupport() {
-  utils::write_file(
-    Config::Instance()->GetString("output-folder")+"/support.h",
-    m_support
-  );
-}
+// void Builder::writeSupport() {
+//   utils::write_file(
+//     Config::Instance()->GetString("output-folder")+"/support.h",
+//     m_support
+//   );
+// }
 
-void
-Builder::writeMakefile() {
-  utils::write_file(
-    Config::Instance()->GetString("output-folder")+"/Makefile",
-    m_makefile
-  );
-}
+// void
+// Builder::writeMakefile() {
+//   utils::write_file(
+//     Config::Instance()->GetString("output-folder")+"/Makefile",
+//     m_makefile
+//   );
+// }
 
 /**
  * from begin, resolve prev sibling and parent, for DeclStmt.
@@ -201,20 +200,20 @@ Builder::Write() {
   /*******************************
    ** Outputing code
    *******************************/
-  std::string main_text = m_seg->GetMain();
-  std::string support = m_seg->GetSupport();
-  std::string makefile = m_seg->GetMakefile();
+  // std::string main_text = m_seg->GetMain();
+  // std::string support = m_seg->GetSupport();
+  // std::string makefile = m_seg->GetMakefile();
 
-  // std::cout <<utils::BLUE <<main_text  << utils::RESET << "\n";
+  // std::cout <<utils::BLUE <<m_main  << utils::RESET << "\n";
   if (Config::Instance()->GetString("helium-guard") == "true") {
-    main_text = add_helium_guard(main_text);
+    m_main = add_helium_guard(m_main);
   }
 
-  utils::write_file(m_dir+"/main.c", main_text);
-  utils::write_file(m_dir+"/support.h", support);
-  utils::write_file(m_dir + "/Makefile", makefile);
+  utils::write_file(m_dir+"/main.c", m_main);
+  utils::write_file(m_dir+"/support.h", m_support);
+  utils::write_file(m_dir + "/Makefile", m_makefile);
 
-  for (std::pair<std::string, std::string> pair : m_seg->GetScripts()) {
+  for (std::pair<std::string, std::string> pair : m_scripts) {
     utils::write_file(m_dir+"/"+pair.first, pair.second);
   }
 

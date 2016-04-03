@@ -10,8 +10,11 @@ typedef enum {
   CSK_Slice
 } ContextSearchKind;
 
-
-
+std::string get_function_decl(std::string code);
+std::vector<Snippet*> sort_snippets(std::set<Snippet*> all);
+std::string get_head();
+std::string get_header();
+std::string get_foot();
 /**
  * A block of code that is of interest.
  *
@@ -130,7 +133,7 @@ public:
 
 
 private:
-  std::string getHeader();
+  // std::string getHeader();
   std::string getInputCode();
   std::string getContext();
   // std::string m_filename;
