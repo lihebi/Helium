@@ -83,12 +83,38 @@ void Gene::SetIndiceS(std::set<int> indice_s, size_t size) {
   }
 }
 
+void Gene::AddNode(ASTNode *node) {
+  int idx = m_ast->GetIndexByNode(node);
+  std::set<int> tmp_indice_s = m_indice_s;
+  tmp_indice_s.insert(idx);
+  SetIndiceS(tmp_indice_s, tmp_indice_s.size());
+}
+
+void Gene::Rand(size_t size) {
+  m_size = size;
+  std::vector<int> flat;
+  for (size_t i=0;i<size;i++) {
+    int a = utils::rand_int(0, 2);
+    if (a==0) { // 1/3
+      flat.push_back(1);
+    } else {
+      flat.push_back(0);
+    }
+  }
+  SetFlat(flat);
+}
+
 void Gene::dump() {
   for (int g : m_flat) {
     std::cout << g;
   }
   std::cout  << "\n";
 }
+
+std::set<ASTNode*> Gene::ToASTNodeSet() {
+  return m_ast->Index2Node(m_indice_s);
+}
+
 
 
 
@@ -172,6 +198,14 @@ ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *a
   }
   }
   return ret;
+}
+
+std::string AST::GetFunctionName() {
+  if (m_nodes.size() == 0) return "";
+  ASTNode *func_node = m_nodes[0];
+  if (func_node->Kind() != ANK_Function) return "";
+  Function *func = dynamic_cast<Function*>(func_node);
+  return func->GetName();
 }
 
 /**
@@ -326,6 +360,30 @@ std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
   return ret;
 }
 
+std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
+  std::set<int> indice = gene->GetIndiceS();
+  // back up original nodes
+  std::set<ASTNode*> original_nodes = Index2Node(indice);
+  // the nodes representing gene growing
+  std::set<ASTNode*> nodes = original_nodes;
+  std::set<ASTNode*> ret;
+  ASTNode *lca = ComputeLCA(nodes);
+  for (ASTNode *node : nodes) {
+    std::vector<ASTNode*> path = getPath(node, lca);
+    nodes.insert(path.begin(), path.end());
+  }
+  indice = Node2Index(nodes);
+  gene->SetIndiceS(indice, gene->size());
+  // constructing new set
+  for (ASTNode * n : nodes) {
+    if (original_nodes.count(n) == 0) {
+      ret.insert(n);
+    }
+  }
+  return ret;
+}
+
+
 
 
 
@@ -384,6 +442,16 @@ std::string AST::GetCode(std::set<ASTNode*> nodes) {
   if (nodes.empty()) return "";
   std::string ret;
   m_root->GetCode(nodes, ret, false);
+  return ret;
+}
+
+/**
+ * Get all code
+ */
+std::string AST::GetCode() {
+  if (!m_root) return "";
+  std::string ret;
+  m_root->GetCode({}, ret, true);
   return ret;
 }
 
@@ -487,15 +555,6 @@ std::set<ASTNode*> AST::Index2Node(std::set<int> indices) {
   return ret;
 }
 
-Gene AST::CompleteGene(Gene gene) {
-  std::set<int> indice = gene.GetIndiceS();
-  std::set<ASTNode*> nodes = Index2Node(indice);
-  nodes = CompleteGene(nodes);
-  indice = Node2Index(nodes);
-  gene.SetIndiceS(indice, gene.size());
-  return gene;
-}
-
 ASTNode *AST::ComputeLCA(std::set<int> indices) {
   std::set<ASTNode*> nodes;
   for (int idx : indices) {
@@ -551,17 +610,3 @@ Gene AST::CompleteVarDefUse(Gene gene) {
   return gene;
 }
 
-
-void Gene::Rand(size_t size) {
-  m_size = size;
-  std::vector<int> flat;
-  for (size_t i=0;i<size;i++) {
-    int a = utils::rand_int(0, 2);
-    if (a==0) { // 1/3
-      flat.push_back(1);
-    } else {
-      flat.push_back(0);
-    }
-  }
-  SetFlat(flat);
-}

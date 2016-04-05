@@ -119,6 +119,7 @@ Helium::Helium(int argc, char* argv[]) {
       for (ast::Node func : func_nodes) {
         ast::AST ast(func);
         ast.Visualize();
+        std::cout << ast.GetCode() <<"\n";
       }
       exit(0);
     } else {

@@ -1,5 +1,14 @@
 #include <stdio.h>
+struct AA {
+  int a;
+};
+
 int foo(int a, struct AA *bb) {
+  int b=0;
+  int c,d=1;
+  int x=3;
+  int sum=8;
+  int con1=bb->a;
   if (x>0) {
     while (x<10) {
       a=b;
@@ -28,4 +37,11 @@ int foo(int a, struct AA *bb) {
       sum += i;
     }
   }
+  return sum;
+}
+
+int main() {
+  struct AA a;
+  a.a = 8;
+  foo(1, &a);
 }

@@ -5,7 +5,7 @@
 
 using namespace ast;
 
-
+#if 0
 /**
  * Disable because it will not check something.
  * It just run some code, visualize it.
@@ -79,6 +79,7 @@ if (x>0) {
  // std::cout <<dot  << "\n";
  delete ast;
 }
+#endif
 
 TEST(ASTNodeTestCase, DISABLED_ExtraNodeTest) {
   ast::Doc doc;
@@ -115,6 +116,7 @@ res_hnok(const char *dn) {
   ast->Visualize();
 }
 
+#if 0
 TEST(ASTNodeTestCase, DISABLED_VarDefUseTest) {
   ast::Doc doc;
   const char *raw = R"prefix(
@@ -195,3 +197,5 @@ int foo() {
   // std::cout <<dot  << "\n";
   delete ast;
 }
+
+#endif

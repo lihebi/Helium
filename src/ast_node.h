@@ -52,33 +52,44 @@ namespace ast {
    */
   class Gene {
   public:
-    Gene() {}
+    Gene(AST *ast) : m_ast(ast) {}
     ~Gene() {}
     std::vector<int> GetFlat() {return m_flat;}
     std::vector<int> GetIndice() {return m_indice;}
     std::set<int> GetIndiceS() {return m_indice_s;}
+    // setters
     void SetIndiceS(std::set<int> indice_s, size_t size);
     void SetIndice(std::vector<int> indice, size_t size);
     void SetFlat(std::string s);
     void SetFlat(std::vector<int> flat);
+    // other
+    std::set<ASTNode*> ToASTNodeSet();
     void Rand(size_t size);
     size_t size() {return m_size;}
     void dump();
+    void AddNode(ASTNode *node);
+    bool HasIndex(int idx) {
+      return m_indice_s.count(idx) == 1;
+    }
   private:
     size_t m_size = 0;
     std::vector<int> m_flat; // (0, 1, 1, 1, 0)
     std::vector<int> m_indice; // (0, 4, 5, 6, 8)
     std::set<int> m_indice_s; // (set of above)
+    AST *m_ast=NULL;
   };
 
   class SymbolTableValue {
   public:
-    SymbolTableValue(std::string name, ASTNode *node) :m_name(name), m_node(node) {}
+    SymbolTableValue(std::string symbol_name, std::string type, ASTNode *node)
+      :m_name(symbol_name), m_type(type), m_node(node) {}
     ~SymbolTableValue() {}
     std::string GetName() {return m_name;}
+    std::string GetType() {return m_type;}
     ASTNode *GetNode() {return m_node;}
   private:
     std::string m_name;
+    std::string m_type;
     ASTNode *m_node = NULL;
   };
 
@@ -106,11 +117,14 @@ namespace ast {
       if (m_map.count(key) == 1) return m_map[key];
       else return NULL;
     }
-    void AddSymbol(std::string key, std::string name, ASTNode* node) {
+    /**
+     * key is name of the variable(symbol)
+     */
+    void AddSymbol(std::string key, std::string type, ASTNode* node) {
       if (m_map.count(key) == 1) {
         delete m_map[key];
       }
-      m_map[key] = new SymbolTableValue(name, node);
+      m_map[key] = new SymbolTableValue(key, type, node);
     }
     void dump();
     void local_dump();
@@ -140,17 +154,53 @@ namespace ast {
      * Code
      */
     std::string GetCode(std::set<ASTNode*> nodes);
-    std::string GetCode() {
-      std::set<ASTNode*> s;
-      return GetCode(s);
+    std::string GetCode(std::set<int> indice) {
+      return GetCode(Index2Node(indice));
     }
+    std::string GetCode();
+
+    /**
+     *  set the decl, so that when getting nodes, every ASTNode can check if some extra definition should be outputed
+     * Only when the node is not selected, it has the chance to output some extra information, i.e. the declaration of a variable.
+     */
+    void SetDecl(std::map<ASTNode*, std::set<std::string> > decl_input_m,
+                 std::map<ASTNode*, std::set<std::string> > decl_m) {
+      m_decl_input_m = decl_input_m;
+      m_decl_m = decl_m;
+    }
+    void ClearDecl() {
+      m_decl_input_m.clear();
+      m_decl_m.clear();
+    }
+
+    std::set<std::string> GetRequiredDecl(ASTNode *node) {
+      if (m_decl_m.count(node) == 1) return m_decl_m[node];
+      else return {};
+    }
+    std::set<std::string> GetRequiredDeclWithInput(ASTNode *node) {
+      if (m_decl_input_m.count(node) == 1) return m_decl_input_m[node];
+      else return {};
+    }
+    /**
+     * Assume the root of AST is a function.
+     * Get that function name
+     */
+    std::string GetFunctionName();
     /**
      * Least Common Ancestor(LCA) Related
      */
     ASTNode *ComputeLCA(std::set<int> indices);
     ASTNode *ComputeLCA(std::set<ASTNode*> nodes);
+    ASTNode *ComputeLCA(Gene *g) {
+      assert(g);
+      return ComputeLCA(g->GetIndiceS());
+    }
     std::set<ASTNode*> CompleteGene(std::set<ASTNode*>);
-    Gene CompleteGene(Gene gene);
+    /**
+     * Will complete gene, and modify in place.
+     * Return the set of nodes newly add by this completion
+     */
+    std::set<ASTNode*> CompleteGene(Gene *gene);
     
     /**
      * Helper function for set<ASTNode*> <-> set<int>
@@ -183,6 +233,10 @@ namespace ast {
       if (idx >= m_nodes.size()) return NULL;
       return m_nodes[idx];
     }
+    int GetIndexByNode(ASTNode* node) {
+      if (m_idx_m.count(node) == 1) return m_idx_m[node];
+      return -1; // not found
+    }
   private:
     std::vector<ASTNode*> getPath(ASTNode *node, ASTNode* lca);
     size_t dist(ASTNode* low, ASTNode* high);
@@ -191,6 +245,10 @@ namespace ast {
     std::vector<ASTNode*> m_nodes;
     std::map<ASTNode*, int> m_idx_m;
     std::vector<SymbolTable*> m_sym_tbls; // just a storage
+    // from the decl node to the variable needed to be declared
+    std::map<ASTNode*, std::set<std::string> > m_decl_input_m;
+    // do not need input
+    std::map<ASTNode*, std::set<std::string> > m_decl_m;
   };
 
   class ASTNodeFactory {
@@ -219,8 +277,52 @@ namespace ast {
      */
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) = 0;
+    // void GetCode(std::set<ASTNode*> nodes,
+    //              std::string &ret, bool all,
+    //              std::map<ASTNode*, std::set<std::string> > &decl_input_m,
+    //              std::map<ASTNode*, std::set<std::string> > &decl_m) {
+    //   // FIXME assert this node can only be in either nodes, decl_input_m, or decl_m
+    //   if (decl_input_m.count(this) == 1) {
+    //     GetDeclWithInput(decl_input_m[this], ret);
+    //   }
+    //   if (decl_m.count(this) == 1) {
+    //     GetDecl(decl_m[this], ret);
+    //   }
+    //   GetCode(nodes, ret, all, decl_input_m, decl_m);
+    // }
+    /**
+     * At this node, construct the decl statement for the variables in "names"
+     * Can just look up symbol table, but need to make sure the variables defined in this node?
+     */
+    // virtual void GetDecl(std::set<std::string> names, std::string &ret) {
+    //   ret += "/* default decl (empty) */\n";
+    // }
+    // /**
+    //  * Not only the decl statement, but also give it input.
+    //  */
+    // virtual void GetDeclWithInput(std::set<std::string> names, std::string &ret) {
+    //   GetDecl(names, ret);
+    // }
     virtual std::set<std::string> GetVarIds() {return {};}
     virtual std::set<std::string> GetIdToResolve() {return {};}
+    /**
+     * Look Up the first definition of the variable "id"
+     * That means it must appear on the left side of "="
+     * How about structures?
+     * If it turns out to depend on some other variables, simply the node
+     * If it turns out to be constant, return this node.
+     * To sum up, if itself is not on right side, simply return the node
+     * If no record found, recursively try previous sibling or parent
+
+     * So which node needs to override it?
+     * stmt, if, elseif, for
+     * Which nodes don't need?
+     */
+    virtual ASTNode* LookUpDefinition(std::string id) {
+      if (this->PreviousSibling()) return this->PreviousSibling()->LookUpDefinition(id);
+      else if (this->GetParent()) return this->GetParent()->LookUpDefinition(id);
+      else return NULL;
+    }
 
     // tree travesal related
     // DO NOT allow to set parent
@@ -232,13 +334,38 @@ namespace ast {
       if (idx <0 || idx >= (int)m_children.size()) return NULL;
       return m_children[idx];
     }
+    std::vector<ASTNode*> GetChildren() {return m_children;}
+
+    ASTNode *PreviousSibling() {
+      if (m_parent==NULL) return NULL;
+      std::vector<ASTNode*> children = m_parent->GetChildren();
+      ASTNode *ret=NULL;
+      for (ASTNode *child : children) {
+        if (child == this) return ret;
+        ret = child;
+      }
+      // "this" must be a child of "m_parent"
+      assert(false);
+    }
+    ASTNode* NextSibling() {
+      if (m_parent==NULL) return NULL;
+      std::vector<ASTNode*> children = m_parent->GetChildren();
+      ASTNode *ret=NULL;
+      std::reverse(children.begin(), children.end());
+      for (ASTNode *child : children) {
+        if (child == this) return ret;
+        ret = child;
+      }
+      // "this" must be a child of "m_parent"
+      assert(false);
+    }
     iterator children_begin() {return m_children.begin();}
     iterator children_end() {return m_children.end();}
     // int Index() {return m_index;}
     ast::XMLNode GetXMLNode() {return m_xmlnode;}
     // should never set symbol table explicitly
     // void SetSymbolTable(SymbolTable *tbl) {m_sym_tbl = tbl;}
-    SymbolTable *GetSymTbl() {return m_sym_tbl;}
+    SymbolTable *GetSymbolTable() {return m_sym_tbl;}
   protected:
     XMLNode m_xmlnode;
     ASTNode *m_parent = NULL;
@@ -263,6 +390,11 @@ namespace ast {
     // TODO m_dimension
   };
 
+
+  /*******************************
+   * Models
+   *******************************/
+
   // function
   class Function : public ASTNode {
   public:
@@ -273,20 +405,16 @@ namespace ast {
     std::string GetReturnType() {return m_ret_ty;}
     std::string GetName() {return m_name;}
     void GetParams() {}
-    // Block* GetBlock() {return m_blk;}
-    virtual void GetCode(std::set<ASTNode*> nodes,
-                         std::string &ret, bool all) override;
-    virtual std::set<std::string> GetIdToResolve() override {
-      std::set<std::string> ret;
-      std::set<std::string> tmp;
-      tmp = extract_id_to_resolve(GetReturnType());
-      ret.insert(tmp.begin(), tmp.end());
-      for (Decl *param : m_params) {
-        tmp = extract_id_to_resolve(param->GetType());
-        ret.insert(tmp.begin(), tmp.end());
-      }
-      return ret;
-    }
+    virtual void GetCode(std::set<ASTNode*> nodes, std::string &ret, bool all) override;
+    virtual std::set<std::string> GetIdToResolve() override;
+    // virtual void GetDecl(std::set<std::string> names, std::string &ret) override {
+    //   for (Decl *param : m_params) {
+    //     std::string name =param->GetName();
+    //     if (names.count(name) == 1) {
+    //       ret += param->GetType() + " " + param->GetName() + ";\n";
+    //     }
+    //   }
+    // }
   private:
     std::string m_ret_ty;
     std::string m_name;
@@ -327,6 +455,7 @@ namespace ast {
       GetCode({}, code, true);
       return extract_id_to_resolve(code);
     }
+    virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
   };
 
@@ -349,6 +478,7 @@ namespace ast {
     virtual std::set<std::string> GetIdToResolve() override {
       return extract_id_to_resolve(get_text(m_cond));
     }
+    virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     XMLNode m_cond;
     Then *m_then = NULL;
@@ -382,6 +512,7 @@ namespace ast {
     virtual std::set<std::string> GetIdToResolve() override {
       return extract_id_to_resolve(get_text(m_cond));
     }
+    virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     XMLNode m_cond;
   };
@@ -454,6 +585,7 @@ namespace ast {
     virtual std::string GetLabel() override;
     virtual std::set<std::string> GetVarIds() override;
     virtual std::set<std::string> GetIdToResolve() override;
+    virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     XMLNode m_cond;
     XMLNodeList m_inits;

@@ -2,6 +2,8 @@
 #define DEBUG_AST_NODE_TRACE
 #undef DEBUG_AST_NODE_TRACE
 #include <iostream>
+#include "utils.h"
+#include <regex>
 
 using namespace ast;
 
@@ -36,7 +38,7 @@ Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_parent->GetSymTbl();
+    m_sym_tbl = m_parent->GetSymbolTable();
   }
   /**
    * push the symbol table
@@ -56,6 +58,17 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += get_text(m_xmlnode);
+    ret += "\n";
+  } else {
+    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
+    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+    for (std::string decl : decls) {
+      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+      if (val) {
+        ret += "/*HELIUM_DECL*/";
+        ret += val->GetType() + " " + val->GetName() + ";\n";
+      }
+    }
   }
   // ret += "\n";
 }
@@ -77,7 +90,7 @@ Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   // m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
   m_ret_ty = function_get_return_type(xmlnode);
@@ -116,9 +129,6 @@ void Function::GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
-  // if (!nodes.empty() && nodes.count(this) == 0) return;
-  // temporarily disable this, i.e. no function decl, only body
-  // so that it is valid to be put in a main function
   if (selected) {
     ret += m_ret_ty + " " + m_name + "(";
     if (!m_params.empty()) {
@@ -131,12 +141,30 @@ void Function::GetCode(std::set<ASTNode*> nodes,
       ret.pop_back(); // remove last ","
     }
     ret += ")";
+  } else {
+    // decl
+    // THIS is how to use the decls
+    // the decls mean the declaration of a variable needs to be added to this node
+    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
+    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+    for (Decl *param: m_params) {
+      std::string name = param->GetName();
+      if (decls.count(name) == 1 || inputed_decls.count(name) == 1) {
+        // TODO inputed_decl need input statements
+        ret += "/*HELIUM_DECL*/";
+        ret += param->GetType() + " " + param->GetName() + ";\n";
+      }
+    }
   }
-  ret += "{";
+  ret += "{\n";
+
+  // FIXME for now, function will never be returned by the GetCode
+  // This is because I only care about intraprocedure for now, and the function definition inside main is not valid.
   for (ASTNode *node : m_children) {
     node->GetCode(nodes, ret, all);
   }
   // m_blk->GetCode(nodes, ret, all);
+  ret += "}";
 }
 
 std::string Function::GetLabel() {
@@ -156,6 +184,19 @@ std::string Function::GetLabel() {
   return ret;
 }
 
+std::set<std::string> Function::GetIdToResolve() {
+  std::set<std::string> ret;
+  std::set<std::string> tmp;
+  tmp = extract_id_to_resolve(GetReturnType());
+  ret.insert(tmp.begin(), tmp.end());
+  for (Decl *param : m_params) {
+    tmp = extract_id_to_resolve(param->GetType());
+    ret.insert(tmp.begin(), tmp.end());
+  }
+  return ret;
+}
+
+
 
 Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   #ifdef DEBUG_AST_NODE_TRACE
@@ -168,7 +209,7 @@ Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   // constructing children
   XMLNodeList nodes = block_get_nodes(xmlnode);
@@ -185,9 +226,11 @@ void Block::GetCode(std::set<ASTNode*> nodes,
                     std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
+  ret += "{\n";
   for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, false);
+    n->GetCode(nodes, ret, all);
   }
+  ret += "}";
 }
 
 /*******************************
@@ -205,7 +248,7 @@ If::If(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   m_cond = if_get_condition_expr(xmlnode);
   XMLNode then_node = if_get_then(xmlnode);
@@ -264,7 +307,7 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   XMLNode blk = then_get_block(xmlnode);
   // m_blk = new Block(node, this, ast);
@@ -281,7 +324,7 @@ void Then::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
-  ret += "{";
+  ret += "{\n";
   for (ASTNode *n : m_children) {
     n->GetCode(nodes, ret, all);
   }
@@ -299,7 +342,7 @@ Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   XMLNode blk = else_get_block(xmlnode);
   for (XMLNode n : block_get_nodes(blk)) {
@@ -315,7 +358,7 @@ void Else::GetCode(std::set<ASTNode*> nodes,
   if (selected) {
     ret += "else";
   }
-  ret += "{";
+  ret += "{\n";
   for (ASTNode *n : m_children) {
     n->GetCode(nodes, ret, all);
   }
@@ -333,7 +376,7 @@ ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   m_cond = elseif_get_condition_expr(xmlnode);
   // m_blk = new Block(node, this, ast);
@@ -351,13 +394,19 @@ void ElseIf::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "else if(" + get_text(m_cond) + ")";
+    // put these {} inside (selected) because,
+    // in the case of if() {} else if() {} else {}
+    // the result would be
+    // if () {} {} else {}, which is not syntax correct
+    ret += "{\n";
   }
-  ret += "{";
   // m_blk->GetCode(nodes, ret, all, selected);
   for (ASTNode *n : m_children) {
     n->GetCode(nodes, ret, all);
   }
-  ret += "}";
+  if (selected) {
+    ret += "}";
+  }
 }
 
 std::string ElseIf::GetLabel() {
@@ -388,7 +437,7 @@ Switch::Switch(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   // XMLNodeList blocks = switch_get_blocks(xmlnode);
   // for (XMLNode block_node : blocks) {
@@ -427,6 +476,8 @@ void Switch::GetCode(std::set<ASTNode*> nodes,
   if (m_default) {
     m_default->GetCode(nodes, ret, all);
   }
+  // add break at the end. It will not influence the result, but a label without statement is not syntax correct
+  ret += "break;";
   ret += "}";
 }
 
@@ -451,7 +502,7 @@ Case::Case(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
     // FIXME symbol table do not change
-    m_sym_tbl = m_parent->GetSymTbl();
+    m_sym_tbl = m_parent->GetSymbolTable();
   }
   // from this case to next case or default
   XMLNode node = xmlnode.next_sibling();
@@ -472,7 +523,7 @@ void Case::GetCode(std::set<ASTNode*> nodes,
   if (selected) {
     ret += "case ";
     ret += get_text(m_cond);
-    ret += ":";
+    ret += ":\n";
   }
   for (ASTNode *child : m_children) {
     child->GetCode(nodes, ret, all);
@@ -490,7 +541,7 @@ Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_parent->GetSymTbl();
+    m_sym_tbl = m_parent->GetSymbolTable();
   }
   XMLNode node = xmlnode.next_sibling();
   while (node && kind(node) != NK_Case && kind(node) != NK_Default) {
@@ -525,7 +576,7 @@ While::While(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   XMLNode blk = while_get_block(xmlnode);
   // m_blk = new Block(blk_node, this, ast);
@@ -547,7 +598,7 @@ void While::GetCode(std::set<ASTNode*> nodes,
     ret += get_text(m_cond);
     ret += ")";
   }
-  ret += "{";
+  ret += "{\n";
   for (ASTNode *child: m_children) {
     child->GetCode(nodes, ret, all);
   }
@@ -575,7 +626,7 @@ Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   m_cond = while_get_condition_expr(xmlnode);
   XMLNode blk_node = while_get_block(xmlnode);
@@ -626,7 +677,7 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
     // this is root, create the default symbol table.
     m_sym_tbl = m_ast->CreateSymTbl(NULL);
   } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymTbl());
+    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   m_cond = for_get_condition_expr(xmlnode);
   m_incr = for_get_incr_expr(xmlnode);
@@ -664,9 +715,19 @@ void For::GetCode(std::set<ASTNode*> nodes,
       ret.pop_back();
     }
     ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
+  } else {
+    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
+    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+    for (std::string decl : decls) {
+      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+      if (val) {
+        ret += "/*HELIUM_DECL*/";
+        ret += val->GetType() + " " + val->GetName() + ";\n";
+      }
+    }
   }
   // m_blk->GetCode(nodes, ret, all, selected);
-  ret += "{";
+  ret += "{\n";
   for (ASTNode *child : m_children) {
     child->GetCode(nodes, ret, all);
   }
@@ -715,4 +776,106 @@ std::set<std::string> For::GetIdToResolve() {
     ret.insert(tmp.begin(), tmp.end());
   }
   return ret;
+}
+
+/*******************************
+ * LookUpDefinition
+ *******************************/
+
+typedef enum {
+  CDK_NULL,
+  CDK_This,
+  CDK_Continue
+} CheckDefKind;
+/**
+ * This only check the first "="
+ */
+CheckDefKind check_def(std::string code, std::string id) {
+  for (size_t pos=code.find("==");
+       pos!=std::string::npos;
+       pos=code.find("==")) {
+    code.erase(pos, 2);
+  }
+  if (code.find('=') != std::string::npos) {
+    std::string left = code.substr(0, code.find_first_of('='));
+    std::string right = code.substr(code.find_first_of('='));
+    std::regex reg("\\b" + id + "\\b");
+    if (regex_search(left, reg)) {
+      if (regex_search(right, reg)) {
+        return CDK_NULL;
+      } else {
+        return CDK_This;
+      }
+    }
+  }
+  return CDK_Continue;
+}
+
+ASTNode* Stmt::LookUpDefinition(std::string id) {
+  std::string content = get_text(m_xmlnode);
+  CheckDefKind k = check_def(content, id);
+  switch (k) {
+  case CDK_NULL: return NULL;
+  case CDK_This: return this;
+  case CDK_Continue: {
+    if (this->PreviousSibling())
+      return this->PreviousSibling()->LookUpDefinition(id);
+    else if (this->GetParent())
+      return this->GetParent()->LookUpDefinition(id);
+    else
+      return NULL;
+  }
+  }
+}
+ASTNode* If::LookUpDefinition(std::string id) {
+  std::string content = get_text(m_cond);
+  CheckDefKind k = check_def(content, id);
+  switch (k) {
+  case CDK_NULL: return NULL;
+  case CDK_This: return this;
+  case CDK_Continue: {
+    if (this->PreviousSibling())
+      return this->PreviousSibling()->LookUpDefinition(id);
+    else if (this->GetParent())
+      return this->GetParent()->LookUpDefinition(id);
+    else
+      return NULL;
+  }
+  }
+}
+ASTNode* ElseIf::LookUpDefinition(std::string id) {
+  std::string content = get_text(m_cond);
+  CheckDefKind k = check_def(content, id);
+  switch (k) {
+  case CDK_NULL: return NULL;
+  case CDK_This: return this;
+  case CDK_Continue: {
+    if (this->PreviousSibling())
+      return this->PreviousSibling()->LookUpDefinition(id);
+    else if (this->GetParent())
+      return this->GetParent()->LookUpDefinition(id);
+    else
+      return NULL;
+  }
+  }
+}
+ASTNode* For::LookUpDefinition(std::string id) {
+  std::string code;
+  for (XMLNode init : m_inits) {
+    code = get_text(init);
+    CheckDefKind k = check_def(code, id);
+    if (k == CDK_NULL) return NULL;
+    else if (k==CDK_This) return this;
+  }
+  code = get_text(m_cond);
+  CheckDefKind k = check_def(code, id);
+  if (k == CDK_NULL) return NULL;
+  else if (k==CDK_This) return this;
+  // I don't need to consider incr?
+  if (this->PreviousSibling())
+    return this->PreviousSibling()->LookUpDefinition(id);
+  else if (this->GetParent())
+    return this->GetParent()->LookUpDefinition(id);
+  else
+    return NULL;
 }

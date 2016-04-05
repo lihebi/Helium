@@ -36,33 +36,20 @@ void Reader::GA() {
   std::cout << "Genetic Algorithm"  << "\n";
   NodeList func_nodes = ast::find_nodes(m_doc, NK_Function);
   for (Node func : func_nodes) {
-    std::cout << "For func: " << func.child_value("name") << "\n";
-    std::cout << "process Eneter to continue ...\n";
-    getchar();
+    // std::cout << "For func: " << func.child_value("name") << "\n";
+    // std::cout << "process Eneter to continue ...\n";
+    // getchar();
     // std::cout << ast::get_text(func)  << "\n";
-    Population pop;
     AST ast(func);
-    pop.SetAST(&ast);
-    pop.RandGenes(1);
-    pop.Complete();
-    pop.ResolveSnippet();
-    
-    // std::string code = pop.GetCode(0);
-    // Gene *g = pop.GetGene(0);
-    // if (g) g->dump();
-    // std::cout <<code  << "\n";
-    // pop.Visualize(0);
-
+    Population pop(&ast);
+    pop.CreateRandomIndividuals(5);
+    pop.Solve();
     bool suc=false;
-    for (size_t i=0;i<pop.size();i++) {
-      // Gene *g = pop.GetGene(i);
-      pop.Visualize(i);
-      std::string code = pop.GetCode(i);
-      // std::cout << "Code for " << i  << "\n";
-      // std::cout << code  << "\n";
-      std::string main_code = pop.GetMain(i);
-      std::string support = pop.GetSupport(i);
-      std::string makefile = pop.GetMakefile();
+    for (Individual *ind : pop.GetIndividuals()) {
+      // ind->Visualize();
+      std::string main_code = ind->GetMain();
+      std::string support = ind->GetSupport();
+      std::string makefile = ind->GetMakefile();
       Builder builder;
       builder.SetMain(main_code);
       builder.SetSupport(support);
@@ -89,6 +76,7 @@ void Reader::GA() {
  * Constructor of Reader should read the filename, and select segments.
  */
 Reader::Reader(const std::string &filename) : m_filename(filename) {
+  print_trace("Reader");
   utils::file2xml(filename, m_doc);
   std::string method = Config::Instance()->GetString("code-selection");
   if (method == "loop") {
