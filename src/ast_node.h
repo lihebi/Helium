@@ -64,8 +64,11 @@ namespace ast {
     void SetFlat(std::vector<int> flat);
     // other
     std::set<ASTNode*> ToASTNodeSet();
+    // random
     void Rand(size_t size);
+    void LeafRand();
     size_t size() {return m_size;}
+    size_t leaf_size();
     void dump();
     void AddNode(ASTNode *node);
     bool HasIndex(int idx) {
@@ -144,6 +147,7 @@ namespace ast {
     AST(ast::XMLNode xmlnode);
     ~AST();
     size_t size() {return m_nodes.size();}
+    size_t leaf_size();
     /**
      * Visualization
      */
@@ -158,6 +162,8 @@ namespace ast {
       return GetCode(Index2Node(indice));
     }
     std::string GetCode();
+
+    std::set<ASTNode*> GetLeafNodes();
 
     /**
      *  set the decl, so that when getting nodes, every ASTNode can check if some extra definition should be outputed

@@ -15,7 +15,7 @@ public:
     if (m_gene) delete m_gene;
   }
   void RandGene();
-  Gene* GetGene();
+  Gene* GetGene() {return m_gene;}
   void Visualize();
   std::string GetMain();
   std::string GetSupport();

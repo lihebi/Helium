@@ -111,6 +111,7 @@ namespace utils {
    ** Srcml Utils
    *******************************/
 
+  pugi::xml_document* file2xml(const std::string &filename);
   void file2xml(const std::string& filename, pugi::xml_document& doc);
   void string2xml(const std::string& code, pugi::xml_document& doc);
 
@@ -151,6 +152,10 @@ namespace utils {
    * [low, high], inclusive
    */
   int rand_int(int low, int high);
+
+  int clock_gettime(int /*clk_id*/, struct timespec* t);
+  double get_time();
+  void debug_time(std::string id="");
 }
 
 #endif

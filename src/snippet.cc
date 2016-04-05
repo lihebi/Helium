@@ -159,7 +159,6 @@ std::vector<std::string> query_code(const std::string& code, const std::string& 
   return result;
 }
 
-
 Snippet::Snippet(const CtagsEntry& entry) {
   /**
    * 1. get code
@@ -173,19 +172,22 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_kind = SK_Function;
     m_main_name = entry.GetName();
     m_code = get_func_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Function);
+    // m_sig.emplace(entry.GetName(), SK_Function);
+    m_sig[entry.GetName()].insert(SK_Function);
     break;
   }
   case SK_Structure: {
     m_main_kind = SK_Structure;
     m_main_name = entry.GetName();
     m_code = get_struct_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Structure);
+    // m_sig.emplace(entry.GetName(), SK_Structure);
+    m_sig[entry.GetName()].insert(SK_Structure);
     // TODO NOW may also be a typedef
     if (m_code.find("typedef") == 0) {
       m_main_kind = SK_Typedef;
       m_main_name = query_code_first(m_code, "//typedef/name");
-      m_sig.emplace(m_main_name, SK_Typedef);
+      // m_sig.emplace(m_main_name, SK_Typedef);
+      m_sig[m_main_name].insert(SK_Typedef);
     }
     break;
   }
@@ -193,17 +195,20 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_kind = SK_Enum;
     m_main_name = entry.GetName();
     m_code = get_enum_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Enum);
+    // m_sig.emplace(entry.GetName(), SK_Enum);
+    m_sig[entry.GetName()].insert(SK_Enum);
     // FIXME TEST this!!! HEBI can I just use this, without the detailed "block"?
     std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
     for (std::string m : members) {
-      m_sig.emplace(m, SK_EnumMember);
+      // m_sig.emplace(m, SK_EnumMember);
+      m_sig[m].insert(SK_EnumMember);
     }
     // TODO NOW may also be a typedef
     if (m_code.find("typedef") == 0) {
       m_main_kind = SK_Typedef;
       m_main_name = query_code_first(m_code, "//typedef/name");
-      m_sig.emplace(m_main_name, SK_Typedef);
+      // m_sig.emplace(m_main_name, SK_Typedef);
+      m_sig[m_main_name].insert(SK_Typedef);
     }
 
     break;
@@ -212,39 +217,49 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_kind = SK_Union;
     m_main_name = entry.GetName();
     m_code = get_union_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Union);
+    // m_sig.emplace(entry.GetName(), SK_Union);
+    m_sig[entry.GetName()].insert(SK_Union);
     // TODO NOW may also be a typedef
     if (m_code.find("typedef") == 0) {
       m_main_kind = SK_Typedef;
       m_main_name = query_code_first(m_code, "//typedef/name");
-      m_sig.emplace(m_main_name, SK_Typedef);
+      // m_sig.emplace(m_main_name, SK_Typedef);
+      m_sig[m_main_name].insert(SK_Typedef);
     }
     break;
   }
   case SK_Define: {
+    // debug_time();
     m_main_kind = SK_Define;
     m_main_name = entry.GetName();
+    // debug_time("1");
     m_code = get_def_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Define);
+    // debug_time("2");
+    // m_sig.emplace(entry.GetName(), SK_Define);
+    m_sig[entry.GetName()].insert(SK_Define);
+    // debug_time("3");
     break;
   }
   case SK_Variable: {
     m_main_kind = SK_Variable;
     m_main_name = entry.GetName();
     m_code = get_var_code(entry);
-    m_sig.emplace(entry.GetName(), SK_Variable);
+    // m_sig.emplace(entry.GetName(), SK_Variable);
+    m_sig[entry.GetName()].insert(SK_Variable);
     break;
   }
   case SK_EnumMember: {
     m_code = get_enum_code(entry);
     std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
     for (std::string m : members) {
-      m_sig.emplace(m, SK_EnumMember);
+      // m_sig.emplace(m, SK_EnumMember);
+      m_sig[m].insert(SK_EnumMember);
     }
     // enum name
     std::string name = query_code_first(m_code, "//enum/name");
     if (!name.empty()) {
-      m_sig.emplace(name, SK_Enum);
+      // m_sig.emplace(name, SK_Enum);
+      m_sig[name].insert(SK_Enum);
       // set main 1
       m_main_kind = SK_Enum;
       m_main_name = name;
@@ -252,7 +267,8 @@ Snippet::Snippet(const CtagsEntry& entry) {
     // possibly typedef
     name = query_code_first(m_code, "//typedef/name");
     if (!name.empty()) {
-      m_sig.emplace(name, SK_Typedef);
+      // m_sig.emplace(name, SK_Typedef);
+      m_sig[name].insert(SK_Typedef);
       // set main 2
       m_main_kind = SK_Typedef;
       m_main_name = name;
@@ -266,38 +282,47 @@ Snippet::Snippet(const CtagsEntry& entry) {
     // tyepdef
     // this may be empty
     std::string name = query_code_first(m_code, "//typedef/name");
-    if (!name.empty()) m_sig.emplace(name, SK_Typedef);
+    // if (!name.empty()) m_sig.emplace(name, SK_Typedef);
+    if (!name.empty()) {
+      m_sig[name].insert(SK_Typedef);
+    }
     // other values
     std::string inner;
     // struct
     inner = query_code_first(m_code, "//typedef/type/struct/name");
     if (!inner.empty()) {
-      m_sig.emplace(inner, SK_Structure);
+      // m_sig.emplace(inner, SK_Structure);
+      m_sig[inner].insert(SK_Structure);
       break;
     }
     // enum
     inner = query_code_first(m_code, "//typedef/type/enum/name");
     if (!inner.empty()) {
-      m_sig.emplace(inner, SK_Enum);
+      // m_sig.emplace(inner, SK_Enum);
+      m_sig[inner].insert(SK_Enum);
       std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
       for (std::string m : members) {
-        m_sig.emplace(m, SK_EnumMember);
+        // m_sig.emplace(m, SK_EnumMember);
+        m_sig[m].insert(SK_EnumMember);
       }
       break;
     }
     // union
     inner = query_code_first(m_code, "//typedef/type/union/name");
     if (!inner.empty()) {
-      m_sig.emplace(inner, SK_Union);
+      // m_sig.emplace(inner, SK_Union);
+      m_sig[inner].insert(SK_Union);
       break;
     }
     // function pointer
     // FIXME typedef uint32_t (*hash_func)(const void *key, size_t length);
+    // FIXME typedef RETSIGTYPE (*sig_type) OF((int)); => <macro>
     inner = query_code_first(m_code, "//typedef/function_decl/name");
     if (!inner.empty()) {
       // FIXME Do I need to have a seperate class for it?
       // because the SK_Typedef may have a method to get its name, which will not be consistant with this one.
-      m_sig.emplace(inner, SK_Typedef);
+      // m_sig.emplace(inner, SK_Typedef);
+      m_sig[inner].insert(SK_Typedef);
       break;
     }
     break;
@@ -312,7 +337,18 @@ Snippet::Snippet(const CtagsEntry& entry) {
     // this is because we don't care about 'm' type
     // null snippet?
     // this is SK_Const, or more likely, SK_Member
-    m_code = "";
+    m_code = ""; // this indicate the snippet is invalid.
+    return;
+  }
+  // if (m_sig.empty()) {
+  //   // std::cout << "WARNING: No Sig Found!"  << "\n";
+  //   // FIXME should I add this for everyone?
+  //   // typedef RETSIGTYPE (*sig_type) OF((int));
+  //   m_sig.emplace(entry.GetName(), type);
+  // }
+  if (m_sig.count(entry.GetName()) == 0) {
+    // m_sig.emplace(entry.GetName(), type);
+    m_sig[entry.GetName()].insert(type);
   }
   m_loc = std::count(m_code.begin(), m_code.end(), '\n');
 }
@@ -356,13 +392,15 @@ Snippet::GetSignature() const {
  */
 std::set<SnippetKind>
 Snippet::GetSignature(const std::string& name) {
-  std::pair <snippet_signature::iterator, snippet_signature::iterator> ret; 
-  std::set<SnippetKind> types;
-  ret = m_sig.equal_range(name);
-  for (auto it=ret.first; it!=ret.second;it++) {
-    types.insert(it->second);
-  }
-  return types;
+  // std::pair <snippet_signature::iterator, snippet_signature::iterator> ret; 
+  // std::set<SnippetKind> types;
+  // ret = m_sig.equal_range(name);
+  // for (auto it=ret.first; it!=ret.second;it++) {
+  //   types.insert(it->second);
+  // }
+  // return types;
+  if (m_sig.count(name) == 1) return m_sig[name];
+  return {};
 }
 
 /**
@@ -381,11 +419,10 @@ std::set<std::string> Snippet::GetSignatureKey() const {
  */
 bool
 Snippet::SatisfySignature(const std::string& name, std::set<SnippetKind> types) {
-  std::pair <snippet_signature::iterator, snippet_signature::iterator> ret;
-  ret = m_sig.equal_range(name);
-  for (auto it=ret.first; it!=ret.second;it++) {
-    if (types.find(it->second) != types.end()) {
-      return true;
+  if (m_sig.count(name) == 1) {
+    std::set<SnippetKind> mykinds = m_sig[name];
+    for (SnippetKind k : mykinds) {
+      if (types.count(k) == 1) return true;
     }
   }
   return false;
@@ -405,9 +442,14 @@ std::string Snippet::ToString() const {
   result += "{";
   for (auto m : m_sig) {
     std::string key = m.first;
-    SnippetKind k =m.second;
+    std::set<SnippetKind> kinds =m_sig.at(key);
     // result += "key: " + key + " type: " + snippet_kind_to_char(k) + "\n";
-    result += key + ":" + snippet_kind_to_char(k) + ", ";
+    result += key + ":";
+    for (SnippetKind k : kinds) {
+      result += snippet_kind_to_char(k);
+      result += ", ";
+    }
+    // snippet_kind_to_char(k) + ", ";
   }
   result += "}";
   return result;

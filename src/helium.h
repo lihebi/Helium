@@ -9,6 +9,7 @@ public:
   virtual ~Helium();
   void Run();
 private:
+  int countFunction();
   std::string m_folder;
   std::vector<std::string> m_files;
 };

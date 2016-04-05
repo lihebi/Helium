@@ -539,14 +539,16 @@ namespace ast {
    ** build doc from scratch
    *******************************/
 
+  using namespace utils;
   /**
    * Get code as string of <tag_name> node in filename that encloses line_number
    * FIXME <tag> <tag> xxx </tag> </tag>, return which one?
    */
   std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name) {
-    pugi::xml_document doc;
-    utils::file2xml(filename, doc);
-    pugi::xml_node root =doc.document_element();
+    // pugi::xml_document doc;
+    // utils::file2xml(filename, doc);
+    pugi::xml_document *doc = utils::file2xml(filename);
+    pugi::xml_node root =doc->document_element();
     std::string query = ".//" + tag_name;
     pugi::xpath_node_set nodes = root.select_nodes(query.c_str());
     for (auto it=nodes.begin();it!=nodes.end();it++) {

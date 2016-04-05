@@ -126,8 +126,9 @@ std::string get_typedef_code(const CtagsEntry& entry);
 /*******************************
  ** Snippet
  *******************************/
-typedef std::multimap<std::string, SnippetKind> snippet_signature;
+// typedef std::multimap<std::string, SnippetKind> snippet_signature;
 
+typedef std::map<std::string, std::set<SnippetKind> > snippet_signature;
 
 class Snippet {
 public:

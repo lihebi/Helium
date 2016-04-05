@@ -9,6 +9,8 @@
 #include "arg_parser.h"
 #include "options.h"
 
+using namespace utils;
+
 SnippetRegistry* SnippetRegistry::m_instance = 0;
 
 
@@ -42,6 +44,111 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, SnippetKind
   return Resolve(name, kinds);
 }
 
+
+#if 0
+/**
+ * This will create (new) something. Be sure to release them.
+ */
+std::set<Snippet*> create_snippets(std::vector<CtagsEntry> entries) {
+  std::set<Snippet*> ret;
+  if (!entries.empty()) {
+    for (auto it=entries.begin();it!=entries.end();it++) {
+      CtagsEntry ce = *it;
+      Snippet *s = new Snippet(ce);
+      if (s==NULL) continue;
+      if (!s->IsValid()) {
+        delete s;
+        continue;
+      }
+      ret.insert(s);
+    }
+  }
+  return ret;
+}
+
+/**
+ * The new resolving system.
+ * Do not record dependencies at the first time.
+ * Purely do the resolving.
+ * Use a worklist algorithm to record the size, so that we get a view of how many remains.
+ */
+
+std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<SnippetKind> kinds) {
+  // hit
+  if (!lookUp(name, kinds).empty()) {
+    return lookUp(name, kinds);
+  }
+  std::set<Snippet*> ret;
+  std::set<std::string> worklist;
+  worklist.insert(name);
+  std::set<std::string> avoid;
+  while (!worklist.empty()) {
+    // debug_time("1");
+    // std::cout <<worklist.size()  << "\n";
+    // for (std::string id : worklist) {
+    //   std::cout <<id << " ";
+    // }
+    // std::cout  << "\n";
+    std::string name = *worklist.begin();
+    worklist.erase(name);
+    if (avoid.count(name) == 1) continue;
+    avoid.insert(name);
+    // debug_time("2");
+    if (!lookUp(name, kinds).empty()) continue;
+    // debug_time("3");
+    std::vector<CtagsEntry> entries = ctags_parse(name);
+    // debug_time("6");
+    std::set<Snippet*> snippets = create_snippets(entries);
+    // debug_time("4");
+    for (auto it=snippets.begin(), end=snippets.end(); it!=end; ++it) {
+      m_snippets.insert(*it);
+      // also take care of m_id_map and m_dependence_map
+      std::set<std::string> keys = (*it)->GetSignatureKey();
+      if (PrintOption::Instance()->Has(POK_AddSnippet)) {
+        std::cout <<"Adding snippet: ";
+        std::cout << (*it)->ToString()  << "\n";
+      }
+      if (PrintOption::Instance()->Has(POK_AddSnippetDot)) {
+        std::cout <<"." << std::flush;
+      }
+      for (std::string key : keys) {
+        m_id_map[key].insert(*it);
+      }
+    }
+    // debug_time("5");
+  
+    for (auto it=snippets.begin(), end=snippets.end(); it!=end; ++it) {
+      std::string code = (*it)->GetCode();
+      std::set<std::string> ids = extract_id_to_resolve(code);
+      // std::set<std::string> ids = get_to_resolve(code);
+      worklist.insert(ids.begin(), ids.end());
+    }
+  }
+  return ret;
+
+
+  
+  // doesn't hit, resolve it!
+  std::set<Snippet*> result;
+  std::set<Snippet*> all_snippets;
+  std::set<Snippet*> direct_snippets;
+  std::vector<CtagsEntry> entries = ctags_parse(name); // parse ctags
+  // construct all snippets that is directly related to name(the entries returned by ctags lookup), for ALL kinds
+  if (!entries.empty()) {
+    for (auto it=entries.begin();it!=entries.end();it++) {
+      CtagsEntry ce = *it;
+      Snippet *s = new Snippet(ce);
+      if (s==NULL) continue;
+      if (!s->IsValid()) {
+        delete s;
+        continue;
+      }
+      direct_snippets.insert(s);
+    }
+  }
+}
+
+#endif
 /**
  * Main work-horse of Resolving.
  * Need to check if it is already in.
@@ -56,6 +163,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, SnippetKind
  * Ctags resolver will not be directly used by client.
  */
 
+#if true
 std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<SnippetKind> kinds) {
   // hit
   if (!lookUp(name, kinds).empty()) {
@@ -84,35 +192,35 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
     if (PrintOption::Instance()->Has(POK_UnresolvedID)) {
       utils::print(name, utils::CK_Yellow);
     }
-
   }
+  if (direct_snippets.empty()) return result;
   /*******************************
    * remove duplicate in direct_snippets
    *******************************/
-  std::set<std::string> codes;
-  std::set<Snippet*> to_remove;
-  for (Snippet *s : direct_snippets) {
-    // std::cout << "**********" << "\n";
-    // std::cout << s->MainName() << "\n";
-    // std::cout <<snippet_kind_to_char(s->MainKind())  << "\n";
-    // for (std::string key : s->GetSignatureKey()) {
-    //   std::cout << key;
-    //   for (SnippetKind k : s->GetSignature(key)) {
-    //     std::cout << snippet_kind_to_char(k);
-    //   }
-    // }
-    // std::cout << "\n";
-    // std::cout <<s->GetCode()  << "\n";
-    if (codes.find(s->GetCode()) != codes.end()) {
-      to_remove.insert(s);
-    } else {
-      codes.insert(s->GetCode());
-    }
-  }
-  for (Snippet *s : to_remove) {
-    direct_snippets.erase(s);
-    delete s;
-  }
+  // std::set<std::string> codes;
+  // std::set<Snippet*> to_remove;
+  // for (Snippet *s : direct_snippets) {
+  //   // std::cout << "**********" << "\n";
+  //   // std::cout << s->MainName() << "\n";
+  //   // std::cout <<snippet_kind_to_char(s->MainKind())  << "\n";
+  //   // for (std::string key : s->GetSignatureKey()) {
+  //   //   std::cout << key;
+  //   //   for (SnippetKind k : s->GetSignature(key)) {
+  //   //     std::cout << snippet_kind_to_char(k);
+  //   //   }
+  //   // }
+  //   // std::cout << "\n";
+  //   // std::cout <<s->GetCode()  << "\n";
+  //   if (codes.find(s->GetCode()) != codes.end()) {
+  //     to_remove.insert(s);
+  //   } else {
+  //     codes.insert(s->GetCode());
+  //   }
+  // }
+  // for (Snippet *s : to_remove) {
+  //   direct_snippets.erase(s);
+  //   delete s;
+  // }
 
   // get the specific kinds. NOTE: this is the only place that check the kinds
   // this result is used for return
@@ -125,7 +233,32 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
       result.insert(*it);
     }
   }
-  
+
+  /**
+   * Remove snippets with the same signature
+   */
+  std::set<snippet_signature> sig_filter;
+  std::set<Snippet*> to_remove;
+  for (auto it=direct_snippets.begin(), end=direct_snippets.end();it!=end;it++) {
+    Snippet *s = *it;
+    snippet_signature sig = s->GetSignature();
+    if (sig_filter.count(sig) == 1) {
+      // FIXME
+      // it = direct_snippets.erase(it);
+      // delete s;
+      to_remove.insert(s);
+    } else {
+      sig_filter.insert(sig);
+    }
+  }
+  // for (Snippet* s : to_remove) {
+  //   if (direct_snippets.count(s) == 1) {
+  //     direct_snippets.erase(s);
+  //     delete s;
+  //   }
+  // }
+
+  // std::cout << "------"  << "\n";
   // recursively resolve and add to local storage(m_snippets).
   // stored pointers and will never be freed.
   // This is where the snippet is added.
@@ -136,6 +269,11 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
     if (PrintOption::Instance()->Has(POK_AddSnippet)) {
       std::cout <<"Adding snippet: ";
       std::cout << (*it)->ToString()  << "\n";
+      // std::string ss = (*it)->ToString();
+      // if (ss == "{}") {
+      //   std::cout << "empty!"  << "\n";
+      //   std::cout << (*it)->GetCode()  << "\n";
+      // }
     }
     if (PrintOption::Instance()->Has(POK_AddSnippetDot)) {
       std::cout <<"." << std::flush;
@@ -157,6 +295,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   }
   return result;
 }
+#endif
 
 
 /**************************
@@ -282,8 +421,11 @@ std::string SnippetRegistry::ToString() const {
     }
     for (auto m : sig) {
       std::string key = m.first;
-      SnippetKind k = m.second;
-      result += "key: " + key + " kinds: " + snippet_kind_to_char(k);
+      // SnippetKind k = m.second;
+      result += "key: " + key + " kinds: ";
+      for (SnippetKind k : sig[key]) {
+        result += snippet_kind_to_char(k);
+      }
       result += '\n';
     }
     result += "-------\n";

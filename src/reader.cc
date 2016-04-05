@@ -41,12 +41,22 @@ void Reader::GA() {
     // getchar();
     // std::cout << ast::get_text(func)  << "\n";
     AST ast(func);
+    std::cout << "Total leaf statement in this function: " << ast.leaf_size() << "\n";
+    if (ast.leaf_size() < 5) continue;
     Population pop(&ast);
     pop.CreateRandomIndividuals(5);
+    // for (Individual *ind : pop.GetIndividuals()) {
+    //   ind->Visualize();
+    // }
+    // return;
     pop.Solve();
     bool suc=false;
     for (Individual *ind : pop.GetIndividuals()) {
       // ind->Visualize();
+      /**
+       * Print some meta data for this individual
+       */
+      std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size(); //  << "\n";
       std::string main_code = ind->GetMain();
       std::string support = ind->GetSupport();
       std::string makefile = ind->GetMakefile();
@@ -55,14 +65,21 @@ void Reader::GA() {
       builder.SetSupport(support);
       builder.SetMakefile(makefile);
       builder.Write();
-      std::cout << "Code output to "  << builder.GetDir() << "\n";
+      if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+        std::cout << "Code output to "  << builder.GetDir() << "\n";
+      }
       builder.Compile();
       if (builder.Success()) {
         suc=true;
-        utils::print("Compile success\n", utils::CK_Green);
+        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+          utils::print("success", utils::CK_Green);
+        }
       } else {
-        utils::print("Error\n", utils::CK_Red);
+        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+          utils::print("error", utils::CK_Red);
+        }
       }
+      std::cout  << "\n";
     }
     if (suc) {
       g_compile_success_no++;
@@ -115,30 +132,6 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
     m_segments.push_back(seg);
   }
   Read();
-}
-
-#ifdef __MACH__
-#include <sys/time.h>
-#define CLOCK_REALTIME 0
-#define CLOCK_MONOTONIC 0
-//clock_gettime is not implemented on OSX
-int clock_gettime(int /*clk_id*/, struct timespec* t) {
-    struct timeval now;
-    int rv = gettimeofday(&now, NULL);
-    if (rv) return rv;
-    t->tv_sec  = now.tv_sec;
-    t->tv_nsec = now.tv_usec * 1000;
-    return 0;
-}
-#endif
-
-double get_time() {
-  struct timespec ts;
-  ts.tv_sec=0;
-  ts.tv_nsec=0;
-  clock_gettime(CLOCK_REALTIME, &ts);
-  double d = (double)ts.tv_sec + 1.0e-9*ts.tv_nsec;
-  return d;
 }
 
 

@@ -1,1 +1,1 @@
-((c++-mode . ((flycheck-clang-args . ("--std=c++11")))))
+;; ((c++-mode . ((flycheck-clang-args . ("--std=c++11")))))

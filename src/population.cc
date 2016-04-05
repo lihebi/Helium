@@ -5,7 +5,8 @@
 void Individual::RandGene() {
   if (m_gene) delete m_gene;
   m_gene = new Gene(m_ast);
-  m_gene->Rand(m_ast->size());
+  // m_gene->Rand(m_ast->size());
+  m_gene->LeafRand();
 }
 
 void Population::CreateRandomIndividuals(int num) {

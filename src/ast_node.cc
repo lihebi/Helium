@@ -104,6 +104,26 @@ void Gene::Rand(size_t size) {
   SetFlat(flat);
 }
 
+/**
+ * Assign leaf node to randomly 0 or 1
+ */
+void Gene::LeafRand() {
+  assert(m_ast);
+  std::set<ASTNode*> leafs = m_ast->GetLeafNodes();
+  std::set<int> indice = m_ast->Node2Index(leafs);
+  // randomly remove from indice
+  for (auto it=indice.begin(), end=indice.end();it!=end;) {
+    int a = utils::rand_int(0, 2);
+    if (a==0) { //1/3
+      // retain it
+      it++;
+    } else {
+      it = indice.erase(it);
+    }
+  }
+  SetIndiceS(indice, m_ast->size());
+}
+
 void Gene::dump() {
   for (int g : m_flat) {
     std::cout << g;
@@ -115,6 +135,27 @@ std::set<ASTNode*> Gene::ToASTNodeSet() {
   return m_ast->Index2Node(m_indice_s);
 }
 
+/**
+ * how many leaf nodes selected by the gene
+ */
+size_t Gene::leaf_size() {
+  std::set<ASTNode*> nodes = m_ast->Index2Node(m_indice_s);
+  int ret=0;
+  for (ASTNode* node : nodes) {
+    if (node->GetChildren().empty()) ret++;
+  }
+  return ret;
+}
+
+size_t AST::leaf_size() {
+  int ret =0;
+  for (ASTNode *node : m_nodes) {
+    if (node->GetChildren().empty()) {
+      ret ++;
+    }
+  }
+  return ret;
+}
 
 
 
@@ -207,6 +248,20 @@ std::string AST::GetFunctionName() {
   Function *func = dynamic_cast<Function*>(func_node);
   return func->GetName();
 }
+
+/**
+ * Get leaf nodes, i.e. statements
+ */
+std::set<ASTNode*> AST::GetLeafNodes() {
+  std::set<ASTNode*> ret;
+  for (ASTNode* node : m_nodes) {
+    if (node->GetChildren().empty()) {
+      ret.insert(node);
+    }
+  }
+  return ret;
+}
+
 
 /**
  * Root's lvl is 0. Then 1, 2, 3, ...

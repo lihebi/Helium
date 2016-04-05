@@ -27,7 +27,7 @@ namespace utils {
     default:
       return;
     }
-    printf("%s%s%s\n", c, s, RESET);
+    printf("%s%s%s", c, s, RESET);
   }
 
   void print(const std::string &s, ColorKind k) {
@@ -438,6 +438,26 @@ std::vector<std::string> utils::query_xml(const std::string& xml_file, const std
   return result;
 }
 
+std::map<std::string, pugi::xml_document*> xml_docs;
+
+/**
+ * Create doc, return the handler (pointer)
+ * Don't free it outside.
+ * All such files are maintained and looked up.
+ * This function will cache the xml documents, thus is very cheap if you use it for the same file many times
+ * However, it does assume storage.
+ */
+pugi::xml_document* utils::file2xml(const std::string &filename) {
+  if (xml_docs.count(filename) == 1) return xml_docs[filename];
+  std::string cmd;
+  cmd = "srcml --position " + filename;
+  // cmd = "srcml " + filename;
+  std::string xml = exec(cmd.c_str(), NULL);
+  pugi::xml_document *doc = new pugi::xml_document();
+  doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
+  xml_docs[filename] = doc;
+  return doc;
+}
 
 
 
@@ -543,4 +563,40 @@ int utils::rand_int(int low, int high) {
   assert(high >= low);
   int a = rand();
   return a % (high - low + 1) + low;
+}
+
+
+#ifdef __MACH__
+#include <sys/time.h>
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 0
+//clock_gettime is not implemented on OSX
+int utils::clock_gettime(int /*clk_id*/, struct timespec* t) {
+    struct timeval now;
+    int rv = gettimeofday(&now, NULL);
+    if (rv) return rv;
+    t->tv_sec  = now.tv_sec;
+    t->tv_nsec = now.tv_usec * 1000;
+    return 0;
+}
+#endif
+
+double utils::get_time() {
+  struct timespec ts;
+  ts.tv_sec=0;
+  ts.tv_nsec=0;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  double d = (double)ts.tv_sec + 1.0e-9*ts.tv_nsec;
+  return d;
+}
+
+
+void utils::debug_time(std::string id) {
+  static double last_time = 0;
+  double t = get_time();
+  if (!id.empty()) {
+    // ignore print when id is empty. This allows to set last_time
+    std::cout << id << ": " << t-last_time << "\n";
+  }
+  last_time = t;
 }

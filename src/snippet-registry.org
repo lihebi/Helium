@@ -1,0 +1,33 @@
+#+TITLE: Snippet Registry Design Document
+
+The snippet should contain:
+- the code
+- the filename, line number it is defined
+- the signature:
+  - (key, kind) pairs
+
+The registry will maintain all snippets.
+The snippets will be stored to SQLite.
+The SQLite table schema should be designed as
+
+Snippet
+| ID | filename        | line number | code path             |
+|----+-----------------+-------------+-----------------------|
+|  1 | /Users/hebi/b.c |         100 | /Users/hebi/code/aa.c |
+|  2 | /Users/hebi/a.c |          10 |                       |
+
+Dependence
+| ID | from_snippet_id | to_snippet_id |
+|----+-----------------+---------------|
+|  1 |               1 |             2 |
+|  2 |               1 |             3 |
+|  2 |               2 |             3 |
+
+Signature
+
+| ID | keyword | kind        | snippet_id |
+|----+---------+-------------+------------|
+|  1 | AAA     | struct      |          2 |
+|  2 | ABCKind | enum        |          3 |
+|  3 | AK_Mem1 | enum member |          3 |
+|    |         |             |            |

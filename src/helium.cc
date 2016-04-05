@@ -118,8 +118,9 @@ Helium::Helium(int argc, char* argv[]) {
       ast::NodeList func_nodes = ast::find_nodes(doc, ast::NK_Function);
       for (ast::Node func : func_nodes) {
         ast::AST ast(func);
-        ast.Visualize();
-        std::cout << ast.GetCode() <<"\n";
+        std::set<ast::ASTNode*> leafs = ast.GetLeafNodes();
+        ast.VisualizeN(leafs, {});
+        // std::cout << ast.GetCode() <<"\n";
       }
       exit(0);
     } else {
@@ -247,8 +248,26 @@ sub/dir/b.cpp:364
   EXPECT_EQ(b[0], 364);
 }
 
+int Helium::countFunction() {
+  int ret=0;
+  for (std::string file : m_files) {
+    ast::XMLDoc doc;
+    utils::file2xml(file, doc);
+    ast::XMLNodeList nodes = ast::find_nodes(doc, ast::NK_Function);
+    ret += nodes.size();
+  }
+  return ret;
+}
+
 void
 Helium::Run() {
+  /**
+   * Print some meta data for the benchmark project.
+   */
+  std::cout << "===== Helium Benchmark Meta ====="  << "\n";
+  std::cout << "total file: " << m_files.size()  << "\n";
+  int func_count = countFunction();
+  std::cout << "totla function: " << func_count  << "\n";
   /**
    * Code selection method is given as a file, so this is a config file, contains the <file:line> format
    */
