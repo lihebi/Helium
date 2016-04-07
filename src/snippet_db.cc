@@ -8,21 +8,11 @@
 #include <sqlite3.h>
 #include "utils.h"
 #include "snippet.h"
+#include "resolver.h"
+
+#include "snippet_db.h"
 
 using namespace utils;
-TEST(SQLiteTestCase, DriverTest) {
-  sqlite3 *db;
-  sqlite3_open("./data/test.db", &db);
-}
-
-// static int callback(void *NotUsed, int argc, char **argv, char **azColName){
-//    int i;
-//    for(i=0; i<argc; i++){
-//       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//    }
-//    printf("\n");
-//    return 0;
-// }
 
 /**
  * 1. Insert snippet into "snippet" table
@@ -174,6 +164,12 @@ void create_table(sqlite3 *db) {
     foreign key (from_snippet_id) references snippet(ID),
     foreign key (to_snippet_id) references snippet(ID)
     );
+  create table header_dependence (
+    ID int, from_header_id int, to_header_id int,
+    primary key (ID),
+    foreign key (from_header_id) references header(ID),
+    foreign key (to_header_id) references header(ID),
+    );
 )prefix";
   char *errmsg = NULL;
   int rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
@@ -191,7 +187,7 @@ void create_table(sqlite3 *db) {
  * output_folder/index.db
  * output_folder/code/<number>.txt
  */
-void create_snippet_db(std::string tagfile, std::string output_folder) {
+void snippetdb::create_snippet_db(std::string tagfile, std::string output_folder) {
   std::cout << "creating snippet db ..."  << "\n";
   if (utils::exists(output_folder)) {
     utils::remove_folder(output_folder);
@@ -243,3 +239,223 @@ void create_snippet_db(std::string tagfile, std::string output_folder) {
   sqlite3_close_v2(db);
 }
 
+static std::string db_folder;
+static sqlite3 *db_instance = NULL;
+
+void load_db(std::string folder) {
+  db_folder = folder;
+  std::string db_file = db_folder + "/index.db";
+  sqlite3_open(db_file.c_str(), &db_instance);
+}
+
+/**
+ * Look up the key in the database.
+ * Only return those whose kind is in kinds.
+ * Must call load_db before, and the db must be successfully loaded.
+ * @return snippet_ids
+ */
+std::set<int> look_up_snippet(std::string key, std::set<SnippetKind> kinds) {
+  std::set<int> ret;
+  assert(db_instance != NULL);
+  const char *format = "select snippet_id,kind from signature where keyword='%s';";
+  char buf[BUFSIZ];
+  snprintf(buf, BUFSIZ, format, key.c_str());
+  sqlite3_stmt *stmt;
+  int rc;
+  rc = sqlite3_prepare_v2(db_instance, buf, -1, &stmt, NULL);
+  assert(rc == SQLITE_OK);
+  while (true) {
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+      // data row
+      assert(sqlite3_column_count(stmt) == 2);
+      int tmp_id = sqlite3_column_int(stmt, 0);
+      const unsigned char *s = sqlite3_column_text(stmt, 1);
+      assert(s);
+      char kind = *s;
+      if (kinds.count(char_to_snippet_kind(kind)) == 1) {
+        ret.insert(tmp_id);
+      }
+    } else if (rc == SQLITE_DONE) {
+      break;
+    } else {
+      assert(false);
+    }
+  }
+  sqlite3_finalize(stmt);
+  return ret;
+}
+
+std::set<int> snippetdb::get_dependence(int id) {
+  std::set<int> ret;
+  assert(db_instance != NULL);
+  const char *format = "select to_snippet_id from dependence where from_snippet_id=%d;";
+  char buf[BUFSIZ];
+  snprintf(buf, BUFSIZ, format, id);
+  sqlite3_stmt *stmt;
+  int rc;
+  rc = sqlite3_prepare_v2(db_instance, buf, -1, &stmt, NULL);
+  assert(rc == SQLITE_OK);
+  while (true) {
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+      // data row
+      assert(sqlite3_column_count(stmt) == 1);
+      int tmp_id = sqlite3_column_int(stmt, 0);
+      ret.insert(tmp_id);
+    } else if (rc == SQLITE_DONE) {
+      break;
+    } else {
+      assert(false);
+    }
+  }
+  sqlite3_finalize(stmt);
+  return ret;
+}
+
+/**
+ * The query is something like:
+ * select col1 from table where ...
+ * It should not select two, otherwise assert fail
+ */
+std::vector<int> query_first_int(const char *query) {
+  std::vector<int> ret;
+  assert(db_instance != NULL);
+  sqlite3_stmt *stmt;
+  int rc;
+  rc = sqlite3_prepare_v2(db_instance, query, -1, &stmt, NULL);
+  assert(rc == SQLITE_OK);
+  while (true) {
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+      // data row
+      assert(sqlite3_column_count(stmt) == 1);
+      int res = sqlite3_column_int(stmt, 0);
+      ret.push_back(res);
+    } else if (rc == SQLITE_DONE) {
+      break;
+    } else {
+      assert(false);
+    }
+  }
+  sqlite3_finalize(stmt);
+  return ret;
+}
+
+std::vector<std::string> query_first_string(char *query) {
+  std::vector<std::string> ret;
+  assert(db_instance != NULL);
+  sqlite3_stmt *stmt;
+  int rc;
+  rc = sqlite3_prepare_v2(db_instance, query, -1, &stmt, NULL);
+  assert(rc == SQLITE_OK);
+  while (true) {
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+      // data row
+      assert(sqlite3_column_count(stmt) == 1);
+      // FIXME can I cast from uchar to char like this?
+      const char *res = (char*)sqlite3_column_text(stmt, 1);
+      assert(res);
+      std::string res_str(res);
+      ret.push_back(res_str);
+    } else if (rc == SQLITE_DONE) {
+      break;
+    } else {
+      assert(false);
+    }
+  }
+  sqlite3_finalize(stmt);
+  return ret;
+}
+
+std::set<int> snippetdb::get_all_dependence(std::set<int> snippet_ids) {
+  std::set<int> ret;
+  std::set<int> worklist;
+  worklist.insert(snippet_ids.begin(), snippet_ids.end());
+  while (!worklist.empty()) {
+    int id = *worklist.begin();
+    worklist.erase(id);
+    ret.insert(id);
+    std::set<int> ids = get_dependence(id);
+    for (int id : ids) {
+      if (ret.count(id) == 0) {
+        worklist.insert(id);
+      }
+    }
+  }
+  return ret;
+}
+
+std::vector<int> snippetdb::sort_snippets(std::set<int> snippets) {
+  std::vector<int> ret;
+  /**
+   * 1. get the file names for all snippets
+   * 2. use HeaderSorter to sort
+   * 3. map back to snippet ids
+   */
+  std::map<std::string, std::set<int> > file_to_snippet_id_map;
+  // step 1
+  for (int id : snippets) {
+    char buf[BUFSIZ];
+    snprintf(buf, BUFSIZ, "select filename from snippet where ID=%d", id);
+    std::vector<std::string> tmp = query_first_string(buf);
+    assert(tmp.size() == 1);
+    file_to_snippet_id_map[tmp[0]].insert(id);
+  }
+  std::set<std::string> filenames;
+  for (auto m : file_to_snippet_id_map) {
+    filenames.insert(m.first);
+  }
+  std::vector<std::string> sorted_filenames = HeaderSorter::Instance()->Sort(filenames);
+  for (std::string filename : sorted_filenames) {
+    ret.insert(ret.begin(),
+               file_to_snippet_id_map[filename].begin(),
+               file_to_snippet_id_map[filename].end()
+               );
+  }
+  return ret;
+}
+
+
+/**
+ * Populate the "header_dependence" table
+ */
+// void create_header_dependence(sqlite3 *db, std::string benchmark_folder) {
+//   assert(db);
+//   /**
+//    * 1. get all =.h= files in the benchmark folder
+//    * 2. get their canonical names and simple names
+//    * 3. insert into "header" table
+//    * 3. get all includes of them => simple name
+//    * 4. query to get the id, then 
+//    */
+//   std::vector<std::string> headers;
+//   get_files_by_extension(folder, headers, "h");
+//   for (auto it=headers.begin();it!=headers.end();it++) {
+//     std::string filename = *it;
+//     // get only the last component(i.e. filename) in the file path
+//     filename = filename.substr(filename.rfind("/")+1);
+//     std::ifstream is(*it);
+//     if (is.is_open()) {
+//       std::string line;
+//       while(std::getline(is, line)) {
+//         // process line
+//         boost::smatch match;
+//         if (boost::regex_search(line, match, include_reg)) {
+//           std::string new_file = match[1];
+//           // the filename part of including
+//           if (new_file.find("/") != std::string::npos) {
+//             new_file = new_file.substr(new_file.rfind("/")+1);
+//           }
+//           // add the dependence
+//           // FIXME if the include is in the middle of the header file,
+//           // The dependence may change.
+//           addDependence(filename, new_file);
+//         }
+//       }
+//       is.close();
+//     }
+//   }
+  
+// }

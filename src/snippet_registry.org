@@ -5,24 +5,50 @@ Snippet
 The file name is by default to =./code/<Snippet-ID>.txt
 | ID | filename        | line number |
 |----+-----------------+-------------|
-|  1 | /Users/hebi/b.c |         100 |
-|  2 | /Users/hebi/a.c |          10 |
+|  0 | /Users/hebi/b.c |         100 |
+|  1 | /Users/hebi/a.c |          10 |
 
 Dependence
 | ID | from_snippet_id | to_snippet_id |
 |----+-----------------+---------------|
-|  1 |               1 |             2 |
-|  2 |               1 |             3 |
+|  0 |               1 |             2 |
+|  1 |               1 |             3 |
 |  2 |               2 |             3 |
 
 Signature
 
-| ID | keyword | kind        | snippet_id |
-|----+---------+-------------+------------|
-|  1 | AAA     | struct      |          2 |
-|  2 | ABCKind | enum        |          3 |
-|  3 | AK_Mem1 | enum member |          3 |
-|    |         |             |            |
+| ID | keyword | kind | snippet_id |
+|----+---------+------+------------|
+|  0 | AAA     | s    |          2 |
+|  1 | ABCKind | g    |          3 |
+|  2 | AK_Mem1 | e    |          3 |
+|    |         |      |            |
+
+# header
+# | ID | full name    | simple name |
+# |----+--------------+-------------|
+# |  0 | /path/to/a.h | a.h         |
+# |  1 | /path/to/b.c | b.h         |
+
+# header_dependence
+# | ID | from_header_id | to_header_id |
+# |----+----------------+--------------|
+# |  0 |              0 |            1 |
+# |  1 |              3 |            1 |
+# ** Notes about header dependence
+# If it is in a =.c= file, than it will be in the of the priority.
+# The header dependence is designed to load only the simple name
+# (the filename without path information).
+# We also need to sort the snippets based on their type,
+# because
+# 1. the forward declaration may not be captured
+# 2. function declaration is not captured
+
+# Also, the header dependence may have loop, because there's header guard.
+# But it is a bad design.
+
+# Another imprecision is we only use the simple header name,
+# it will be wrong if two files have the same name.
 
 * Command Line Usage
 The command takes the benchmark folder and output the index database file and all the code snippets, one in a file.
@@ -37,6 +63,28 @@ helium --create-snippet-db [-o output] [--tagfile sample.tags] <src-file-or-dir>
 * Ctags
 The following is a full list of kinds supported by ctags.
 The executed command is =ctags --list-kinds=
+
+#+headers: :results raw
+#+BEGIN_SRC shell
+ctags --list-kinds=c
+#+END_SRC
+
+#+RESULTS:
+c  classes
+d  macro definitions
+e  enumerators (values inside an enumeration)
+f  function definitions
+g  enumeration names
+l  local variables [off]
+m  class, struct, and union members
+n  namespaces
+p  function prototypes [off]
+s  structure names
+t  typedefs
+u  union names
+v  variable definitions
+x  external and forward variable declarations [off]
+
 
 #+BEGIN_EXAMPLE
 C
@@ -77,24 +125,34 @@ C++
 #+header: :dir /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/snippets
 #+header: :db index.db
 #+BEGIN_SRC sqlite
-drop table snippet;
-drop table signature;
-drop table dependence;
+  drop table snippet;
+  drop table signature;
+  drop table dependence;
   create table snippet (
     ID INT, filename VARCHAR(500), linum INT,
     PRIMARY KEY (ID)
-    );
+  );
   create table signature (
     ID INT, keyword VARCHAR(100), kind VARCHAR(1), snippet_id int,
     PRIMARY KEY (ID),
     FOREIGN KEY (snippet_id) REFERENCES snippet(ID)
-    );
+  );
   create table dependence (
     ID int, from_snippet_id int, to_snippet_id int,
     primary key (ID),
     foreign key (from_snippet_id) references snippet(ID),
     foreign key (to_snippet_id) references snippet(ID)
-    );
+  );
+  -- create table header (
+  --   ID int, full_name VARCHAR(500), simple_name VARCHAR(100),
+  --   primary key (ID)
+  --   );
+  -- create table header_dependence (
+  --   ID int, from_header_id int, to_header_id int,
+  --   primary key (ID),
+  --   foreign key (from_header_id) references header(ID),
+  --   foreign key (to_header_id) references header(ID),
+  --   );
 #+END_SRC
 
 #+header: :dir /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/snippets

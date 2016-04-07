@@ -13,7 +13,7 @@
 #include "ast.h"
 #include "ast_node.h"
 
-#include "snippet_sqlite_driver.h"
+#include "snippet_db.h"
 #include <gtest/gtest.h>
 
 using namespace utils;
@@ -106,7 +106,7 @@ Helium::Helium(int argc, char* argv[]) {
     std::string tmpdir = utils::create_tmp_dir();
     create_tagfile(m_folder, tmpdir+"/tags");
     tagfile = tmpdir+"/tags";
-    create_snippet_db(tagfile, output_folder);
+    snippetdb::create_snippet_db(tagfile, output_folder);
     exit(0);
   }
 
