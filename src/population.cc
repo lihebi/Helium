@@ -1,6 +1,8 @@
 #include "population.h"
 #include "segment.h"
 #include <iostream>
+#include "snippet_db.h"
+#include "options.h"
 
 void Individual::RandGene() {
   if (m_gene) delete m_gene;
@@ -10,6 +12,7 @@ void Individual::RandGene() {
 }
 
 void Population::CreateRandomIndividuals(int num) {
+  print_trace("Population::CreateRandomIndividuals");
   for (int i=0;i<num;i++) {
     Individual *ind  = new Individual(m_ast);
     ind->RandGene();
@@ -40,6 +43,7 @@ void Population::CreateRandomIndividuals(int num) {
 // }
 
 void Population::Solve() {
+  print_trace("Population::Solve()");
   for (Individual *ind : m_individuals) {
     ind->Solve();
   }
@@ -52,6 +56,7 @@ void Individual::Visualize() {
 }
 
 std::string Individual::GetMain() {
+  print_trace("Individual::GetMain()");
   // segment must in here
   // add a comment before seg
   std::string ret;
@@ -77,6 +82,7 @@ std::string Individual::GetMain() {
 }
 
 std::string Individual::GetCode() {
+  print_trace("Individual::GetCode()");
   m_ast->SetDecl(m_decl_input_m, m_decl_m);
   std::string ret = m_ast->GetCode(m_gene->GetIndiceS());
   m_ast->ClearDecl();
@@ -110,6 +116,7 @@ std::string Individual::GetMakefile() {
  *   2.3 Otherwise, add the decl and input at the decl node
  */
 void Individual::Solve() {
+  print_trace("Individual::Solve()");
   std::set<ASTNode*> newnodes = m_ast->CompleteGene(m_gene);
   std::set<ASTNode*> worklist = m_gene->ToASTNodeSet();
   std::set<ASTNode*> done;
@@ -158,9 +165,82 @@ void Individual::Solve() {
   // resolve
   ResolveSnippet();
 }
-
 void Individual::ResolveSnippet() {
-  // TODO resolve the type name of the decls, in m_decl_input_m and m_decl_m
+  print_trace("Individual::ResolveSnippet()");
+  std::set<std::string> all_ids;
+  std::map<ASTNode*, std::set<std::string> > all_decls;
+  all_decls.insert(m_decl_input_m.begin(), m_decl_input_m.end());
+  all_decls.insert(m_decl_m.begin(), m_decl_m.end());
+  for (auto item : all_decls) {
+    ASTNode *node = item.first;
+    std::set<std::string> names = item.second;
+    for (std::string name : names) {
+      SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
+      std::string type = value->GetType();
+      std::set<std::string> ids = extract_id_to_resolve(type);
+      all_ids.insert(ids.begin(), ids.end());
+    }
+  }
+  // resolve the nodes selected by gene
+  std::set<ASTNode*> nodes = m_gene->ToASTNodeSet();
+  for (ASTNode *n : nodes) {
+    std::set<std::string> ids = n->GetIdToResolve();
+    all_ids.insert(ids.begin(), ids.end());
+  }
+  m_snippet_ids = snippetdb::look_up_snippet(all_ids);
+}
+
+
+std::string Individual::GetSupport() {
+  print_trace("Individual::GetSupport()");
+  std::set<int> all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
+  std::vector<int> sorted_snippet_ids = snippetdb::sort_snippets(all_snippet_ids);
+  std::string code = "";
+  // head
+  code += get_head();
+  code += SystemResolver::Instance()->GetHeaders();
+  code += "\n/****** codes *****/\n";
+  // snippets
+  std::string code_func_decl;
+  std::string code_func;
+  std::string avoid_func;
+  // if (m_function_m.count(m_genes[idx])==1) {
+  //   avoid_func = m_function_m[m_genes[idx]];
+  // }
+  if (m_gene->HasIndex(0)) {
+    // the function node is selected.
+    // the function name should be avoided
+    avoid_func = m_ast->GetFunctionName();
+  }
+  // std::cout << sorted_snippet_ids.size()  << "\n";
+  for (int id : sorted_snippet_ids) {
+    snippetdb::SnippetMeta meta = snippetdb::get_meta(id);
+    if (meta.HasKind(SK_Function)) {
+      std::string func = meta.GetKey();
+      if (avoid_func != func) {
+        code_func += "/* " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+        code_func += snippetdb::get_code(id) + '\n';
+        code_func_decl += get_function_decl(snippetdb::get_code(id))+"\n";
+      }
+    } else {
+      // every other support code(structures) first
+      code += "/* " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+      code += snippetdb::get_code(id) + '\n';
+    }
+  }
+
+  code += "\n// function declarations\n";
+  code += code_func_decl;
+  code += "\n// functions\n";
+  code += code_func;
+  // foot
+  code += get_foot();
+  return code;
+}
+
+
+#if 0
+void Individual::ResolveSnippet() {
   std::map<ASTNode*, std::set<std::string> > all_decls;
   all_decls.insert(m_decl_input_m.begin(), m_decl_input_m.end());
   all_decls.insert(m_decl_m.begin(), m_decl_m.end());
@@ -189,7 +269,10 @@ void Individual::ResolveSnippet() {
     }
   }
 }
+#endif
 
+
+#if 0
 std::string Individual::GetSupport() {
   // prepare the containers
   std::set<Snippet*> all_snippets;
@@ -236,3 +319,4 @@ std::string Individual::GetSupport() {
   code += get_foot();
   return code;
 }
+#endif

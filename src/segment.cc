@@ -454,7 +454,7 @@ std::vector<Snippet*> sort_snippets(std::set<Snippet*> all) {
     }
     file_to_snippet_map[filename].push_back(*it);
   }
-  // sort the file_to_snippet_map
+  // sort the snippets in each file inside file_to_snippet_map, by line number
   for (auto it=file_to_snippet_map.begin();it!=file_to_snippet_map.end();it++) {
     std::sort(it->second.begin(), it->second.end(), compare);
   }

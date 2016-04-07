@@ -16,3 +16,13 @@ so that in the database, it will be fulll path.
         if (fstat(ofd, &ostat) != 0) {
 #endif
 #+END_SRC
+
+* SrcML bugs
+
+#+BEGIN_SRC srcml
+int foo(a, c)
+int* a, *c;
+{
+return a;
+}
+#+END_SRC

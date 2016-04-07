@@ -170,6 +170,13 @@ Helium::Helium(int argc, char* argv[]) {
     ctags_load(tagfile);
   }
 
+  std::string snippet_db_folder = args.GetString("snippet-db-folder");
+  if (snippet_db_folder.empty()) {
+    std::cerr << "snippet database folder unset. Please use --snippet-db-folder option. --help for more details." << "\n";
+    assert(false);
+  }
+  snippetdb::load_db(snippet_db_folder);
+
   /* load system tag file */
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   HeaderSorter::Instance()->Load(m_folder);

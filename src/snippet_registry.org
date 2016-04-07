@@ -3,10 +3,10 @@
 * SQLite Table Design
 Snippet
 The file name is by default to =./code/<Snippet-ID>.txt
-| ID | filename        | line number |
-|----+-----------------+-------------|
-|  0 | /Users/hebi/b.c |         100 |
-|  1 | /Users/hebi/a.c |          10 |
+| ID | filename        | linum |
+|----+-----------------+-------|
+|  0 | /Users/hebi/b.c |   100 |
+|  1 | /Users/hebi/a.c |    10 |
 
 Dependence
 | ID | from_snippet_id | to_snippet_id |
@@ -155,68 +155,20 @@ C++
   --   );
 #+END_SRC
 
-#+header: :dir /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/snippets
+#+header: :dir /Users/hebi/github/Helium/benchmark/real-programs/bugbench/man-1.5h1/snippets
 #+header: :colnames yes
 #+header: :db index.db
 #+BEGIN_SRC sqlite
 -- delete from snippet;
-select * from snippet limit 50;
+-- select * from snippet limit 50;
 -- insert into snippet values (0, "/Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h", 103);
+select keyword,kind from signature where snippet_id=257;
 #+END_SRC
 
 #+RESULTS:
-| ID | filename                                                                            | linum |
-|----+-------------------------------------------------------------------------------------+-------|
-|  1 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   103 |
-| 10 | fd                                                                                  |     3 |
-|  2 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   111 |
-|  3 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   173 |
-|  4 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   162 |
-|  5 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   178 |
-|  6 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   202 |
-|  7 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |    63 |
-|  8 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   243 |
-|  9 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   250 |
-| 11 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   172 |
-| 12 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    51 |
-| 13 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/lzw.h     |    12 |
-| 14 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/lzw.h     |    18 |
-| 15 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/lzw.h     |    28 |
-| 16 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/trees.c   |    90 |
-| 17 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/inflate.c |   264 |
-| 18 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzw.c   |   121 |
-| 19 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/bits.c    |    78 |
-| 20 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    65 |
-| 21 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    44 |
-| 22 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/lzw.h     |    35 |
-| 23 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    66 |
-| 24 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   166 |
-| 25 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |    55 |
-| 26 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   163 |
-| 27 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unzip.c   |    27 |
-| 28 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/trees.c   |   172 |
-| 29 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   102 |
-| 30 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |   110 |
-| 31 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |    59 |
-| 32 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    40 |
-| 33 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/unlzh.c   |    41 |
-| 34 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   100 |
-| 35 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   180 |
-| 36 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   200 |
-| 37 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |    39 |
-| 38 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |    95 |
-| 39 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c    |   100 |
-| 40 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c    |   105 |
-| 41 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c    |   108 |
-| 42 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c    |    89 |
-| 43 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c    |    95 |
-| 44 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |    94 |
-| 45 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.h    |    96 |
-| 46 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/trees.c   |   120 |
-| 47 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/inflate.c |   223 |
-| 48 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   135 |
-| 49 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/tailor.h  |   219 |
-| 50 | /Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/trees.c   |   105 |
+| keyword | kind |
+|---------+------|
+| version | v    |
 
 ** Creating table
 

@@ -44,19 +44,20 @@ void Reader::GA() {
     std::cout << "Total leaf statement in this function: " << ast.leaf_size() << "\n";
     if (ast.leaf_size() < 5) continue;
     Population pop(&ast);
-    pop.CreateRandomIndividuals(5);
+    pop.CreateRandomIndividuals(1);
     // for (Individual *ind : pop.GetIndividuals()) {
     //   ind->Visualize();
     // }
     // return;
     pop.Solve();
-    bool suc=false;
+    std::cout << "done solving"  << "\n";
+    // bool suc=false;
     for (Individual *ind : pop.GetIndividuals()) {
       // ind->Visualize();
       /**
        * Print some meta data for this individual
        */
-      std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size(); //  << "\n";
+      std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size() << "\n";
       std::string main_code = ind->GetMain();
       std::string support = ind->GetSupport();
       std::string makefile = ind->GetMakefile();
@@ -70,22 +71,23 @@ void Reader::GA() {
       }
       builder.Compile();
       if (builder.Success()) {
-        suc=true;
+        // suc=true;
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          utils::print("success", utils::CK_Green);
+          g_compile_success_no++;
+          utils::print("success\n", utils::CK_Green);
         }
       } else {
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          utils::print("error", utils::CK_Red);
+          g_compile_error_no++;
+          utils::print("error\n", utils::CK_Red);
         }
       }
-      std::cout  << "\n";
     }
-    if (suc) {
-      g_compile_success_no++;
-    } else {
-      g_compile_error_no++;
-    }
+    // if (suc) {
+    //   g_compile_success_no++;
+    // } else {
+    //   g_compile_error_no++;
+    // }
   }
 }
 

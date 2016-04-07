@@ -162,6 +162,8 @@ namespace ast {
       return GetCode(Index2Node(indice));
     }
     std::string GetCode();
+    std::string GetFilename();
+    int GetLineNumber();
 
     std::set<ASTNode*> GetLeafNodes();
 

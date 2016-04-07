@@ -496,9 +496,26 @@ std::string AST::GetCode(std::set<ASTNode*> nodes) {
   if (!m_root) return "";
   if (nodes.empty()) return "";
   std::string ret;
+  // add location to AST code output
+  ret += "/* " + GetFilename() + ":" + std::to_string(GetLineNumber()) + " */\n";
   m_root->GetCode(nodes, ret, false);
   return ret;
 }
+
+std::string AST::GetFilename() {
+  assert(m_root);
+  std::string ret;
+  XMLNode root = m_root->GetXMLNode().select_node("/unit").node();
+  // std::cout << root.name()  << "\n";
+  // std::cout << m_root->GetXMLNode().name()  << "\n";
+  ret = root.attribute("filename").value();
+  // std::cout << ret  << "\n";
+  return ret;
+}
+int AST::GetLineNumber() {
+  return ast::get_node_line(m_root->GetXMLNode());
+}
+
 
 /**
  * Get all code
