@@ -20,7 +20,9 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"segno", POK_SegNo}
   , {"col", POK_CodeOutputLocation}
   , {"ci", POK_CompileInfo}
+  , {"cid", POK_CompileInfoDot}
   , {"br", POK_BuildRate}
+  , {"exp-ast", POK_ExpAST}
 };
 
 /**
@@ -37,7 +39,9 @@ void PrintOption::Help() {
   std::cout << "\tsegno: print current segment NO."  << "\n";
   std::cout << "\tcol: code output location"  << "\n";
   std::cout << "\tci: compile information(success or fail)"  << "\n";
+  std::cout << "\tcid: compile information as dot"  << "\n";
   std::cout << "\tbr: build rate"  << "\n";
+  std::cout << "\texp-ast: AST build rate special"  << "\n";
 }
 
 

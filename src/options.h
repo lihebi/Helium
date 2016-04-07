@@ -15,7 +15,10 @@ typedef enum {
   , POK_SegNo // current segment number
   , POK_CodeOutputLocation // output folder location
   , POK_CompileInfo // compile info
+  , POK_CompileInfoDot // red dot for compile error, green dot for compile success
   , POK_BuildRate
+  
+  , POK_ExpAST // special for AST build rate experiment
 } PrintOptionKind;
 class PrintOption {
 public:

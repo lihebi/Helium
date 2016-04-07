@@ -12,6 +12,7 @@
 
 #include "ast.h"
 #include "ast_node.h"
+#include "dump.h"
 
 #include "snippet_db.h"
 #include <gtest/gtest.h>
@@ -162,9 +163,9 @@ Helium::Helium(int argc, char* argv[]) {
   if (tagfile.empty()) {
     // ctags_load(m_folder + "/tags");
     // create tagfile
-    std::cout << "creating tag file ..."  << "\n";
+    // std::cout << "creating tag file ..."  << "\n";
     create_tagfile(m_folder, "/tmp/helium.tags");
-    std::cout << "done"  << "\n";
+    // std::cout << "done"  << "\n";
     ctags_load("/tmp/helium.tags");
   } else {
     ctags_load(tagfile);
@@ -296,6 +297,10 @@ Helium::Run() {
   std::cout << "total file: " << m_files.size()  << "\n";
   int func_count = countFunction();
   std::cout << "totla function: " << func_count  << "\n";
+  ExpASTDump::Instance()->file_count = m_files.size();
+  ExpASTDump::Instance()->func_count = func_count;
+  ExpASTDump::Instance()->benchmark = m_folder;
+  double t1 = utils::get_time();
   /**
    * Code selection method is given as a file, so this is a config file, contains the <file:line> format
    */
@@ -317,12 +322,27 @@ Helium::Run() {
       // reader.Read();
     }
   }
+  double t2 = utils::get_time();
   std::cout << "End of Helium"  << "\n";
   if (PrintOption::Instance()->Has(POK_BuildRate)) {
     std::cout << "Compile Success Count: " << g_compile_success_no  << "\n";
     std::cout << "Compile Error Count: " << g_compile_error_no  << "\n";
     std::cout << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
   }
+  ExpASTDump::Instance()->time = t2 - t1;
+
+  /**
+   * Now its time to dump the *Dump clases
+   */
+  std::cout << "====DUMP START========="  << "\n";
+  std::cout << ExpASTDump::Instance()->GetHeader()  << "\n";
+  std::cout << ExpASTDump::Instance()->dump() << "\n";
+  std::cout << "====DUMP STOP========="  << "\n";
+
+  /**
+   * Also, store one version to the file.
+   */
+  utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
 }
 
 

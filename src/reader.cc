@@ -18,6 +18,8 @@
 #include "population.h"
 #include <iostream>
 
+#include "dump.h"
+
 
 /*******************************
  ** portable timing
@@ -33,31 +35,35 @@ int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
 
 void Reader::GA() {
-  std::cout << "Genetic Algorithm"  << "\n";
+  // std::cout << "Genetic Algorithm"  << "\n";
   NodeList func_nodes = ast::find_nodes(m_doc, NK_Function);
   for (Node func : func_nodes) {
+    std::cout << "."  << std::flush;
     // std::cout << "For func: " << func.child_value("name") << "\n";
     // std::cout << "process Eneter to continue ...\n";
     // getchar();
     // std::cout << ast::get_text(func)  << "\n";
     AST ast(func);
-    std::cout << "Total leaf statement in this function: " << ast.leaf_size() << "\n";
-    if (ast.leaf_size() < 5) continue;
+    // std::cout << "Total leaf statement in this function: " << ast.leaf_size() << "\n";
+    // if (ast.leaf_size() < 5) continue;
     Population pop(&ast);
-    pop.CreateRandomIndividuals(1);
+    pop.CreateRandomIndividuals(3);
     // for (Individual *ind : pop.GetIndividuals()) {
     //   ind->Visualize();
     // }
     // return;
     pop.Solve();
-    std::cout << "done solving"  << "\n";
+    // std::cout << "done solving"  << "\n";
     // bool suc=false;
     for (Individual *ind : pop.GetIndividuals()) {
       // ind->Visualize();
       /**
        * Print some meta data for this individual
        */
-      std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size() << "\n";
+      // std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size() << "\n";
+      /**
+       * Now I want to dump the max,min,mean (leafsize, snippet size) of the successfully built code.
+       */
       std::string main_code = ind->GetMain();
       std::string support = ind->GetSupport();
       std::string makefile = ind->GetMakefile();
@@ -70,25 +76,36 @@ void Reader::GA() {
         std::cout << "Code output to "  << builder.GetDir() << "\n";
       }
       builder.Compile();
+      int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
       if (builder.Success()) {
+        g_compile_success_no++;
+        ExpASTDump::Instance()->compile_success++;
+        ExpASTDump::Instance()->suc_leaf_size.push_back(leaf_size);
+        ExpASTDump::Instance()->suc_snippet_size.push_back(ind->GetAllSnippetIds().size());
         // suc=true;
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          g_compile_success_no++;
           utils::print("success\n", utils::CK_Green);
         }
+        if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
+          utils::print(".", utils::CK_Green);
+          std::cout << std::flush;
+        }
       } else {
+        g_compile_error_no++;
+        ExpASTDump::Instance()->compile_error++;
+        ExpASTDump::Instance()->err_leaf_size.push_back(leaf_size);
+        ExpASTDump::Instance()->err_snippet_size.push_back(ind->GetAllSnippetIds().size());
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          g_compile_error_no++;
           utils::print("error\n", utils::CK_Red);
+        }
+        if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
+          utils::print(".", utils::CK_Red);
+          std::cout << std::flush;
         }
       }
     }
-    // if (suc) {
-    //   g_compile_success_no++;
-    // } else {
-    //   g_compile_error_no++;
-    // }
   }
+  std::cout  << "\n";
 }
 
 /**

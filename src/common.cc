@@ -27,6 +27,9 @@ int global_seg_no = 0;
 int g_compile_success_no = 0;
 int g_compile_error_no = 0;
 
+std::vector<int> g_data1;
+std::vector<int> g_data2;
+
 bool
 is_c_keyword(const std::string& s) {
   if (c_common_keywords.count(s) == 1) return true;

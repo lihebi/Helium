@@ -54,6 +54,7 @@ int insert_snippet(sqlite3 *db, Snippet *snippet) {
     // FIXME LOG? ASSERT?
     fprintf(stderr, "SQL error: %s\n", errmsg);
     sqlite3_free(errmsg);
+    assert(false);
   }
   /**
    * Insert into signature table
@@ -99,7 +100,7 @@ void create_dependence(sqlite3 *db, std::string code_folder, int max_snippet_id)
   int dependence_id = 0;
   int rc = 0;
   for (int id=0;id<=max_snippet_id;id++) {
-    std::cout << '.';
+    std::cout << '.' << std::flush;
     std::string code_file = code_folder+"/"+std::to_string(id) + ".txt";
     std::string code = utils::read_file(code_file);
     std::set<std::string> names = extract_id_to_resolve(code);
@@ -170,12 +171,6 @@ void create_table(sqlite3 *db) {
     foreign key (from_snippet_id) references snippet(ID),
     foreign key (to_snippet_id) references snippet(ID)
     );
-  create table header_dependence (
-    ID int, from_header_id int, to_header_id int,
-    primary key (ID),
-    foreign key (from_header_id) references header(ID),
-    foreign key (to_header_id) references header(ID),
-    );
 )prefix";
   char *errmsg = NULL;
   int rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
@@ -183,6 +178,7 @@ void create_table(sqlite3 *db) {
     // FIXME LOG? ASSERT?
     fprintf(stderr, "SQL error: %s\n", errmsg);
     sqlite3_free(errmsg);
+    assert(false);
   }
 }
 
@@ -229,6 +225,7 @@ void snippetdb::create_snippet_db(std::string tagfile, std::string output_folder
     /**
      * Inserting database
      */
+    std::cout << '.' << std::flush;
     CtagsEntry ctags_entry(entry);
     Snippet *snippet = new Snippet(ctags_entry);
     if (snippet != NULL) {
@@ -241,6 +238,7 @@ void snippetdb::create_snippet_db(std::string tagfile, std::string output_folder
     }
     res = tagsNext(tag, entry);
   }
+  std::cout  << "\n";
   std::cout << "total snippet: " << snippet_id + 1  << "\n";
   create_dependence(db, output_folder+"/code", snippet_id);
   sqlite3_close_v2(db);

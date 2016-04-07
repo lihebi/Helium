@@ -26,6 +26,12 @@ public:
   // std::set<Snippet*> GetSnippets() {
   //   return m_snippets;
   // }
+  std::set<int> GetSnippetIds() {
+    return m_snippet_ids;
+  }
+  std::set<int> GetAllSnippetIds() {
+    return m_all_snippet_ids;
+  }
 private:
   Gene *m_gene = NULL;
   AST *m_ast = NULL;
@@ -35,6 +41,7 @@ private:
   std::map<ASTNode*, std::set<std::string> > m_decl_m;
   // std::set<Snippet*> m_snippets;
   std::set<int> m_snippet_ids;
+  std::set<int> m_all_snippet_ids; // already include all dependence
 };
 
 class Population {

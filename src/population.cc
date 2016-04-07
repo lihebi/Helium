@@ -188,13 +188,15 @@ void Individual::ResolveSnippet() {
     all_ids.insert(ids.begin(), ids.end());
   }
   m_snippet_ids = snippetdb::look_up_snippet(all_ids);
+  // not sure if it should be here ..
+  m_all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
 }
 
 
 std::string Individual::GetSupport() {
   print_trace("Individual::GetSupport()");
-  std::set<int> all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
-  std::vector<int> sorted_snippet_ids = snippetdb::sort_snippets(all_snippet_ids);
+  // m_all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
+  std::vector<int> sorted_snippet_ids = snippetdb::sort_snippets(m_all_snippet_ids);
   std::string code = "";
   // head
   code += get_head();

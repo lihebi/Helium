@@ -783,9 +783,9 @@ std::set<std::string> For::GetIdToResolve() {
  *******************************/
 
 typedef enum {
-  CDK_NULL,
-  CDK_This,
-  CDK_Continue
+  CDK_NULL, // do not continue, because this variable is defined on itself. e.g. a = foo(a)
+  CDK_This, // this node does defined this variable: a = foo(b,c)
+  CDK_Continue // nothing found related to this variable, please continue search previous sibling and parent
 } CheckDefKind;
 /**
  * This only check the first "="

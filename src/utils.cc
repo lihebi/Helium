@@ -306,10 +306,10 @@ TEST(utils_test_case, is_file_dir) {
 void
 utils::write_file(const std::string& file, const std::string& content) {
   fs::path file_path(file);
-  fs::path dir = file_path.parent_path();
-  if (!fs::exists(dir)) {
-    fs::create_directories(dir);
-  }
+  // fs::path dir = file_path.parent_path();
+  // if (!fs::exists(dir)) {
+  //   fs::create_directories(dir);
+  // }
   std::ofstream os;
   os.open(file_path.string());
   if (os.is_open()) {
@@ -324,10 +324,11 @@ utils::write_file(const std::string& file, const std::string& content) {
 void
 utils::append_file(const std::string& file, const std::string& content) {
   fs::path file_path(file);
-  fs::path dir = file_path.parent_path();
-  if (!fs::exists(dir)) {
-    fs::create_directories(dir);
-  }
+  // fs::path dir = file_path.parent_path();
+  // if (!fs::exists(dir)) {
+  //   std::cout << dir  << "\n";
+  //   fs::create_directories(dir);
+  // }
   std::ofstream os;
   os.open(file_path.string(), std::ios_base::app);
   if (os.is_open()) {
