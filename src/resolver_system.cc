@@ -8,7 +8,7 @@ using namespace utils;
 
 SystemResolver* SystemResolver::m_instance = 0;
 
-bool exists(const std::string header) {
+static bool header_exists(const std::string header) {
   fs::path p("/usr/include/"+header);
   if (fs::exists(p)) return true;
   p = "/usr/local/include/" + header;
@@ -32,7 +32,7 @@ SystemResolver::SystemResolver() {
           line = line.substr(0, line.find(' '));
           trim(flag);
         }
-        if (exists(line)) {
+        if (header_exists(line)) {
           m_headers.insert(line);
           if (!flag.empty()) {
             m_libs.insert(flag);

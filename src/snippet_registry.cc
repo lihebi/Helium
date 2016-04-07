@@ -237,11 +237,11 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   /**
    * Remove snippets with the same signature
    */
-  std::set<snippet_signature> sig_filter;
+  std::set<SnippetSignature> sig_filter;
   std::set<Snippet*> to_remove;
   for (auto it=direct_snippets.begin(), end=direct_snippets.end();it!=end;it++) {
     Snippet *s = *it;
-    snippet_signature sig = s->GetSignature();
+    SnippetSignature sig = s->GetSignature();
     if (sig_filter.count(sig) == 1) {
       // FIXME
       // it = direct_snippets.erase(it);
@@ -414,7 +414,7 @@ std::string SnippetRegistry::ToString() const {
   }
   result += "=========\n";
   for (auto s : m_snippets) {
-    snippet_signature sig = s->GetSignature();
+    SnippetSignature sig = s->GetSignature();
     if (sig.empty()) {
       result += "empty**";
       result += s->GetCode();

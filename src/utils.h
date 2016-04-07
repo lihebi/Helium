@@ -80,8 +80,8 @@ namespace utils {
   bool file_exists(const std::string& file);
   bool is_file(const std::string &file);
   bool is_dir(const std::string &file);
-
-
+  bool exists(const std::string &file);
+  std::string full_path(const std::string &file_or_dir);
   /*******************************
    * read/write
    *******************************/
@@ -91,6 +91,7 @@ namespace utils {
   // folders
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);
+  void remove_file(const std::string &file);
 
   /**
    * TODO Will generate format according to "filename"

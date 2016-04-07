@@ -126,9 +126,9 @@ std::string get_typedef_code(const CtagsEntry& entry);
 /*******************************
  ** Snippet
  *******************************/
-// typedef std::multimap<std::string, SnippetKind> snippet_signature;
+// typedef std::multimap<std::string, SnippetKind> SnippetSignature;
 
-typedef std::map<std::string, std::set<SnippetKind> > snippet_signature;
+typedef std::map<std::string, std::set<SnippetKind> > SnippetSignature;
 
 class Snippet {
 public:
@@ -140,7 +140,7 @@ public:
   // SnippetKind Type() const;
 
   /* signature */
-  snippet_signature GetSignature() const;
+  SnippetSignature GetSignature() const;
   /* snippet will be looked-up by name. */
   std::set<SnippetKind> GetSignature(const std::string& name);
   std::set<std::string> GetSignatureKey() const;
@@ -158,7 +158,7 @@ public:
 
   std::string ToString() const;
 private:
-  snippet_signature m_sig;
+  SnippetSignature m_sig;
   std::string m_main_name;
   SnippetKind m_main_kind;
   std::string m_code;

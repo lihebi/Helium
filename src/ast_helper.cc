@@ -563,4 +563,15 @@ namespace ast {
     return "";
   }
 
+  /**
+   * This require the benchmark, so disable it.
+   * It is used to find the unbalanced braces caused by conditional compilation.
+   * We actually cannot do much for it unless we perform the preprocess, but the output is not easily parsable.
+   */
+  TEST(ASTHelperCase, DISABLED_GetCodeEnclosingLine) {
+    // std::string code = get_code_enclosing_line("/Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/util.c", 279, "function");
+    std::string code = get_code_enclosing_line("/Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c", 1556, "function");
+    std::cout << code  << "\n";
+  }
+
 } // end of namespace ast

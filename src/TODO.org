@@ -1,11 +1,18 @@
 #+TITLE: TODO List for Helium Implementation
 
-- Print total function count
-- Print current function, to have a overview of the process
-- only run on a subset of functions if too many functions
-- 
-
-
 - some syntac adjustment
  - switch last stmt break;
  - else if {}
+
+When creating ctags file, use the full path,
+so that in the database, it will be fulll path.
+
+** Unbalanced window caused by conditional compilation
+
+#+BEGIN_SRC  C
+#ifdef NO_FSTAT
+        if (stat(ofname, &ostat) != 0) {
+#else
+        if (fstat(ofd, &ostat) != 0) {
+#endif
+#+END_SRC

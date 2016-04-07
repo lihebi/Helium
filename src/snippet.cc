@@ -383,7 +383,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
  因此，写一些help函数来判断一个typedf是什么，就行了。
 
 */
-snippet_signature
+SnippetSignature
 Snippet::GetSignature() const {
   return m_sig;
 }
@@ -392,13 +392,6 @@ Snippet::GetSignature() const {
  */
 std::set<SnippetKind>
 Snippet::GetSignature(const std::string& name) {
-  // std::pair <snippet_signature::iterator, snippet_signature::iterator> ret; 
-  // std::set<SnippetKind> types;
-  // ret = m_sig.equal_range(name);
-  // for (auto it=ret.first; it!=ret.second;it++) {
-  //   types.insert(it->second);
-  // }
-  // return types;
   if (m_sig.count(name) == 1) return m_sig[name];
   return {};
 }

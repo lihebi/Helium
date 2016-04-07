@@ -5,6 +5,7 @@
 #include <fstream>
 
 namespace fs = boost::filesystem;
+using namespace utils;
 
 namespace utils {
   const char* RED = "\033[31m";
@@ -247,6 +248,32 @@ utils::file_exists(const std::string& file) {
   return fs::exists(file_path);
 }
 
+bool utils::exists(const std::string &file) {
+  fs::path file_path(file);
+  return fs::exists(file_path);
+}
+
+/**
+ * Get the full path, and canonical one.
+ * I.e. no symbol link, no dots, no extra slashes
+ * Will throw exception if the file or directory does not exist
+ */
+std::string utils::full_path(const std::string &file_or_dir) {
+  fs::path file_path(file_or_dir);
+  // may throw exception
+  fs::path can_path = fs::canonical(file_path);
+  return can_path.string();
+}
+
+/**
+ * This is very system specific test.
+ * Should be disabled.
+ */
+TEST(UtilsTestCase, DISABLED_FullPathTest) {
+  std::cout << utils::full_path("./src/utils.cc") << "\n";
+  std::cout << utils::full_path(".//src/../src/utils.cc")  << "\n";
+}
+
 bool utils::is_file(const std::string &file) {
   struct stat sb;
   if (stat(file.c_str(), &sb) == 0 && S_ISREG(sb.st_mode)) {
@@ -335,6 +362,13 @@ utils::remove_folder(const std::string& folder) {
   fs::path folder_path(folder);
   if (fs::exists(folder_path)) {
     fs::remove_all(folder_path);
+  }
+}
+
+void utils::remove_file(const std::string &file) {
+  fs::path file_path(file);
+  if (fs::exists(file)) {
+    fs::remove(file);
   }
 }
 

@@ -62,7 +62,7 @@ CFLAGS := -g -Wall --std=c++11
 
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
-C_LIB += -lgtest
+C_LIB += -lgtest -lsqlite3
 
 ##############################
 ## Targets

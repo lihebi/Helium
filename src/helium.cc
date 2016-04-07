@@ -13,16 +13,20 @@
 #include "ast.h"
 #include "ast_node.h"
 
+#include "snippet_sqlite_driver.h"
 #include <gtest/gtest.h>
 
 using namespace utils;
 
 static void
 create_tagfile(const std::string& folder, const std::string& file) {
+  assert(utils::exists(folder));
+  // use full path because I want to have the full path in tag file
+  std::string full_path = utils::full_path(folder);
   std::string cmd = "ctags -f ";
   cmd += file;
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
-  cmd += folder;
+  cmd += full_path;
   // std::system(cmd.c_str());
   int status;
   utils::exec(cmd.c_str(), &status);
@@ -89,20 +93,37 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
-  if (args.Has("create-srcml")) {
-    ast::Doc doc;
-    utils::file2xml(m_folder, doc);
+  if (args.Has("create-snippet-db")) {
+    std::string output_folder;
     if (args.Has("output")) {
-      std::string output_file = args.GetString("output");
-      if (output_file.empty()) {
-        // FIXME not working
-        doc.print(std::cout);
-      } else {
-        doc.save_file(output_file.c_str());
-      }
+      output_folder = args.GetString("output");
     }
+    if (output_folder.empty()) output_folder = "snippets";
+    std::string tagfile;
+    if (args.Has("tagfile")) {
+      tagfile = args.GetString("tagfile");
+    }
+    std::string tmpdir = utils::create_tmp_dir();
+    create_tagfile(m_folder, tmpdir+"/tags");
+    tagfile = tmpdir+"/tags";
+    create_snippet_db(tagfile, output_folder);
     exit(0);
   }
+
+  // if (args.Has("create-srcml")) {
+  //   ast::Doc doc;
+  //   utils::file2xml(m_folder, doc);
+  //   if (args.Has("output")) {
+  //     std::string output_file = args.GetString("output");
+  //     if (output_file.empty()) {
+  //       // FIXME not working
+  //       doc.print(std::cout);
+  //     } else {
+  //       doc.save_file(output_file.c_str());
+  //     }
+  //   }
+  //   exit(0);
+  // }
 
   if (args.Has("print-header-deps")) {
     HeaderSorter::Instance()->Load(m_folder);
