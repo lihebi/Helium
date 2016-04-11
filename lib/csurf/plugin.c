@@ -16,17 +16,21 @@ CS_DEFINE_PLUGIN(plugin);
 
 void cs_plug_main()
 {
-  printf("xxx\n");
+  printf("Starting Slicing Plugin ..\n");
   FILE *f = fopen("input.txt", "rt");
 
   if (!f) {
     printf("No input.txt\n");
+    exit(1);
   };
   char filename[100];
 
 
+  /*
+   * Process for every line in the input.txt file.
+   */
   while(fgets(filename, sizeof(filename), f)!=NULL) {
-    printf("%s\n", filename);
+    /* printf("%s\n", filename); */
     char *p = strchr(filename, ':');
     if (p==NULL) {
       printf("NULL");
@@ -35,14 +39,17 @@ void cs_plug_main()
     *p = '\0';
 
     int line = atoi(++p);
-    printf("============\n");
+    /* printf("============\n"); */
 
     func(filename, line);
   }
 }
 
+/*
+ * do the slicing
+ */
 void func(char *filename, int line) {
-printf("Filename: %s; Line: %d\n", filename, line);
+/* printf("Filename: %s; Line: %d\n", filename, line); */
   cs_size_t size;
   int i;
 
@@ -120,11 +127,11 @@ printf("Filename: %s; Line: %d\n", filename, line);
       cs_string s = (cs_string)malloc(size);
       cs_pdg_vertex_characters(pdgVerticesList[i], s, size, &size);
       // 对的呀
-      printf("Vertex content: %s\n", s);
+      /* printf("Vertex content: %s\n", s); */
       break;
     }
   }
-cs_result result;
+  cs_result result;
   result = cs_pdg_vertex_set_to_list(toSliceSet, NULL, 0, &size);
   // printf("toSliceSet size: %d\n", size / sizeof(cs_pdg_vertex));
 
@@ -136,16 +143,22 @@ cs_result result;
   result = cs_pdg_vertex_set_to_list(slicedSet, slicedList, size, &size);
   nVertices = size / sizeof(cs_pdg_vertex);
 
+  if (nVertices==0) return;
+  if (nVertices > 10000) return;
   printf("Slice set size: %d\n", nVertices);
-  FILE *fp = fopen("result.txt", "w");
+  FILE *fp = fopen("result.txt", "a");
+  fprintf(fp, "=======\n");
+  fprintf(fp, "slice criteria: %s:%d\n", filename, line);
   // HEBI: map the sliced vertex to line number
   for(i=0;i<nVertices;i++) {
+    int a;
     cs_pdg_vertex_file_line(slicedList[i], &thisSfid, &thisLine);
     cs_file_get_include_name(thisSfid, NULL, 0, &size);
     cs_file_path vertexFileName = (cs_file_path) malloc(size);
     cs_file_get_include_name(thisSfid, vertexFileName, size, &size);
     if (strstr(vertexFileName, "codesurfer") == NULL) {
       fprintf(fp, "%s\t%d\n", vertexFileName, thisLine);
+      /* printf("%s\t%d\n", vertexFileName, thisLine); */
     }
   }
   fclose(fp);
