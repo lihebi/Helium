@@ -1,4 +1,5 @@
 #include "dump.h"
+#include "utils.h"
 
 ExpASTDump *ExpASTDump::m_instance = NULL;
 /**
@@ -46,4 +47,25 @@ std::string ExpASTDump::dump() {
 
     
   return ret;
+}
+
+static void append_to_file(std::string filename, std::vector<int> v) {
+  std::string tmp;
+  for (int suc : v) {
+    tmp += std::to_string(suc) + " ";
+  }
+  utils::append_file(filename, tmp);
+}
+
+/**
+ * Build rate and complexity plot data
+ */
+void ExpASTDump::AppendData() {
+  if (!utils::exists("/tmp/helium")) {
+    utils::create_folder("/tmp/helium");
+  }
+  append_to_file("/tmp/helium/leaf-suc.txt", suc_leaf_size);
+  append_to_file("/tmp/helium/leaf-err.txt", err_leaf_size);
+  append_to_file("/tmp/helium/snippet-suc.txt", suc_snippet_size);
+  append_to_file("/tmp/helium/snippet-err.txt", err_snippet_size);
 }

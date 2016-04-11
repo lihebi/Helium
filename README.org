@@ -3,6 +3,7 @@
 * Install
 ** Prerequisite
 *** boost
+Require boost 1.59 or above.
 *** pugixml
 #+begin_src shell
 cd lib/pugixml
@@ -32,6 +33,8 @@ cmake ..
 make
 make install # will install libgtest.a to standard location
 #+END_SRC
+*** sqlite3
+Install the sqlite3 develop package.
 ** compile
 
 #+begin_src shell
@@ -39,6 +42,12 @@ make
 make test
 make install
 #+end_src
+
+** Trouble shooting
+On =CentOS=, the default =LD_LIBRARY_PATH= does not contains the =/usr/local/lib=.
+The consequence is the =-lpugi= and =-lctags= are not recognized because they are put in that directory.
+Set it, or edit =/etc/ld.conf.d/local.conf= and add the path.
+After that, run =ldconf -v= as root to update the database.
 
 * Run
 

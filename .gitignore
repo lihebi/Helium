@@ -13,9 +13,13 @@ GTAGS
 GRTAGS
 GPATH
 
+en
+
 a.out
 
 helium_log.txt
 helium.xml
 
 # helium.conf
+
+tmp/*

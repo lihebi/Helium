@@ -26,10 +26,12 @@ public:
   int compile_error = 0;
   double time = 0;
 
+
   std::vector<int> suc_leaf_size;
   std::vector<int> err_leaf_size;
   std::vector<int> suc_snippet_size;
   std::vector<int> err_snippet_size;
+  void AppendData();
 private:
   ExpASTDump() {}
   static ExpASTDump *m_instance;

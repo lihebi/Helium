@@ -342,7 +342,8 @@ Helium::Run() {
   /**
    * Also, store one version to the file.
    */
-  utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
+  // utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
+  ExpASTDump::Instance()->AppendData();
 }
 
 

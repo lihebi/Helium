@@ -858,6 +858,7 @@ ASTNode* ElseIf::LookUpDefinition(std::string id) {
       return NULL;
   }
   }
+  return NULL;
 }
 ASTNode* For::LookUpDefinition(std::string id) {
   std::string code;

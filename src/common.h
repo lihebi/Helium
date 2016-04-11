@@ -7,6 +7,7 @@
 #include <set>
 #include <stack>
 #include <fstream>
+#include <cassert>
 
 #include <boost/regex.hpp>
 

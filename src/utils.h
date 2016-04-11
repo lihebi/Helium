@@ -154,7 +154,6 @@ namespace utils {
    */
   int rand_int(int low, int high);
 
-  int clock_gettime(int /*clk_id*/, struct timespec* t);
   double get_time();
   void debug_time(std::string id="");
 }

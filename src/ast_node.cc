@@ -2,8 +2,6 @@
 #include <gtest/gtest.h>
 #include "utils.h"
 
-
-
 using namespace ast;
 static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}

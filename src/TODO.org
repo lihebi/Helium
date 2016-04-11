@@ -4,25 +4,8 @@
  - switch last stmt break;
  - else if {}
 
-When creating ctags file, use the full path,
-so that in the database, it will be fulll path.
+* The AST Experiment TODO
 
-** Unbalanced window caused by conditional compilation
+I need to plot leafsize -
 
-#+BEGIN_SRC  C
-#ifdef NO_FSTAT
-        if (stat(ofname, &ostat) != 0) {
-#else
-        if (fstat(ofd, &ostat) != 0) {
-#endif
-#+END_SRC
-
-* SrcML bugs
-
-#+BEGIN_SRC srcml
-int foo(a, c)
-int* a, *c;
-{
-return a;
-}
-#+END_SRC
+Read zhendong su's paper.
