@@ -190,6 +190,7 @@ void Individual::ResolveSnippet() {
   m_snippet_ids = snippetdb::look_up_snippet(all_ids);
   // not sure if it should be here ..
   m_all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
+  m_all_snippet_ids = snippetdb::remove_dup(m_all_snippet_ids);
 }
 
 
@@ -220,13 +221,13 @@ std::string Individual::GetSupport() {
     if (meta.HasKind(SK_Function)) {
       std::string func = meta.GetKey();
       if (avoid_func != func) {
-        code_func += "/* " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+        code_func += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
         code_func += snippetdb::get_code(id) + '\n';
         code_func_decl += get_function_decl(snippetdb::get_code(id))+"\n";
       }
     } else {
       // every other support code(structures) first
-      code += "/* " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+      code += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
       code += snippetdb::get_code(id) + '\n';
     }
   }

@@ -47,6 +47,8 @@ namespace snippetdb {
     SnippetDB() {}
     static SnippetDB *m_instance;
   };
+
+  std::set<int> remove_dup(std::set<int> snippet_ids);
   void create_snippet_db(std::string tagfile, std::string output_folder);
   void load_db(std::string folder);
   std::set<int> get_all_dependence(std::set<int> snippet_ids);

@@ -230,6 +230,11 @@ void snippetdb::create_snippet_db(std::string tagfile, std::string output_folder
     Snippet *snippet = new Snippet(ctags_entry);
     if (snippet != NULL) {
       if (snippet->IsValid()) {
+        /**
+         * Since we are iterating the tag file, for the enumerator, we will add them many times.
+         * Apparently this is not desired.
+         * However, should I handle the duplication at the time of returning the snippets? At the time of query?
+         */
         snippet_id = insert_snippet(db, snippet);
         std::string code_file = output_folder + "/code/" + std::to_string(snippet_id) + ".txt";
         utils::write_file(code_file, snippet->GetCode());
@@ -521,6 +526,22 @@ std::set<int> snippetdb::get_all_dependence(std::set<int> snippet_ids) {
       if (ret.count(id) == 0) {
         worklist.insert(id);
       }
+    }
+  }
+  return ret;
+}
+
+/**
+ * Compare the signature. If same, only retain one.
+ */
+std::set<int> snippetdb::remove_dup(std::set<int> snippet_ids) {
+  std::set<std::map<std::string, std::set<SnippetKind> > > seen_sigs;
+  std::set<int> ret;
+  for (int id : snippet_ids) {
+    SnippetMeta meta = get_meta(id);
+    if (seen_sigs.count(meta.signature) != 1) {
+      seen_sigs.insert(meta.signature);
+      ret.insert(id);
     }
   }
   return ret;

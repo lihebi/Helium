@@ -293,26 +293,26 @@ Snippet::Snippet(const CtagsEntry& entry) {
     if (!inner.empty()) {
       // m_sig.emplace(inner, SK_Structure);
       m_sig[inner].insert(SK_Structure);
-      break;
     }
     // enum
+    /**
+     * FIXME typedef enum {aaa,bbb} xxx;
+     */
     inner = query_code_first(m_code, "//typedef/type/enum/name");
     if (!inner.empty()) {
       // m_sig.emplace(inner, SK_Enum);
       m_sig[inner].insert(SK_Enum);
-      std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
-      for (std::string m : members) {
-        // m_sig.emplace(m, SK_EnumMember);
-        m_sig[m].insert(SK_EnumMember);
-      }
-      break;
+    }
+    std::vector<std::string> members = query_code(m_code, "//enum/block/decl/name");
+    for (std::string m : members) {
+      // m_sig.emplace(m, SK_EnumMember);
+      m_sig[m].insert(SK_EnumMember);
     }
     // union
     inner = query_code_first(m_code, "//typedef/type/union/name");
     if (!inner.empty()) {
       // m_sig.emplace(inner, SK_Union);
       m_sig[inner].insert(SK_Union);
-      break;
     }
     // function pointer
     // FIXME typedef uint32_t (*hash_func)(const void *key, size_t length);
@@ -323,7 +323,6 @@ Snippet::Snippet(const CtagsEntry& entry) {
       // because the SK_Typedef may have a method to get its name, which will not be consistant with this one.
       // m_sig.emplace(inner, SK_Typedef);
       m_sig[inner].insert(SK_Typedef);
-      break;
     }
     break;
   }

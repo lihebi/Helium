@@ -606,7 +606,7 @@ int utils::rand_int(int low, int high) {
 #define CLOCK_REALTIME 0
 #define CLOCK_MONOTONIC 0
 //clock_gettime is not implemented on OSX
-int utils::clock_gettime(int /*clk_id*/, struct timespec* t) {
+int clock_gettime(int /*clk_id*/, struct timespec* t) {
     struct timeval now;
     int rv = gettimeofday(&now, NULL);
     if (rv) return rv;
