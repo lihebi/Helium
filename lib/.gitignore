@@ -1,5 +1,3 @@
-Makefile
-makefile
 *.dylib
 *.so
 *.so.*
