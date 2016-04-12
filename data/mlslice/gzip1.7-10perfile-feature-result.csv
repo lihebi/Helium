@@ -1,0 +1,389 @@
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 25, 1, 17, 6, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 25, 1, 9, 6, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 25, 1, 17, 6, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 27, 1, 8, 4, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 28, 1, 17, 3, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 30, 1, 8, 1, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 30, 1, 17, 1, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 32, 1, 8, -1, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 33, 1, 17, -2, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 42, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 44, 1, 16, -2, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 31, 1, 16, 12, 10, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 34, 1, 16, 9, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 36, 1, 16, 7, 9, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 37, 1, 16, 6, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 39, 1, 16, 4, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 39, 1, 16, 4, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 40, 1, 16, 3, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 40, 1, 16, 3, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 43, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/pipe-safer.c, 43, 1, 16, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 260, 1, 16, 23, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 278, 1, 16, 5, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 283, 1, 16, 0, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 292, 1, 16, -9, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 296, 1, 16, -13, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 543, 1, 16, -260, 10, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 169, 1, 9, 4, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 172, 1, 9, 1, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 173, 1, 9, 0, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 174, 1, 9, -1, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 177, 1, 9, -4, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 178, 1, 9, -5, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 958, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 958, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 958, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 961, 1, 8, -3, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 963, 1, 17, -5, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/quotearg.c, 963, 1, 16, -5, 5, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/creat-safer.c, 28, 1, 17, 2, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/creat-safer.c, 28, 1, 8, 2, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/creat-safer.c, 30, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/creat-safer.c, 30, 1, 8, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 25, 1, 17, 5, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 27, 1, 8, 3, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 30, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 30, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 8, -1, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 17, -1, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 32, 1, 8, -2, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 63, 1, 9, 4, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 65, 1, 9, 2, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 67, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 69, 1, 9, -2, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 70, 1, 9, -3, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 72, 1, 9, -5, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 73, 1, 9, -6, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 76, 1, 9, -9, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 85, 1, 9, 2, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 87, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 88, 1, 9, -1, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 90, 1, 9, -3, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 63, 1, 9, 7, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 65, 1, 9, 5, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 67, 1, 9, 3, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 69, 1, 9, 1, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 70, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 72, 1, 9, -2, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 73, 1, 9, -3, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 76, 1, 9, -6, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 85, 1, 9, 3, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 87, 1, 9, 1, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 88, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/save-cwd.c, 90, 1, 9, -2, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 32, 1, 17, 11, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 34, 1, 17, 9, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 40, 1, 17, 3, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 41, 1, 17, 2, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 43, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 48, 1, 17, -5, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 50, 1, 17, -7, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 34, 1, 8, 4, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 37, 1, 8, 1, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 38, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 40, 1, 8, -2, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 49, 1, 8, -11, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 71, 1, 17, 5, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 73, 1, 17, 3, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 73, 1, 8, 3, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 74, 1, 8, 2, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 76, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 76, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 77, 1, 17, -1, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 78, 1, 8, -2, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 81, 1, 17, -5, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 81, 1, 8, -5, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 83, 1, 8, -7, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 84, 1, 8, -8, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 78, 1, 17, 1, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 79, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 81, 1, 17, -2, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 83, 1, 17, -4, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 84, 1, 17, -5, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/dirname-lgpl.c, 85, 1, 17, -6, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 28, 1, 17, 5, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 31, 1, 17, 2, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/asnprintf.c, 33, 1, 17, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 65, 1, 16, 14, 10, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 66, 1, 16, 13, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 79, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 89, 1, 16, -10, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 94, 1, 16, -15, 11, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 44, 1, 17, 54, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 50, 1, 17, 48, 10, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 70, 1, 17, 28, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 83, 1, 17, 15, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 98, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 98, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 99, 1, 8, -1, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 101, 1, 8, -3, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 113, 1, 8, -15, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 119, 1, 8, -21, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 119, 1, 17, -21, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 120, 1, 8, -22, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 122, 1, 8, -24, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 132, 1, 17, -34, 9, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 44, 1, 16, 8, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 46, 1, 16, 6, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 52, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/openat-proc.c, 53, 1, 16, -1, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 61, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 61, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 61, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 63, 1, 17, -2, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 65, 1, 17, -4, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 68, 1, 17, -7, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 77, 1, 17, -16, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 81, 1, 17, -20, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 82, 1, 17, -21, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/filenamecat-lgpl.c, 82, 1, 17, -21, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 50, 1, 16, 11, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 55, 1, 16, 6, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 61, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 67, 1, 16, -6, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 70, 1, 16, -9, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 33, 1, 9, 38, 10, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 35, 1, 9, 36, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 37, 1, 9, 34, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 49, 1, 9, 22, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 56, 1, 9, 15, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 60, 1, 9, 11, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 62, 1, 9, 9, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 66, 1, 9, 5, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 69, 1, 9, 2, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 71, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 71, 1, 9, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 75, 1, 9, -4, 10, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 52, 1, 16, 11, 10, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 53, 1, 16, 10, 9, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 60, 1, 16, 3, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/opendir-safer.c, 63, 1, 16, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/cloexec.c, 80, 1, 16, 2, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/cloexec.c, 82, 1, 16, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 34, 1, 17, 8, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 35, 1, 16, 7, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 41, 1, 17, 1, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 42, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 42, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 43, 1, 17, -1, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 44, 1, 16, -2, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 34, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 41, 1, 17, -7, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 42, 1, 17, -8, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 43, 1, 17, -9, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 33, 1, 17, 6, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 39, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 40, 1, 17, -1, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 41, 1, 17, -2, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 35, 1, 16, 9, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 42, 1, 16, 2, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/stripslash.c, 44, 1, 16, 0, 4, true
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 29, 1, 17, 9, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 31, 1, 16, 7, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 33, 1, 17, 5, 8, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 38, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 38, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 41, 1, 16, -3, 7, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 44, 1, 17, -6, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 47, 1, 16, -9, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 50, 1, 16, -12, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 55, 1, 16, -17, 9, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 27, 1, 17, 2, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 29, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 29, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 33, 1, 17, -4, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 38, 1, 17, -9, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/c-strncasecmp.c, 44, 1, 17, -15, 7, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 149, 1, 17, 36, 9, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 149, 1, 8, 36, 9, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 149, 1, 16, 36, 9, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 154, 1, 8, 31, 11, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 156, 1, 8, 29, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 157, 1, 17, 28, 14, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 160, 1, 17, 25, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 164, 1, 16, 21, 11, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 167, 1, 17, 18, 13, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 167, 1, 8, 18, 13, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 177, 1, 17, 8, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 177, 1, 8, 8, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 177, 1, 16, 8, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 180, 1, 17, 5, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 182, 1, 17, 3, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 184, 1, 17, 1, 5, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 185, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 185, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 185, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 191, 1, 8, -6, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 192, 1, 8, -7, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 195, 1, 8, -10, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 196, 1, 17, -11, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 200, 1, 8, -15, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 202, 1, 16, -17, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 204, 1, 17, -19, 14, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 204, 1, 8, -19, 14, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 207, 1, 17, -22, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 207, 1, 8, -22, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 207, 1, 16, -22, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 210, 1, 17, -25, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 210, 1, 8, -25, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 210, 1, 16, -25, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 220, 1, 17, -35, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 220, 1, 8, -35, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 224, 1, 16, -39, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 229, 1, 8, -44, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 233, 1, 17, -48, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 235, 1, 17, -50, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 236, 1, 17, -51, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 239, 1, 17, -54, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 239, 1, 8, -54, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 244, 1, 16, -59, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 246, 1, 17, -61, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 246, 1, 8, -61, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 252, 1, 16, -67, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 262, 1, 16, -77, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 269, 1, 16, -84, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 270, 1, 16, -85, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 276, 1, 16, -91, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 277, 1, 16, -92, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 280, 1, 16, -95, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 285, 1, 17, -100, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 285, 1, 8, -100, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 298, 1, 16, -113, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 300, 1, 16, -115, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 305, 1, 17, -120, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 305, 1, 8, -120, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 315, 1, 16, -130, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 323, 1, 17, -138, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 323, 1, 8, -138, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 332, 1, 17, -147, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 333, 1, 17, -148, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 333, 1, 8, -148, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 333, 1, 16, -148, 11, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 149, 1, 8, 5, 6, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 154, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 156, 1, 8, -2, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 167, 1, 8, -13, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 177, 1, 8, -23, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 185, 1, 8, -31, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 191, 1, 8, -37, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 192, 1, 8, -38, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 195, 1, 8, -41, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 200, 1, 8, -46, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 204, 1, 8, -50, 13, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 207, 1, 8, -53, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 210, 1, 8, -56, 8, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 220, 1, 8, -66, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 229, 1, 8, -75, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 239, 1, 8, -85, 9, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 246, 1, 8, -92, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 285, 1, 8, -131, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 305, 1, 8, -151, 12, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 323, 1, 8, -169, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/strerror_r.c, 333, 1, 8, -179, 10, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 60, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 63, 1, 8, -3, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 66, 1, 8, -6, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 71, 1, 8, -11, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 74, 1, 8, -14, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/util.c, 378, 1, 17, 34, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 381, 1, 16, 31, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 382, 1, 17, 30, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 384, 1, 17, 28, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 385, 1, 17, 27, 8, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 387, 1, 17, 25, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 389, 1, 17, 23, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 389, 1, 16, 23, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 389, 1, 17, 23, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 390, 1, 17, 22, 7, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 391, 1, 17, 21, 9, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 393, 1, 17, 19, 7, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 394, 1, 17, 18, 9, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 396, 1, 16, 16, 7, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 397, 1, 17, 15, 8, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 400, 1, 16, 12, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 412, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 412, 1, 16, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 412, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 413, 1, 17, -1, 5, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 414, 1, 17, -2, 5, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 415, 1, 17, -3, 5, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 419, 1, 17, -7, 6, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/util.c, 378, 1, 17, 15, 7, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 389, 1, 17, 4, 5, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 390, 1, 17, 3, 6, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 391, 1, 17, 2, 8, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 393, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 394, 1, 17, -1, 8, true
+/Users/hebi/benchmark/gzip-1.7/util.c, 412, 1, 17, -19, 7, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 413, 1, 17, -20, 8, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 414, 1, 17, -21, 8, false
+/Users/hebi/benchmark/gzip-1.7/util.c, 415, 1, 17, -22, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 58, 1, 17, 3, 5, true
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 61, 1, 17, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 61, 1, 8, 0, 4, true
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 63, 1, 17, -2, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 67, 1, 17, -6, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 70, 1, 8, -9, 6, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 71, 1, 17, -10, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 71, 1, 8, -10, 7, false
+/Users/hebi/benchmark/gzip-1.7/lib/basename-lgpl.c, 72, 1, 8, -11, 8, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+/Users/hebi/benchmark/gzip-1.7/lib/savedir.c, 100, 1, 8, 21, 10, false
+/Users/hebi/benchmark/gzip-1.7/lib/savedir.c, 121, 1, 8, 0, 4, false
+/Users/hebi/benchmark/gzip-1.7/lib/savedir.c, 160, 1, 8, -39, 11, false
+/Users/hebi/benchmark/gzip-1.7/lib/savedir.c, 165, 1, 8, -44, 14, false
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
+filename, linum,f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,in_slice_or_not
