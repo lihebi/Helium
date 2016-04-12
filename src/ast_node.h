@@ -203,6 +203,15 @@ namespace ast {
       assert(g);
       return ComputeLCA(g->GetIndiceS());
     }
+
+    int Distance(ASTNode* m, ASTNode* n) {
+      ASTNode *lca = ComputeLCA(std::set<ASTNode*> {m,n});
+      assert(lca);
+      int ret = 0;
+      ret += getPath(m, lca).size();
+      ret += getPath(n, lca).size();
+      return ret;
+    }
     std::set<ASTNode*> CompleteGene(std::set<ASTNode*>);
     /**
      * Will complete gene, and modify in place.
@@ -245,6 +254,7 @@ namespace ast {
       if (m_idx_m.count(node) == 1) return m_idx_m[node];
       return -1; // not found
     }
+    ASTNode* GetNodeByLine(int linum);
   private:
     std::vector<ASTNode*> getPath(ASTNode *node, ASTNode* lca);
     size_t dist(ASTNode* low, ASTNode* high);
@@ -374,6 +384,12 @@ namespace ast {
     // should never set symbol table explicitly
     // void SetSymbolTable(SymbolTable *tbl) {m_sym_tbl = tbl;}
     SymbolTable *GetSymbolTable() {return m_sym_tbl;}
+    int GetBeginLinum() {
+      return get_node_line(m_xmlnode);
+    }
+    int GetEndLinum() {
+      return get_node_last_line(m_xmlnode);
+    }
   protected:
     XMLNode m_xmlnode;
     ASTNode *m_parent = NULL;
@@ -381,6 +397,11 @@ namespace ast {
     // int m_index;
     AST *m_ast;
     SymbolTable *m_sym_tbl = NULL;
+    // I'm not using these two fields because I need to initialize them in every Node class
+    // Instead, the GetBeginLinum and GetEndLinum will compute them on-the-fly
+    // this will of course bring some overhead
+    // int m_begin_linum = 0;
+    // int m_end_linum = 0;
   };
 
   /**

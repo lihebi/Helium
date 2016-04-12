@@ -1,0 +1,6 @@
+#+TITLE: TODO list for Helium scripting
+
+- [ ] a script to download all gnu projects
+- [ ] a script for calculate meta information for benchmarks, e.g. loc, size
+- [ ] a script for detecting the major language of a benchmark(possibly by using cloc), the percentage of the used languages
+- [ ] a script to detect if there're some possible library codes that is not part of the benchmark source

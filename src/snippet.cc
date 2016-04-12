@@ -244,6 +244,7 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_kind = SK_Variable;
     m_main_name = entry.GetName();
     m_code = get_var_code(entry);
+    // FIXME this may contain variable, as well as /structure/!
     // m_sig.emplace(entry.GetName(), SK_Variable);
     m_sig[entry.GetName()].insert(SK_Variable);
     break;
@@ -535,9 +536,27 @@ std::string get_union_code(const CtagsEntry& entry) {
 
 /**
  * FIXME the decl_stmt that enclose the line may contains other variable!!
+struct AA {
+char *t;
+} *a;
+
+will be <struct>, and *a will not be a <decl_stmt>
  */
 std::string get_var_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
+  // return ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
+  std::string ret;
+  ret = ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
+  if (ret.empty()) {
+    // If the structure has a name, then it will be the structure, together with the variable.
+    // need to ensure that will be duplicate, i.e. the signature is fully chaptured, for both struct and variable
+    ret = ast::get_code_enclosing_line(filename, line_number, "struct");
+    if (!ret.empty()) return ret;
+    ret = ast::get_code_enclosing_line(filename, line_number, "enum");
+    if (!ret.empty()) return ret;
+    ret = ast::get_code_enclosing_line(filename, line_number, "union");
+    if (!ret.empty()) return ret;
+  }
+  return "";
 }

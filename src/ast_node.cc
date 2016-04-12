@@ -514,6 +514,33 @@ int AST::GetLineNumber() {
   return ast::get_node_line(m_root->GetXMLNode());
 }
 
+/**
+ * Get node by line number query
+ * Possibly return NULL, because the srcml inserts position information weirdly.
+ */
+ASTNode* AST::GetNodeByLine(int linum) {
+  // traverse the nodes, get the ones that linum \in [begin, end]
+  // retain the one with minimum end-begin
+  // this is the minimum span of an ASTNode
+  // I don't believe the result can be larger than 1000, if YES, xixishuiba
+  // std::cout << "required linum: " << linum  << "\n";
+  int min_span = 1000;
+  ASTNode *ret = NULL;
+  std::vector<ASTNode*> nodes;
+  for (ASTNode *node : m_nodes) {
+    int begin = node->GetBeginLinum();
+    int end = node->GetEndLinum();
+    // std::cout << "begin: " << begin  << "\n";
+    // std::cout << "end: " << end  << "\n";
+    if (begin <= linum && end >= linum) {
+      if (min_span > end-begin) {
+        ret = node;
+      }
+    }
+  }
+  return ret;
+}
+
 
 /**
  * Get all code

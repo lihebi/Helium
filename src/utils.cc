@@ -485,7 +485,7 @@ std::map<std::string, pugi::xml_document*> xml_docs;
 pugi::xml_document* utils::file2xml(const std::string &filename) {
   if (xml_docs.count(filename) == 1) return xml_docs[filename];
   std::string cmd;
-  cmd = "srcml --position " + filename;
+  cmd = "srcml --position -lC " + filename;
   // cmd = "srcml " + filename;
   std::string xml = exec(cmd.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
@@ -503,7 +503,7 @@ pugi::xml_document* utils::file2xml(const std::string &filename) {
  */
 void utils::file2xml(const std::string &filename, pugi::xml_document& doc) {
   std::string cmd;
-  cmd = "srcml --position " + filename;
+  cmd = "srcml --position -lC " + filename;
   // cmd = "srcml " + filename;
   std::string xml = exec(cmd.c_str(), NULL);
   doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);

@@ -41,6 +41,9 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 DEP = $(OBJECTS:%.o=%.d)
 
 
+
+
+
 ##############################
 ## Compile flags
 ##############################
@@ -68,7 +71,7 @@ C_LIB += -pthread
 ##############################
 ## Targets
 ##############################
-.PHONY: all clean doc libhelium test install tmp depend
+.PHONY: all clean doc libhelium test install tmp depend utils
 
 all: client
 
@@ -90,6 +93,25 @@ $(TARGET): $(MAIN) $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) -o $@ $(MAIN) $(OBJECTS)  $(C_LIB)
 
+LIB_HELIUM := bin/libhelium.a
+lib: $(LIB_HELIUM)
+
+# archive object files into libhelium.a
+$(LIB_HELIUM): $(OBJECTS)
+	@mkdir -p $(dir $@)
+# use -cvq is much faster, but the object code is appended, not replaced
+# thus removal of the lib file is required. Don't want to do that.
+	ar -cvr $@ $(OBJECTS)
+
+
+
+
+##############################
+## Helium Utilities
+##############################
+
+utils:
+	cd utils/mlslice; make
 
 ##############################
 ## tests

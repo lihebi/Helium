@@ -313,14 +313,9 @@ namespace ast {
    */
   int
   get_node_line(pugi::xml_node node) {
+    assert(node);
     // check if pos:line is enabled on this xml
-    pugi::xml_node root = node.root();
-    if (!root.child("unit").attribute("xmlns:pos")) {
-      // std::cerr<<"position is not enabled in srcml"<<std::endl;
-      // exit(1);
-      // should just return -1, it is by design, so that I can send some empty node in.
-      return -1;
-    }
+    assert(node.root().child("unit").attribute("xmlns:pos"));
     // the node itself has pos:line attr, just use it
     if (node.attribute("pos:line")) {
       return atoi(node.attribute("pos:line").value());
@@ -333,18 +328,15 @@ namespace ast {
     return -1;
   }
 
+
   /*
    * The last pos:line in the current node element
    * Useful to track the range of the current AST node.
    */
   int
   get_node_last_line(pugi::xml_node node) {
-    pugi::xml_node root = node.root();
-    if (!root.child("unit").attribute("xmlns:pos")) {
-      std::cerr<<"position is not enabled in srcml"<<std::endl;
-      exit(1);
-      return -1;
-    }
+    assert(node);
+    assert(node.root().child("unit").attribute("xmlns:pos"));
     pugi::xml_node n = node.select_node("(.//*[@pos:line])[last()]").node();
   
     // pugi::xpath_node_set nodes = node.select_nodes("//*[@pos:line]");
@@ -357,6 +349,46 @@ namespace ast {
       return atoi(node.attribute("pos:line").value());
     }
     return -1;
+  }
+
+  TEST(ASTHelperTestCase, GetNodeLine) {
+    Doc doc;
+    const char *raw = R"prefix(
+int a;
+int a=0;
+int a,b;
+int a=0,b;
+int a,b=0;
+int a=0,b=1;
+int a=0,b,c=3;
+// 8
+u_char *eom, *cp, *cp1, *rdatap;
+// 9
+int a[3][8];
+)prefix";
+    utils::string2xml(raw, doc);
+    XMLNode root = doc.document_element();
+    // root's name is <unit>
+    // std::cout << root.name()  << "\n";
+    // for (XMLNode node : root.children()) {
+    //   std::cout << node.name()  << "\n";
+    // }
+    // also note the attribute have only ONE colon
+    // std::cout << root.root().name()  << "\n";
+    // for (XMLNode node : root.root().children()) {
+    //   std::cout << node.name()  << "\n";
+    // }
+    ASSERT_TRUE(root.root().child("unit").attribute("xmlns:pos"));
+    for (XMLNode node : root.children()) {
+      get_node_line(node);
+      get_node_last_line(node);
+    }
+
+    XMLDoc *docp = utils::file2xml("/Users/hebi/github/Helium/utils/mlslice/benchmark/gzip-1.7/lib/asnprintf.c");
+    root = docp->document_element();
+    ASSERT_TRUE(root.root().child("unit").attribute("xmlns:pos"));
+    get_node_line(root);
+    get_node_last_line(root);
   }
 
 
@@ -465,8 +497,8 @@ namespace ast {
     Node result;
     int cur_line = -1;
     for (Node n : nodes) {
-      int first_line = get_node_line(node);
-      int last_line = get_node_last_line(node);
+      int first_line = get_node_line(n);
+      int last_line = get_node_last_line(n);
       if (first_line <= line_number && last_line >= line_number) {
         // found a inner node, replace
         if (first_line > cur_line) {
@@ -486,8 +518,8 @@ namespace ast {
     Node result;
     int cur_line = line_number+1; // different from above function
     for (Node n : nodes) {
-      int first_line = get_node_line(node);
-      int last_line = get_node_last_line(node);
+      int first_line = get_node_line(n);
+      int last_line = get_node_last_line(n);
       if (first_line <= line_number && last_line >= line_number) {
         // found a inner node, replace
         if (first_line < cur_line) { // different from above function
