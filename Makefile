@@ -63,6 +63,7 @@ CFLAGS := -g -Wall --std=c++11
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
 C_LIB += -lgtest -lsqlite3
+C_LIB += -pthread
 
 ##############################
 ## Targets
@@ -82,9 +83,12 @@ all: client
 # the actual execuable of Helium
 client: $(TARGET)# $(TEST_TARGET)
 # Compile client based on the object files, instead of the dynamic lib
+# Always put the C_LIB at the end, AFTER the object that uses it.
+# Otherwise the compiler gives you undefined reference when linking
+# This is a common trick on linux, and mac can do with both
 $(TARGET): $(MAIN) $(OBJECTS)
 	@mkdir -p $(dir $@)
-	$(CC) $(C_LIB) -o $@ $(MAIN) $(OBJECTS)
+	$(CC) -o $@ $(MAIN) $(OBJECTS)  $(C_LIB)
 
 
 ##############################

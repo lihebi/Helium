@@ -8,6 +8,7 @@
 #include <stack>
 #include <fstream>
 #include <cassert>
+#include <algorithm>
 
 #include <boost/regex.hpp>
 
