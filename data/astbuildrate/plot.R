@@ -19,7 +19,7 @@
 data<- read.csv(file="out.csv")
 str(data)
 library(dplyr)
-library(ggplot2)
+# library(ggplot2)
 result <- summarise(
   group_by(data, leaf_size),
   ratio= sum(build_or_not==" true")/length(build_or_not)
