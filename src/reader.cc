@@ -38,7 +38,7 @@ void Reader::GA() {
   // std::cout << "Genetic Algorithm"  << "\n";
   NodeList func_nodes = ast::find_nodes(m_doc, NK_Function);
   for (Node func : func_nodes) {
-    std::cout << "."  << std::flush;
+    std::cerr << "."  << std::flush;
     // std::cout << "For func: " << func.child_value("name") << "\n";
     // std::cout << "process Eneter to continue ...\n";
     // getchar();
@@ -79,9 +79,10 @@ void Reader::GA() {
       int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
       if (builder.Success()) {
         g_compile_success_no++;
-        ExpASTDump::Instance()->compile_success++;
-        ExpASTDump::Instance()->suc_leaf_size.push_back(leaf_size);
-        ExpASTDump::Instance()->suc_snippet_size.push_back(ind->GetAllSnippetIds().size());
+        // ExpASTDump::Instance()->compile_success++;
+        // ExpASTDump::Instance()->suc_leaf_size.push_back(leaf_size);
+        // ExpASTDump::Instance()->suc_snippet_size.push_back(ind->GetAllSnippetIds().size());
+        BuildRatePlotDump::Instance()->Push(leaf_size, ind->GetAllSnippetIds().size(), true);
         // suc=true;
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
           utils::print("success\n", utils::CK_Green);
@@ -92,9 +93,10 @@ void Reader::GA() {
         }
       } else {
         g_compile_error_no++;
-        ExpASTDump::Instance()->compile_error++;
-        ExpASTDump::Instance()->err_leaf_size.push_back(leaf_size);
-        ExpASTDump::Instance()->err_snippet_size.push_back(ind->GetAllSnippetIds().size());
+        // ExpASTDump::Instance()->compile_error++;
+        // ExpASTDump::Instance()->err_leaf_size.push_back(leaf_size);
+        // ExpASTDump::Instance()->err_snippet_size.push_back(ind->GetAllSnippetIds().size());
+        BuildRatePlotDump::Instance()->Push(leaf_size, ind->GetAllSnippetIds().size(), false);
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
           utils::print("error\n", utils::CK_Red);
         }
@@ -105,7 +107,7 @@ void Reader::GA() {
       }
     }
   }
-  std::cout  << "\n";
+  std::cerr  << "\n";
 }
 
 /**
@@ -172,7 +174,7 @@ Reader::Read() {
       continue;
     }
     if (PrintOption::Instance()->Has(POK_SegNo)) {
-      std::cout <<"[Helium] processing segment NO." << global_seg_no  << "\n";
+      std::cerr <<"[Helium] processing segment NO." << global_seg_no  << "\n";
     }
     if (PrintOption::Instance()->Has(POK_Segment)) {
       utils::print(seg.GetSegmentText(), utils::CK_Blue);

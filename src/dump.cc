@@ -2,6 +2,7 @@
 #include "utils.h"
 
 ExpASTDump *ExpASTDump::m_instance = NULL;
+BuildRatePlotDump *BuildRatePlotDump::m_instance = NULL;
 /**
  * min, max, mean
  */

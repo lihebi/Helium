@@ -293,10 +293,10 @@ Helium::Run() {
   /**
    * Print some meta data for the benchmark project.
    */
-  std::cout << "===== Helium Benchmark Meta ====="  << "\n";
-  std::cout << "total file: " << m_files.size()  << "\n";
+  std::cerr << "===== Helium Benchmark Meta ====="  << "\n";
+  std::cerr << "total file: " << m_files.size()  << "\n";
   int func_count = countFunction();
-  std::cout << "totla function: " << func_count  << "\n";
+  std::cerr << "totla function: " << func_count  << "\n";
   ExpASTDump::Instance()->file_count = m_files.size();
   ExpASTDump::Instance()->func_count = func_count;
   ExpASTDump::Instance()->benchmark = m_folder;
@@ -310,7 +310,7 @@ Helium::Run() {
     for (auto c : conf) {
       std::string filename = m_folder + "/" + c.first;
       if (utils::file_exists(filename)) {
-        std::cout << "processing: " << filename << " ...\n";
+        std::cerr << "processing: " << filename << " ...\n";
         Reader reader(filename, c.second);
         reader.PrintSegments();
         // reader.Read();
@@ -323,27 +323,28 @@ Helium::Run() {
     }
   }
   double t2 = utils::get_time();
-  std::cout << "End of Helium"  << "\n";
+  std::cerr << "End of Helium"  << "\n";
   if (PrintOption::Instance()->Has(POK_BuildRate)) {
-    std::cout << "Compile Success Count: " << g_compile_success_no  << "\n";
-    std::cout << "Compile Error Count: " << g_compile_error_no  << "\n";
-    std::cout << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
+    std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";
+    std::cerr << "Compile Error Count: " << g_compile_error_no  << "\n";
+    std::cerr << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
   }
-  ExpASTDump::Instance()->time = t2 - t1;
+  // ExpASTDump::Instance()->time = t2 - t1;
 
   /**
    * Now its time to dump the *Dump clases
    */
-  std::cout << "====DUMP START========="  << "\n";
-  std::cout << ExpASTDump::Instance()->GetHeader()  << "\n";
-  std::cout << ExpASTDump::Instance()->dump() << "\n";
-  std::cout << "====DUMP STOP========="  << "\n";
+  // std::cout << "====DUMP START========="  << "\n";
+  // std::cout << ExpASTDump::Instance()->GetHeader()  << "\n";
+  // std::cout << ExpASTDump::Instance()->dump() << "\n";
+  // std::cout << "====DUMP STOP========="  << "\n";
 
   /**
    * Also, store one version to the file.
    */
   // utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
-  ExpASTDump::Instance()->AppendData();
+  // ExpASTDump::Instance()->AppendData();
+  std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
 }
 
 

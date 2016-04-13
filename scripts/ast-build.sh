@@ -11,7 +11,7 @@ fi
 
 # echo "benchmark, file count, func count, compile success, compile error, build rate, time(s)"
 for folder in $1/*; do
-    echo $folder;
+    echo $folder 1>&2;
     if [ ! -d $folder ]; then
         continue;
     fi

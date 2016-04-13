@@ -9,3 +9,38 @@
 I need to plot leafsize -
 
 Read zhendong su's paper.
+
+
+* Detailed steps to plot the data
+I need to plot the data by: the size and their build rate.
+Essentially I need to produce a data file like this:
+
+#+BEGIN_EXAMPLE
+leafsize, snippet_size, build_or_not
+12, 34, true
+15, 76, false
+#+END_EXAMPLE
+
+To integrate the slice, I need to:
+
+** TODO for each of the benchmarks I want to use, randomly select some statements, and do slice
+*** TODO compile the benchmark using csurf
+- if makefile presents, issue =make=
+- if configure presents, issue =./configure=, then =make=
+- if configure.ac presents, issue =autoconf=, =./configure=, then =make=
+- otherwise, who knows how to compile
+** TODO process slice: separate them into pieces, remove duplication by =sort= and =uniq=
+** TODO In AST initial nodes selection part, instead of =RandLeaf=, use the slice. In detail:
+*** TODO for each slice criteria, locate the function, create AST
+*** TODO select ASTNodes that corresponds to the lines in slice
+*** TODO use builder to build the selection
+*** TODO collect metrics, see if compile or not
+
+** TODO Plot the data
+*** TODO select a step, e.g. 4
+*** TODO every 4 interval in the size metrics, calculate the buildrate
+*** TODO for each leafsize value, compute the buildrate
+*** TODO plot the leafsize-buildrate graph
+
+* Some changes needs to be made
+- =RandLeaf= may need to be replaced by =RandNode=
