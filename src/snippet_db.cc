@@ -589,13 +589,13 @@ std::vector<int> snippetdb::sort_snippets(std::set<int> snippets) {
   }
   std::vector<std::string> sorted_headers = HeaderSorter::Instance()->Sort(headers);
   for (std::string header : sorted_headers) {
-    ret.insert(ret.begin(),
+    ret.insert(ret.end(),
                file_to_snippet_id_map[header].begin(),
                file_to_snippet_id_map[header].end()
                );
   }
   for (std::string source : sources) {
-    ret.insert(ret.begin(),
+    ret.insert(ret.end(),
                file_to_snippet_id_map[source].begin(),
                file_to_snippet_id_map[source].end()
                );
