@@ -52,6 +52,8 @@ void SystemResolver::check_headers() {
   std::string s = getenv("HELIUM_HOME");
   std::ifstream is;
   is.open(s+"/headers.conf");
+  std::vector<std::string> suc;
+  std::vector<std::string> err;
   if (is.is_open()) {
     std::string line;
     std::string flag;
@@ -64,13 +66,19 @@ void SystemResolver::check_headers() {
           line = line.substr(0, line.find(' '));
           trim(flag);
         }
-        if (exists(line)) {
-          utils::print(line, CK_Green);
+        if (header_exists(line)) {
+          suc.push_back(line);
         } else {
-          utils::print(line, CK_Red);
+          err.push_back(line);
         }
       }
     }
+  }
+  for (std::string s : suc) {
+    utils::print(s + " ", CK_Green);
+  }
+  for (std::string e : err) {
+    utils::print(e + " ", CK_Red);
   }
 
 }
