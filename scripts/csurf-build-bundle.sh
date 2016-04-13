@@ -16,16 +16,23 @@ prefix="csurf hook-bulid myproj "
 prefix=""
 for folder in $1/*; do
     cd $folder;
-    echo $folder "..."
-    if [ -f "Makefile" ]; then
-        $prefix make 2>/dev/null
-    elif [ -f "configure" ]; then
-        ./configure
-        $prefix make 2>/dev/null
-    elif [ -f "configure.ac" ]; then
-        autoconf
-        ./configure
-        $prefix make 2>/dev/null
-    fi
+    echo -n "====== processing " $folder "... "
+    make clean >/dev/null 2>&1
+    autoconf >/dev/null 2>&1
+    ./configure >/dev/null 2>&1
+    rm -rf myproj.*
+    csurf hook-build myproj make >/dev/null 2>&1
+    echo $?
+    
+    # if [ -f "Makefile" ]; then
+    #     $prefix make 2>/dev/null
+    # elif [ -f "configure" ]; then
+    #     ./configure
+    #     $prefix make 2>/dev/null
+    # elif [ -f "configure.ac" ]; then
+    #     autoconf
+    #     ./configure
+    #     $prefix make 2>/dev/null
+    # fi
     cd -;
 done
