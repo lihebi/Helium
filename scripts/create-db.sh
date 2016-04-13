@@ -11,13 +11,9 @@ fi
 # create  snippet database for all benchmarks in ./benchmark/ folder
 # usage: bash create_db.sh
 
-for folder in benchmark/*; do
+for folder in $1/*; do
     echo $folder;
     cd $folder;
-    if [ -d src ]; then
-        helium --create-snippet-db src
-    else
-        helium --create-snippet-db .
-    fi
+    helium --create-snippet-db .
     cd -
 done
