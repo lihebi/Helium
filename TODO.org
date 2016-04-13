@@ -1,0 +1,14 @@
+#+TITLE: Helium Project TODO
+
+* benchmarks build result with code surfer
+- shairport
+- clibs-clib
+- jorisvink-kore
+- kr-beanstalkd
+- matz-streem
+- nelhage-reptyr
+
+With CS_ERROR_NO_BUILDER_LICENSE
+- redis-hiredis
+- visit1985-mdp
+- Xfennec-progress

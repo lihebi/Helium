@@ -19,7 +19,7 @@ if [ $# == 0 -o $# == 1 ]; then
      exit 1;
    fi
 
-     for folder in $1; do
+     for folder in $1/*; do
          if [ -d $folder ]; then
              generate-slicing-criteria.sh $folder $2
              mv input.txt $folder
