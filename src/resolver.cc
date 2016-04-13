@@ -56,29 +56,29 @@ get_to_resolve(
   return get_to_resolve(nodes, known_to_resolve, known_not_resolve);
 }
 
-SymbolTable::SymbolTable() {
+SymbolOldTable::SymbolOldTable() {
   // ensure there's at least one table. Calling back() on empty vector is undefined.
   PushLevel();
 }
-SymbolTable::~SymbolTable() {}
-int SymbolTable::CurrentLevel() {
+SymbolOldTable::~SymbolOldTable() {}
+int SymbolOldTable::CurrentLevel() {
   return m_tables.size();
 }
-void SymbolTable::PushLevel() {
+void SymbolOldTable::PushLevel() {
   m_tables.push_back(std::map<std::string, Variable>());
 }
-void SymbolTable::PopLevel() {
+void SymbolOldTable::PopLevel() {
   m_tables.pop_back();
 }
-void SymbolTable::AddSymbol(Variable v) {
+void SymbolOldTable::AddSymbol(Variable v) {
   m_tables.back()[v.Name()] = v;
 }
-void SymbolTable::AddSymbol(VariableList vars) {
+void SymbolOldTable::AddSymbol(VariableList vars) {
   for (Variable v : vars) {
     m_tables.back()[v.Name()] = v;
   }
 }
-Variable SymbolTable::LookUp(const std::string &name) {
+Variable SymbolOldTable::LookUp(const std::string &name) {
   // FIXME back() will copy?
   // FIXME performance
   for (int i=m_tables.size()-1;i>=0;i--) {

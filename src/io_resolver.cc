@@ -97,11 +97,11 @@ void resolver::get_alive_vars(ast::Node node, ast::NodeList nodes, VariableList 
 }
 
 void resolver::get_undefined_vars(ast::NodeList nodes, VariableList &result) {
-  SymbolTable st;
+  SymbolOldTable st;
   get_undefined_vars(nodes, st, result);
 }
 void resolver::get_undefined_vars(ast::Node node, VariableList &result) {
-  SymbolTable st;
+  SymbolOldTable st;
   get_undefined_vars(node, st, result);
 }
 
@@ -113,7 +113,7 @@ void resolver::get_undefined_vars(ast::Node node, VariableList &result) {
  * 
  * @param [out] result
  */
-static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, VariableList &result) {
+static void process_ids(std::set<std::string> ids, Node node, SymbolOldTable &st, VariableList &result) {
   // FIXME cannot handle id htat is a type cast
   for (std::string id : ids) {
     assert(!id.empty());
@@ -143,7 +143,7 @@ static void process_ids(std::set<std::string> ids, Node node, SymbolTable &st, V
  * If the variable is a user defined type, it will need to invoke snippet registry to confirm that,
  * and store the snippet pointer.
  */
-void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList &result) {
+void resolver::get_undefined_vars(ast::Node node, SymbolOldTable &st, VariableList &result) {
   // std::cout <<node.name()  << "\n";
   // std::cout <<get_text(node)  << "\n";
   switch (kind(node)) {
@@ -264,7 +264,7 @@ void resolver::get_undefined_vars(ast::Node node, SymbolTable &st, VariableList 
  * @param[in] the symbol table until this level
  * @param[in,out] the variable list that is undefined
  */
-void resolver::get_undefined_vars(ast::NodeList nodes, SymbolTable &st, VariableList &result) {
+void resolver::get_undefined_vars(ast::NodeList nodes, SymbolOldTable &st, VariableList &result) {
   for (ast::Node node : nodes) {
     get_undefined_vars(node, st, result);
   }

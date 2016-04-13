@@ -3,6 +3,7 @@
 #include <iostream>
 #include "snippet_db.h"
 #include "options.h"
+#include "resolver.h"
 
 void Individual::RandGene() {
   if (m_gene) delete m_gene;

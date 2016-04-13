@@ -1,7 +1,7 @@
 #include "type.h"
 #include "utils.h"
 #include <gtest/gtest.h>
-
+#include "resolver.h"
 using namespace ast;
 TEST(type_test_case, var_from_node_test) {
   SystemResolver::Instance()->Load("systype.tags");
