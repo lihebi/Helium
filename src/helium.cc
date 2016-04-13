@@ -300,7 +300,7 @@ Helium::Run() {
   ExpASTDump::Instance()->file_count = m_files.size();
   ExpASTDump::Instance()->func_count = func_count;
   ExpASTDump::Instance()->benchmark = m_folder;
-  double t1 = utils::get_time();
+  // double t1 = utils::get_time();
   /**
    * Code selection method is given as a file, so this is a config file, contains the <file:line> format
    */
@@ -322,7 +322,7 @@ Helium::Run() {
       // reader.Read();
     }
   }
-  double t2 = utils::get_time();
+  // double t2 = utils::get_time();
   std::cerr << "End of Helium"  << "\n";
   if (PrintOption::Instance()->Has(POK_BuildRate)) {
     std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";

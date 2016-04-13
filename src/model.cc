@@ -309,11 +309,11 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   } else {
     m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
-  XMLNode blk = then_get_block(xmlnode);
+  XMLNode blk_node = then_get_block(xmlnode);
   // m_blk = new Block(node, this, ast);
   // m_children.push_back(m_blk);
-  for (XMLNode blk : block_get_nodes(blk)) {
-    ASTNode *node = ASTNodeFactory::CreateASTNode(blk, this, m_ast);
+  for (XMLNode child : block_get_nodes(blk_node)) {
+    ASTNode *node = ASTNodeFactory::CreateASTNode(child, this, m_ast);
     if (node) {
       m_children.push_back(node);
     }
@@ -825,6 +825,7 @@ ASTNode* Stmt::LookUpDefinition(std::string id) {
     else
       return NULL;
   }
+  default: assert(false);
   }
 }
 ASTNode* If::LookUpDefinition(std::string id) {
@@ -841,6 +842,7 @@ ASTNode* If::LookUpDefinition(std::string id) {
     else
       return NULL;
   }
+  default: assert(false);
   }
 }
 ASTNode* ElseIf::LookUpDefinition(std::string id) {
