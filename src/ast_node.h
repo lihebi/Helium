@@ -69,6 +69,8 @@ namespace ast {
     void LeafRand();
     size_t size() {return m_size;}
     size_t leaf_size();
+    // all selected nodes
+    size_t node_size() {return m_indice.size();}
     void dump();
     void AddNode(ASTNode *node);
     bool HasIndex(int idx) {
@@ -254,7 +256,7 @@ namespace ast {
       if (m_idx_m.count(node) == 1) return m_idx_m[node];
       return -1; // not found
     }
-    ASTNode* GetNodeByLine(int linum);
+    ASTNode* GetNodeByLinum(int linum);
   private:
     std::vector<ASTNode*> getPath(ASTNode *node, ASTNode* lca);
     size_t dist(ASTNode* low, ASTNode* high);

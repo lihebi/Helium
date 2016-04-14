@@ -1,6 +1,7 @@
 #include "ast_node.h"
 #include <gtest/gtest.h>
 #include "utils.h"
+#include "options.h"
 
 using namespace ast;
 static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
@@ -402,6 +403,7 @@ std::vector<ASTNode*> AST::getPath(ASTNode *node, ASTNode* lca) {
 }
 
 std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
+  print_trace("AST::CompleteGene(std::set<ASTNode*> gene)");
   std::set<ASTNode*> ret;
   ASTNode* lca = ComputeLCA(gene);
   // std::string dot = VisualizeN({lca}, gene);
@@ -414,6 +416,8 @@ std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
 }
 
 std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
+  print_trace("AST::CompleteGene(Gene *gene)");
+  assert(gene);
   std::set<int> indice = gene->GetIndiceS();
   // back up original nodes
   std::set<ASTNode*> original_nodes = Index2Node(indice);
@@ -518,7 +522,7 @@ int AST::GetLineNumber() {
  * Get node by line number query
  * Possibly return NULL, because the srcml inserts position information weirdly.
  */
-ASTNode* AST::GetNodeByLine(int linum) {
+ASTNode* AST::GetNodeByLinum(int linum) {
   // traverse the nodes, get the ones that linum \in [begin, end]
   // retain the one with minimum end-begin
   // this is the minimum span of an ASTNode

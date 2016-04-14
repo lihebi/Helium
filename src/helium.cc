@@ -17,6 +17,11 @@
 #include "snippet_db.h"
 #include <gtest/gtest.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+namespace fs = boost::filesystem;
+
+
 using namespace utils;
 
 static void
@@ -215,6 +220,14 @@ Helium::Helium(int argc, char* argv[]) {
       std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
       std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
     }
+    exit(0);
+  }
+
+  if (args.Has("slice")) {
+    // use slicing as code selection method
+    std::string slice_file = args.GetString("slice");
+    Reader::slice(slice_file, m_folder);
+    std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
     exit(0);
   }
 }

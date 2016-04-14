@@ -275,7 +275,7 @@ std::set<int> snippetdb::look_up_snippet(std::string key, std::set<SnippetKind> 
   sqlite3_stmt *stmt;
   int rc;
   rc = sqlite3_prepare_v2(SnippetDB::Instance()->db, buf, -1, &stmt, NULL);
-  assert(rc == SQLITE_OK);
+  assert(rc == SQLITE_OK && "Try use absolute path of --snippet-db-folder option");
   while (true) {
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {

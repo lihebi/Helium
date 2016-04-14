@@ -46,13 +46,16 @@ public:
 private:
   bool sortOneRound(std::vector<std::string> &sorted);
   bool isDependOn(std::string lhs, std::string rhs);
-  void addDependence(const std::string& lhs, const std::string& rhs);
+  // void addDependence(const std::string& lhs, const std::string& rhs);
+  void implicit(std::string folder);
+  void completeDeps();
   HeaderSorter() {}
   ~HeaderSorter() {}
   static HeaderSorter* m_instance;
 
   // std::vector<std::string> m_headers;
-  std::map<std::string, std::set<std::string> > m_dependence_map;
+  std::map<std::string, std::set<std::string> > m_hard_deps_map;
+  std::map<std::string, std::set<std::string> > m_soft_deps_map;
 };
 
 

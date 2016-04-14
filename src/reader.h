@@ -28,6 +28,7 @@ public:
     }
     return result;
   }
+  static void slice(std::string slice_file, std::string benchmark_folder);
 private:
   void getLoopSegments();
   void getAnnotationSegments();

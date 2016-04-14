@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "dump.h"
+#include "slice_reader.h"
 
 
 /*******************************
@@ -27,6 +28,11 @@
 #include <time.h>
 
 #include <gtest/gtest.h>
+
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+namespace fs = boost::filesystem;
+
 
 using namespace utils;
 using namespace ast;
@@ -77,12 +83,13 @@ void Reader::GA() {
       }
       builder.Compile();
       int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
+      int node_size = ind->GetGene()->node_size();
       if (builder.Success()) {
         g_compile_success_no++;
         // ExpASTDump::Instance()->compile_success++;
         // ExpASTDump::Instance()->suc_leaf_size.push_back(leaf_size);
         // ExpASTDump::Instance()->suc_snippet_size.push_back(ind->GetAllSnippetIds().size());
-        BuildRatePlotDump::Instance()->Push(leaf_size, ind->GetAllSnippetIds().size(), true);
+        BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, true);
         // suc=true;
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
           utils::print("success\n", utils::CK_Green);
@@ -96,7 +103,7 @@ void Reader::GA() {
         // ExpASTDump::Instance()->compile_error++;
         // ExpASTDump::Instance()->err_leaf_size.push_back(leaf_size);
         // ExpASTDump::Instance()->err_snippet_size.push_back(ind->GetAllSnippetIds().size());
-        BuildRatePlotDump::Instance()->Push(leaf_size, ind->GetAllSnippetIds().size(), false);
+        BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, false);
         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
           utils::print("error\n", utils::CK_Red);
         }
@@ -108,6 +115,85 @@ void Reader::GA() {
     }
   }
   std::cerr  << "\n";
+}
+
+/**
+ * Helium is instructed with one or a bunch of slice result.
+ * The slice(s) will be the criteria to select segment to run.
+ * @param [in] benchmark_folder is the prefix to find the actual file for each slice.
+ * slice only contains relative path to the file, and the base is "benchmark_folder"
+ * In this function, the validaty of the combo is checked.
+ * If the benchmark_folder does not contain the file in the slice, assertion failure will be thrown
+ */
+void Reader::slice(std::string file, std::string benchmark_folder) {
+  std::vector<SliceFile> slices;
+  // 
+  if (fs::is_directory(file)) {
+    // a directory of slice
+    for (fs::directory_entry &x : fs::directory_iterator(file)) {
+      std::string item = x.path().string();
+      if (fs::is_regular_file(item)) {
+        SliceFile sf(item);
+        slices.push_back(sf);
+      }
+    }
+  } else if (fs::is_regular_file(file)) {
+    // only one file, i.e. only one slice
+    SliceFile sf(file);
+    slices.push_back(sf);
+  }
+  // now slices are populated with the specified slice files.
+  // it is time to do the experiment.
+  for (SliceFile slice : slices) {
+    std::cerr << "." << std::flush;
+    std::string filename = benchmark_folder + "/" + slice.GetCriteriaFile();
+    // std::cout << filename  << "\n";
+    // assert(fs::exists(filename));
+    if (!fs::exists(filename)) continue;
+    pugi::xml_document *doc = file2xml(filename);
+    XMLNode func = ast::find_node_enclosing_line(doc->document_element(), NK_Function, slice.GetCriteriaLinum());
+    assert(func);
+    int func_begin_linum = get_node_line(func);
+    int func_end_linum = get_node_last_line(func);
+    std::map<std::string, int> slices = slice.GetSlices();
+    AST ast(func);
+    Individual *ind = new Individual(&ast);
+    // std::cout << "func range:" << func_begin_linum << " - " <<func_end_linum  << "\n";
+    for (auto s : slices) {
+      if (s.first == slice.GetCriteriaFile()) {
+        //same file
+        if (s.second >= func_begin_linum && s.second <= func_end_linum) {
+          // in the same function
+          // std::cout << "in range: " << s.second  << "\n";
+          ind->SelectNodeByLinum(s.second);
+        }
+      }
+    }
+    // build individual
+    ind->Solve();
+    std::string main_code = ind->GetMain();
+    std::string support = ind->GetSupport();
+    std::string makefile = ind->GetMakefile();
+    Builder builder;
+    builder.SetMain(main_code);
+    builder.SetSupport(support);
+    builder.SetMakefile(makefile);
+    builder.Write();
+    if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+      std::cout << "Code output to "  << builder.GetDir() << "\n";
+    }
+    builder.Compile();
+    int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
+    int node_size = ind->GetGene()->node_size();
+    if (builder.Success()) {
+      BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, true);
+      // std::cerr << "Compile Success\n";
+    } else {
+      BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, false);
+      // std::cerr << "Compile Error\n";
+    }
+  }
+  std::cerr << "\n";
 }
 
 /**

@@ -51,26 +51,36 @@ private:
 class BuildRatePlotDump {
 public:
   struct Data {
-    Data(int leaf, int snippet, bool build)
-      : leaf_size(leaf), snippet_size(snippet), build_or_not(build) {}
-    int leaf_size = -1;
-    int snippet_size = -1;
+    Data(int leaf, int node, int mainloc,
+         int snippet, int sniloc, bool build)
+      : leaf_size(leaf), node_size(node), main_loc(mainloc),
+        snippet_size(snippet), snippet_loc(sniloc), build_or_not(build) {}
+    int leaf_size = -1; // leaf nodes in AST
+    int node_size = -1; // all nodes in AST
+    int main_loc = -1; // "main" function size
+    int snippet_size = -1; // number of snippets
+    int snippet_loc = -1; // snippet size (not support.h)
     bool build_or_not = false;
   };
 
-  void Push(int leaf_size, int snippet_size, bool build_or_not) {
-    struct Data data = {leaf_size, snippet_size, build_or_not};
+  void Push(int leaf_size, int node_size, int main_loc,
+            int snippet_size, int snippet_loc, bool build_or_not) {
+    struct Data data = {leaf_size, node_size, main_loc,
+                        snippet_size, snippet_loc, build_or_not};
     m_data.push_back(data);
   }
   static std::string GetHeader() {
-    return "leaf_size, snippet_size, build_or_not";
+    return "leaf_size, node_size, main_loc, snippet_size, snippet_loc, build_or_not";
   }
   std::string dump() {
     std::string ret;
     ret += GetHeader() + "\n";
     for (struct Data data : m_data) {
       ret += std::to_string(data.leaf_size) + ", "
+        + std::to_string(data.node_size) + ", "
+        + std::to_string(data.main_loc) + ", "
         + std::to_string(data.snippet_size) + ", "
+        + std::to_string(data.snippet_loc) + ", "
         + (data.build_or_not?"true":"false") + "\n";
     }
     return ret;

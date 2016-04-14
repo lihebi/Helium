@@ -6,6 +6,7 @@
 #include "resolver.h"
 
 void Individual::RandGene() {
+  // FIXME do I really need to delete the old gene?
   if (m_gene) delete m_gene;
   m_gene = new Gene(m_ast);
   // m_gene->Rand(m_ast->size());

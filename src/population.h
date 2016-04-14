@@ -10,6 +10,8 @@ class Individual {
 public:
   Individual(AST *ast) : m_ast(ast) {
     assert(ast);
+    // an individual always has an gene
+    m_gene = new Gene(ast);
   }
   ~Individual() {
     if (m_gene) delete m_gene;
@@ -31,6 +33,17 @@ public:
   }
   std::set<int> GetAllSnippetIds() {
     return m_all_snippet_ids;
+  }
+  void SelectNodeByLinum(int i) {
+    ASTNode *node = m_ast->GetNodeByLinum(i);
+    if (node) {
+      if (m_gene) {
+        m_gene->AddNode(node);
+      } else {
+        m_gene = new Gene(m_ast);
+        m_gene->AddNode(node);
+      }
+    }
   }
 private:
   Gene *m_gene = NULL;
