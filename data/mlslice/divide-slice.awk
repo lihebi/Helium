@@ -7,4 +7,5 @@ BEGIN {filecount=0}
 /====/ {filecount++;close(last_filename)}
 # /slice criteria/ {print $3 > current_filename}
 # !/====/ && !/slice criteria/ {print  > current_filename}
-!/====/ {print  > current_filename}
+# also remove /usr/...
+!/====/ && !/\/usr/ {print  > current_filename}

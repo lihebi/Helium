@@ -17,7 +17,7 @@ mkdir slice-bundle
 
 for file in $1/*.txt; do
     if [ -f $file ]; then
-        dir=${file##.*/} # remove traling directories
+        dir=${file##*/} # remove traling directories
         dir=${dir%\.*} # remove extension
         dir=slice-bundle/$dir
         echo $file , output to $dir

@@ -10,6 +10,7 @@ if [ $# == 0 ]; then
     echo "1. If Makefile presents in root directory of benchmark, issue make"
     echo "2. If configure presents and executable, issue ./configure; make"
     echo "3. If configure.ac presents, issue autoconf; ./configure; make"
+    exit 1;
 fi
 
 prefix="csurf hook-bulid myproj "

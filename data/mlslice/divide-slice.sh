@@ -7,6 +7,8 @@ if [ $# == 0 ]; then
     echo "usage: divide-slice /path/to/slice-file.txt"
     echo ""
     echo "this will REMOVE ./tmp/ folder and populate the result files into the folder"
+    echo "1. divide"
+    echo "2. sort & uniq"
     exit 1;
 fi
 

@@ -12,3 +12,28 @@ With CS_ERROR_NO_BUILDER_LICENSE
 - redis-hiredis
 - visit1985-mdp
 - Xfennec-progress
+
+* NEW successfully built with csurf
+- abrasive-shairport
+- jorisvink-kore
+- kr-beanstalkd/
+- matz-streem/
+- nelhage-reptyr/
+- philipl-pifs/
+- redis-hiredis/
+- visit1985-mdp/
+- Xfennec-progress/
+
+within those, =./philipl-pifs= crashed code surfer slicing, and outputed nothing.
+
+* Current Imprecision
+For a function with multiple definition (most likely due to conditional compilation),
+random one is choose-d.
+It is costly to exhaust all the possibilities when we encounter a failure of build.
+
+* Difficulties
+Develop Environment:
+1. code surfer only runs on the original =weile-vm2=.
+2. My development environment is my laptop, ssh environment is not suitable for large amount of coding.
+   Compilers are different, and sometimes cause issue for compiling.
+3. The VMs crashed very frequently, so I created new one. Setup is performed.
