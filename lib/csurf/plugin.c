@@ -155,7 +155,14 @@ void func(char *filename, int line) {
   // printf("toSliceSet size: %d\n", size / sizeof(cs_pdg_vertex));
 
   // HEBI: do slice on the vertex of line => slicedSet
+
+  // data, control, or both
   result = cs_s_slice(toSliceSet, cs_pdg_edge_kind_datacontrol, &slicedSet);
+  /* result = cs_s_slice(toSliceSet, cs_pdg_edge_kind_data, &slicedSet); */
+  /* result = cs_s_slice(toSliceSet, cs_pdg_edge_kind_control, &slicedSet); */
+
+
+  
   result = cs_pdg_vertex_set_to_list(slicedSet, NULL, 0, &size);
 
   cs_pdg_vertex *slicedList = (cs_pdg_vertex*)malloc(size);
