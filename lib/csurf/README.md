@@ -20,7 +20,7 @@ Test
 
 ### prepare benchmark
 
-Inside `test/` folder, change the path in `input.txt` to **Absolute** path.
+Inside `test/` folder, change the path in `slicing-criteria.txt` to **Absolute** path or **Relative path**.
 One path per line. It will do slicing for every line.
 
 `make clean` if necessary.

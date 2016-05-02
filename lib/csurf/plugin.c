@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <assert.h>
 #include "cs_sdg.h"
 #include "cs_pdg.h"
 #include "cs_types.h"
@@ -16,14 +18,14 @@ CS_DEFINE_PLUGIN(plugin);
 
 void cs_plug_main()
 {
-  printf("Starting Slicing Plugin ..\n");
-  FILE *f = fopen("input.txt", "rt");
+  fprintf(stderr, "Starting Slicing Plugin ..\n");
+  FILE *f = fopen("slicing-criteria.txt", "rt");
 
   if (!f) {
-    printf("No input.txt\n");
+    fprintf(stderr, "No slicing-criteria.txt. Please create it in benchmark root folder.\n");
     exit(1);
   };
-  char filename[100];
+  char filename[1000];
 
 
   /*
@@ -33,7 +35,7 @@ void cs_plug_main()
     /* printf("%s\n", filename); */
     char *p = strchr(filename, ':');
     if (p==NULL) {
-      printf("NULL");
+      fprintf(stderr, "NULL");
       exit(0);
     }
     *p = '\0';
@@ -61,7 +63,7 @@ void func(char *filename, int line) {
   cs_sdg_pdgs(allPdgs, size, &size);
   int nPdgs = size / sizeof(cs_pdg);
   if (nPdgs==0) {
-    printf("no pdgs at all\n");
+    fprintf(stderr, "no pdgs at all\n");
     return;
   }
 
@@ -76,12 +78,28 @@ void func(char *filename, int line) {
   // HEBI: get PDG for the line => linePdgList[0]
   cs_line resultLine = 0;
   int index=0;
+  /* char absname[BUFSIZ]; // absolute filename */
+  /* int len=0; */
+  /* if (len = readlink(filename, absname, BUFSIZ) != -1) { */
+  /*   absname[len] = '\0'; */
+  /* } else { */
+  /*   perror("error?"); */
+  /*   fprintf(stderr, "Filename too long: %s\n", filename); */
+  /*   assert(false); */
+  /* } */
+  char *absname = realpath(filename, NULL);
+  if (absname == NULL) {
+    perror("cannot get absolute path");
+    assert(false);
+  }
+  /* fprintf(stderr, "filename: %s\n", filename); */
+  /* fprintf(stderr, "absname: %s\n", absname); */
   for (i=0;i<nPdgs;i++) {
     cs_pdg_compilation_unit(allPdgs[i], NULL, 0, &size);
     cs_file_path pdgFileName = (cs_file_path)malloc(size);
     cs_pdg_compilation_unit(allPdgs[i], pdgFileName, size, &size);
     cs_line result = 0;
-    if (strcmp(filename, pdgFileName) == 0) {
+    if (strcmp(absname, pdgFileName) == 0) {
       cs_pdg_file_line(allPdgs[i], &thisSfid, &thisLine);
       if (thisLine < line && thisLine > resultLine) {
         resultLine = thisLine;
@@ -89,6 +107,7 @@ void func(char *filename, int line) {
       }
     }
   }
+  free(absname);
   // printf("Line: %d\n", resultLine);
   if (resultLine==0) {
     return;
@@ -143,12 +162,15 @@ void func(char *filename, int line) {
   result = cs_pdg_vertex_set_to_list(slicedSet, slicedList, size, &size);
   nVertices = size / sizeof(cs_pdg_vertex);
 
-  if (nVertices==0) return;
-  if (nVertices > 10000) return;
-  printf("Slice set size: %d\n", nVertices);
-  FILE *fp = fopen("result.txt", "a");
-  fprintf(fp, "=======\n");
-  fprintf(fp, "slice criteria: %s:%d\n", filename, line);
+  /* if (nVertices==0) return; */
+  /* if (nVertices > 10000) return; */
+  fprintf(stderr, "Slice set size: %d\n", nVertices);
+  /* FILE *fp = fopen("result.txt", "a"); */
+  /* fprintf(fp, "=======\n"); */
+  /* fprintf(fp, "slice criteria: %s:%d\n", filename, line); */
+  printf("=======\n");
+  printf("slicing criteria: %s:%d\n", filename, line);
+  
   // HEBI: map the sliced vertex to line number
   for(i=0;i<nVertices;i++) {
     int a;
@@ -157,9 +179,9 @@ void func(char *filename, int line) {
     cs_file_path vertexFileName = (cs_file_path) malloc(size);
     cs_file_get_include_name(thisSfid, vertexFileName, size, &size);
     if (strstr(vertexFileName, "codesurfer") == NULL) {
-      fprintf(fp, "%s\t%d\n", vertexFileName, thisLine);
-      /* printf("%s\t%d\n", vertexFileName, thisLine); */
+      /* fprintf(fp, "%s\t%d\n", vertexFileName, thisLine); */
+      printf("%s\t%d\n", vertexFileName, thisLine);
     }
   }
-  fclose(fp);
+  /* fclose(fp); */
 }
