@@ -91,7 +91,9 @@ class FeatureRecord {
 public:
   static std::string header() {
     return "filename, linum,"
-      "f1:var_name, f2:var_type, f3:distance, f4:AST_Distance,"// f5:trans_count,"
+      "f1:same_var, f2:same_var_type, f3:distance, f4:AST_Distance,"// f5:trans_count,"
+      "f5:ast_dis_t_lca, f6:ast_dis_poi_lca, f7:ast_lca_lvl,"
+      "f8:use_global, "
       "in_slice_or_not";
   }
   std::string dump() {
@@ -104,8 +106,13 @@ public:
       + std::to_string(var_type) + ", "
       + std::to_string(distance) + ", "
       + std::to_string(AST_distance) + ", "
+      // f5-f7
+      + std::to_string(ast_dis_t_lca) + ", "
+      + std::to_string(ast_dis_poi_lca) + ", "
+      + std::to_string(ast_lca_lvl) + ", "
+      + (use_global?"1":"0") + ", "
       // + std::to_string(trans_count) + ", "
-      + (in_slice?"true":"false");
+      + (in_slice?"1":"0");
     return ret;
   }
   std::string filename;
@@ -114,6 +121,10 @@ public:
   unsigned int var_type = 0;
   int distance = 0; // this can be negative
   int AST_distance = 0; // the path from T to POI by traversing AST
+  int ast_dis_t_lca = 0;
+  int ast_dis_poi_lca = 0;
+  int ast_lca_lvl=0;
+  bool use_global = false;
   int trans_count = 0; // TODO
   bool in_slice=false;
 };

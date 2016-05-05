@@ -38,7 +38,7 @@ SlicingCriteria::SlicingCriteria(std::string abs, int l)
   // std::cout << "criteria linum: " << l  << "\n";
   m_ast = new AST(m_func);
   // 2. resovle LHS and RHS variables (only the type kind, not the actual type)
-  m_astnode = m_ast->GetNodeByLine(m_linum);
+  m_astnode = m_ast->GetNodeByLinum(m_linum);
   assert(m_ast);
   assert(m_astnode);
   /**
@@ -114,8 +114,28 @@ int SlicingCriteria::GetFuncEndLinum() {
 std::vector<FeatureRecord>
 compute_features(SlicingCriteria *criteria, std::set<int> slice_linums,
                  std::vector<std::pair<std::string, int> > candidates) {
-  // std::cout << "compute features"  << "\n";
+  // std::cerr << "compute features"  << "\n";
   std::vector<FeatureRecord> ret;
+  /**
+   * Computing the global variables
+   */
+  std::set<std::string> globals;
+  pugi::xml_node xmlnode = criteria->GetXMLFuncNode();
+  // if (xmlnode) {
+  //   std::cerr << "yes" << "\n";
+  // }
+  pugi::xpath_node_set global_name_nodes = xmlnode.root().select_nodes("/unit/decl_stmt/decl/name");
+  // std::cerr << global_name_nodes.size() << "\n";
+  for (auto pn : global_name_nodes) {
+    XMLNode node = pn.node();
+    std::string name = node.child_value();
+    if (!name.empty()) {
+      globals.insert(name);
+    }
+  }
+  // std::cerr << criteria->GetAbsFilename() << "\n";
+  // std::cerr << globals.size()  << "\n";
+
   /**
    * Now line is the target(T), criteria is the POI
    * Compute the features for T, with regard to POI
@@ -126,13 +146,38 @@ compute_features(SlicingCriteria *criteria, std::set<int> slice_linums,
   // f3: distance
   // f4: AST level
   // f5: Transformation Count
-  for (int idx=0;idx<(int)candidates.size();idx++) {
-    // std::cout << idx  << "\n";
+  // std::cerr << candidates.size() << "\n";
+  int size = candidates.size();
+  // if (size > 100) {
+  //   std::cerr << "larger than 100, return" << "\n";
+  //   return {};
+  // }
+  for (int idx=0;idx<size;idx++) {
+    // std::cerr << idx << "\n";
+    /**
+     * Basic informations
+     */
+    FeatureRecord record;
     std::string line = candidates[idx].first;
     int linum = candidates[idx].second;
+    record.linum = linum;
+    record.filename = criteria->GetAbsFilename();
+    record.distance = criteria->GetLinum() - linum;
+    // std::cout << idx  << "\n";
     std::set<std::string> ids = extract_id_to_resolve(line);
+    // check whether the variable is global variable
+    // check whether it contains a function call
+    for (std::string id : ids) {
+      if (globals.count(id) == 1) {
+        record.use_global = true;
+      }
+    }
+
+    /***********
+     * The followings are features that requrie the T and POI in the same function
+     ***********/
     // map the record to an ASTNode*
-    ASTNode *astnode = criteria->GetAST()->GetNodeByLine(linum);
+    ASTNode *astnode = criteria->GetAST()->GetNodeByLinum(linum);
     /**
      *
      * FIXME the line may be only a brace, e.g.
@@ -148,21 +193,26 @@ compute_features(SlicingCriteria *criteria, std::set<int> slice_linums,
      * Or, I only need to resolve the type of that variable.
      * It should be efficient since I have symbol table instead of looking up the AST XML node every time.
      */
-    assert(astnode); // this is very likely to fail
-    FeatureRecord record;
-    record.linum = linum;
+    // assert(astnode); // this is very likely to fail
+    if (!astnode) continue;
+    // AST distance
+    record.AST_distance = criteria->GetAST()->Distance(criteria->GetASTNode(), astnode);
+    ASTNode *lca = criteria->GetAST()->ComputeLCA(std::set<ASTNode*>{criteria->GetASTNode(), astnode});
+    record.ast_dis_t_lca = criteria->GetAST()->Distance(astnode, lca);
+    record.ast_dis_poi_lca = criteria->GetAST()->Distance(criteria->GetASTNode(), lca);
+    record.ast_lca_lvl = lca->GetLevel();
+    if (slice_linums.count(linum) == 1) record.in_slice=true;
+    /**
+     * The variable used.
+     * FIXME what if multiple variables are used?
+     */
     for (std::string id : ids) {
       if (criteria->LookUpVariable(id) != 0) {
-        record.filename = criteria->GetAbsFilename();
         record.var_name_used_in_POI = true;
         record.var_type = criteria->LookUpVariable(id);
-        record.distance = criteria->GetLinum() - linum;
-        // AST distance
-        record.AST_distance = criteria->GetAST()->Distance(criteria->GetASTNode(), astnode);
-        if (slice_linums.count(linum) == 1) record.in_slice=true;
-        ret.push_back(record);
       }
     }
+    ret.push_back(record);
   }
   return ret;
 }
@@ -180,7 +230,7 @@ compute_features(SlicingCriteria *criteria, std::set<int> slice_linums,
  * @param [in] slice_linums the line numbers that are 1) in the slice 2) belong the the same file, same function
  */
 std::vector<std::string> solve(SlicingCriteria *criteria, std::set<int> slice_linums) {
-  // std::cout << "solve"  << "\n";
+  // std::cerr << "solve"  << "\n";
   std::vector<std::string> ret;
   /**
    * get all lines in the same function, process from there
@@ -199,6 +249,7 @@ std::vector<std::string> solve(SlicingCriteria *criteria, std::set<int> slice_li
   int c_end = criteria->GetFuncEndLinum();
   while (std::getline(is, line)) {
     linum++;
+    // Now I comment these two lines out, because I want to analyze interprocedure ones
     if (linum < c_begin) continue;
     if (linum > c_end) break;
     candidates.push_back({line, linum});
@@ -216,7 +267,7 @@ std::vector<std::string> solve(SlicingCriteria *criteria, std::set<int> slice_li
  * for the given slice_file and benchmark folder, do MLSlice, dump features
  */
 void mlslice(std::string slice_file, std::string benchmark_folder) {
-  // std::cout << "mlslice"  << "\n";
+  // std::cerr << "mlslice"  << "\n";
   std::ifstream is;
   is.open(slice_file);
   SlicingCriteria *criteria=NULL;
@@ -230,6 +281,12 @@ void mlslice(std::string slice_file, std::string benchmark_folder) {
   assert(criteria_line.find(':') != std::string::npos);
   int slicing_linum = atoi(criteria_line.substr(criteria_line.find(':')+1).c_str());
   std::string slicing_file = criteria_line.substr(0, criteria_line.find(':'));
+
+  // gzip slow line
+  if (slicing_file == "lib/vasnprintf.c") {
+    std::cerr << "lib/vasnprintf.c ... skipped\n";
+    return;
+  }
     
   std::string true_file = benchmark_folder+"/"+ slicing_file;
   // std::cout << true_file  << "\n";
@@ -238,7 +295,6 @@ void mlslice(std::string slice_file, std::string benchmark_folder) {
   std::string abs_filename =  fs::canonical(true_file).string();
   // std::cout << "--- " << abs_filename   << "\n";
   criteria = new SlicingCriteria(abs_filename, slicing_linum);
-
   /**
    * Gather The slices
    */

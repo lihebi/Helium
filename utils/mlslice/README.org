@@ -1,0 +1,24 @@
+#+TITLE: Machine Learning Approach for Program Slicing
+
+* TODOs
+
+** Implemented features
+| ID | feature name         | value        | description                                                                               |
+|----+----------------------+--------------+-------------------------------------------------------------------------------------------|
+|  0 | Variable name        | binary       | if =T= contains variable used in =POI=                                                    |
+|  1 | Variable type        | multi-domain | if the above is true, =Pointer, Reference, Class, Struct, Primitive=                      |
+|  2 | distance             | int          | line number difference between =POI= and =T=                                              |
+|  3 | AST level            | int          | AST level difference between =POI= and =T=                                                |
+| distance to common parent                 | (int, int) |   |
+| AST common parent count (a.k.a LCA level) |            |   |
+
+
+** need modification features
+
+** To implement features
+- NOT DOABLE feature: in the same file or not
+- feature: in the same function or not
+|  4 | Transformation Count | int          | number of times the =LHS= of =T= appears in the =RHS= of the statements from =T= to =POI= |
+
+| AST environment (T->WHILE->FOR->IF->POI)  |            |   |
+| Transformation Count Closure              | int        |   |
