@@ -22,7 +22,7 @@ awk -f ./divide-slice.awk $1
 # sort and then uniq the slices
 for file in tmp/*; do
     head -1 $file | awk '{print $3}' > $file-new
-    cat $file | awk '!/slice criteria/ {print;}' | sort | uniq >> $file-new
+    cat $file | awk '!/slicing criteria/ {print;}' | sort | uniq >> $file-new
     mv $file-new $file
 done
 

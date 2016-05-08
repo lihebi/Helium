@@ -88,13 +88,15 @@ void Gene::AddNode(ASTNode *node) {
   tmp_indice_s.insert(idx);
   SetIndiceS(tmp_indice_s, tmp_indice_s.size());
 }
+Gene::Gene(AST *ast) : m_ast(ast) {
+  m_size = m_ast->size();
+}
 
-void Gene::Rand(size_t size) {
-  m_size = size;
+void Gene::Rand() {
   std::vector<int> flat;
-  for (size_t i=0;i<size;i++) {
-    int a = utils::rand_int(0, 2);
-    if (a==0) { // 1/3
+  for (size_t i=0;i<m_size;i++) {
+    int a = utils::rand_int(0, 1);
+    if (a==0) { // 1/2
       flat.push_back(1);
     } else {
       flat.push_back(0);

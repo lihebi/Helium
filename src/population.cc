@@ -10,7 +10,11 @@ void Individual::RandGene() {
   if (m_gene) delete m_gene;
   m_gene = new Gene(m_ast);
   // m_gene->Rand(m_ast->size());
-  m_gene->LeafRand();
+  // m_gene->LeafRand();
+  // generate no less than 1 size
+  while (m_gene->node_size() <1) {
+    m_gene->Rand();
+  }
 }
 
 void Population::CreateRandomIndividuals(int num) {

@@ -52,7 +52,7 @@ namespace ast {
    */
   class Gene {
   public:
-    Gene(AST *ast) : m_ast(ast) {}
+    Gene(AST *ast);
     ~Gene() {}
     std::vector<int> GetFlat() {return m_flat;}
     std::vector<int> GetIndice() {return m_indice;}
@@ -65,7 +65,7 @@ namespace ast {
     // other
     std::set<ASTNode*> ToASTNodeSet();
     // random
-    void Rand(size_t size);
+    void Rand();
     void LeafRand();
     size_t size() {return m_size;}
     size_t leaf_size();
@@ -355,6 +355,15 @@ namespace ast {
       return m_children[idx];
     }
     std::vector<ASTNode*> GetChildren() {return m_children;}
+    int GetLevel() const {
+      ASTNode *p = m_parent;
+      int ret = 0;
+      while (p) {
+        p = p->GetParent();
+        ret ++;
+      }
+      return ret;
+    }
 
     ASTNode *PreviousSibling() {
       if (m_parent==NULL) return NULL;

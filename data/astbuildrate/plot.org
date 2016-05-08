@@ -1,0 +1,71 @@
+
+#+BEGIN_SRC R :results graphics output :file aa.png
+data<- read.csv(file="out.csv")
+str(data)
+library(dplyr)
+# library(ggplot2)
+result <- summarise(
+  group_by(data, leaf_size),
+  ratio= sum(build_or_not==" true")/length(build_or_not)
+)
+
+plot(x=result$leaf_size, y=result$ratio, data=result)
+lines(x=result$leaf_size, y=result$ratio, data=result)
+#+END_SRC
+
+#+RESULTS:
+[[file:aa.png]]
+
+
+# :file hw2-4-1.png :results output graphics :exports both
+#+BEGIN_SRC R :results graphics output :file leaf.png
+  data<- read.csv(file="out.csv")
+  str(data)
+  library(dplyr)
+  # library(ggplot2)
+  result <- summarise(
+    group_by(data, leaf_size),
+    ratio= sum(build_or_not==" true")/length(build_or_not)
+  )
+
+  plot(x=result$leaf_size, y=result$ratio, data=result)
+  lines(x=result$leaf_size, y=result$ratio, data=result)
+#+END_SRC
+
+#+RESULTS:
+[[file:leaf.png]]
+
+#+BEGIN_SRC R :results graphics output :file node.png
+  data<- read.csv(file="out.csv")
+  str(data)
+  library(dplyr)
+  # library(ggplot2)
+  result <- summarise(
+    group_by(data, node_size),
+    ratio= sum(build_or_not==" true")/length(build_or_not)
+  )
+
+  plot(x=result$node_size, y=result$ratio, data=result)
+  lines(x=result$node_size, y=result$ratio, data=result)
+#+END_SRC
+
+#+RESULTS:
+[[file:node.png]]
+
+#+BEGIN_SRC R :results graphics output :file snippet.png
+  data<- read.csv(file="out.csv")
+  str(data)
+  library(dplyr)
+  # library(ggplot2)
+  result <- summarise(
+    group_by(data, snippet_size),
+    ratio= sum(build_or_not==" true")/length(build_or_not)
+  )
+
+  plot(x=result$snippet_size, y=result$ratio, data=result)
+  lines(x=result$snippet_size, y=result$ratio, data=result)
+#+END_SRC
+
+#+RESULTS:
+[[file:snippet.png]]
+

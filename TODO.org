@@ -37,3 +37,74 @@ Develop Environment:
 2. My development environment is my laptop, ssh environment is not suitable for large amount of coding.
    Compilers are different, and sometimes cause issue for compiling.
 3. The VMs crashed very frequently, so I created new one. Setup is performed.
+
+* Remaining Exp TODOs
+- instead of rand leaf, rand all nodes
+- instead of 1/3, use 1/2
+- remove the size=0 cases
+
+
+* Current Experiment Section Writeup
+
+** Experiment Setup
+*** compile benchmark under Code Surfer
+Slice production: for the 21 benchmark selected, use code surfer to build.
+Since each benchmark has its own method to build,
+e.g. some provide makefile, some provide configure script,
+some provide autoconf configuration file,
+some use third party script, like python =waf=.
+It is impossible to handle all of them, but since compilation is required to run code surfer,
+we use the following method[fn:1]:
+
+
+
+1. if Makefile is provided in the root directoy, directly issue =make=
+2. if =configure= is provided, run =./configure; make=
+3. if =configure.ac= is provided, run =autoconf; ./configure; make=
+
+
+[fn:1] In Ninthanth's script, make is tried for each benchmark.
+But the among all projects, only about 1/3 shipped with a Makefile.
+If considered these three cases, about 2/3 are able to at least try to compile.
+
+
+If any one succeed to compile, we accept the benchmark into next process.
+
+*** Slicing Criteria Selection
+For each benchmark, randomly assign 100 lines for each file.
+Perform /data and control slice/ on these lines.
+
+*** Code segment selection
+For each slicing criteria, locate the function.
+Find all statements in the slice that are in the same function,
+put them as the original selection.
+Then do LCA completion, definition and delaration resolving.
+*** Data collection
+
+
+* Know bugs
+** implicity header dependence
+Since we gather all code snippets, e.g. structure definition, function definition, into a single file,
+it is important to know the order they should appar, otherwise it is very likely to cause compile error.
+The approach we take is to retain the order of the original program.
+
+It is easy to know the order if two snippets are in the same header file.
+However, if they appear in different file, it is non-trival to know the order.
+Current approach is to take the header file dependencies, i.e. if =a.h= includes =b.h=,
+then all snippets in =a.h= should appear later than those in =b.h=.
+We call this /hard dependence/, i.e. dependence which should always be satisfied.
+
+However, it is discovered that some header files does not explictly contain this information.
+E.g. TODO matz-stream?
+
+One idea is to also use the sequence they appear in the source files.
+E.g. if we found that both =a.c= and =b.c= includes =a.h= and =b.h=, and both of them put =a.h= before =b.h=,
+we know we may need to put the snippets in =a.h= ahead of those in =b.h=.
+We call this /soft dependence/.
+
+Another potential issue is the hard dependence may not always be true, due to the use of /header guard/.
+E.g. =a.h= includes =b.h=, and =b.h= can also includes =a.h=.
+If =a.h= and =b.h= both have /header guard/, it will not be a problem to compile.
+The order which is determined by which one comes first to the compiler.
+This is considered a bad practice in program,
+so it is not known such cases often exist in the benchmarks.

@@ -328,6 +328,16 @@ namespace ast {
     return -1;
   }
 
+  /**
+   * node is in some srcml document.
+   * From the root of node, find the first node on linum.
+   * TODO NOW
+   * FIXME test it.
+   */
+  // pugi::xml_node get_node_on_line(pugi::xml_node node, int linum) {
+  //   pugi::xml_node node = node.select_node("//*[@pos:line="+linum+"]").node();
+  // }
+
 
   /*
    * The last pos:line in the current node element

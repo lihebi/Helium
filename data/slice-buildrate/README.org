@@ -1,0 +1,10 @@
+#+TITLE: Slice data handling instructions
+
+1. change the path from absolute path to relative path
+   =./to-relative-path.sh slice-100-perfile=
+   This assume the folder name is the benchmark name, and appear in the slice data file.
+   The output will not have benchmark name, only the relative path with regard to benchmark root dir.
+2. divide the slice file into separate slicing criteria.
+   =./divide-slice-bundle.sh slice-100-perfile=
+   This will produce the =slice-bundle/= folder,
+   contains the benchmark folders and the individual slice files.

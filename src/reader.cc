@@ -148,11 +148,14 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
     std::cerr << "." << std::flush;
     std::string filename = benchmark_folder + "/" + slice.GetCriteriaFile();
     // std::cout << filename  << "\n";
+    // FIXME assert failure
     // assert(fs::exists(filename));
     if (!fs::exists(filename)) continue;
     pugi::xml_document *doc = file2xml(filename);
     XMLNode func = ast::find_node_enclosing_line(doc->document_element(), NK_Function, slice.GetCriteriaLinum());
-    assert(func);
+    // FIXME assert failure
+    // assert(func);
+    if (!func) continue;
     int func_begin_linum = get_node_line(func);
     int func_end_linum = get_node_last_line(func);
     std::map<std::string, int> slices = slice.GetSlices();
