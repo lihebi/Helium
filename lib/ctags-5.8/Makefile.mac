@@ -5,4 +5,4 @@ libctags.dylib:
 
 install: libctags.dylib
 	cp libctags.dylib /usr/local/lib
-  cp readtags.h /usr/local/include
+	cp readtags.h /usr/local/include
