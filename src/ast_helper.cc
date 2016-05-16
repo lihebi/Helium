@@ -361,7 +361,10 @@ namespace ast {
     return -1;
   }
 
-  TEST(ASTHelperTestCase, GetNodeLine) {
+  /**
+   * Disabled because absolute path
+   */
+  TEST(ASTHelperTestCase, DISABLED_GetNodeLine) {
     Doc doc;
     const char *raw = R"prefix(
 int a;

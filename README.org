@@ -22,6 +22,14 @@ make
 make install
 #+end_src
 
+Also, on Mac, you probably need to install the ctags executable.
+
+#+BEGIN_EXAMPLE
+brew install ctags
+#+END_EXAMPLE
+
+This will overwrite the =readtags.h= header file.
+
 *** google test (optional, required for running built-in unit tests)
 Follow instructions on [[https://github.com/google/googletest][Google Test]].
 Basically
@@ -35,12 +43,22 @@ make install # will install libgtest.a to standard location
 #+END_SRC
 *** sqlite3
 Install the sqlite3 develop package.
+*** SrcML
+http://www.srcml.org/
+
+
 ** compile
+
+before you run helium, you need to make the system type tag file.
+#+BEGIN_EXAMPLE
+make systype.tags
+#+END_EXAMPLE
+
+Then compile and run unit tests:
 
 #+begin_src shell
 make
 make test
-make install
 #+end_src
 
 ** Trouble shooting

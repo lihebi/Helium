@@ -1,86 +1,10 @@
 #+TITLE: Helium Project TODO
 
-* benchmarks build result with code surfer
-- shairport
-- clibs-clib
-- jorisvink-kore
-- kr-beanstalkd
-- matz-streem
-- nelhage-reptyr
-
-With CS_ERROR_NO_BUILDER_LICENSE
-- redis-hiredis
-- visit1985-mdp
-- Xfennec-progress
-
-* NEW successfully built with csurf
-- abrasive-shairport
-- jorisvink-kore
-- kr-beanstalkd/
-- matz-streem/
-- nelhage-reptyr/
-- philipl-pifs/
-- redis-hiredis/
-- visit1985-mdp/
-- Xfennec-progress/
-
-within those, =./philipl-pifs= crashed code surfer slicing, and outputed nothing.
 
 * Current Imprecision
 For a function with multiple definition (most likely due to conditional compilation),
 random one is choose-d.
 It is costly to exhaust all the possibilities when we encounter a failure of build.
-
-* Difficulties
-Develop Environment:
-1. code surfer only runs on the original =weile-vm2=.
-2. My development environment is my laptop, ssh environment is not suitable for large amount of coding.
-   Compilers are different, and sometimes cause issue for compiling.
-3. The VMs crashed very frequently, so I created new one. Setup is performed.
-
-* Remaining Exp TODOs
-- instead of rand leaf, rand all nodes
-- instead of 1/3, use 1/2
-- remove the size=0 cases
-
-
-* Current Experiment Section Writeup
-
-** Experiment Setup
-*** compile benchmark under Code Surfer
-Slice production: for the 21 benchmark selected, use code surfer to build.
-Since each benchmark has its own method to build,
-e.g. some provide makefile, some provide configure script,
-some provide autoconf configuration file,
-some use third party script, like python =waf=.
-It is impossible to handle all of them, but since compilation is required to run code surfer,
-we use the following method[fn:1]:
-
-
-
-1. if Makefile is provided in the root directoy, directly issue =make=
-2. if =configure= is provided, run =./configure; make=
-3. if =configure.ac= is provided, run =autoconf; ./configure; make=
-
-
-[fn:1] In Ninthanth's script, make is tried for each benchmark.
-But the among all projects, only about 1/3 shipped with a Makefile.
-If considered these three cases, about 2/3 are able to at least try to compile.
-
-
-If any one succeed to compile, we accept the benchmark into next process.
-
-*** Slicing Criteria Selection
-For each benchmark, randomly assign 100 lines for each file.
-Perform /data and control slice/ on these lines.
-
-*** Code segment selection
-For each slicing criteria, locate the function.
-Find all statements in the slice that are in the same function,
-put them as the original selection.
-Then do LCA completion, definition and delaration resolving.
-*** Data collection
-
 
 * Know bugs
 ** implicity header dependence
@@ -108,3 +32,15 @@ If =a.h= and =b.h= both have /header guard/, it will not be a problem to compile
 The order which is determined by which one comes first to the compiler.
 This is considered a bad practice in program,
 so it is not known such cases often exist in the benchmarks.
+
+* Bug Signature Building Implementation
+
+1. I need to call graph.
+2. A selector based on line number?
+
+** Linear Demand-Driven approach
+3. previous leaf statement
+4. generate input, test, synthesize invariants, precondition, summary function
+5. compare
+
+** Delta-debugging approach
