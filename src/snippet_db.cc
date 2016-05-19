@@ -89,6 +89,28 @@ int SnippetDB::insertSnippet(Snippet *snippet) {
   return snippet_id;
 }
 
+void SnippetDB::InsertHeaderDep(std::string from, std::string to) {
+  static int header_dep_id = 0;
+  const char *format = "insert into header_dep values (%d, '%s', '%s');";
+  char buf[BUFSIZ];
+  snprintf(buf, BUFSIZ, format,
+           header_dep_id, from.c_str(), to.c_str()
+           );
+  char *errmsg = NULL;
+  int rc = sqlite3_exec(m_db, buf, NULL, NULL, &errmsg);
+  if (rc != SQLITE_OK) {
+    fprintf(stderr, "SQL error: %s\n", errmsg);
+    sqlite3_free(errmsg);
+    assert(false);
+  }
+  header_dep_id++;
+}
+std::vector<std::pair<std::string, std::string> > SnippetDB::GetHeaderDep() {
+  std::vector<std::pair<std::string, std::string> > ret;
+  ret = queryStrStr("select from_file, to_file from header_dep");
+  return ret;
+}
+
 
 /**
  * Call Graph Construction
@@ -250,6 +272,10 @@ void SnippetDB::createTable() {
     foreign key (from_snippet_id) references snippet(ID),
     foreign key (to_snippet_id) references snippet(ID)
     );
+  create table header_dep (
+    ID int, from_file VARCHAR(100), to_file VARCHAR(100),
+    primary key(ID)
+    );
 )prefix";
   char *errmsg = NULL;
   assert(m_db);
@@ -326,14 +352,7 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
   std::cout << "total snippet: " << snippet_id + 1  << "\n";
   createDep();
   createCG();
-  createHeaderDep();
   sqlite3_close_v2(m_db);
-}
-
-/**
- * TODO Create header dependence table in DB
- */
-void SnippetDB::createHeaderDep() {
 }
 
 /********************************
@@ -662,6 +681,38 @@ std::vector<std::pair<std::string, char> > SnippetDB::queryStrChar(const char* q
   sqlite3_finalize(stmt);
   return ret;
 }
+
+std::vector<std::pair<std::string, std::string> > SnippetDB::queryStrStr(const char *query) {
+  std::vector<std::pair<std::string, std::string> > ret;
+  // assert(SnippetDB::Instance()->db != NULL);
+  assert(m_db);
+  sqlite3_stmt *stmt;
+  int rc;
+  // rc = sqlite3_prepare_v2(SnippetDB::Instance()->db, query, -1, &stmt, NULL);
+  rc = sqlite3_prepare_v2(m_db, query, -1, &stmt, NULL);
+  assert(rc == SQLITE_OK);
+  while (true) {
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+      // data row
+      assert(sqlite3_column_count(stmt) == 2);
+      const char *first = (char*)sqlite3_column_text(stmt, 0);
+      assert(first);
+      std::string first_str(first);
+      const char *second = (char*)sqlite3_column_text(stmt, 1);
+      assert(second);
+      std::string second_str(second);
+      ret.push_back(std::make_pair(first_str, second_str));
+    } else if (rc == SQLITE_DONE) {
+      break;
+    } else {
+      assert(false);
+    }
+  }
+  sqlite3_finalize(stmt);
+  return ret;
+}
+
 
 std::map<std::string, int> SnippetDB::queryFunctions() {
   const char *query = "select keyword, snippet_id from signature where kind='f'";

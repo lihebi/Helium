@@ -23,7 +23,7 @@ Signature
 |  1 | ABCKind | g    |          3 |
 |  2 | AK_Mem1 | e    |          3 |
 
-CallGraph
+CallGraph (same as dependence)
 
 | ID | FromSnippetID | ToSnippetID |
 |----+---------------+-------------|

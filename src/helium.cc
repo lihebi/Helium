@@ -15,6 +15,7 @@
 #include "dump.h"
 
 #include "snippet_db.h"
+#include "header_dep.h"
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
@@ -183,6 +184,16 @@ Helium::Helium(int argc, char* argv[]) {
   }
   SnippetDB::Instance()->Load(snippet_db_folder);
 
+  if (args.Has("create-header-dep")) {
+    HeaderDep::Create(m_folder);
+    exit(0);
+  }
+  HeaderDep::Instance()->LoadFromDB();
+  if (args.Has("print-header-dep")) {
+    HeaderDep::Instance()->Dump();
+    exit(0);
+  }
+
   if (args.Has("print-callgraph")) {
     SnippetDB::Instance()->PrintCG();
     exit(0);
@@ -190,6 +201,7 @@ Helium::Helium(int argc, char* argv[]) {
 
   /* load system tag file */
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
+  // DEPRECATED
   HeaderSorter::Instance()->Load(m_folder);
 
   

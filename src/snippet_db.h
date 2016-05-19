@@ -57,6 +57,9 @@ public:
    * Print methods
    */
   void PrintCG();
+
+  void InsertHeaderDep(std::string from, std::string to);
+  std::vector<std::pair<std::string, std::string> > GetHeaderDep();
 private:
   std::vector<int> queryInt(const char *query);
   std::vector<std::string> queryStr(const char *query);
@@ -64,6 +67,7 @@ private:
   std::vector<std::pair<std::string, int> > queryStrInt(const char *query);
   std::vector<std::pair<std::string, char> > queryStrChar(const char *query);
   std::vector<std::pair<int, int> > queryIntInt(const char *query);
+  std::vector<std::pair<std::string, std::string> > queryStrStr(const char *query);
 
   // TODO Don't know how to use template to do this.
   // template <typename T1, typename T2> std::vector<std::pair<T1, T2> > queryTT(char *query);
@@ -78,7 +82,6 @@ private:
   void createDep();
   void createCG();
   std::map<std::string, std::set<std::string> > constructCG(std::map<std::string, int> &all_functions);
-  void createHeaderDep();
 
   /**
    * The following 2 fields should be initiliazed by Load or Create, otherwise the code is invalid
