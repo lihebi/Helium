@@ -627,6 +627,17 @@ Node ast::param_get_decl(Node node) {
 }
 
 
+/**
+ * Get function node the node belongs to.
+ */
+Node ast::get_function_node(Node node) {
+  while (node.parent()) {
+    if (kind(node) == NK_Function) {
+      return node;
+    }
+  }
+  return Node();
+}
 
 
 /**

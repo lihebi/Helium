@@ -112,7 +112,7 @@ Helium::Helium(int argc, char* argv[]) {
     std::string tmpdir = utils::create_tmp_dir();
     create_tagfile(m_folder, tmpdir+"/tags");
     tagfile = tmpdir+"/tags";
-    snippetdb::create_snippet_db(tagfile, output_folder);
+    SnippetDB::Instance()->Create(tagfile, output_folder);
     exit(0);
   }
 
@@ -181,7 +181,12 @@ Helium::Helium(int argc, char* argv[]) {
     std::cerr << "snippet database folder unset. Please use --snippet-db-folder option. --help for more details." << "\n";
     assert(false);
   }
-  snippetdb::load_db(snippet_db_folder);
+  SnippetDB::Instance()->Load(snippet_db_folder);
+
+  if (args.Has("print-callgraph")) {
+    SnippetDB::Instance()->PrintCG();
+    exit(0);
+  }
 
   /* load system tag file */
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
@@ -306,10 +311,11 @@ Helium::Run() {
   /**
    * Print some meta data for the benchmark project.
    */
-  std::cerr << "===== Helium Benchmark Meta ====="  << "\n";
-  std::cerr << "total file: " << m_files.size()  << "\n";
+  std::cerr << "***** Helium Benchmark Meta *****"  << "\n";
+  std::cerr << "** total file: " << m_files.size()  << "\n";
   int func_count = countFunction();
-  std::cerr << "totla function: " << func_count  << "\n";
+  std::cerr << "** totla function: " << func_count  << "\n";
+  std::cerr << "*********************************" << "\n";
   ExpASTDump::Instance()->file_count = m_files.size();
   ExpASTDump::Instance()->func_count = func_count;
   ExpASTDump::Instance()->benchmark = m_folder;
@@ -336,7 +342,7 @@ Helium::Run() {
     }
   }
   // double t2 = utils::get_time();
-  std::cerr << "End of Helium"  << "\n";
+  std::cerr << "********** End of Helium **********"  << "\n";
   if (PrintOption::Instance()->Has(POK_BuildRate)) {
     std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";
     std::cerr << "Compile Error Count: " << g_compile_error_no  << "\n";
@@ -357,7 +363,7 @@ Helium::Run() {
    */
   // utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
   // ExpASTDump::Instance()->AppendData();
-  std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
+  // std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
 }
 
 

@@ -4,6 +4,7 @@
 #include "segment.h"
 #include "ast.h"
 #include "utils.h"
+#include "seg.h"
 
 class Reader {
 public:
@@ -32,6 +33,7 @@ public:
 private:
   void getLoopSegments();
   void getAnnotationSegments();
+  Seg* getAnnotSeg();
   void getDivideSegments();
   void getDivideRecursive(ast::NodeList nodes);
   void getFuncCallSegments(std::string func_name);

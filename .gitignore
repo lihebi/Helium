@@ -30,3 +30,6 @@ tmp/*
 *.fls
 *.log
 *.aux
+
+*.dot
+*.png

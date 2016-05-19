@@ -40,7 +40,14 @@ so it is not known such cases often exist in the benchmarks.
 
 ** Linear Demand-Driven approach
 3. previous leaf statement
+4. when including a function callsite, or an AST parent, do not include everything in the called function or the whole AST.
+   Still use AST selection.
+   This means I need to keep multiple AST.
+
 4. generate input, test, synthesize invariants, precondition, summary function
 5. compare
 
 ** Delta-debugging approach
+
+* random bugs
+1. global variable should still be global, otherwise it may cause bug

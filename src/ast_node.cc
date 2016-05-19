@@ -158,6 +158,21 @@ size_t AST::leaf_size() {
   return ret;
 }
 
+/**
+ * Based on node, get previous LEAF node, in the same procedure.
+ * Return NULL if the node is the first node.
+ * Assertion failure if node is not in this AST
+ */
+ASTNode *AST::GetPreviousLeafNode(ASTNode *node) {
+  assert(Contains(node));
+  int idx = GetIndexByNode(node);
+  for (int i=idx-1;i>=0;i--) {
+    if (m_nodes[i]->GetChildren().empty()) {
+      return m_nodes[i];
+    }
+  }
+  return NULL;
+}
 
 
 ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
@@ -449,6 +464,7 @@ std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
 
 /**
  * constructing AST from the root node.
+ * FIXME This should be the only one constructor used?
  */
 ast::AST::AST(ast::XMLNode node) {
   // create root, and the root will create everything else
@@ -461,6 +477,10 @@ ast::AST::AST(ast::XMLNode node) {
    */
   for (size_t i=0, end=m_nodes.size();i<end;i++) {
     m_idx_m[m_nodes[i]] = i;
+  }
+  // create xmlnode mapping
+  for (ASTNode *n : m_nodes) {
+    m_xmlnode_m[n->GetXMLNode()] = n;
   }
 }
 

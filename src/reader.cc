@@ -31,6 +31,8 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+
+#include "seg.h"
 namespace fs = boost::filesystem;
 
 
@@ -198,6 +200,30 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
   }
   std::cerr << "\n";
 }
+/**
+ * Process the segment
+ */
+void ProcessSeg(Seg *seg) {
+  while(true) {
+    // seg->NextContext();
+
+
+    // build
+    Builder builder;
+    // builder.SetMain(seg->GetMain());
+    // builder.SetSupport(seg->GetSupport());
+    // builder.SetMakefile(seg->GetMakefile());
+    // for (auto script : seg->GetScripts()) {
+    //   builder.AddScript(script);
+    // }
+    builder.Write();
+    if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+      std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+    }
+    builder.Compile();
+  }
+}
+
 
 /**
  * Constructor of Reader should read the filename, and select segments.
@@ -209,7 +235,10 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   if (method == "loop") {
     getLoopSegments();
   } else if (method == "annotation") {
-    getAnnotationSegments();
+    // getAnnotationSegments();
+    Seg *seg = getAnnotSeg();
+    ProcessSeg(seg);
+    delete seg;
   } else if (method == "divide") {
     getDivideSegments();
   } else if (method == "function") {
@@ -222,6 +251,8 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
     std::cerr<<"segment selection method is not recognized: " <<method<<"\n";
     assert(false);
   }
+  // calling the read
+  // this is for the old segment system, not for the new one.
   Read();
 }
 
@@ -269,6 +300,9 @@ Reader::Read() {
       utils::print(seg.GetSegmentText(), utils::CK_Blue);
     }
     for(;seg.IsValid();) {
+      if (PrintOption::Instance()->Has(POK_Context)) {
+        utils::print(seg.GetContextText(), utils::CK_Purple);
+      }
 
       /*******************************
        ** Processing segment
@@ -418,6 +452,22 @@ void Reader::getAnnotationSegments() {
       seg.PushBack(n);
     }
   }
+}
+
+/**
+ * For now, only the first statment marked by @HeliumStmt
+ */
+Seg* Reader::getAnnotSeg() {
+  NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
+  if (comment_nodes.size() != 1) {
+    std::cerr << "Error: Currently only support one single statement.\n";
+    exit(1);
+  }
+  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
+  assert(node);
+  // FIXME seg should be free-d outside
+  Seg *seg = new Seg(node);
+  return seg;
 }
 
 /**

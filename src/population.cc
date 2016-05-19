@@ -193,17 +193,17 @@ void Individual::ResolveSnippet() {
     std::set<std::string> ids = n->GetIdToResolve();
     all_ids.insert(ids.begin(), ids.end());
   }
-  m_snippet_ids = snippetdb::look_up_snippet(all_ids);
+  m_snippet_ids = SnippetDB::Instance()->LookUp(all_ids);
   // not sure if it should be here ..
-  m_all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
-  m_all_snippet_ids = snippetdb::remove_dup(m_all_snippet_ids);
+  m_all_snippet_ids = SnippetDB::Instance()->GetAllDep(m_snippet_ids);
+  m_all_snippet_ids = SnippetDB::Instance()->RemoveDup(m_all_snippet_ids);
 }
 
 
 std::string Individual::GetSupport() {
   print_trace("Individual::GetSupport()");
   // m_all_snippet_ids = snippetdb::get_all_dependence(m_snippet_ids);
-  std::vector<int> sorted_snippet_ids = snippetdb::sort_snippets(m_all_snippet_ids);
+  std::vector<int> sorted_snippet_ids = SnippetDB::Instance()->SortSnippets(m_all_snippet_ids);
   std::string code = "";
   // head
   code += get_head();
@@ -223,18 +223,18 @@ std::string Individual::GetSupport() {
   }
   // std::cout << sorted_snippet_ids.size()  << "\n";
   for (int id : sorted_snippet_ids) {
-    snippetdb::SnippetMeta meta = snippetdb::get_meta(id);
+    SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
     if (meta.HasKind(SK_Function)) {
       std::string func = meta.GetKey();
       if (avoid_func != func) {
         code_func += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
-        code_func += snippetdb::get_code(id) + '\n';
-        code_func_decl += get_function_decl(snippetdb::get_code(id))+"\n";
+        code_func += SnippetDB::Instance()->GetCode(id) + '\n';
+        code_func_decl += get_function_decl(SnippetDB::Instance()->GetCode(id))+"\n";
       }
     } else {
       // every other support code(structures) first
       code += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
-      code += snippetdb::get_code(id) + '\n';
+      code += SnippetDB::Instance()->GetCode(id) + '\n';
     }
   }
 

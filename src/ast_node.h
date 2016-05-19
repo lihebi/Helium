@@ -256,7 +256,38 @@ namespace ast {
       if (m_idx_m.count(node) == 1) return m_idx_m[node];
       return -1; // not found
     }
+    bool Contains(ASTNode* node) {
+      return m_idx_m.count(node) == 1;
+    }
     ASTNode* GetNodeByLinum(int linum);
+    ASTNode* GetNodeByXMLNode(XMLNode xmlnode) {
+      if (m_xmlnode_m.count(xmlnode) == 1) {
+        return m_xmlnode_m[xmlnode];
+      }
+      return NULL;
+    }
+    ASTNode *GetPreviousLeafNode(ASTNode *node);
+    /**
+     * Get the first nodes AMONG the input nodes
+     */
+    ASTNode *GetFirstNode(std::set<ASTNode*> nodes) {
+      // assert all input nodes are in.
+      assert(!nodes.empty());
+      for (ASTNode *node : nodes) {
+        assert(Contains(node));
+      }
+      // get the minimum index
+      int ret_idx = m_nodes.size();
+      ASTNode *ret = NULL;
+      for (ASTNode* node : nodes) {
+        int idx = GetIndexByNode(node);
+        if (ret_idx > idx) {
+          ret_idx = idx;
+          ret = node;
+        }
+      }
+      return ret;
+    }
   private:
     std::vector<ASTNode*> getPath(ASTNode *node, ASTNode* lca);
     size_t dist(ASTNode* low, ASTNode* high);
@@ -264,6 +295,7 @@ namespace ast {
     ASTNode* m_root = NULL;
     std::vector<ASTNode*> m_nodes;
     std::map<ASTNode*, int> m_idx_m;
+    std::map<XMLNode, ASTNode*> m_xmlnode_m;
     std::vector<SymbolTable*> m_sym_tbls; // just a storage
     // from the decl node to the variable needed to be declared
     std::map<ASTNode*, std::set<std::string> > m_decl_input_m;
@@ -363,6 +395,10 @@ namespace ast {
         ret ++;
       }
       return ret;
+    }
+
+    AST* GetAST() {
+      return m_ast;
     }
 
     ASTNode *PreviousSibling() {

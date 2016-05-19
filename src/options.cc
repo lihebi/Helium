@@ -18,6 +18,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"un", POK_UnresolvedID}
   , {"seg", POK_Segment}
   , {"segno", POK_SegNo}
+  , {"ctx", POK_Context}
   , {"col", POK_CodeOutputLocation}
   , {"ci", POK_CompileInfo}
   , {"cid", POK_CompileInfoDot}
@@ -31,17 +32,18 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
 void PrintOption::Help() {
   std::cout << "available print option (--print 'xx,yy'):\n";
 
-  std::cout << "\tce: compile-error"  << "\n";
-  std::cout << "\tas: add-snippet"  << "\n";
-  std::cout << "\tt: trace"  << "\n";
-  std::cout << "\tun: unresolved ids when resolving snippets"  << "\n";
-  std::cout << "\tseg: print out the segment."  << "\n";
-  std::cout << "\tsegno: print current segment NO."  << "\n";
-  std::cout << "\tcol: code output location"  << "\n";
-  std::cout << "\tci: compile information(success or fail)"  << "\n";
-  std::cout << "\tcid: compile information as dot"  << "\n";
-  std::cout << "\tbr: build rate"  << "\n";
-  std::cout << "\texp-ast: AST build rate special"  << "\n";
+  std::cout << "\t ce: compile-error"  << "\n";
+  std::cout << "\t as: add-snippet"  << "\n";
+  std::cout << "\t t: trace"  << "\n";
+  std::cout << "\t un: unresolved ids when resolving snippets"  << "\n";
+  std::cout << "\t seg: print out the segment."  << "\n";
+  std::cout << "\t segno: print current segment NO."  << "\n";
+  std::cout << "\t ctx: print current context"  << "\n";
+  std::cout << "\t col: code output location"  << "\n";
+  std::cout << "\t ci: compile information(success or fail)"  << "\n";
+  std::cout << "\t cid: compile information as dot"  << "\n";
+  std::cout << "\t br: build rate"  << "\n";
+  std::cout << "\t exp-ast: AST build rate special"  << "\n";
 }
 
 

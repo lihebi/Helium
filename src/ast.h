@@ -127,6 +127,8 @@ namespace ast {
   NodeList function_get_params(Node node);
   Node function_get_block(Node node);
 
+  Node get_function_node(Node node);
+
   NodeList function_get_param_decls(Node node);
 
 
