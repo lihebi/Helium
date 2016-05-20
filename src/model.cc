@@ -62,10 +62,21 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
   } else {
     std::set<std::string> decls = m_ast->GetRequiredDecl(this);
     std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+    // std::cout << "this is a stmt"  << "\n";
+    // std::cout << inputed_decls.size()  << "\n";
+    // m_sym_tbl->dump();
     for (std::string decl : decls) {
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
         ret += "/*HELIUM_DECL*/";
+        ret += val->GetType() + " " + val->GetName() + ";\n";
+      }
+    }
+    // FIXME All the models lack this!
+    for (std::string decl : inputed_decls) {
+      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+      if (val) {
+        ret += "/*HELIUM_DECL_WITH_INPUT*/";
         ret += val->GetType() + " " + val->GetName() + ";\n";
       }
     }
@@ -149,8 +160,11 @@ void Function::GetCode(std::set<ASTNode*> nodes,
     std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
     for (Decl *param: m_params) {
       std::string name = param->GetName();
-      if (decls.count(name) == 1 || inputed_decls.count(name) == 1) {
-        // TODO inputed_decl need input statements
+      if (inputed_decls.count(name) == 1) {
+        // TODO NOW inputed_decl need input statements
+        ret += "/*HELIUM_DECL_WITH_INPUT*/";
+        ret += param->GetType() + " " + param->GetName() + ";\n";
+      } else if (decls.count(name) == 1) {
         ret += "/*HELIUM_DECL*/";
         ret += param->GetType() + " " + param->GetName() + ";\n";
       }
@@ -300,7 +314,7 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
  #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- THEN" << "\n";
   #endif
-   m_parent = parent;
+  m_parent = parent;
   m_xmlnode = xmlnode;
   m_ast = ast;
   if (m_parent == NULL) {
@@ -722,6 +736,13 @@ void For::GetCode(std::set<ASTNode*> nodes,
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
         ret += "/*HELIUM_DECL*/";
+        ret += val->GetType() + " " + val->GetName() + ";\n";
+      }
+    }
+    for (std::string decl : inputed_decls) {
+      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+      if (val) {
+        ret += "/*HELIUM_DECL_WITH_INPUT*/";
         ret += val->GetType() + " " + val->GetName() + ";\n";
       }
     }

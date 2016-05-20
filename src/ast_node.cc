@@ -148,6 +148,17 @@ size_t Gene::leaf_size() {
   return ret;
 }
 
+/********************************
+ * AST
+ *******************************/
+
+AST* ASTFactory::CreateASTFromDoc(ast::XMLDoc *doc) {
+  NodeList func_nodes = find_nodes(*doc, NK_Function);
+  if (func_nodes.empty()) return NULL;
+  Node func_node = func_nodes[0];
+  return new AST(func_node);
+}
+
 size_t AST::leaf_size() {
   int ret =0;
   for (ASTNode *node : m_nodes) {
@@ -164,6 +175,7 @@ size_t AST::leaf_size() {
  * Assertion failure if node is not in this AST
  */
 ASTNode *AST::GetPreviousLeafNode(ASTNode *node) {
+  print_trace("AST::GetPreviousLeafNode()");
   assert(Contains(node));
   int idx = GetIndexByNode(node);
   for (int i=idx-1;i>=0;i--) {
@@ -416,6 +428,16 @@ std::vector<ASTNode*> AST::getPath(ASTNode *node, ASTNode* lca) {
     ret.push_back(node);
   }
   ret.push_back(lca);
+  return ret;
+}
+
+std::set<ASTNode*> AST::CompleteGeneToRoot(std::set<ASTNode*> gene) {
+  ASTNode *lca = m_root;
+  std::set<ASTNode*> ret;
+  for (ASTNode *node :gene) {
+    std::vector<ASTNode*> path = getPath(node, lca);
+    ret.insert(path.begin(), path.end());
+  }
   return ret;
 }
 
@@ -733,3 +755,9 @@ Gene AST::CompleteVarDefUse(Gene gene) {
   return gene;
 }
 
+std::set<ASTNode*> AST::RemoveRoot(std::set<ASTNode*> nodes) {
+  if (nodes.count(m_root) == 1) {
+    nodes.erase(m_root);
+  }
+  return nodes;
+}

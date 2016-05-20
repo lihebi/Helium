@@ -284,6 +284,11 @@ namespace ast {
   Node find_node_containing_str(const Doc &doc, NodeKind k, std::string s);
   NodeList find_nodes_containing_str(const Doc &doc, NodeKind k, std::string s);
 
+  /**
+   * Find the first <call> whose name is func.
+   */
+  Node find_callsite(pugi::xml_document &doc, std::string func);
+
   
   
 

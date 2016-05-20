@@ -21,14 +21,25 @@ public:
   Seg(ast::XMLNode node);
   ~Seg();
   void SetPOI() {}
-  void NextContext();
+  bool NextContext();
   ast::ASTNode* GetFirstNode() {
     assert(!m_nodes.empty());
     return (*m_nodes.begin())->GetAST()->GetFirstNode(m_nodes);
   }
+  std::set<ast::ASTNode*> GetPOI() {
+    return m_nodes;
+  }
 private:
-  ast::AST* getAST(ast::XMLNode function_node);
-  std::map<ast::XMLNode, ast::AST*> m_asts_m; // map from function xml node, to AST created.
+  // ast::AST* getAST(ast::XMLNode function_node);
+  // std::map<ast::XMLNode, ast::AST*> m_asts_m; // map from function xml node, to AST created.
+  ast::XMLDoc* createCallerDoc(ast::AST *ast);
+
+  /**
+   * Local storage. Free after use.
+   */
+  std::map<std::string, ast::AST*> m_func_to_ast_m; // map from function name to AST
+  std::vector<ast::AST*> m_asts;
+  std::vector<ast::XMLDoc*> m_docs;
   std::vector<Ctx*> m_ctxs;
   std::set<ast::ASTNode*> m_nodes; // POI
 };
@@ -41,24 +52,19 @@ private:
 class Ctx {
 public:
   ~Ctx() {}
-  Ctx(Seg *seg) : m_seg(seg) {
-    // this is the beginning.
-    // use the POI as the first node.
-    SetFirstNode(seg->GetFirstNode());
-  }
+  Ctx(Seg *seg);
   // copy constructor
-  Ctx(const Ctx &rhs) {
-    m_seg = rhs.m_seg;
-    m_nodes = rhs.m_nodes;
-  }
+  Ctx(const Ctx &rhs);
   Seg* GetSeg() {
     return m_seg;
   }
   ast::ASTNode *GetFirstNode() {
     return m_first;
   }
-  void SetFirstNode(ast::ASTNode* node) {
-    m_first = node;
+  void SetFirstNode(ast::ASTNode* node);
+  void AddNode(ast::ASTNode* node);
+  std::set<ast::ASTNode*> GetNodes() {
+    return m_nodes;
   }
 
   /**
@@ -70,9 +76,51 @@ public:
    * 2. the first node will not be affected by the result, because it decides where to search from for next context
    */
   void Test();
+  void dump();
+
+
+  /**
+   * The resolving, code output related methods
+   * 1. resolve input
+   * 2. resolve snippet
+   * For each of the AST!
+   */
+  void Resolve();
+  
 private:
+  /**
+   * The input shoudl be associated with AST the first node belongs.
+   * All other ASTs should not contain any input code?
+   * Need to instrument the POI
+   * No need to instrument input, because that's our generated inputs.
+   */
+  /**
+   * Tasks:
+   * 1. find the def, recursively, and include
+   * 2. find the input variables, their type
+   */
+  std::set<ast::ASTNode*> resolveDecl(ast::AST *ast, bool to_root);
+  /**
+   * No magic, the old one suffices.
+   */
+  void resolveSnippet(ast::AST *ast);
+  /**
+   * Code getting
+   */
+  std::string getMain();
+  std::string getSupport();
+  std::string getMakefile();
   Seg *m_seg = NULL;
+  /**
+   * Storage
+   */
   std::set<ast::ASTNode*> m_nodes; // the selection of this context
+  std::map<ast::AST*, std::set<ast::ASTNode*> > m_ast_to_node_m;
   ast::ASTNode *m_first;
+  // decoration of declaration and input on AST
+  typedef std::map<ast::ASTNode*, std::set<std::string> > decl_deco;
+  // local storage for the decoration of each AST
+  std::map<ast::AST*, std::pair<decl_deco, decl_deco> > m_ast_to_deco_m;
+  std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
 };
 #endif /* SEG_H */

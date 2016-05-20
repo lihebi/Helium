@@ -558,5 +558,5 @@ std::string get_var_code(const CtagsEntry& entry) {
     ret = ast::get_code_enclosing_line(filename, line_number, "union");
     if (!ret.empty()) return ret;
   }
-  return "";
+  return ret;
 }

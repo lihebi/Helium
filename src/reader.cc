@@ -204,23 +204,21 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
  * Process the segment
  */
 void ProcessSeg(Seg *seg) {
-  while(true) {
-    // seg->NextContext();
-
-
+  print_trace("ProcessSeg()");
+  while(seg->NextContext()) {
     // build
-    Builder builder;
+    // Builder builder;
     // builder.SetMain(seg->GetMain());
     // builder.SetSupport(seg->GetSupport());
     // builder.SetMakefile(seg->GetMakefile());
     // for (auto script : seg->GetScripts()) {
     //   builder.AddScript(script);
     // }
-    builder.Write();
-    if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
-      std::cout <<"code outputed to " << builder.GetDir()  << "\n";
-    }
-    builder.Compile();
+    // builder.Write();
+    // if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+    //   std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+    // }
+    // builder.Compile();
   }
 }
 
@@ -229,7 +227,7 @@ void ProcessSeg(Seg *seg) {
  * Constructor of Reader should read the filename, and select segments.
  */
 Reader::Reader(const std::string &filename) : m_filename(filename) {
-  print_trace("Reader");
+  print_trace("Reader: " + filename);
   utils::file2xml(filename, m_doc);
   std::string method = Config::Instance()->GetString("code-selection");
   if (method == "loop") {
@@ -237,8 +235,10 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   } else if (method == "annotation") {
     // getAnnotationSegments();
     Seg *seg = getAnnotSeg();
-    ProcessSeg(seg);
-    delete seg;
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
   } else if (method == "divide") {
     getDivideSegments();
   } else if (method == "function") {
@@ -458,10 +458,12 @@ void Reader::getAnnotationSegments() {
  * For now, only the first statment marked by @HeliumStmt
  */
 Seg* Reader::getAnnotSeg() {
+  print_trace("Reader::getAnnotSeg");
   NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
-    std::cerr << "Error: Currently only support one single statement.\n";
-    exit(1);
+    std::cerr << "Error: Currently only support ONE single statement.\n";
+    std::cerr << "Found: " << comment_nodes.size() << "\n";
+    return NULL;
   }
   ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
   assert(node);

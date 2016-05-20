@@ -138,6 +138,16 @@ namespace ast {
     std::map<std::string, SymbolTableValue*> m_map;
   };
 
+  class ASTFactory {
+  public:
+    /**
+     * Create AST from a XML document.
+     * Use the first function node available.
+     * Return NULL if no <function> node found.
+     */
+    static AST* CreateASTFromDoc(ast::XMLDoc *doc);
+  };
+
   /**
    * This class represent the AST associated with an XML node.
    * The instance of this class will hold the memory for all the actually nodes(ASTNode*)
@@ -178,6 +188,12 @@ namespace ast {
       m_decl_input_m = decl_input_m;
       m_decl_m = decl_m;
     }
+    void SetDecoDecl(std::map<ASTNode*, std::set<std::string> > decl_m) {
+      m_decl_m = decl_m;
+    }
+    void SetDecoDeclInput(std::map<ASTNode*, std::set<std::string> > decl_input_m) {
+      m_decl_input_m = decl_input_m;
+    }
     void ClearDecl() {
       m_decl_input_m.clear();
       m_decl_m.clear();
@@ -214,12 +230,22 @@ namespace ast {
       ret += getPath(n, lca).size();
       return ret;
     }
+
+    /********************************
+     * Node set operation
+     *******************************/
     std::set<ASTNode*> CompleteGene(std::set<ASTNode*>);
     /**
      * Will complete gene, and modify in place.
      * Return the set of nodes newly add by this completion
      */
     std::set<ASTNode*> CompleteGene(Gene *gene);
+    std::set<ASTNode*> CompleteGeneToRoot(std::set<ASTNode*> gene);
+
+    /**
+     * Remove the root node.
+     */
+    std::set<ASTNode*> RemoveRoot(std::set<ASTNode*> nodes);
     
     /**
      * Helper function for set<ASTNode*> <-> set<int>
@@ -260,9 +286,25 @@ namespace ast {
       return m_idx_m.count(node) == 1;
     }
     ASTNode* GetNodeByLinum(int linum);
+    /**
+     * Get ast node by the raw xml node
+     */
     ASTNode* GetNodeByXMLNode(XMLNode xmlnode) {
       if (m_xmlnode_m.count(xmlnode) == 1) {
         return m_xmlnode_m[xmlnode];
+      }
+      return NULL;
+    }
+    /**
+     * The input xmlnode can be any sub node under a ASTNode.
+     * It will recursively search the parent of the xmlnode.
+     * Until no further parent avaiable.
+     */
+    ASTNode* GetEnclosingNodeByXMLNode(XMLNode xmlnode) {
+      while (xmlnode) {
+        ASTNode *ret = GetNodeByXMLNode(xmlnode);
+        if (ret) return ret;
+        xmlnode = xmlnode.parent();
       }
       return NULL;
     }
@@ -620,6 +662,9 @@ namespace ast {
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
+    virtual std::set<std::string> GetVarIds() override {
+      return get_var_ids(m_cond);
+    }
   private:
     XMLNode m_cond;
     std::vector<Case*> m_cases;

@@ -385,11 +385,48 @@ void SnippetDB::PrintCG() {
  * PART 2: Use DB
  *******************************/
 
+/********************************
+ * CallGraph
+ *******************************/
 void SnippetDB::Load(std::string folder) {
   m_db_folder = folder;
   std::string db_file = folder + "/index.db";
   sqlite3_open(db_file.c_str(), &m_db);
+
+  loadCG();
 }
+
+void SnippetDB::loadCG() {
+  const char *query = "select from_snippet_id, to_snippet_id from callgraph;";
+  std::vector<std::pair<int, int> > res = queryIntInt(query);
+  for (auto m : res) {
+    int from_id = m.first;
+    int to_id = m.second;
+    std::string from_name = GetMeta(from_id).GetKey();
+    std::string to_name = GetMeta(to_id).GetKey();
+    m_cg[from_name].insert(to_name);
+    m_reverse_cg[to_name].insert(from_name);
+  }
+}
+
+/**
+ * return all the callers on the call graph
+ */
+std::set<std::string> SnippetDB::QueryCallers(std::string func_name) {
+  std::set<std::string> ret;
+  if (m_reverse_cg.count(func_name) == 0) return ret;
+  ret = m_reverse_cg[func_name];
+  return ret;
+}
+/**
+ * Return one caller (the first one in the set)
+ */
+std::string SnippetDB::QueryCaller(std::string func_name) {
+  std::set<std::string> callers = QueryCallers(func_name);
+  if (callers.empty()) return "";
+  else return *callers.begin();
+}
+
 
 /**
  * Look up the key in the database.

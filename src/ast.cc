@@ -635,6 +635,7 @@ Node ast::get_function_node(Node node) {
     if (kind(node) == NK_Function) {
       return node;
     }
+    node = node.parent();
   }
   return Node();
 }

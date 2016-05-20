@@ -60,6 +60,9 @@ public:
 
   void InsertHeaderDep(std::string from, std::string to);
   std::vector<std::pair<std::string, std::string> > GetHeaderDep();
+
+  std::set<std::string> QueryCallers(std::string func_name);
+  std::string QueryCaller(std::string func_name);
 private:
   std::vector<int> queryInt(const char *query);
   std::vector<std::string> queryStr(const char *query);
@@ -83,6 +86,8 @@ private:
   void createCG();
   std::map<std::string, std::set<std::string> > constructCG(std::map<std::string, int> &all_functions);
 
+  void loadCG();
+
   /**
    * The following 2 fields should be initiliazed by Load or Create, otherwise the code is invalid
    */
@@ -95,6 +100,8 @@ private:
   std::map<int, std::string> m_snippet_code_cache;
   SnippetDB() {}
   static SnippetDB *m_instance;
+  std::map<std::string, std::set<std::string> > m_cg;
+  std::map<std::string, std::set<std::string> > m_reverse_cg;
 };
 
 // void create_callgraph();
