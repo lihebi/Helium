@@ -210,4 +210,16 @@ VariableList var_from_node(ast::Node node);
 std::string get_input_code(Variable v);
 // std::string get_random_input(Variable v);
 
+
+/**
+ * Helper functions
+ */
+
+std::string get_decl_code(const std::string& type_name, const std::string& var_name, int pointer_level);
+std::string qualify_var_name(const std::string& varname);
+std::string get_allocate_code(const std::string& type_name, const std::string& var_name, int pointer_level);
+
+
+
+
 #endif

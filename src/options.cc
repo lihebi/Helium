@@ -19,6 +19,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"seg", POK_Segment}
   , {"segno", POK_SegNo}
   , {"ctx", POK_Context}
+  , {"main", POK_Main}
   , {"col", POK_CodeOutputLocation}
   , {"ci", POK_CompileInfo}
   , {"cid", POK_CompileInfoDot}
@@ -39,6 +40,7 @@ void PrintOption::Help() {
   std::cout << "\t seg: print out the segment."  << "\n";
   std::cout << "\t segno: print current segment NO."  << "\n";
   std::cout << "\t ctx: print current context"  << "\n";
+  std::cout << "\t main: print the main.c file (not only the main function)"  << "\n";
   std::cout << "\t col: code output location"  << "\n";
   std::cout << "\t ci: compile information(success or fail)"  << "\n";
   std::cout << "\t cid: compile information as dot"  << "\n";

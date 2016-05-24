@@ -518,6 +518,21 @@ int aa[5][4];
   Node decl = nodes[0].child("decl");
   std::vector<std::string> dims = ast::decl_get_dimension(decl);
   ASSERT_EQ(dims.size(), 2);
+  // output
+  for (std::string dim : dims) {
+    std::cout << dim  << "\n";
+  }
+  // another test
+  raw = R"prefix(
+int aa[];
+)prefix";
+  utils::string2xml(raw, doc);
+  nodes = find_nodes(doc, NK_DeclStmt);
+  ASSERT_EQ(nodes.size(), 1);
+  decl = nodes[0].child("decl");
+  dims = ast::decl_get_dimension(decl);
+  // this will still be a dim, but has empty string
+  ASSERT_EQ(dims.size(), 1);
 }
 
   

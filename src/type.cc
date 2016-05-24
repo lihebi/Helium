@@ -277,7 +277,7 @@ get_decl_code(const std::string& type_name, const std::string& var_name, int poi
   return type_name + std::string(pointer_level, '*')+ " " + var_name+";\n";
 }
 
-static std::string
+std::string
 qualify_var_name(const std::string& varname) {
   std::string tmp = varname;
   tmp.erase(std::remove(tmp.begin(), tmp.end(), '.'), tmp.end());

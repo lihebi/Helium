@@ -13,9 +13,16 @@ using namespace ast;
 Decl::Decl(XMLNode xmlnode) {
   m_xmlnode = xmlnode;
   // m_type
-  m_type = decl_get_type(xmlnode);
-  // m_name
+  std::string type = decl_get_type(xmlnode);
+  std::vector<std::string> dims = decl_get_dimension(xmlnode);
+  m_type = NewTypeFactory::CreateType(type, dims);
   m_name = decl_get_name(xmlnode);
+}
+
+Decl::~Decl() {
+  if (m_type) {
+    delete m_type;
+  }
 }
 
 /*******************************
@@ -44,14 +51,24 @@ Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
    * push the symbol table
    */
   if (kind(xmlnode) == NK_DeclStmt) {
-    XMLNodeList decls = ast::decl_stmt_get_decls(xmlnode);
-    for (XMLNode decl : decls) {
-      std::string declname = decl_get_name(decl);
-      std::string type = decl_get_type(decl);
-      m_sym_tbl->AddSymbol(declname, type, this);
+    XMLNodeList decl_nodes = ast::decl_stmt_get_decls(xmlnode);
+    for (XMLNode decl_node : decl_nodes) {
+      Decl *decl = new Decl(decl_node);
+      m_decls.push_back(decl);
+      m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      // std::string declname = decl_get_name(decl);
+      // std::string type = decl_get_type(decl);
+      // m_sym_tbl->AddSymbol(declname, type, this);
     }
   }
 }
+
+Stmt::~Stmt() {
+  for (Decl *decl : m_decls) {
+    delete decl;
+  }
+}
+
 void Stmt::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
@@ -68,16 +85,19 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
     for (std::string decl : decls) {
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
-        ret += "/*HELIUM_DECL*/";
-        ret += val->GetType() + " " + val->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL*/";
+        // ret += val->GetType() + " " + val->GetName() + ";\n";
+        val->GetType()->GetDeclCode(val->GetName());
       }
     }
     // FIXME All the models lack this!
     for (std::string decl : inputed_decls) {
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
-        ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        ret += val->GetType() + " " + val->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
+        // ret += val->GetType() + " " + val->GetName() + ";\n";
+        ret += val->GetType()->GetDeclCode(val->GetName());
+        ret += val->GetType()->GetInputCode(val->GetName());
       }
     }
   }
@@ -144,7 +164,7 @@ void Function::GetCode(std::set<ASTNode*> nodes,
     ret += m_ret_ty + " " + m_name + "(";
     if (!m_params.empty()) {
       for (Decl *param : m_params) {
-        ret += param->GetType();
+        ret += param->GetType()->Raw();
         ret += " ";
         ret += param->GetName();
         ret += ",";
@@ -162,11 +182,14 @@ void Function::GetCode(std::set<ASTNode*> nodes,
       std::string name = param->GetName();
       if (inputed_decls.count(name) == 1) {
         // TODO NOW inputed_decl need input statements
-        ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        ret += param->GetType() + " " + param->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
+        // ret += param->GetType() + " " + param->GetName() + ";\n";
+        ret += param->GetType()->GetDeclCode(param->GetName());
+        ret += param->GetType()->GetInputCode(param->GetName());
       } else if (decls.count(name) == 1) {
-        ret += "/*HELIUM_DECL*/";
-        ret += param->GetType() + " " + param->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL*/";
+        // ret += param->GetType() + " " + param->GetName() + ";\n";
+        ret += param->GetType()->GetDeclCode(param->GetName());
       }
     }
   }
@@ -187,7 +210,7 @@ std::string Function::GetLabel() {
   ret += m_name + "(";
   if (!m_params.empty()) {
     for (Decl *param : m_params) {
-      ret += param->GetType();
+      ret += param->GetType()->Raw();
       ret += " ";
       ret += param->GetName();
       ret += ",";
@@ -204,7 +227,7 @@ std::set<std::string> Function::GetIdToResolve() {
   tmp = extract_id_to_resolve(GetReturnType());
   ret.insert(tmp.begin(), tmp.end());
   for (Decl *param : m_params) {
-    tmp = extract_id_to_resolve(param->GetType());
+    tmp = extract_id_to_resolve(param->GetType()->Raw());
     ret.insert(tmp.begin(), tmp.end());
   }
   return ret;
@@ -706,10 +729,19 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
    */
   for (XMLNode init : m_inits) {
     if (kind(init) == NK_Decl) {
-      std::string name = decl_get_name(init);
-      std::string type = decl_get_type(init);
-      m_sym_tbl->AddSymbol(name, type, this);
+      Decl *decl = new Decl(init);
+      m_decls.push_back(decl);
+      m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      // std::string name = decl_get_name(init);
+      // std::string type = decl_get_type(init);
+      // m_sym_tbl->AddSymbol(name, type, this);
     }
+  }
+}
+
+For::~For() {
+  for (Decl *decl : m_decls) {
+    delete decl;
   }
 }
 
@@ -735,15 +767,18 @@ void For::GetCode(std::set<ASTNode*> nodes,
     for (std::string decl : decls) {
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
-        ret += "/*HELIUM_DECL*/";
-        ret += val->GetType() + " " + val->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL*/";
+        // ret += val->GetType() + " " + val->GetName() + ";\n";
+        ret += val->GetType()->GetDeclCode(val->GetName());
       }
     }
     for (std::string decl : inputed_decls) {
       SymbolTableValue *val = m_sym_tbl->LookUp(decl);
       if (val) {
-        ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        ret += val->GetType() + " " + val->GetName() + ";\n";
+        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
+        // ret += val->GetType() + " " + val->GetName() + ";\n";
+        ret += val->GetType()->GetDeclCode(val->GetName());
+        ret += val->GetType()->GetInputCode(val->GetName());
       }
     }
   }

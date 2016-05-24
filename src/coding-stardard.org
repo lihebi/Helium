@@ -1,0 +1,3 @@
+#+TITLE: Coding Standard for Helium Project
+
+1. For all the classes, a =ToString()= method is for debugging purpose only, aimed at human readability.

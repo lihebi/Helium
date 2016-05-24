@@ -11,6 +11,7 @@ typedef enum {
   , POK_AddSnippetDot // only print dot when adding snippet
   , POK_Segment // print current segment code
   , POK_Context // print current context
+  , POK_Main // the main.c file (not only the main function)
   , POK_Trace // print traces
   , POK_UnresolvedID // print unresolved id
   , POK_SegNo // current segment number

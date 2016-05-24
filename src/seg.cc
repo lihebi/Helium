@@ -69,7 +69,7 @@ bool Seg::NextContext() {
     ctx->AddNode(leaf);
   } else {
     // std::cerr << "Inter procedure"  << "\n";
-    utils::print("Inter procedure\n", utils::CK_Red);
+    utils::print("Inter procedure\n", utils::CK_Cyan);
     AST *ast = first_node->GetAST();
     if (ast->GetFunctionName() == "main") {
       utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
@@ -230,37 +230,35 @@ void Ctx::Resolve() {
   for (auto m : m_ast_to_node_m) {
     AST *ast = m.first;
     std::set<ASTNode*> nodes = m.second;
-    if (ast != first_ast) {
-      // this is inner function.
-      // this one should not have input variables.
-      // all the inputs should be resolved such that the input is self-sufficient
-      // Complete to root to include the function prototype
-      // FIXME can I modify the map here?
-      // TODO complete def use
-      std::set<ASTNode*> complete;
-      complete = resolveDecl(ast, true);
-      m_ast_to_node_m[ast] = complete;
-    } else {
-      // this is the first AST
-      // this one needs input variables
-      std::set<ASTNode*> complete;
-      complete = resolveDecl(ast, false);
-      // Remove root for the outmost AST!
-      complete = ast->RemoveRoot(complete);
-      m_ast_to_node_m[ast] = complete;
-    }
+    std::set<ASTNode*> complete;
+    // if (ast != first_ast) {
+    //   // this is inner function.
+    //   // this one should not have input variables.
+    //   // all the inputs should be resolved such that the input is self-sufficient
+    //   // Complete to root to include the function prototype
+    //   // FIXME can I modify the map here?
+    //   // TODO complete def use
+    //   complete = resolveDecl(ast, false);
+    // } else {
+    //   // this is the first AST
+    //   // this one needs input variables
+    //   complete = resolveDecl(ast, true);
+    // }
+    complete = resolveDecl(ast, ast == first_ast);
+    m_ast_to_node_m[ast] = complete;
     resolveSnippet(ast);
   }
 }
 
 
-std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool to_root) {
+std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
   print_trace("Ctx::resolveDecl");
   std::set<ASTNode*> ret = m_ast_to_node_m[ast];
-  if (to_root) {
-    ret = ast->CompleteGeneToRoot(ret);
-  } else {
+  // FIXME do I need to complete again after I recursively add the dependencies
+  if (first_ast_p) {
     ret = ast->CompleteGene(ret);
+  } else {
+    ret = ast->CompleteGeneToRoot(ret);
   }
   // ast->VisualizeN(ret, {});
   std::set<ASTNode*> worklist = ret; // m_ast_to_node_m[ast];
@@ -304,6 +302,25 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool to_root) {
       }
     }
   }
+  if (first_ast_p) {
+    // FIXME Remove root for the outmost AST!
+    ret = ast->RemoveRoot(ret);
+  }
+  // ret is the new complete, so just check the decorations not in ret
+  for (auto it=decl_m.begin(), end=decl_m.end();it!=end;) {
+    if (ret.count(it->first) == 1) {
+      it = decl_m.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  for (auto it=decl_input_m.begin(), end=decl_input_m.end();it!=end;) {
+    if (ret.count(it->first) == 1) {
+      it = decl_input_m.erase(it);
+    } else {
+      ++it;
+    }
+  }
   // std::cout << decl_input_m.size()  << "\n";
   // std::cout << decl_m.size()  << "\n";
   // remove from the maps those that already in gene
@@ -335,7 +352,7 @@ void Ctx::resolveSnippet(AST *ast) {
     std::set<std::string> names = item.second;
     for (std::string name : names) {
       SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
-      std::string type = value->GetType();
+      std::string type = value->GetType()->Raw();
       std::set<std::string> ids = extract_id_to_resolve(type);
       all_ids.insert(ids.begin(), ids.end());
     }
@@ -373,12 +390,27 @@ std::string Ctx::getMain() {
     std::set<ASTNode*> nodes = m.second;
     if (ast == first_ast) {
       main_func += "int main() {\n";
+      main_func += "int helium_size;\n"; // array size of heap
       // TODO need to call that function
-      ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
+      // ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
       ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
-      // std::cout << "deco size: "  << "\n";
-      // std::cout << m_ast_to_deco_m[ast].second.size()  << "\n";
       ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
+
+      // print out the deco, to see if the same variable appear in both "first" and "second"
+      // decl_deco deco = m_ast_to_deco_m[ast].first;
+      // std::cout << "first"  << "\n";
+      // for (auto m : deco) {
+      //   for (std::string s : m.second) {
+      //     std::cout << s  << "\n";
+      //   }
+      // }
+      // deco = m_ast_to_deco_m[ast].second;
+      // std::cout << "second"  << "\n";
+      // for (auto m : deco) {
+      //   for (std::string s : m.second) {
+      //     std::cout << s  << "\n";
+      //   }
+      // }
       std::string code = ast->GetCode(nodes);
       ast->ClearDecl();
       main_func += code;
@@ -386,9 +418,17 @@ std::string Ctx::getMain() {
       main_func += "};";
     } else {
       // other functions
-      ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
-      ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
-      ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
+      // ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
+      decl_deco merge;
+      decl_deco first = m_ast_to_deco_m[ast].first;
+      decl_deco second = m_ast_to_deco_m[ast].second;
+      merge.insert(first.begin(), first.end());
+      merge.insert(second.begin(), second.end());
+      // ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
+      // ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
+      // For other function, only set the necessary decl.
+      // Do not get input
+      ast->SetDecoDecl(merge);
       std::string code = ast->GetCode(nodes);
       ast->ClearDecl();
       other_func += code;
@@ -464,6 +504,9 @@ void Ctx::Test() {
   if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
     std::cout << "Code output to "  << builder.GetDir() << "\n";
   }
+  if (PrintOption::Instance()->Has(POK_Main)) {
+    std::cout << getMain()  << "\n";
+  }
   builder.Compile();
   if (builder.Success()) {
     g_compile_success_no++;
@@ -474,6 +517,9 @@ void Ctx::Test() {
       utils::print(".", utils::CK_Green);
       std::cout << std::flush;
     }
+
+    decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
+    
   } else {
     g_compile_error_no++;
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {

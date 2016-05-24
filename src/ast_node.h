@@ -4,6 +4,9 @@
 #include "common.h"
 #include "ast.h"
 
+#include "type.h"
+#include "new_type.h"
+
 namespace ast {
   typedef enum {
     // function
@@ -84,17 +87,23 @@ namespace ast {
     AST *m_ast=NULL;
   };
 
+  /**
+   * TODO NOW Use Variable class for this value
+   */
   class SymbolTableValue {
   public:
-    SymbolTableValue(std::string symbol_name, std::string type, ASTNode *node)
+    SymbolTableValue(std::string symbol_name, NewType *type, ASTNode *node)
       :m_name(symbol_name), m_type(type), m_node(node) {}
     ~SymbolTableValue() {}
     std::string GetName() {return m_name;}
-    std::string GetType() {return m_type;}
+    NewType* GetType() {return m_type;}
     ASTNode *GetNode() {return m_node;}
   private:
     std::string m_name;
-    std::string m_type;
+    // this type is not created here. // it is actually created inside the AST Node models
+    // e.g. The type created in class "Decl". It will also be free-d there.
+    // so make sure that ASTNode class still alive when using this type pointer
+    NewType *m_type;
     ASTNode *m_node = NULL;
   };
 
@@ -104,6 +113,11 @@ namespace ast {
      * SymbolTable can only be created with the parent, i.e. the last level table.
      */
     SymbolTable(SymbolTable *parent) : m_parent(parent) {}
+    ~SymbolTable() {
+      for (auto m : m_map) {
+        delete m.second;
+      }
+    }
     SymbolTable *GetParent() {return m_parent;}
     /**
      * Look up recursively to parent, until empty
@@ -125,10 +139,11 @@ namespace ast {
     /**
      * key is name of the variable(symbol)
      */
-    void AddSymbol(std::string key, std::string type, ASTNode* node) {
+    void AddSymbol(std::string key, NewType *type, ASTNode* node) {
       if (m_map.count(key) == 1) {
         delete m_map[key];
       }
+      // FIXME where to free these?
       m_map[key] = new SymbolTableValue(key, type, node);
     }
     void dump();
@@ -493,25 +508,48 @@ namespace ast {
     // int m_end_linum = 0;
   };
 
+
+
+  /*******************************
+   * Models
+   *******************************/
+
+  /**
+   * some writeup
+
+   Models that will add symbol table:
+   1. Function
+   2. Stmt
+   3. For
+   */
+
+  
   /**
    * <decl></decl>
    */
   class Decl {
   public:
     Decl(XMLNode n);
-    std::string GetType() {return m_type;}
-    std::string GetName() {return m_name;}
+    ~Decl();
+    NewType *GetType() const {return m_type;}
+    std::string GetName() const {return m_name;}
+    // std::vector<std::string> GetDims() const {return m_dims;}
+    // int GetDim() const {return m_dims.size();}
   private:
     XMLNode m_xmlnode;
-    std::string m_type;
+    // std::string m_type;
+    // TODO NOW use type in Decl, and others
+    NewType *m_type = NULL;
     std::string m_name;
     // TODO m_dimension
+    // this is dimensions
+    // if the code is char buf[5][4], the result is a vector of string "5" "4"
+    // if the dimension is [], it will have an empty string, but the size of m_dims is still valid
+    // Actually I only intend to use the size here.
+    // A design decision:
+    // whether to use a fixed length of buffer (of the stack), or use a variable length of buffer (on the heap)
+    // std::vector<std::string> m_dims;
   };
-
-
-  /*******************************
-   * Models
-   *******************************/
 
   // function
   class Function : public ASTNode {
@@ -554,7 +592,7 @@ namespace ast {
   class Stmt : public ASTNode {
   public:
     Stmt(XMLNode, ASTNode* parent, AST *ast);
-    virtual ~Stmt() {}
+    virtual ~Stmt();
     ASTNodeKind Kind() override {return ANK_Stmt;}
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
@@ -575,6 +613,7 @@ namespace ast {
     }
     virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
+    std::vector<Decl*> m_decls;
   };
 
   // condition
@@ -696,7 +735,7 @@ namespace ast {
   public:
     ASTNodeKind Kind() override {return ANK_For;}
     For(XMLNode, ASTNode* parent, AST *ast);
-    ~For() {}
+    ~For();
     XMLNodeList GetInits() {return m_inits;}
     XMLNode GetCondition() {return m_cond;}
     XMLNode GetIncr() {return m_incr;}
@@ -712,6 +751,7 @@ namespace ast {
     XMLNodeList m_inits;
     XMLNode m_incr;
     // Block* m_blk = NULL;
+    std::vector<Decl*> m_decls;
   };
   class While : public ASTNode {
   public:

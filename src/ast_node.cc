@@ -533,6 +533,7 @@ AST::~AST() {
   for (ASTNode *node : m_nodes) {
     delete node;
   }
+  // free the symbol tables
   for (SymbolTable *tbl : m_sym_tbls) {
     delete tbl;
   }

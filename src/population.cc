@@ -182,7 +182,7 @@ void Individual::ResolveSnippet() {
     std::set<std::string> names = item.second;
     for (std::string name : names) {
       SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
-      std::string type = value->GetType();
+      std::string type = value->GetType()->Raw();
       std::set<std::string> ids = extract_id_to_resolve(type);
       all_ids.insert(ids.begin(), ids.end());
     }
