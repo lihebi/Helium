@@ -199,6 +199,8 @@ void SnippetDB::createDep() {
     std::cout << '.' << std::flush;
     std::string code_file = m_db_folder + "/code/"+std::to_string(id) + ".txt";
     std::string code = utils::read_file(code_file);
+    // FIXME NOW This is very bad!
+    // The code may contains comments!
     std::set<std::string> names = extract_id_to_resolve(code);
     for (std::string name : names) {
       /**

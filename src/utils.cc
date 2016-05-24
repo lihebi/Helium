@@ -600,6 +600,42 @@ int utils::rand_int(int low, int high) {
   return a % (high - low + 1) + low;
 }
 
+/**
+ * Random character, a-Z, A-Z
+ */
+char utils::rand_char() {
+  int a = utils::rand_int(0, 51);
+  if (a < 26) {
+    return 'a'+a;
+  } else {
+    return 'A'+a-26;
+  }
+}
+std::string utils::rand_str(int size) {
+  std::string ret;
+  for (int i=0;i<size;i++) {
+    ret += rand_char();
+  }
+  return ret;
+}
+
+TEST(UtilsTestCase, RandTest) {
+  std::cout << "random int: ";
+  for (int i=0;i<10;i++) {
+    std::cout << utils::rand_int(0, 100) << " ";
+  }
+  std::cout << "\n random char: ";
+  for (int i=0;i<10;i++) {
+    std::cout << utils::rand_char() << " ";
+  }
+  std::cout << "\n random str: ";
+  for (int i=0;i<5;i++) {
+    std::cout << utils::rand_str(utils::rand_int(0, 5)) << " ";
+  }
+  std::cout   << "\n";
+}
+
+
 
 #ifdef __MACH__
 #include <sys/time.h>

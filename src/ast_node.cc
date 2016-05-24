@@ -539,13 +539,33 @@ AST::~AST() {
   }
 }
 
+
+/**
+ * Get LCA, and get node from there.
+ * If the nodes are not completed, the result code is not likely to be able to build.
+ */
 std::string AST::GetCode(std::set<ASTNode*> nodes) {
   if (!m_root) return "";
   if (nodes.empty()) return "";
   std::string ret;
   // add location to AST code output
   ret += "/* " + GetFilename() + ":" + std::to_string(GetLineNumber()) + " */\n";
-  m_root->GetCode(nodes, ret, false);
+  // m_root->GetCode(nodes, ret, false);
+  ASTNode *lca = ComputeLCA(nodes);
+  assert(lca);
+  /**
+   * Here is a trick: if the lca is not included, (or it is a function node)
+   * We need to use its children nodes to get code
+   * Otherwise will get nothing
+   */
+  if (nodes.count(lca) ==1) {
+    lca->GetCode(nodes, ret, false);
+  } else {
+    for (ASTNode * node : lca->Children()) {
+      node->GetCode(nodes, ret, false);
+    }
+  }
+  // VisualizeN(nodes, {});
   return ret;
 }
 

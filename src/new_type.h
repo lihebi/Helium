@@ -91,7 +91,16 @@ public:
   /**
    * Get the input
    */
-  virtual std::string GetInputCode(std::string varname) = 0;
+  virtual std::string GetInputCode(std::string var) = 0;
+  virtual std::string GetOutputCode(std::string var) = 0;
+  virtual std::vector<std::string> GetTestInput(int size) {
+    std::vector<std::string> ret;
+    for (int i=0;i<size;i++) {
+      ret.push_back(GetTestInput());
+    }
+    return ret;
+  }
+  virtual std::string GetTestInput() = 0;
 protected:
   std::string m_raw;
   std::vector<std::string> m_dims;
@@ -106,6 +115,8 @@ public:
   ~SystemNewType() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
   virtual NewTypeKind Kind() const override {
     return NTK_System;
   }
@@ -126,6 +137,8 @@ public:
   ~LocalNewType() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
   virtual NewTypeKind Kind() const override {
     return NTK_Local;
   }
@@ -155,6 +168,8 @@ public:
   ~PrimitiveNewType() {}
   virtual std::string GetInputCode(std::string var) override = 0;
   virtual std::string GetDeclCode(std::string var) override = 0;
+  virtual std::string GetOutputCode(std::string var) override = 0;
+  virtual std::string GetTestInput() override = 0;
   virtual NewTypeKind Kind() const override {
     return NTK_Primitive;
   }
@@ -174,6 +189,8 @@ public:
   virtual ~Char() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
 private:
 };
 
@@ -187,6 +204,8 @@ public:
   virtual ~Int() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
 };
 /**
  * float, double
@@ -197,6 +216,8 @@ public:
   virtual ~Float() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
 };
 class Void : public PrimitiveNewType {
 public:
@@ -204,6 +225,8 @@ public:
   virtual ~Void() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
 };
 class Bool : public PrimitiveNewType {
 public:
@@ -211,6 +234,8 @@ public:
   virtual ~Bool() {}
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual std::string GetTestInput() override;
 };
 
 

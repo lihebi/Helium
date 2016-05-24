@@ -17,14 +17,48 @@ Seg::Seg(ast::XMLNode xmlnode) {
   std::string func_name = function_get_name(function_node);
   // AST *ast = getAST(function_node);
   AST *ast = new AST(function_node);
+
+  // dumping the ast
+  ast->Visualize();
+
   m_func_to_ast_m[func_name] = ast;
   m_asts.push_back(ast);
   // POI
   // FIXME Not sure if I should use GetEnclosingNodeByXMLNode
   ASTNode *astnode = ast->GetNodeByXMLNode(xmlnode);
   m_nodes.insert(astnode);
+
+
+  // POI output statement decoration to AST
+  std::cout << "getting POI output vars"  << "\n";
+  for (ASTNode *poi_node : m_nodes) {
+    std::set<std::string> ids = poi_node->GetVarIds();
+    for (std::string id : ids) {
+      std::cout << id  << "\n";
+      if (id.empty()) continue;
+      if (is_c_keyword(id)) continue;
+      SymbolTable *tbl = poi_node->GetSymbolTable();
+      SymbolTableValue *decl = tbl->LookUp(id);
+      if (decl) {
+        m_deco[poi_node].insert(id);
+      } else {
+        // will need to query global variables
+        // will need to query system types, like optarg
+      }
+    }
+  }
+  // FIXME
+  // assert(!m_deco.empty());
+  std::cout << "deco output:"  << "\n";
+  for (auto m : m_deco) {
+    for (std::string s : m.second) {
+      std::cout << s  << "\n";
+    }
+  }
+  ast->SetDecoOutput(m_deco);
+  
   // Initial context
-  m_ctxs.push_back(new Ctx(this));
+  // m_ctxs.push_back(new Ctx(this));
 }
 Seg::~Seg() {
   for (ast::AST *ast : m_asts) {
@@ -49,8 +83,16 @@ Seg::~Seg() {
  */
 bool Seg::NextContext() {
   print_trace("Seg::NextContext()");
+  Ctx *ctx;
+  if (m_ctxs.empty()) {
+    ctx = new Ctx(this);
+    m_ctxs.push_back(ctx);
+    ctx->Resolve();
+    ctx->Test();
+    return true;
+  }
   Ctx *last = m_ctxs.back();
-  Ctx *ctx = new Ctx(*last);
+  ctx = new Ctx(*last);
   m_ctxs.push_back(ctx);
   ASTNode *first_node = ctx->GetFirstNode();
   assert(first_node);
@@ -69,8 +111,8 @@ bool Seg::NextContext() {
     ctx->AddNode(leaf);
   } else {
     // std::cerr << "Inter procedure"  << "\n";
-    utils::print("Inter procedure\n", utils::CK_Cyan);
     AST *ast = first_node->GetAST();
+    utils::print("Inter procedure: " + ast->GetFunctionName() + "\n", utils::CK_Cyan);
     if (ast->GetFunctionName() == "main") {
       utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
       return false;
@@ -80,6 +122,11 @@ bool Seg::NextContext() {
     // query the callgraph, find call-sites, try one callsite.
     // from that, form the new context
     AST *newast = ASTFactory::CreateASTFromDoc(doc);
+
+
+    // dumping the ast
+    newast->Visualize();
+    
     assert(newast);
     m_asts.push_back(newast);
     m_func_to_ast_m[newast->GetFunctionName()] = newast;
@@ -180,6 +227,13 @@ void Ctx::AddNode(ASTNode* node) {
   m_ast_to_node_m[node->GetAST()].insert(node);
 }
 
+void Ctx::RemoveNode(ASTNode *node) {
+  // remove
+  // FIXME assert exist
+  m_nodes.erase(node);
+  m_ast_to_node_m[node->GetAST()].erase(node);
+}
+
 
 
 /********************************
@@ -246,6 +300,9 @@ void Ctx::Resolve() {
     // }
     complete = resolveDecl(ast, ast == first_ast);
     m_ast_to_node_m[ast] = complete;
+    // std::cout << complete.size()  << "\n";
+    // ast->VisualizeN(complete, {});
+    // getchar();
     resolveSnippet(ast);
   }
 }
@@ -289,11 +346,15 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
       ASTNode *def = node->LookUpDefinition(id);
       if (!decl) continue;
       if (def) {
+        // utils::print("found def: " + id + "\n", utils::CK_Cyan);
         // need this def, but not necessary to be a new node
         // and also possibly need the decl
         ret.insert(def);
         worklist.insert(def);
+        // ast->VisualizeN({def}, {});
+        // getchar();
         std::set<ASTNode*> morenodes = ast->CompleteGene(ret);
+        ret.insert(morenodes.begin(), morenodes.end());
         worklist.insert(morenodes.begin(), morenodes.end());
         decl_m[decl->GetNode()].insert(id);
       } else {
@@ -334,6 +395,26 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
   // m_decl_input_m = decl_input_m;
   // m_decl_m = decl_m;
   m_ast_to_deco_m[ast] = std::make_pair(decl_m, decl_input_m);
+  for (auto m : decl_m) {
+    for (std::string id : m.second) {
+      SymbolTableValue *decl = m.first->GetSymbolTable()->LookUp(id);
+      NewType *t = decl->GetType();
+      assert(t);
+      m_decls[ast][id] = t;
+    }
+  }
+  for (auto m : decl_input_m) {
+    for (std::string id : m.second) {
+      SymbolTableValue *decl = m.first->GetSymbolTable()->LookUp(id);
+      NewType *t = decl->GetType();
+      assert(t);
+      m_decls[ast][id] = t;
+      m_inputs[ast][id] = t;
+    }
+  }
+  // remove duplication of m_decls and m_inputs
+  // the duplication is introduced, by the different DEFINITION in the code.
+  // So, m_inputs should prominate it.
   return ret;
 }
 
@@ -363,6 +444,17 @@ void Ctx::resolveSnippet(AST *ast) {
     std::set<std::string> ids = n->GetIdToResolve();
     all_ids.insert(ids.begin(), ids.end());
   }
+
+  // I need to remove the function here!
+  // otherwise the code snippet will get too much
+  // For example, I have included a function in main.c, but it turns out to be here
+  // even if I filter it out when adding to support.h, I still have all its dependencies in support.h!
+  for (auto m : m_ast_to_node_m) {
+    AST *ast = m.first;
+    std::string func = ast->GetFunctionName();
+    all_ids.erase(func);
+  }
+  
   std::set<int> snippet_ids = SnippetDB::Instance()->LookUp(all_ids);
   // not sure if it should be here ..
   std::set<int> all_snippet_ids = SnippetDB::Instance()->GetAllDep(snippet_ids);
@@ -392,9 +484,19 @@ std::string Ctx::getMain() {
       main_func += "int main() {\n";
       main_func += "int helium_size;\n"; // array size of heap
       // TODO need to call that function
-      // ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
-      ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
-      ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
+      // ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
+      // ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
+
+      for (auto m :m_decls[ast]) {
+        std::string var = m.first;
+        NewType *t = m.second;
+        main_func += t->GetDeclCode(var);
+      }
+      for (auto m : m_inputs[ast]) {
+        std::string var = m.first;
+        NewType *t = m.second;
+        main_func += t->GetInputCode(var);
+      }
 
       // print out the deco, to see if the same variable appear in both "first" and "second"
       // decl_deco deco = m_ast_to_deco_m[ast].first;
@@ -496,6 +598,7 @@ std::string Ctx::getMakefile() {
 
 
 void Ctx::Test() {
+  std::cout << "=============================="  << "\n";
   Builder builder;
   builder.SetMain(getMain());
   builder.SetSupport(getSupport());
@@ -518,7 +621,48 @@ void Ctx::Test() {
       std::cout << std::flush;
     }
 
-    decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
+    // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
+#define TEST_NUMBER 3
+    /**
+     * Testing!
+     */
+    AST *first_ast = m_first->GetAST();
+    InputMetrics metrics = m_inputs[first_ast];
+    std::vector<std::string> test_suites(TEST_NUMBER);
+    for (auto metric : metrics) {
+      std::string var = metric.first;
+      NewType *type = metric.second;
+      std::cout << type->ToString() << "\n";
+      std::vector<std::string> inputs = type->GetTestInput(TEST_NUMBER);
+      for (std::string s : inputs) {
+        std::cout << s  << "\n";
+      }
+      assert(inputs.size() == TEST_NUMBER);
+      for (int i=0;i<TEST_NUMBER;i++) {
+        test_suites[i] += " " + inputs[i];
+      }
+    }
+    std::cout << "tests: "  << "\n";
+    for (std::string s : test_suites) {
+      std::cout << s  << "\n";
+    }
+
+    std::string test_dir = utils::create_tmp_dir();
+    for (int i=0;i<TEST_NUMBER;i++) {
+      std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
+      utils::write_file(test_file, test_suites[i]);
+      std::string cmd = builder.GetExecutable() + "< " + test_file + " 2>/dev/null";
+      std::cout << cmd  << "\n";
+      int status;
+      std::string output = utils::exec(cmd.c_str(), &status, 1);
+      if (status == 0) {
+        utils::print("test success\n", utils::CK_Green);
+      } else {
+        utils::print("test fail\n", utils::CK_Red);
+      }
+      std::cout << "output:"  << "\n";
+      std::cout << output  << "\n";
+    }
     
   } else {
     g_compile_error_no++;
@@ -533,6 +677,9 @@ void Ctx::Test() {
       std::cout <<".. print enter to continue .."  << "\n";
       getchar();
     }
+
+    // remove this first node
+    RemoveNode(m_first);
   }
   // TODO return good or not, to decide whether to keep the newly added statements
 }

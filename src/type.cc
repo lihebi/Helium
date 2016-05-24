@@ -389,12 +389,12 @@ std::string get_input_code(Type type, const std::string& var) {
 //   return low + (high-low)*d;
 // }
 
-char
-rand_char(char low, char high) {
-  int dis = high-low;
-  char c = low + utils::rand_int(0,dis);
-  return c;
-}
+// char
+// rand_char(char low, char high) {
+//   int dis = high-low;
+//   char c = low + utils::rand_int(0,dis);
+//   return c;
+// }
 
 // TEST(type_test_case, rand_char) {
 //   std::cout <<rand_char('A', 'D')  << "\n";
@@ -405,14 +405,14 @@ rand_char(char low, char high) {
 //   return std::to_string(myrand(low, high));
 // }
 
-std::string
-rand_str(int length) {
-  std::string result;
-  for (int i=0;i<length;i++) {
-    result += rand_char('A', 'z');
-  }
-  return result;
-}
+// std::string
+// rand_str(int length) {
+//   std::string result;
+//   for (int i=0;i<length;i++) {
+//     result += rand_char('A', 'z');
+//   }
+//   return result;
+// }
 
 // TEST(type_test_case, rand_str) {
 //   std::cout <<rand_char('A', 'z')  << "\n";
@@ -449,7 +449,8 @@ std::string get_random_input(Type type) {
       }
     } else if (type.m_type_specifier.is_char) {
       if (type.Pointer() == 0 && type.Dimension() == 0) {
-        result += rand_char('A', 'z');
+        // result += rand_char('A', 'z');
+        result += rand_char();
         result += " ";
       } else if (type.Pointer() == 1 || type.Dimension() == 1) {
         int max_strlen = Config::Instance()->GetInt("test-input-str-length-max");

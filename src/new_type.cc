@@ -221,6 +221,17 @@ std::string SystemNewType::GetInputCode(std::string var) {
   return ret;
 }
 
+std::string SystemNewType::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "\n// HELIUM_TODO SystemNewType::GetOutputCode\n";
+  return ret;
+}
+
+std::string SystemNewType::GetTestInput() {
+  std::string ret;
+  return ret;
+}
+
 std::string LocalNewType::GetDeclCode(std::string var) {
   std::string ret;
   ret += m_raw + " " + var + DimensionSuffix() + ";\n";
@@ -232,6 +243,18 @@ std::string LocalNewType::GetInputCode(std::string var) {
   ret += "\n// HELIUM_TODO LocalNewType::GetInputCode\n";
   return ret;
 }
+
+std::string LocalNewType::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "\n// HELIUM_TODO LocalNewType::GetOutputCode\n";
+  return ret;
+}
+
+std::string LocalNewType::GetTestInput() {
+  std::string ret;
+  return ret;
+}
+
 
 /********************************
  * Models
@@ -280,6 +303,32 @@ std::string Int::GetInputCode(std::string var) {
   return ret;
 }
 
+std::string Int::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "// Int::GetOutputCode\n";
+  ret += "printf(\"%d\\n\", " + var + ");\n";
+  return ret;
+}
+
+std::string Int::GetTestInput() {
+  std::string ret;
+  if (m_pointer == 0) {
+    int a = utils::rand_int(0, 100);
+    ret += std::to_string(a);
+  } else if (m_pointer == 1) {
+    int size = utils::rand_int(0, 5);
+    ret += std::to_string(size);
+    for (int i=0;i<size;i++) {
+      int a = utils::rand_int(0,100);
+      ret += " " + std::to_string(a);
+    }
+  } else {
+    assert(false);
+  }
+  return ret;
+}
+
+
 std::string Char::GetDeclCode(std::string var) {
   std::string ret;
   ret += "// Char::GetDeclCode\n";
@@ -314,6 +363,7 @@ std::string Char::GetInputCode(std::string var) {
     ret += var + " = (char*)malloc(sizeof(char)*helium_size);\n";
     ret += "scanf(\"%s\", "+var+");\n}"; // FIXME this should be less than helium_size? Or just let the oracle do the trick
   } else if (m_pointer == 2) {
+    assert(m_dimension == 0 && "do not support array of pointer for now.");
     /**
      * char **a;
      * The input code should be:
@@ -349,6 +399,82 @@ std::string Char::GetInputCode(std::string var) {
   return ret;
 }
 
+/**
+ * Char input generation is a little tricky.
+ * We need to intentionally insert some special characters.
+ * -, :, ", ', #, $
+ */
+std::string Char::GetTestInput() {
+  std::string ret;
+  if (m_pointer == 0) {
+    if (m_dimension == 0) {
+      ret += utils::rand_char();
+    } else if (m_dimension == 1) {
+      // TODO
+    } else if (m_dimension == 2) {
+      // TODO
+    } else {
+      assert(false);
+    }
+  } else if (m_pointer == 1) {
+    int size = utils::rand_int(0,5);
+    ret += std::to_string(size);
+    for (int i=0;i<size;i++) {
+      ret += " " + utils::rand_str(utils::rand_int(0, 10));
+    }
+  } else if (m_pointer == 2) {
+    // TODO
+    int size = utils::rand_int(0, 5);
+    ret += std::to_string(size);
+    for (int i=0;i<size;i++) {
+      int size2 = utils::rand_int(0, 5);
+      ret += " " + std::to_string(size);
+      for (int j=0;j<size2;j++) {
+        ret += utils::rand_str(utils::rand_int(0, 10));
+      }
+    }
+  } else {
+    assert(false);
+  }
+  return ret;
+}
+
+/**
+ * TODO dimension and pointer
+ */
+std::string Char::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "// Char::GetOutputCode\n";
+  // ret += "printf(\"%d\\n\", " + var + ");\n";
+  if (m_pointer == 0) {
+    if (m_dimension == 0) {
+      ret += "printf(\"%c\\n\", " + var + ");\n";
+    } else if (m_dimension == 1) {
+      // TODO
+      // ret += "// HELIUM_TODO char[]\n";
+      ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n";
+      ret += "printf(\"strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+    } else if (m_dimension == 2) {
+      // TODO
+      ret += "// HELIUM_TODO char[][]\n";
+    } else {
+      assert(false && "char [][][]");
+    }
+  } else if (m_pointer == 1) {
+    assert(m_dimension == 0 && "do not support array of pointer for now.");
+    ret += "printf(\"" + var + " = %s\\n\", " + var + ");\n";
+    ret += "printf(\"strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+  } else if (m_pointer == 2) {
+    assert(m_dimension == 0 && "do not support array of pointer for now.");
+    // TODO the size of the buffer?
+    ret += "printf(\"" + var + "[0] = " +  "%s\\n\", " + var + "[0]);\n";
+    ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof("+var+"));\n";
+  }
+  return ret;
+}
+
+
+
 
 std::string Float::GetDeclCode(std::string var) {
   std::string ret;
@@ -363,6 +489,19 @@ std::string Float::GetInputCode(std::string var) {
   // a double should have pointer level just 0?
   assert(m_pointer == 0);
   ret += "scanf(\"%lf\", " + var + ");\n}";
+  return ret;
+}
+
+std::string Float::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "// Float::GetOutputCode\n";
+  ret += "printf(\"%f\\n\", " + var + ");\n";
+  return ret;
+}
+
+
+std::string Float::GetTestInput() {
+  std::string ret;
   return ret;
 }
 
@@ -382,6 +521,19 @@ std::string Void::GetInputCode(std::string var) {
   assert(false && "I'm not clear whether to generate input for a void*");
   return ret;
 }
+std::string Void::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "// Void::GetOutputCode\n";
+  // TODO check if it is NULL
+  ret += "printf(\"%d\\n\", " + var + ");\n";
+  return ret;
+}
+
+std::string Void::GetTestInput() {
+  std::string ret;
+  return ret;
+}
+
 
 std::string Bool::GetDeclCode(std::string var) {
   std::string ret;
@@ -394,5 +546,17 @@ std::string Bool::GetInputCode(std::string var) {
   std::string ret;
   ret += "// Bool::GetInputCode\n";
   ret += "scanf(\"%d\", &" + var + ");\n";
+  return ret;
+}
+
+std::string Bool::GetOutputCode(std::string var) {
+  std::string ret;
+  ret += "// Bool::GetOutputCode\n";
+  ret += "printf(\"%d\\n\", " + var + ");\n";
+  return ret;
+}
+
+std::string Bool::GetTestInput() {
+  std::string ret;
   return ret;
 }

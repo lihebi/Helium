@@ -7,6 +7,8 @@
 #include "type.h"
 #include "new_type.h"
 
+#include "resolver.h"
+
 namespace ast {
   typedef enum {
     // function
@@ -209,6 +211,13 @@ namespace ast {
     void SetDecoDeclInput(std::map<ASTNode*, std::set<std::string> > decl_input_m) {
       m_decl_input_m = decl_input_m;
     }
+    /**
+     * Map from the Node, right before which to output, the variable names
+     */
+    void SetDecoOutput(std::map<ASTNode*, std::set<std::string> > deco_output_m) {
+      // TODO need to remove this?
+      m_deco_output_m = deco_output_m;
+    }
     void ClearDecl() {
       m_decl_input_m.clear();
       m_decl_m.clear();
@@ -220,6 +229,10 @@ namespace ast {
     }
     std::set<std::string> GetRequiredDeclWithInput(ASTNode *node) {
       if (m_decl_input_m.count(node) == 1) return m_decl_input_m[node];
+      else return {};
+    }
+    std::set<std::string> GetRequiredDecoOutput(ASTNode* node) {
+      if (m_deco_output_m.count(node) == 1) return m_deco_output_m[node];
       else return {};
     }
     /**
@@ -358,6 +371,7 @@ namespace ast {
     std::map<ASTNode*, std::set<std::string> > m_decl_input_m;
     // do not need input
     std::map<ASTNode*, std::set<std::string> > m_decl_m;
+    std::map<ASTNode*, std::set<std::string> > m_deco_output_m;
   };
 
   class ASTNodeFactory {
@@ -424,7 +438,8 @@ namespace ast {
      * If no record found, recursively try previous sibling or parent
 
      * So which node needs to override it?
-     * stmt, if, elseif, for
+     * stmt, for
+     * DO NOT: if, elseif
      * Which nodes don't need?
      */
     virtual ASTNode* LookUpDefinition(std::string id) {
@@ -635,7 +650,7 @@ namespace ast {
     virtual std::set<std::string> GetIdToResolve() override {
       return extract_id_to_resolve(get_text(m_cond));
     }
-    virtual ASTNode* LookUpDefinition(std::string id) override;
+    // virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     XMLNode m_cond;
     Then *m_then = NULL;
@@ -669,7 +684,7 @@ namespace ast {
     virtual std::set<std::string> GetIdToResolve() override {
       return extract_id_to_resolve(get_text(m_cond));
     }
-    virtual ASTNode* LookUpDefinition(std::string id) override;
+    // virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     XMLNode m_cond;
   };

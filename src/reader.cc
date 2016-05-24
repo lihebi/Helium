@@ -461,8 +461,8 @@ Seg* Reader::getAnnotSeg() {
   print_trace("Reader::getAnnotSeg");
   NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
-    std::cerr << "Error: Currently only support ONE single statement.\n";
-    std::cerr << "Found: " << comment_nodes.size() << "\n";
+    // std::cerr << "Error: Currently only support ONE single statement.";
+    // std::cerr << "But Found: " << comment_nodes.size() << "\n";
     return NULL;
   }
   ast::XMLNode node = helium_next_sibling(comment_nodes[0]);

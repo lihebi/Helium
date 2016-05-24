@@ -42,6 +42,7 @@ private:
   std::vector<ast::XMLDoc*> m_docs;
   std::vector<Ctx*> m_ctxs;
   std::set<ast::ASTNode*> m_nodes; // POI
+  std::map<ast::ASTNode*, std::set<std::string> > m_deco; // POI output decoration of AST
 };
 
 /**
@@ -63,6 +64,7 @@ public:
   }
   void SetFirstNode(ast::ASTNode* node);
   void AddNode(ast::ASTNode* node);
+  void RemoveNode(ast::ASTNode *node);
   std::set<ast::ASTNode*> GetNodes() {
     return m_nodes;
   }
@@ -121,6 +123,20 @@ private:
   typedef std::map<ast::ASTNode*, std::set<std::string> > decl_deco;
   // local storage for the decoration of each AST
   std::map<ast::AST*, std::pair<decl_deco, decl_deco> > m_ast_to_deco_m;
+
+  // this is another system for input code generation
+  // this does not decorate the AST
+  // instead, get the variables out, and insert at the beginning
+  // typedef std::vector<std::pair<NewType*, std::string> > InputMetrics;
+
+  /**
+   * This is a map from variable name to its type
+   */
+  typedef std::map<std::string, NewType*> InputMetrics;
+  // the following two can overlap, i.e. need both declaration and input
+  std::map<ast::AST*, InputMetrics> m_decls; // only need declaraion
+  std::map<ast::AST*, InputMetrics> m_inputs; // only need input
+  
   std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
 };
 #endif /* SEG_H */

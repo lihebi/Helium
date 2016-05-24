@@ -249,5 +249,6 @@ Builder::Compile() {
 }
 
 std::string Builder::GetExecutable() {
-  return Config::Instance()->GetString("output-folder") + "/a.out";
+  // return Config::Instance()->GetString("output-folder") + "/a.out";
+  return m_dir + "/a.out";
 }

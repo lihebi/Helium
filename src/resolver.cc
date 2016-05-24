@@ -1,6 +1,37 @@
 #include "resolver.h"
 #include <boost/regex.hpp>
 #include "utils.h"
+#include "xml_doc_reader.h"
+
+/**
+ * Extract id which is not c keyword
+ * This is the master copy of this resolving
+ * The other one calls it.
+ *
+ * @param code [in] input code
+ * @return a set of IDs
+ */
+std::set<std::string>
+extract_id_to_resolve(std::string code) {
+
+  // Before doing the pattern matching, I want to first remove comments
+  ast::XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  code = get_text_except(doc->document_element(), ast::NK_Comment);
+  delete doc;
+  
+  static boost::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
+  boost::smatch match;
+  boost::sregex_iterator begin(code.begin(), code.end(), id_reg);
+  boost::sregex_iterator end = boost::sregex_iterator();
+  std::set<std::string> ss;
+  for (boost::sregex_iterator it=begin;it!=end;it++) {
+    std::string tmp = (*it).str();
+    if (c_common_keywords.find(tmp) == c_common_keywords.end()) {
+      ss.insert(tmp);
+    }
+  }
+  return ss;
+}
 
 
 std::set<std::string>

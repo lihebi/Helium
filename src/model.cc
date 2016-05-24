@@ -74,7 +74,19 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
+    /**
+     * Currently only do outupt before a Stmt.
+     */
+    std::set<std::string> outputs = m_ast->GetRequiredDecoOutput(this);
+    for (std::string var : outputs) {
+      SymbolTableValue *val = m_sym_tbl->LookUp(var);
+      if (val) {
+        std::string code = val->GetType()->GetOutputCode(val->GetName());
+        ret += code;
+      }
+    }
     ret += get_text(m_xmlnode);
+    // utils::print(get_text(m_xmlnode), utils::CK_Red);
     ret += "\n";
   } else {
     std::set<std::string> decls = m_ast->GetRequiredDecl(this);
@@ -172,6 +184,15 @@ void Function::GetCode(std::set<ASTNode*> nodes,
       ret.pop_back(); // remove last ","
     }
     ret += ")";
+    ret += "{\n";
+
+    // FIXME for now, function will never be returned by the GetCode
+    // This is because I only care about intraprocedure for now, and the function definition inside main is not valid.
+    for (ASTNode *node : m_children) {
+      node->GetCode(nodes, ret, all);
+    }
+    // m_blk->GetCode(nodes, ret, all);
+    ret += "}";
   } else {
     // decl
     // THIS is how to use the decls
@@ -193,15 +214,6 @@ void Function::GetCode(std::set<ASTNode*> nodes,
       }
     }
   }
-  ret += "{\n";
-
-  // FIXME for now, function will never be returned by the GetCode
-  // This is because I only care about intraprocedure for now, and the function definition inside main is not valid.
-  for (ASTNode *node : m_children) {
-    node->GetCode(nodes, ret, all);
-  }
-  // m_blk->GetCode(nodes, ret, all);
-  ret += "}";
 }
 
 std::string Function::GetLabel() {
@@ -263,11 +275,13 @@ void Block::GetCode(std::set<ASTNode*> nodes,
                     std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
-  ret += "{\n";
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, all);
+  if (selected) {
+    ret += "{\n";
+    for (ASTNode *n : m_children) {
+      n->GetCode(nodes, ret, all);
+    }
+    ret += "}";
   }
-  ret += "}";
 }
 
 /*******************************
@@ -314,14 +328,14 @@ void If::GetCode(std::set<ASTNode*> nodes,
     ret += "if (";
     ret += get_text(m_cond);
     ret += ")";
-  }
-  assert(m_then); // then clause for a if must exist
-  m_then->GetCode(nodes, ret, all);
-  for (ElseIf *ei : m_elseifs) {
-    ei->GetCode(nodes, ret, all);
-  }
-  if (m_else) {
-    m_else->GetCode(nodes, ret, all);
+    assert(m_then); // then clause for a if must exist
+    m_then->GetCode(nodes, ret, all);
+    for (ElseIf *ei : m_elseifs) {
+      ei->GetCode(nodes, ret, all);
+    }
+    if (m_else) {
+      m_else->GetCode(nodes, ret, all);
+    }
   }
 }
 
@@ -361,9 +375,12 @@ void Then::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
-  ret += "{\n";
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, all);
+  // For a then block, even if it is not selected, we need to have braces to make it compile
+  ret += "{";
+  if (selected) {
+    for (ASTNode *n : m_children) {
+      n->GetCode(nodes, ret, all);
+    }
   }
   ret += "}";
 }
@@ -394,12 +411,12 @@ void Else::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "else";
+    ret += "{\n";
+    for (ASTNode *n : m_children) {
+      n->GetCode(nodes, ret, all);
+    }
+    ret += "}";
   }
-  ret += "{\n";
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, all);
-  }
-  ret += "}";
 }
 
 ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
@@ -436,13 +453,13 @@ void ElseIf::GetCode(std::set<ASTNode*> nodes,
     // the result would be
     // if () {} {} else {}, which is not syntax correct
     ret += "{\n";
-  }
-  // m_blk->GetCode(nodes, ret, all, selected);
-  for (ASTNode *n : m_children) {
-    n->GetCode(nodes, ret, all);
-  }
-  if (selected) {
-    ret += "}";
+    // m_blk->GetCode(nodes, ret, all, selected);
+    for (ASTNode *n : m_children) {
+      n->GetCode(nodes, ret, all);
+    }
+    if (selected) {
+      ret += "}";
+    }
   }
 }
 
@@ -505,17 +522,17 @@ void Switch::GetCode(std::set<ASTNode*> nodes,
     ret += "switch (";
     ret += get_text(m_cond);
     ret += ")";
+    ret += "{\n";
+    for (Case *c : m_cases) {
+      c->GetCode(nodes, ret, all);
+    }
+    if (m_default) {
+      m_default->GetCode(nodes, ret, all);
+    }
+    // add break at the end. It will not influence the result, but a label without statement is not syntax correct
+    ret += "break;";
+    ret += "}";
   }
-  ret += "{\n";
-  for (Case *c : m_cases) {
-    c->GetCode(nodes, ret, all);
-  }
-  if (m_default) {
-    m_default->GetCode(nodes, ret, all);
-  }
-  // add break at the end. It will not influence the result, but a label without statement is not syntax correct
-  ret += "break;";
-  ret += "}";
 }
 
 std::string Switch::GetLabel() {
@@ -561,9 +578,9 @@ void Case::GetCode(std::set<ASTNode*> nodes,
     ret += "case ";
     ret += get_text(m_cond);
     ret += ":\n";
-  }
-  for (ASTNode *child : m_children) {
-    child->GetCode(nodes, ret, all);
+    for (ASTNode *child : m_children) {
+      child->GetCode(nodes, ret, all);
+    }
   }
 }
 
@@ -592,9 +609,9 @@ void Default::GetCode(std::set<ASTNode*> nodes, std::string &ret, bool all) {
   selected |= all;
   if (selected) {
     ret += "default: ";
-  }
-  for (ASTNode *child : m_children) {
-    child->GetCode(nodes, ret, all);
+    for (ASTNode *child : m_children) {
+      child->GetCode(nodes, ret, all);
+    }
   }
 }
 
@@ -634,12 +651,12 @@ void While::GetCode(std::set<ASTNode*> nodes,
     ret += "while (";
     ret += get_text(m_cond);
     ret += ")";
+    ret += "{\n";
+    for (ASTNode *child: m_children) {
+      child->GetCode(nodes, ret, all);
+    }
+    ret += "}";
   }
-  ret += "{\n";
-  for (ASTNode *child: m_children) {
-    child->GetCode(nodes, ret, all);
-  }
-  ret += "}";
 }
 
 std::string While::GetLabel() {
@@ -681,12 +698,10 @@ void Do::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "do {\n";
-  }
-  // m_blk->GetCode(nodes, ret, all, selected);
-  for (ASTNode *child : m_children) {
-    child->GetCode(nodes, ret, all);
-  }
-  if (selected) {
+    // m_blk->GetCode(nodes, ret, all, selected);
+    for (ASTNode *child : m_children) {
+      child->GetCode(nodes, ret, all);
+    }
     ret += "while (";
     ret += get_text(m_cond);
     ret += ");";
@@ -761,6 +776,12 @@ void For::GetCode(std::set<ASTNode*> nodes,
       ret.pop_back();
     }
     ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
+    // m_blk->GetCode(nodes, ret, all, selected);
+    ret += "{\n";
+    for (ASTNode *child : m_children) {
+      child->GetCode(nodes, ret, all);
+    }
+    ret += "}";
   } else {
     std::set<std::string> decls = m_ast->GetRequiredDecl(this);
     std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
@@ -782,12 +803,6 @@ void For::GetCode(std::set<ASTNode*> nodes,
       }
     }
   }
-  // m_blk->GetCode(nodes, ret, all, selected);
-  ret += "{\n";
-  for (ASTNode *child : m_children) {
-    child->GetCode(nodes, ret, all);
-  }
-  ret += "}";
 }
 
 std::string For::GetLabel() {
@@ -847,16 +862,26 @@ typedef enum {
  * This only check the first "="
  */
 CheckDefKind check_def(std::string code, std::string id) {
+  // remove double ==
   for (size_t pos=code.find("==");
        pos!=std::string::npos;
        pos=code.find("==")) {
     code.erase(pos, 2);
   }
+  // remove !=
+  for (size_t pos=code.find("!=");
+       pos!=std::string::npos;
+       pos=code.find("!=")) {
+    code.erase(pos, 2);
+  }
+  // find =, and treat left and right
   if (code.find('=') != std::string::npos) {
     std::string left = code.substr(0, code.find_first_of('='));
     std::string right = code.substr(code.find_first_of('='));
+    // FIXME but the left may be *var
     std::regex reg("\\b" + id + "\\b");
-    if (regex_search(left, reg)) {
+    utils::trim(left);
+    if (regex_search(left, reg) && left[0] != '*') {
       if (regex_search(right, reg)) {
         return CDK_NULL;
       } else {
@@ -884,40 +909,41 @@ ASTNode* Stmt::LookUpDefinition(std::string id) {
   default: assert(false);
   }
 }
-ASTNode* If::LookUpDefinition(std::string id) {
-  std::string content = get_text(m_cond);
-  CheckDefKind k = check_def(content, id);
-  switch (k) {
-  case CDK_NULL: return NULL;
-  case CDK_This: return this;
-  case CDK_Continue: {
-    if (this->PreviousSibling())
-      return this->PreviousSibling()->LookUpDefinition(id);
-    else if (this->GetParent())
-      return this->GetParent()->LookUpDefinition(id);
-    else
-      return NULL;
-  }
-  default: assert(false);
-  }
-}
-ASTNode* ElseIf::LookUpDefinition(std::string id) {
-  std::string content = get_text(m_cond);
-  CheckDefKind k = check_def(content, id);
-  switch (k) {
-  case CDK_NULL: return NULL;
-  case CDK_This: return this;
-  case CDK_Continue: {
-    if (this->PreviousSibling())
-      return this->PreviousSibling()->LookUpDefinition(id);
-    else if (this->GetParent())
-      return this->GetParent()->LookUpDefinition(id);
-    else
-      return NULL;
-  }
-  }
-  return NULL;
-}
+// ASTNode* If::LookUpDefinition(std::string id) {
+//   // this is just condition, it is not a def node
+//   std::string content = get_text(m_cond);
+//   CheckDefKind k = check_def(content, id);
+//   switch (k) {
+//   case CDK_NULL: return NULL;
+//   case CDK_This: return this;
+//   case CDK_Continue: {
+//     if (this->PreviousSibling())
+//       return this->PreviousSibling()->LookUpDefinition(id);
+//     else if (this->GetParent())
+//       return this->GetParent()->LookUpDefinition(id);
+//     else
+//       return NULL;
+//   }
+//   default: assert(false);
+//   }
+// }
+// ASTNode* ElseIf::LookUpDefinition(std::string id) {
+//   std::string content = get_text(m_cond);
+//   CheckDefKind k = check_def(content, id);
+//   switch (k) {
+//   case CDK_NULL: return NULL;
+//   case CDK_This: return this;
+//   case CDK_Continue: {
+//     if (this->PreviousSibling())
+//       return this->PreviousSibling()->LookUpDefinition(id);
+//     else if (this->GetParent())
+//       return this->GetParent()->LookUpDefinition(id);
+//     else
+//       return NULL;
+//   }
+//   }
+//   return NULL;
+// }
 ASTNode* For::LookUpDefinition(std::string id) {
   std::string code;
   for (XMLNode init : m_inits) {

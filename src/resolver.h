@@ -8,9 +8,10 @@
 #include "type.h"
 
 std::set<std::string>
-extract_id_to_resolve(const std::string& code);
+extract_id_to_resolve(std::string code);
 std::set<std::string>
 extract_id_to_resolve(ast::NodeList nodes);
+
 
 std::set<std::string>
 get_to_resolve(
