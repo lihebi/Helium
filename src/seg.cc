@@ -19,7 +19,7 @@ Seg::Seg(ast::XMLNode xmlnode) {
   AST *ast = new AST(function_node);
 
   // dumping the ast
-  ast->Visualize();
+  // ast->Visualize();
 
   m_func_to_ast_m[func_name] = ast;
   m_asts.push_back(ast);
@@ -125,7 +125,7 @@ bool Seg::NextContext() {
 
 
     // dumping the ast
-    newast->Visualize();
+    // newast->Visualize();
     
     assert(newast);
     m_asts.push_back(newast);
@@ -517,7 +517,7 @@ std::string Ctx::getMain() {
       ast->ClearDecl();
       main_func += code;
       main_func += "return 0;";
-      main_func += "};";
+      main_func += "};\n";
     } else {
       // other functions
       // ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
@@ -534,6 +534,7 @@ std::string Ctx::getMain() {
       std::string code = ast->GetCode(nodes);
       ast->ClearDecl();
       other_func += code;
+      other_func += "\n";
     }
   }
   // FIXME delaration of other functions should be included in suport.
@@ -632,29 +633,32 @@ void Ctx::Test() {
     for (auto metric : metrics) {
       std::string var = metric.first;
       NewType *type = metric.second;
-      std::cout << type->ToString() << "\n";
+      // std::cout << type->ToString() << "\n";
       std::vector<std::string> inputs = type->GetTestInput(TEST_NUMBER);
-      for (std::string s : inputs) {
-        std::cout << s  << "\n";
-      }
+      // for (std::string s : inputs) {
+      //   std::cout << s  << "\n";
+      // }
       assert(inputs.size() == TEST_NUMBER);
-      for (int i=0;i<TEST_NUMBER;i++) {
-        test_suites[i] += " " + inputs[i];
-      }
+      // for (int i=0;i<TEST_NUMBER;i++) {
+      //   test_suites[i] += " " + inputs[i];
+      // }
     }
-    std::cout << "tests: "  << "\n";
-    for (std::string s : test_suites) {
-      std::cout << s  << "\n";
-    }
+    // std::cout << "tests: "  << "\n";
+    // for (std::string s : test_suites) {
+    //   std::cout << s  << "\n";
+    // }
 
     std::string test_dir = utils::create_tmp_dir();
     for (int i=0;i<TEST_NUMBER;i++) {
-      std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
-      utils::write_file(test_file, test_suites[i]);
-      std::string cmd = builder.GetExecutable() + "< " + test_file + " 2>/dev/null";
-      std::cout << cmd  << "\n";
+      // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
+      // utils::write_file(test_file, test_suites[i]);
+      // std::string cmd = builder.GetExecutable() + "< " + test_file + " 2>/dev/null";
+      // std::cout << cmd  << "\n";
+      std::string cmd = builder.GetExecutable();
       int status;
-      std::string output = utils::exec(cmd.c_str(), &status, 1);
+      // FIXME some command cannot be controled by time out!
+      // std::string output = utils::exec(cmd.c_str(), &status, 1);
+      std::string output = utils::exec_in(cmd.c_str(), test_suites[i].c_str(), &status, 1);
       if (status == 0) {
         utils::print("test success\n", utils::CK_Green);
       } else {

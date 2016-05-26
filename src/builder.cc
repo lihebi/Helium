@@ -237,7 +237,7 @@ Builder::Compile() {
   cmd += " 2>&1";
   utils::exec(clean_cmd.c_str(), NULL);
   int return_code;
-  std::string error_msg = utils::exec(cmd.c_str(), &return_code);
+  std::string error_msg = utils::exec_sh(cmd.c_str(), &return_code);
   if (return_code == 0) {
     m_success = true;
   } else {

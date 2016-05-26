@@ -84,7 +84,7 @@ all: client
 ##############################
 
 # the actual execuable of Helium
-client: $(TARGET)# $(TEST_TARGET)
+client: $(TARGET) # $(TEST_TARGET)
 # Compile client based on the object files, instead of the dynamic lib
 # Always put the C_LIB at the end, AFTER the object that uses it.
 # Otherwise the compiler gives you undefined reference when linking

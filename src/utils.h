@@ -4,6 +4,7 @@
 #include "common.h"
 #include <pugixml.hpp>
 #include <stdlib.h>
+#include <sys/types.h>
 
 namespace utils {
 
@@ -137,10 +138,13 @@ namespace utils {
   /*******************************
    ** thread
    *******************************/
-  std::string exec(const char* cmd, int *status=NULL, int timeout=0);
+  // std::string exec(const char* cmd, int *status=NULL, int timeout=0);
+  std::string exec(const char* cmd, int *status=NULL, useconds_t timeout=0);
   // with input
-  std::string exec_in(const char* cmd, const char* input, int *status=NULL, unsigned int timeout=0);
-
+  std::string exec_in(const char* cmd, const char* input, int *status=NULL, useconds_t timeout=0);
+  // std::pair<std::string, std::string> exec_both(const char* cmd, int *status=NULL, int timeout=0);
+  std::string exec_sh(const char* cmd, int *status, useconds_t timeout=0);
+  
   int get_line_number(std::string filename, std::string pattern);
   std::vector<int> get_line_numbers(std::string filename, std::string pattern);
 
