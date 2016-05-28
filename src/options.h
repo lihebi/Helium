@@ -21,6 +21,9 @@ typedef enum {
   , POK_BuildRate
   
   , POK_ExpAST // special for AST build rate experiment
+  , POK_IOSpec // IO specifications
+  , POK_TestInfo // test info
+  , POK_TestInfoDot // test infor as dot, green for success, red for error
 } PrintOptionKind;
 class PrintOption {
 public:

@@ -40,7 +40,8 @@ static int split_cmd(const char *scon, char** &argv) {
  * Because the call is /bin/sh sh -c cmd
  * Any input redirect or arguments shall NOT working.
  */
-std::string utils::exec(const char* cmd, int *status, useconds_t timeout) {
+std::string utils::exec(const char* cmd, int *status, double timeout_d) {
+  int timeout = timeout_d * 1000000;
   int pipefd[2];
   if (pipe(pipefd) == -1) {
     perror("pipe");
@@ -97,7 +98,7 @@ std::string utils::exec(const char* cmd, int *status, useconds_t timeout) {
           *status = WEXITSTATUS(_status);
         } else if (WIFSIGNALED(status)) {
           *status = TIMEOUT_RET_CODE;
-          result += "\nHELIUM_TEST_TIMEOUT\n";
+          // result += "\nHELIUM_TEST_SIGNAL\n";
         }
       }
       return result;
@@ -112,7 +113,8 @@ std::string utils::exec(const char* cmd, int *status, useconds_t timeout) {
  *
  * This will redirect stdout, so the stderr will not be viewable by the parent thread, thus not going to be the return output.
  */
-std::string utils::exec_in(const char* cmd, const char* input, int *status, useconds_t timeout) {
+std::string utils::exec_in(const char* cmd, const char* input, int *status, double timeout_d) {
+  int timeout = timeout_d * 1000000;
   // cmd should not exceed BUFSIZ
   char cmd_buf[BUFSIZ];
   strcpy(cmd_buf, cmd);
@@ -171,7 +173,7 @@ std::string utils::exec_in(const char* cmd, const char* input, int *status, usec
       *status = WEXITSTATUS(_status);
     } else if (WIFSIGNALED(status)) {
       *status = TIMEOUT_RET_CODE;
-      result += "\nHELIUM_TEST_TIMEOUT\n";
+      // result += "\nHELIUM_TEST_SIGNAL\n";
     }
   }
   return result;
@@ -209,7 +211,8 @@ TEST(ThreadTestCase, TimeoutTest) {
  * Use /bin/sh to execute the command, thus support output redirection.
  * BUT NOT INPUT REDIRECTION!
  */
-std::string utils::exec_sh(const char* cmd, int *status, useconds_t timeout) {
+std::string utils::exec_sh(const char* cmd, int *status, double timeout_d) {
+  int timeout = timeout_d * 1000000;
   int pipefd[2];
   if (pipe(pipefd) == -1) {
     perror("pipe");
@@ -255,7 +258,7 @@ std::string utils::exec_sh(const char* cmd, int *status, useconds_t timeout) {
           *status = WEXITSTATUS(_status);
         } else if (WIFSIGNALED(status)) {
           *status = TIMEOUT_RET_CODE;
-          result += "\nHELIUM_TEST_TIMEOUT\n";
+          // result += "\nHELIUM_TEST_SIGNAL\n";
         }
       }
       // if (WIFEXITED(_status) && status != NULL) {

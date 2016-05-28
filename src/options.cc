@@ -23,8 +23,11 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"col", POK_CodeOutputLocation}
   , {"ci", POK_CompileInfo}
   , {"cid", POK_CompileInfoDot}
+  , {"ti", POK_TestInfo}
+  , {"tid", POK_TestInfoDot}
   , {"br", POK_BuildRate}
   , {"exp-ast", POK_ExpAST}
+  , {"io", POK_IOSpec}
 };
 
 /**
@@ -44,8 +47,11 @@ void PrintOption::Help() {
   std::cout << "\t col: code output location"  << "\n";
   std::cout << "\t ci: compile information(success or fail)"  << "\n";
   std::cout << "\t cid: compile information as dot"  << "\n";
+  std::cout << "\t ti: test information (success or not)"  << "\n";
+  std::cout << "\t tid: test information as dot"  << "\n";
   std::cout << "\t br: build rate"  << "\n";
   std::cout << "\t exp-ast: AST build rate special"  << "\n";
+  std::cout << "\t io: IO specifications during testing"  << "\n";
 }
 
 

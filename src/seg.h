@@ -41,8 +41,11 @@ private:
   std::vector<ast::AST*> m_asts;
   std::vector<ast::XMLDoc*> m_docs;
   std::vector<Ctx*> m_ctxs;
+  // FIXME this should be a vector
+  // but for now, it is ok, we only use one node
   std::set<ast::ASTNode*> m_nodes; // POI
   std::map<ast::ASTNode*, std::set<std::string> > m_deco; // POI output decoration of AST
+  std::map<ast::ASTNode*, std::vector<NewVariable> > m_output_vars;
 };
 
 /**
@@ -102,6 +105,7 @@ private:
    * 2. find the input variables, their type
    */
   std::set<ast::ASTNode*> resolveDecl(ast::AST *ast, bool to_root);
+  void getUndefinedVariables(ast::AST *ast);
   /**
    * No magic, the old one suffices.
    */
@@ -138,5 +142,55 @@ private:
   std::map<ast::AST*, InputMetrics> m_inputs; // only need input
   
   std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
+};
+
+
+class NewTestResult {
+public:
+  NewTestResult(std::vector<std::vector<TestInput*> > test_suite) : m_test_suite(test_suite) {}
+  void GetInvariants();
+  void GetPreconditions();
+  void GetTransferFunctions();
+  void AddOutput(std::string output, bool success) {
+    if (success) {
+      m_poi_output_success.push_back(output);
+    } else {
+      m_poi_output_failure.push_back(output);
+    }
+    m_poi_output.push_back({output, success});
+  }
+  void PrepareData();
+  std::string GenerateCSV(std::string io_type, std::string sf_type);
+
+  typedef enum _CSV_SF_Kind {
+    CSK_S,
+    CSK_F,
+    CSK_SF
+  } CVS_SF_Kind;
+  typedef enum _CSV_IO_Kind {
+    CIK_I,
+    CIK_O,
+    CIK_IO
+  } CSV_IO_Kind;
+private:
+  std::vector<std::string> m_poi_output_success;
+  std::vector<std::string> m_poi_output_failure;
+  std::vector<std::pair<std::string, bool> > m_poi_output; // the output, and whether the test succeeds
+  std::vector<std::vector<TestInput*> > m_test_suite;
+  // this is a pretty good data structure to hold CSV data
+  // from the CSV header to its data values
+  // The header contains both the poi output, and the preconditions
+  // But I need to seperate them
+  //
+  // How to seperate them?
+  // Add Prefix I_ for precondition items
+  // Add Prefix O_ for poi output items
+  // std::vector<std::map<std::string, std::string> > header_value_maps;
+
+  // The Method PrepareData fills this structrure
+  std::vector<std::map<std::string, std::string> > m_header_value_maps;
+  std::set<std::string> m_headers;
+  std::set<std::string> m_i_headers;
+  std::set<std::string> m_o_headers;
 };
 #endif /* SEG_H */

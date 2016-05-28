@@ -46,6 +46,10 @@ public:
   void Create(std::string tagfile, std::string output_folder);
   std::set<int> LookUp(std::string key, std::set<SnippetKind> kinds={});
   std::set<int> LookUp(std::set<std::string> keys, std::set<SnippetKind> kinds={});
+  /**
+   * Look Up by kinds only. No keyword.
+   */
+  std::set<int> LookUp(SnippetKind kind);
   SnippetMeta GetMeta(int snippet_id);
   std::string GetCode(int snippet_id);
   std::set<int> RemoveDup(std::set<int> snippet_ids);

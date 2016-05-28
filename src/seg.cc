@@ -8,7 +8,35 @@
 #include "segment.h" // for get_header, etc
 #include "resolver.h" // for SystemResolver
 #include "builder.h"
+#include "global_variable.h"
+#include "config.h"
+
 using namespace ast;
+using namespace utils;
+
+/**
+ * Resolve the type of a variable at an AST node.
+ * Recall that Type* instance is created in the ASTNode, by means of Decl*.
+ * This function will resolve:
+ *   1. symbol table in AST (procedure level)
+ *   2. Global Variables
+ *   3. Special Variables, e.g. optarg
+ */
+NewType* resolve_type(std::string var, ASTNode *node) {
+  SymbolTable *tbl = node->GetSymbolTable();
+  SymbolTableValue* value = tbl->LookUp(var);
+  if (value) {
+    return value->GetType();
+  } else {
+    NewType* type = GlobalVariableRegistry::Instance()->LookUp(var);
+    if (type) return type;
+    else {
+      // special
+      std::cerr << var  << "\n";
+      assert(false);
+    }
+  }
+}
 
 Seg::Seg(ast::XMLNode xmlnode) {
   print_trace("Seg::Seg()");
@@ -30,32 +58,65 @@ Seg::Seg(ast::XMLNode xmlnode) {
 
 
   // POI output statement decoration to AST
-  std::cout << "getting POI output vars"  << "\n";
+
+  assert(m_nodes.size() > 0);
+  std::set<std::string> ids;
   for (ASTNode *poi_node : m_nodes) {
-    std::set<std::string> ids = poi_node->GetVarIds();
-    for (std::string id : ids) {
-      std::cout << id  << "\n";
-      if (id.empty()) continue;
-      if (is_c_keyword(id)) continue;
-      SymbolTable *tbl = poi_node->GetSymbolTable();
-      SymbolTableValue *decl = tbl->LookUp(id);
-      if (decl) {
-        m_deco[poi_node].insert(id);
-      } else {
-        // will need to query global variables
-        // will need to query system types, like optarg
+    std::set<std::string> _ids = poi_node->GetVarIds();
+    ids.insert(_ids.begin(),_ids.end());
+  }
+  ASTNode *poi_node = *m_nodes.begin();
+  for (std::string id : ids) {
+    if (id.empty()) continue;
+    if (is_c_keyword(id)) continue;
+    NewType *type = resolve_type(id, *m_nodes.begin());
+    if (type) {
+      m_output_vars[poi_node].push_back({type, id});
+    }
+  }
+  
+  // std::cout << "getting POI output vars"  << "\n";
+  // for (ASTNode *poi_node : m_nodes) {
+  //   std::set<std::string> ids = poi_node->GetVarIds();
+  //   for (std::string id : ids) {
+  //     // std::cout << id  << "\n";
+  //     if (id.empty()) continue;
+  //     if (is_c_keyword(id)) continue;
+  //     SymbolTable *tbl = poi_node->GetSymbolTable();
+  //     SymbolTableValue *decl = tbl->LookUp(id);
+  //     if (decl) {
+  //       m_deco[poi_node].insert(id);
+  //     } else {
+  //       // will need to query global variables
+  //       // will need to query system types, like optarg
+  //     }
+  //   }
+  // }
+  // FIXME
+  // assert(!m_deco.empty());
+  // std::cout << "deco output:"  << "\n";
+  // for (auto m : m_deco) {
+  //   for (std::string s : m.second) {
+  //     std::cout << s  << "\n";
+  //   }
+  // }
+  // ast->SetDecoOutput(m_deco);
+  ast->SetOutput(m_output_vars);
+
+  /**
+   * Debugging: print out output variables
+   */
+  // std::cout << "output variables:"  << "\n";
+  if (PrintOption::Instance()->Has(POK_IOSpec)) {
+    utils::print("Output Variables:\n", CK_Blue);
+    for (auto m : m_output_vars) {
+      for (NewVariable var : m.second) {
+        // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
+        utils::print(var.GetType()->ToString() + "\n", CK_Blue);
+        utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
       }
     }
   }
-  // FIXME
-  // assert(!m_deco.empty());
-  std::cout << "deco output:"  << "\n";
-  for (auto m : m_deco) {
-    for (std::string s : m.second) {
-      std::cout << s  << "\n";
-    }
-  }
-  ast->SetDecoOutput(m_deco);
   
   // Initial context
   // m_ctxs.push_back(new Ctx(this));
@@ -109,6 +170,8 @@ bool Seg::NextContext() {
     // utils::print(code, utils::CK_Blue);
     ctx->SetFirstNode(leaf);
     ctx->AddNode(leaf);
+    // printing the new node
+    std::cout << leaf->dump()  << "\n";
   } else {
     // std::cerr << "Inter procedure"  << "\n";
     AST *ast = first_node->GetAST();
@@ -298,13 +361,73 @@ void Ctx::Resolve() {
     //   // this one needs input variables
     //   complete = resolveDecl(ast, true);
     // }
+
+    
+    // std::set<ASTNode*> selection = m_ast_to_node_m[ast];
+    // if (ast == first_ast) {
+    //   // if it is first ast, need to add declaration and 
+    //   selection = ast->CompleteGene(selection);
+    //   selection = ast->RemoveRoot(selection);
+    // } else {
+    //   // need to add declaration
+    //   // need to complete to root
+    //   selection = ast->CompleteGeneToRoot(selection);
+    // }
+    // m_ast_to_node_m[ast] = selection;
+
+    // TODO disabled def use analysis
     complete = resolveDecl(ast, ast == first_ast);
     m_ast_to_node_m[ast] = complete;
+    // if (ast == first_ast) {
+    //   complete = ast->RemoveRoot(complete);
+    //   m_ast_to_node_m[ast] = complete;
+    //   getUndefinedVariables(ast);
+    // }
+    
     // std::cout << complete.size()  << "\n";
     // ast->VisualizeN(complete, {});
     // getchar();
     resolveSnippet(ast);
   }
+}
+
+/**
+ * This is for the first AST only
+ * It resolve the variables to see if it can be resolved.
+ * Then see if the Decl already included in selection
+ * Otherwise, return as input variables
+ *
+ * HEBI this must be called after completion
+ * HEBI Need to disable the first ast decl resolving
+ * @return m_decls
+ */
+void Ctx::getUndefinedVariables(AST *ast) {
+  print_trace("Ctx::getUndefinedVariables(AST *ast)");
+  std::set<ASTNode*> sel = m_ast_to_node_m[ast];
+  for (ASTNode *node : sel) {
+    std::set<std::string> ids = node->GetVarIds();
+    for (std::string id : ids) {
+      if (id.empty()) continue;
+      if (is_c_keyword(id)) continue;
+      SymbolTable *tbl = node->GetSymbolTable();
+      assert(tbl);
+      SymbolTableValue *decl = tbl->LookUp(id);
+      if (!decl) continue;
+      ASTNode *decl_node = decl->GetNode();
+      if (decl_node) {
+        if (sel.count(decl_node) == 1) continue;
+        else {
+          m_decls[ast][id] = decl->GetType();
+        }
+      } else {
+        NewType* type = GlobalVariableRegistry::Instance()->LookUp(id);
+        if (type) {
+          m_decls[ast][id] = type;
+        }
+      }
+    }
+  }
+  std::cout << "end"  << "\n";
 }
 
 
@@ -314,6 +437,7 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
   // FIXME do I need to complete again after I recursively add the dependencies
   if (first_ast_p) {
     ret = ast->CompleteGene(ret);
+    // return ret;
   } else {
     ret = ast->CompleteGeneToRoot(ret);
   }
@@ -467,6 +591,7 @@ void Ctx::resolveSnippet(AST *ast) {
  *******************************/
 
 std::string Ctx::getMain() {
+  print_trace("Ctx::getMain()");
   std::string ret;
   ret += get_header();
   std::string main_func;
@@ -487,16 +612,34 @@ std::string Ctx::getMain() {
       // ast->SetDecoDecl(m_ast_to_deco_m[ast].first);
       // ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
 
+
       for (auto m :m_decls[ast]) {
         std::string var = m.first;
         NewType *t = m.second;
         main_func += t->GetDeclCode(var);
-      }
-      for (auto m : m_inputs[ast]) {
-        std::string var = m.first;
-        NewType *t = m.second;
+        // FIXME didn't not use def use analysis result!
         main_func += t->GetInputCode(var);
       }
+      if (PrintOption::Instance()->Has(POK_IOSpec)) {
+        utils::print("Input Metrics:\n", utils::CK_Blue);
+        for (auto m :m_decls[ast]) {
+          std::string var = m.first;
+          NewType *t = m.second;
+          utils::print(t->ToString() + "\n", utils::CK_Blue);
+          utils::print(t->GetInputCode(var) + "\n", utils::CK_Purple);
+          utils::print("-------\n", utils::CK_Blue);
+          TestInput *input = t->GetTestInputSpec(var);
+          // utils::print(t->GetTestInput() + "\n", utils::CK_Purple);
+          utils::print(input->GetRaw() + "\n", utils::CK_Purple);
+          delete input;
+        }
+      }
+      // for (auto m : m_inputs[ast]) {
+      //   std::string var = m.first;
+      //   NewType *t = m.second;
+      //   main_func += t->GetInputCode(var);
+      //   std::cout << t->ToString()  << "\n";
+      // }
 
       // print out the deco, to see if the same variable appear in both "first" and "second"
       // decl_deco deco = m_ast_to_deco_m[ast].first;
@@ -599,23 +742,26 @@ std::string Ctx::getMakefile() {
 
 
 void Ctx::Test() {
-  std::cout << "=============================="  << "\n";
+  std::cout << "============= Ctx::Test() ================="  << "\n";
   Builder builder;
-  builder.SetMain(getMain());
-  builder.SetSupport(getSupport());
-  builder.SetMakefile(getMakefile());
+  std::string code_main = getMain();
+  std::string code_sup = getSupport();
+  std::string code_make = getMakefile();
+  builder.SetMain(code_main);
+  builder.SetSupport(code_sup);
+  builder.SetMakefile(code_make);
   builder.Write();
   if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
     std::cout << "Code output to "  << builder.GetDir() << "\n";
   }
   if (PrintOption::Instance()->Has(POK_Main)) {
-    std::cout << getMain()  << "\n";
+    std::cout << code_main  << "\n";
   }
   builder.Compile();
   if (builder.Success()) {
     g_compile_success_no++;
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-      utils::print("success\n", utils::CK_Green);
+      utils::print("compile success\n", utils::CK_Green);
     }
     if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
       utils::print(".", utils::CK_Green);
@@ -623,55 +769,130 @@ void Ctx::Test() {
     }
 
     // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
-#define TEST_NUMBER 3
+
+    int test_number = Config::Instance()->GetInt("test-number");
     /**
      * Testing!
      */
     AST *first_ast = m_first->GetAST();
     InputMetrics metrics = m_inputs[first_ast];
-    std::vector<std::string> test_suites(TEST_NUMBER);
+    // std::vector<std::string> test_suites(TEST_NUMBER);
+    // for (auto metric : metrics) {
+    //   std::string var = metric.first;
+    //   NewType *type = metric.second;
+    //   std::vector<std::string> inputs = type->GetTestInput(TEST_NUMBER);
+    //   assert(inputs.size() == TEST_NUMBER);
+    //   for (int i=0;i<TEST_NUMBER;i++) {
+    //     test_suites[i] += " " + inputs[i];
+    //   }
+    // }
+
+    /**
+     * Using TestInput
+     */
+    std::vector<std::vector<TestInput*> > test_suite(test_number);
     for (auto metric : metrics) {
       std::string var = metric.first;
       NewType *type = metric.second;
-      // std::cout << type->ToString() << "\n";
-      std::vector<std::string> inputs = type->GetTestInput(TEST_NUMBER);
-      // for (std::string s : inputs) {
-      //   std::cout << s  << "\n";
-      // }
-      assert(inputs.size() == TEST_NUMBER);
-      // for (int i=0;i<TEST_NUMBER;i++) {
-      //   test_suites[i] += " " + inputs[i];
-      // }
+      std::vector<TestInput*> inputs = type->GetTestInputSpec(var, test_number);
+      assert((int)inputs.size() == test_number);
+      for (int i=0;i<(int)inputs.size();i++) {
+        test_suite[i].push_back(inputs[i]);
+      }
     }
-    // std::cout << "tests: "  << "\n";
-    // for (std::string s : test_suites) {
-    //   std::cout << s  << "\n";
-    // }
+
+    NewTestResult test_result(test_suite);
+
 
     std::string test_dir = utils::create_tmp_dir();
-    for (int i=0;i<TEST_NUMBER;i++) {
+    for (int i=0;i<test_number;i++) {
       // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
-      // utils::write_file(test_file, test_suites[i]);
+      // utils::write_file(test_file, test_suite[i]);
       // std::string cmd = builder.GetExecutable() + "< " + test_file + " 2>/dev/null";
       // std::cout << cmd  << "\n";
       std::string cmd = builder.GetExecutable();
       int status;
       // FIXME some command cannot be controled by time out!
       // std::string output = utils::exec(cmd.c_str(), &status, 1);
-      std::string output = utils::exec_in(cmd.c_str(), test_suites[i].c_str(), &status, 1);
-      if (status == 0) {
-        utils::print("test success\n", utils::CK_Green);
-      } else {
-        utils::print("test fail\n", utils::CK_Red);
+      std::string input;
+      for (TestInput *in : test_suite[i]) {
+        input += in->GetRaw() + " ";
       }
-      std::cout << "output:"  << "\n";
-      std::cout << output  << "\n";
+
+      if (PrintOption::Instance()->Has(POK_IOSpec)) {
+        utils::print("TestinputMetrics:\n", CK_Blue);
+        for (TestInput *in : test_suite[i]) {
+          utils::print(in->dump() + "\n", CK_Purple);
+        }
+      }
+      // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
+      std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 10);
+      if (status == 0) {
+        if (PrintOption::Instance()->Has(POK_TestInfo)) {
+          utils::print("test success\n", utils::CK_Green);
+        }
+        if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+          utils::print(".", utils::CK_Green);
+        }
+        test_result.AddOutput(output, true);
+      } else {
+        if (PrintOption::Instance()->Has(POK_TestInfo)) {
+          utils::print("test failure\n", utils::CK_Red);
+        }
+        if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+          utils::print(".", utils::CK_Red);
+        }
+        test_result.AddOutput(output, false);
+      }
+      
+      // std::cout << "output:"  << "\n";
+      // std::cout << output  << "\n";
     }
+    if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+      std::cout << "\n";
+    }
+
+    test_result.PrepareData();
+    // std::string i_csv = test_result.GenerateCSV("I", "S");
+    // std::string o_csv = test_result.GenerateCSV("O", "S");
+    std::string csv = test_result.GenerateCSV("IO", "S");
+    // std::cout << "icsv"  << "\n";
+    // std::cout << i_csv  << "\n";
+    // std::cout << "ocsv"  << "\n";
+    // std::cout << o_csv  << "\n";
+    // std::cout << "csv"  << "\n";
+    // std::cout << csv  << "\n";
+    /**
+     * Save to file, and output file name.
+     */
+    std::string tmp_dir = utils::create_tmp_dir();
+    // utils::write_file(tmp_dir + "/i.csv", i_csv);
+    // utils::write_file(tmp_dir + "/o.csv", o_csv);
+    std::string csv_file = tmp_dir + "/io.csv";
+    utils::write_file(csv_file, csv);
+    std::cout << "Output to: " << csv_file   << "\n";
+    test_result.GetInvariants();
+    test_result.GetPreconditions();
+    test_result.GetTransferFunctions();
+
+    std::string cmd = "compare.py -f " + csv_file;
+    std::string inv = utils::exec(cmd.c_str());
+    std::cout << inv  << "\n";
+
     
+    /**
+     * FIXME Free the space of TestInput*
+     */
+    for (std::vector<TestInput*> &v : test_suite) {
+      for (TestInput* in : v) {
+        delete in;
+      }
+    }
+
   } else {
     g_compile_error_no++;
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-      utils::print("error\n", utils::CK_Red);
+      utils::print("compile error\n", utils::CK_Red);
     }
     if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
       utils::print(".", utils::CK_Red);
@@ -686,4 +907,183 @@ void Ctx::Test() {
     RemoveNode(m_first);
   }
   // TODO return good or not, to decide whether to keep the newly added statements
+}
+
+std::map<std::string, std::string> get_header_value_map(std::string output) {
+  std::map<std::string, std::string> ret;
+  std::vector<std::string> lines = utils::split(output, '\n');
+  for (std::string line : lines) {
+    if (line.empty()) continue;
+    // std::cout << line  << "\n";
+    assert(line.find("=") != std::string::npos);
+    std::string header = line.substr(0, line.find("="));
+    utils::trim(header);
+    std::string value = line.substr(line.find("=") + 1);
+    utils::trim(value);
+    ret[header] = value;
+  }
+  return ret;
+}
+
+
+/**
+ * Invariants generation
+ * This will parse the output.
+ * The output format matters.
+ * OK, I'm going to generate a CSV file, and use R to solve it.
+ *
+ * The output should be:
+ * xxx = yyy
+ * xxx != NULL
+ *
+ * Also, the output should be separate to test success and failure
+ */
+// void NewTestResult::GetInvariants() {
+//   // 1. separate success and failure output
+//   // std::vector<std::string> outputs = m_poi_output_success;
+//   // 2. get all the headers (xxx)
+//   std::vector<std::map<std::string, std::string> > header_value_maps;
+//   for (std::string output : m_poi_output_success) {
+//     std::map<std::string, std::string> m = get_header_value_map(output);
+//     m["HELIUM_TEST_SUCCESS"] = "true";
+//     header_value_maps.push_back(m);
+//   }
+//   for (std::string output : m_poi_output_failure) {
+//     std::map<std::string, std::string> m = get_header_value_map(output);
+//     m["HELIUM_TEST_SUCCESS"] = "false";
+//     header_value_maps.push_back(m);
+//   }
+//   std::set<std::string> headers;
+//   for (auto &m : header_value_maps) {
+//     for (auto mm : m) {
+//       headers.insert(mm.first);
+//     }
+//   }
+//   // 3. generate the CVS file, all the unavailable fields should be marked as N/A
+//   std::string csv;
+//   assert(headers.size() > 0);
+//   for (const std::string &header : headers) {
+//     csv += header;
+//     csv += ",";
+//   }
+//   csv.pop_back();
+//   csv += "\n";
+
+//   for (auto m : header_value_maps) {
+//     // for every output, one line
+//     for (const std::string &header : headers) {
+//       if (m.count(header) == 1) {
+//         csv += m[header] + ",";
+//       } else {
+//         csv += "N/A,";
+//       }
+//     }
+//     csv.pop_back();
+//     csv += "\n";
+//   }
+//   // 4. Call R script, generate result, in some format.
+//   std::cout << csv  << "\n";
+// }
+
+void NewTestResult::GetInvariants() {
+}
+
+void NewTestResult::GetPreconditions() {
+}
+
+void NewTestResult::GetTransferFunctions() {
+}
+
+/**
+ * I want the output, the precondition, to be in the same CVS file.
+ * I need a data structure to hold the data.
+ */
+void NewTestResult::PrepareData() {
+  std::set<std::string> output_headers;
+  for (int i=0;i<(int)m_test_suite.size();i++) {
+    // output
+    std::string output = m_poi_output[i].first;
+    bool success = m_poi_output[i].second;
+    std::map<std::string, std::string> m = get_header_value_map(output);
+    std::map<std::string, std::string> om; // added prefix "O_"
+    // add prefix "O_"
+    for (auto mm : m) {
+      om["O_" + mm.first] = mm.second;
+      m_o_headers.insert("O_" + mm.first);
+    }
+    // input
+    std::string input;
+    for (TestInput *in : m_test_suite[i]) {
+      input += in->ToString();
+    }
+    // std::cout << input  << "\n";
+    m = get_header_value_map(input);
+    std::map<std::string, std::string> im;
+    for (auto mm : m) {
+      im["I_" + mm.first] = mm.second;
+      m_i_headers.insert("I_" + mm.first);
+    }
+    // merge IO together
+    m.clear();
+    m.insert(im.begin(), im.end());
+    m.insert(om.begin(), om.end());
+    m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
+    m_i_headers.insert("HELIUM_TEST_SUCCESS");
+    m_o_headers.insert("HELIUM_TEST_SUCCESS");
+    m_headers.insert(m_i_headers.begin(), m_i_headers.end());
+    m_headers.insert(m_o_headers.begin(), m_o_headers.end());
+    m_header_value_maps.push_back(m);
+  }
+}
+
+/**
+ * Must be called after PrepareData
+ * @param [in] io_type "I" "O" "IO"
+ * @param [in] sf_type "S" "F" "SF"
+ */
+std::string NewTestResult::GenerateCSV(std::string io_type, std::string sf_type) {
+  std::string ret;
+  std::set<std::string> headers;
+  assert(m_headers.size() > 0);
+  assert(m_i_headers.size() > 0);
+  assert(m_o_headers.size() > 0);
+  // std::cout << m_headers.size()  << "\n";
+  // std::cout << m_i_headers.size()  << "\n";
+  // std::cout << m_o_headers.size()  << "\n";
+  // different types
+  if (io_type == "I") {
+    // only input, preconditions
+    headers = m_i_headers;
+  } else if (io_type == "O") {
+    // only output
+    headers = m_o_headers;
+  } else if (io_type == "IO") {
+    headers = m_headers;
+  } else {
+    assert(false);
+  }
+  // header
+  for (const std::string &header : headers) {
+    ret += header;
+    ret += ",";
+  }
+  ret.pop_back();
+  ret += "\n";
+  // data
+  assert(sf_type == "S" || sf_type == "F" || sf_type == "SF");
+  for (auto m : m_header_value_maps) {
+    assert(m.count("HELIUM_TEST_SUCCESS") == 1);
+    if (sf_type == "S" && m["HELIUM_TEST_SUCCESS"] == "false") continue;
+    if (sf_type == "F" && m["HELIUM_TEST_SUCCESS"] == "true") continue;
+    for (const std::string &header : headers) {
+      if (m.count(header) == 1) {
+        ret += m[header] + ",";
+      } else {
+        ret += "N/A,";
+      }
+    }
+    ret.pop_back();
+    ret += "\n";
+  }
+  return ret;
 }

@@ -218,6 +218,12 @@ namespace ast {
       // TODO need to remove this?
       m_deco_output_m = deco_output_m;
     }
+    /**
+     * Use the new type system.
+     */
+    void SetOutput(std::map<ASTNode*, std::vector<NewVariable> > output_m) {
+      m_output_m = output_m;
+    }
     void ClearDecl() {
       m_decl_input_m.clear();
       m_decl_m.clear();
@@ -233,6 +239,10 @@ namespace ast {
     }
     std::set<std::string> GetRequiredDecoOutput(ASTNode* node) {
       if (m_deco_output_m.count(node) == 1) return m_deco_output_m[node];
+      else return {};
+    }
+    std::vector<NewVariable> GetRequiredOutputVariables(ASTNode *node) {
+      if (m_output_m.count(node) == 1) return m_output_m[node];
       else return {};
     }
     /**
@@ -371,7 +381,8 @@ namespace ast {
     std::map<ASTNode*, std::set<std::string> > m_decl_input_m;
     // do not need input
     std::map<ASTNode*, std::set<std::string> > m_decl_m;
-    std::map<ASTNode*, std::set<std::string> > m_deco_output_m;
+    std::map<ASTNode*, std::set<std::string> > m_deco_output_m; // deprecated
+    std::map<ASTNode*, std::vector<NewVariable> > m_output_m;
   };
 
   class ASTNodeFactory {
@@ -400,6 +411,11 @@ namespace ast {
      */
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) = 0;
+    virtual std::string dump() {
+      std::string code;
+      GetCode({}, code, true);
+      return code;
+    }
     // void GetCode(std::set<ASTNode*> nodes,
     //              std::string &ret, bool all,
     //              std::map<ASTNode*, std::set<std::string> > &decl_input_m,

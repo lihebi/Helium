@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "snippet.h"
 
+class TestInput;
 /**
  * This is the new type system.
  * Changing the old one makes the whole system down.
@@ -93,6 +94,7 @@ public:
    */
   virtual std::string GetInputCode(std::string var) = 0;
   virtual std::string GetOutputCode(std::string var) = 0;
+  // GetTestInput is deprecated. Use GetTestInputSpec instead
   virtual std::vector<std::string> GetTestInput(int size) {
     std::vector<std::string> ret;
     for (int i=0;i<size;i++) {
@@ -101,6 +103,18 @@ public:
     return ret;
   }
   virtual std::string GetTestInput() = 0;
+  /**
+   * CAUTION The TestInput* needs to be free-d by the user.
+   * FIXME NOW this should be called GenerateXXX, so that it reminds user something is generated, and needs to be free-d
+   */
+  virtual std::vector<TestInput*> GetTestInputSpec(std::string var, int size) {
+    std::vector<TestInput*> ret;
+    for (int i=0;i<size;i++) {
+      ret.push_back(GetTestInputSpec(var));
+    }
+    return ret;
+  }
+  virtual TestInput* GetTestInputSpec(std::string var);
 protected:
   std::string m_raw;
   std::vector<std::string> m_dims;
@@ -117,6 +131,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput GetTestInputSpec() override;
   virtual NewTypeKind Kind() const override {
     return NTK_System;
   }
@@ -139,6 +154,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput GetTestInputSpec() override;
   virtual NewTypeKind Kind() const override {
     return NTK_Local;
   }
@@ -170,6 +186,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override = 0;
   virtual std::string GetOutputCode(std::string var) override = 0;
   virtual std::string GetTestInput() override = 0;
+  // virtual TestInput GetTestInputSpec() override;
   virtual NewTypeKind Kind() const override {
     return NTK_Primitive;
   }
@@ -191,6 +208,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  virtual TestInput* GetTestInputSpec(std::string var) override;
 private:
 };
 
@@ -206,6 +224,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput* GetTestInputSpec(std::string var) override;
 };
 /**
  * float, double
@@ -218,6 +237,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput GetTestInputSpec() override;
 };
 class Void : public PrimitiveNewType {
 public:
@@ -227,6 +247,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput GetTestInputSpec() override;
 };
 class Bool : public PrimitiveNewType {
 public:
@@ -236,6 +257,86 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
+  // virtual TestInput GetTestInputSpec() override;
+};
+
+class NewVariable {
+public:
+  NewVariable(NewType *type, std::string var) : m_type(type), m_var(var) {}
+  NewType *GetType() {return m_type;}
+  std::string GetName() {return m_var;}
+private:
+  NewType *m_type;
+  std::string m_var;
+};
+
+/**
+ * Test input class.
+ * Test input should not just be a string.
+ * it should be able to dump, be able to describe the meta data of this test case,
+ * e.g. size of the buffer array, value of a int, generated string length.
+ */
+class TestInput {
+public:
+  TestInput(NewType *type, std::string var) : m_type(type), m_var(var) {}
+  virtual ~TestInput() {}
+  std::string GetRaw() {return m_raw;}
+  std::string GetVar() {return m_var;}
+  NewType *GetType() {return m_type;}
+  void SetRaw(std::string raw) {m_raw = raw;}
+  virtual std::string dump() {
+    std::string ret;
+    ret += "Default TestInput\n";
+    ret += m_type->ToString() + " " + m_var + "\n";
+    return ret;
+  }
+  /**
+   * Must be of xxx=yyy format, in each line
+   */
+  virtual std::string ToString() {
+    std::string ret;
+    ret += m_var + " = Default\n";
+    return ret;
+  }
+protected:
+  NewType *m_type;
+  std::string m_var;
+  std::string m_raw;
+};
+
+class CharTestInput : public TestInput {
+public:
+  CharTestInput(NewType *type, std::string var) : TestInput(type, var) {}
+  void SetStrlen(std::vector<int> strlens) {
+    m_strlens = strlens;
+  }
+  virtual std::string dump() {
+    std::string ret;
+    ret += m_type->ToString() + " " + m_var + "\n";
+    ret += "size: " + std::to_string(m_strlens.size()) + ", ";
+    ret += "strlens:";
+    for (int len : m_strlens) {
+      ret += " " + std::to_string(len);
+    }
+    return ret;
+  }
+  virtual std::string ToString() {
+    std::string ret;
+    ret += m_var + ".size() = " + std::to_string(m_strlens.size()) + "\n";
+    for (int i=0;i<(int)m_strlens.size();++i) {
+      ret += "strlen[" + std::to_string(i) + "] = " + std::to_string(m_strlens[i]) + "\n";
+    }
+    return ret;
+  }
+private:
+  /**
+   * If only one pointer, the strlen only has one size, and contains one integer.
+   * If pointer to pointer, it will have size 1, and the inner have size many
+   * If pointer to pointer to pointer, it will have size 3, etc.
+   * TODO right now, we only handle char**, no more
+   * Thus the strlens only need one dimension
+   */
+  std::vector<int> m_strlens;
 };
 
 

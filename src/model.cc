@@ -77,12 +77,20 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
     /**
      * Currently only do outupt before a Stmt.
      */
-    std::set<std::string> outputs = m_ast->GetRequiredDecoOutput(this);
-    for (std::string var : outputs) {
-      SymbolTableValue *val = m_sym_tbl->LookUp(var);
-      if (val) {
-        std::string code = val->GetType()->GetOutputCode(val->GetName());
-        ret += code;
+    // std::set<std::string> outputs = m_ast->GetRequiredDecoOutput(this);
+    // for (std::string var : outputs) {
+    //   SymbolTableValue *val = m_sym_tbl->LookUp(var);
+    //   if (val) {
+    //     std::string code = val->GetType()->GetOutputCode(val->GetName());
+    //     ret += code;
+    //   }
+    // }
+
+    std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+    if (vars.size() > 0) {
+      ret += "printf(\"HELIUM_POI = true\\n\");\n";
+      for (NewVariable var : vars) {
+        ret += var.GetType()->GetOutputCode(var.GetName());
       }
     }
     ret += get_text(m_xmlnode);

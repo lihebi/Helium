@@ -86,6 +86,19 @@ NewType::NewType(std::string raw, std::vector<std::string> dims) : m_raw(raw), m
   m_dimension = m_dims.size();
 }
 
+/**
+ * The return value should be free-d by user.
+ */
+TestInput* NewType::GetTestInputSpec(std::string var) {
+  TestInput *ret = new TestInput(this, var);
+  ret->SetRaw(GetTestInput());
+  // std::cout << ret->GetRaw()  << "\n";
+  // std::cout << GetTestInput()  << "\n";
+  // getchar();
+  return ret;
+}
+
+
 
 /**
  * Get the raw ID of the type
@@ -336,6 +349,18 @@ std::string Char::GetDeclCode(std::string var) {
   return ret;
 }
 
+std::string get_str_input_code(std::string name) {
+  std::string ret;
+  ret += "  scanf(\"%d\", &helium_size);\n";
+  ret += "  " + name + " = (char*)malloc(sizeof(char)*helium_size);\n";
+  ret += "  if (helium_size == 0) {\n";
+  ret += "    " + name + " = NULL;\n";
+  ret += "  } else {\n";
+  ret += "    scanf(\"%s\", "+ name +");\n";
+  ret += "  }\n";
+  return ret;
+}
+
 std::string Char::GetInputCode(std::string var) {
   std::string ret;
   ret += "// Char::GetInputCode\n";
@@ -344,8 +369,10 @@ std::string Char::GetInputCode(std::string var) {
       ret += "scanf(\"%c\", &"+var+");\n";
     } else if (m_dimension == 1) {
       // TODO
+      ret += "// HELIUM_TODO char[], should we init this?\n";
     } else if (m_dimension == 2) {
       // TODO
+      ret += "// HELIUM_TODO char[][]\n";
     } else {
       assert(false && "char [][][]");
     }
@@ -379,9 +406,15 @@ std::string Char::GetInputCode(std::string var) {
     ret += var + " = (char**)malloc(sizeof(char*)*helium_size);\n";
     ret += "for (int i=0;i<helium_size;i++) {\n";
     ret += "  int helium_size;\n";
-    ret += "  scanf(\"%d\", &helium_size);\n";
-    ret += "  " + var + "[i] = (char*)malloc(sizeof(char)*helium_size);\n";
-    ret += "  scanf(\"%s\", "+var+"[i]);\n}";
+    // ret += "  scanf(\"%d\", &helium_size);\n";
+    // ret += "  " + var + "[i] = (char*)malloc(sizeof(char)*helium_size);\n";
+    // ret += "  if (helium_size == 0) {\n";
+    // ret += "    " + var + "[i] = NULL;\n";
+    // ret += "  } else {\n";
+    // ret += "  scanf(\"%s\", "+var+"[i]);\n}";
+    // ret += "  }";
+    ret += get_str_input_code(var + "[i]");
+    ret += "}\n";
   } else {
     assert(false && "char ***");
   }
@@ -427,15 +460,66 @@ std::string Char::GetTestInput() {
     int size = utils::rand_int(0, 5);
     ret += std::to_string(size);
     for (int i=0;i<size;i++) {
-      int size2 = utils::rand_int(0, 5);
-      ret += " " + std::to_string(size);
-      for (int j=0;j<size2;j++) {
-        ret += utils::rand_str(utils::rand_int(0, 10));
+      int size2 = utils::rand_int(0, 3000);
+      ret += " " + std::to_string(size2) + " ";
+      // for (int j=0;j<size2;j++) {
+      //   ret += utils::rand_str(utils::rand_int(0, 10)) + " ";
+      // }
+      if (size2 != 0) {
+        ret += utils::rand_str(utils::rand_int(1, size2));
       }
     }
   } else {
     assert(false);
   }
+  return ret;
+}
+
+
+TestInput* Char::GetTestInputSpec(std::string var) {
+  std::string raw;
+  std::vector<int> strlens;
+  if (m_pointer == 0) {
+    if (m_dimension == 0) {
+      raw += utils::rand_char();
+    } else if (m_dimension == 1) {
+      // TODO
+    } else if (m_dimension == 2) {
+      // TODO
+    } else {
+      assert(false);
+    }
+  } else if (m_pointer == 1) {
+    int size = utils::rand_int(0,3000);
+    raw += std::to_string(size) + " ";
+    if (size != 0) {
+      raw += utils::rand_str(utils::rand_int(1, size));
+    }
+    strlens.push_back(size);
+    // for (int i=0;i<size;i++) {
+    //   raw += " " + utils::rand_str(utils::rand_int(0, size));
+    // }
+  } else if (m_pointer == 2) {
+    // TODO
+    int size = utils::rand_int(0, 5);
+    raw += std::to_string(size);
+    for (int i=0;i<size;i++) {
+      int size2 = utils::rand_int(0, 3000);
+      raw += " " + std::to_string(size2) + " ";
+      // for (int j=0;j<size2;j++) {
+      //   raw += utils::rand_str(utils::rand_int(0, 10)) + " ";
+      // }
+      if (size2 != 0) {
+        raw += utils::rand_str(utils::rand_int(1, size2));
+      }
+      strlens.push_back(size2);
+    }
+  } else {
+    assert(false);
+  }
+  CharTestInput *ret = new CharTestInput(this, var);
+  ret->SetRaw(raw);
+  ret->SetStrlen(strlens);
   return ret;
 }
 
@@ -467,8 +551,19 @@ std::string Char::GetOutputCode(std::string var) {
   } else if (m_pointer == 2) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
     // TODO the size of the buffer?
-    ret += "printf(\"" + var + "[0] = " +  "%s\\n\", " + var + "[0]);\n";
-    ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof("+var+"));\n";
+    // ret += "printf(\"" + var + " == NULL? : %d\\n\", " + var + " == NULL);\n";
+    ret += "if (" + var + " != NULL) {\n";
+    ret += "  printf(\"" + var + " = !NULL\\n\");\n";
+    ret += "  if (*" + var + " != NULL) {\n";
+    ret += "    printf(\"*" + var + " = !NULL\\n\");\n";
+    ret += "    printf(\"strlen(*" + var + ") = " +  "%d\\n\", strlen(*" + var + "));\n";
+    ret += "  } else {\n";
+    ret += "    printf(\"*" + var + " == NULL\\n\");\n";
+    ret += "  }\n";
+    ret += "} else {\n";
+    ret += "  printf(\"" + var + " == NULL\\n\");\n";
+    ret += "}";
+    // ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof("+var+"));\n";
   }
   return ret;
 }

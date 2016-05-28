@@ -3,3 +3,31 @@
 - some syntac adjustment
  - switch last stmt break;
  - else if {}
+
+
+* Write up for Friday meeting 2016-05-27 Fri 09:44:03 PM
+
+Today's idea focuses on how to use invariants, preconditions, and transfer functions.
+The problem is, sometimes we cannot get the data at POI when the buffer overflow bugs are triggered.
+The reason is, when we want to print out the string length, we need to access that memory, which will cause a crash.
+What we can get is the safe condition, instead of crash condition.
+And we want to decide the stop point.
+
+One previous solution is to use the transfer function generated from safe runs, and map back to the precondition.
+If the precondition is mapped to, i.e. the precondition can tell the bug condition, we can stop.
+
+However, there's a problem.
+The transfer function is for the safe condition.
+If the correct run and failure run follow the same pass, the transfer function is the same.
+In this case, we can negate the safe condition, into the error condition, and use the transfer function to map back to the failure precondition.
+We can further validate it by generating input that satisfies the failure precondition, and observe crash.
+
+On the other hand, in the case the correct run and failure runs follow different pathes,
+we can not use the safe transfer function to represent the failure one.
+
+The solution:
+1. Research dynamic instrumentation and debugging technique, like valgrind and gdb, to see if they can record the data.
+2. When generating code, output two versions: one original, and one with replacement of all buffers to a large fixed length buffer.
+   Whenever the input crashes at POI, and not able to get the data, use the same input to test the modified version, and hopefully get the data.
+   The downside of this approach: constant overhead, the modified version may change the semantic of the code, e.g. the path.
+   To validate if it will change the pass, instrument the branches of the two version and compare the trace.

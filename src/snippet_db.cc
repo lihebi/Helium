@@ -429,6 +429,18 @@ std::string SnippetDB::QueryCaller(std::string func_name) {
   else return *callers.begin();
 }
 
+std::set<int> SnippetDB::LookUp(SnippetKind kind) {
+  std::set<int> ret;
+  assert(m_db);
+  char k = snippet_kind_to_char(kind);
+  std::string query = "select snippet_id from signature where kind='";
+  query += k;
+  query += "';";
+  std::vector<int> v = queryInt(query.c_str());
+  ret.insert(v.begin(), v.end());
+  return ret;
+}
+
 
 /**
  * Look up the key in the database.
@@ -480,6 +492,7 @@ std::set<int> SnippetDB::LookUp(std::set<std::string> keys, std::set<SnippetKind
   }
   return ret;
 }
+
 
 
 SnippetMeta SnippetDB::GetMeta(int snippet_id) {
