@@ -1,10 +1,13 @@
 #include "global_variable.h"
+#include "options.h"
+#include <iostream>
 
 using namespace ast;
 
 GlobalVariableRegistry* GlobalVariableRegistry::m_instance = NULL;
 
 GlobalVariableRegistry::GlobalVariableRegistry() {
+  print_trace("GlobalVariableRegistry::GlobalVariableRegistry()");
   // create registry
   // 1. look up the snippet db, get all variables
   // 2. get the code
@@ -23,4 +26,12 @@ GlobalVariableRegistry::GlobalVariableRegistry() {
       }
     }
   }
+}
+
+NewType *GlobalVariableRegistry::LookUp(std::string var) {
+  print_trace("GlobalVariableRegistry::LookUp(std::string var)");
+  if (m_variable_m.count(var) == 1) {
+    return m_variable_m[var]->GetType();
+  }
+  return NULL;
 }

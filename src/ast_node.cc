@@ -489,6 +489,7 @@ std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
  * FIXME This should be the only one constructor used?
  */
 ast::AST::AST(ast::XMLNode node) {
+  print_trace("AST::AST(ast::XMLNode node)");
   // create root, and the root will create everything else
   m_root = ASTNodeFactory::CreateASTNode(node, NULL, this);
   if (!m_root) return;

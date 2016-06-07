@@ -25,6 +25,7 @@ using namespace utils;
  *   3. Special Variables, e.g. optarg
  */
 NewType* resolve_type(std::string var, ASTNode *node) {
+  print_trace("resolve_type(std::string var, ASTNode *node)");
   SymbolTable *tbl = node->GetSymbolTable();
   SymbolTableValue* value = tbl->LookUp(var);
   if (value) {
@@ -69,6 +70,7 @@ Seg::Seg(ast::XMLNode xmlnode) {
   }
   ASTNode *poi_node = *m_nodes.begin();
   for (std::string id : ids) {
+    // std::cout << id  << "\n";
     if (id.empty()) continue;
     if (is_c_keyword(id)) continue;
     NewType *type = resolve_type(id, *m_nodes.begin());

@@ -34,3 +34,20 @@ The solution:
 
 * Some Future questions
 - What about the output statement output many times? Do we only record the last one? or do we record everyone?
+
+* code example
+
+gzip.c:523, the return statement. It will cause compile error if put in main function.
+#+BEGIN_SRC C
+local void treat_file(iname)
+    char *iname;
+{
+    /* Accept "-" as synonym for stdin */
+    if (strequ(iname, "-")) {
+	int cflag = to_stdout;
+	treat_stdin();
+	to_stdout = cflag;
+	return;
+    }
+
+#+END_SRC

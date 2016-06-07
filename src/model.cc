@@ -384,13 +384,13 @@ void Then::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   // For a then block, even if it is not selected, we need to have braces to make it compile
-  ret += "{";
+  ret += "{\n";
   if (selected) {
     for (ASTNode *n : m_children) {
       n->GetCode(nodes, ret, all);
     }
   }
-  ret += "}";
+  ret += "}\n";
 }
 
 Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {

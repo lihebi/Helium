@@ -38,12 +38,7 @@ public:
     }
     return m_instance;
   }
-  NewType *LookUp(std::string var) {
-    if (m_variable_m.count(var) == 1) {
-      return m_variable_m[var]->GetType();
-    }
-    return NULL;
-  }
+  NewType *LookUp(std::string var);
   ~GlobalVariableRegistry() {
     for (auto m : m_variable_m) {
       delete m.second;

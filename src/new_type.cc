@@ -3,6 +3,7 @@
 #include "resolver.h"
 #include <iostream>
 #include "config.h"
+#include "options.h"
 
 using namespace utils;
 using namespace ast;
@@ -141,6 +142,7 @@ static struct type_specifier get_type_specifier(std::string raw) {
 // }
 
 NewType* NewTypeFactory::CreateType(std::string raw, std::vector<std::string> dims) {
+  // print_trace("NewTypeFactory::CreateType: " +  raw);
   std::string id = get_id(raw);
   if (id.empty()) {
     struct type_specifier ts = get_type_specifier(raw);
@@ -166,6 +168,10 @@ NewType* NewTypeFactory::CreateType(std::string raw, std::vector<std::string> di
       return new SystemNewType(raw, dims);
     }
   } else {
+    // TODO FIXME should I just return NULL?
+    // But anyway the SnippetRegistry is DEPRECATED
+    // return NULL;
+    return new LocalNewType(raw, dims);
     std::set<Snippet*> snippets = SnippetRegistry::Instance()->Resolve(id);
     // TODO check type
     if (snippets.empty()) {
@@ -179,6 +185,10 @@ NewType* NewTypeFactory::CreateType(std::string raw, std::vector<std::string> di
     }
   }
   // should not reach here
+  // in another word, should not return NULL
+  // FIXME TODO handle the case where the type is not created correctly (NULL)
+  // It should be in model.cc, in Decl class
+  assert(false);
   return NULL;
 }
 NewType* NewTypeFactory::CreateType(ast::XMLNode decl_node) {
