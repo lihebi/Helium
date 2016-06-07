@@ -31,3 +31,6 @@ The solution:
    Whenever the input crashes at POI, and not able to get the data, use the same input to test the modified version, and hopefully get the data.
    The downside of this approach: constant overhead, the modified version may change the semantic of the code, e.g. the path.
    To validate if it will change the pass, instrument the branches of the two version and compare the trace.
+
+* Some Future questions
+- What about the output statement output many times? Do we only record the last one? or do we record everyone?

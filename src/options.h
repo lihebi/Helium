@@ -24,6 +24,8 @@ typedef enum {
   , POK_IOSpec // IO specifications
   , POK_TestInfo // test info
   , POK_TestInfoDot // test infor as dot, green for success, red for error
+  , POK_AnalysisResult
+  , POK_CSVSummary
 } PrintOptionKind;
 class PrintOption {
 public:

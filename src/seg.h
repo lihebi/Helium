@@ -82,6 +82,9 @@ public:
    */
   void Test();
   void dump();
+  bool IsResolved() {
+    return m_query_resolved;
+  }
 
 
   /**
@@ -110,6 +113,11 @@ private:
    * No magic, the old one suffices.
    */
   void resolveSnippet(ast::AST *ast);
+  /**
+   * Try to Resolve the query.
+   * @return true, or false. CAUTION this return value should be set to m_query_resolved
+   */
+  bool resolveQuery(std::vector<std::string> invs, std::vector<std::string> pres, std::vector<std::string> trans);
   /**
    * Code getting
    */
@@ -142,9 +150,17 @@ private:
   std::map<ast::AST*, InputMetrics> m_inputs; // only need input
   
   std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
+  
+  bool m_query_resolved = false;
 };
 
 
+/**
+ * The test result should record both input and output.
+ * Input is used to construct it.
+ * Output is added later. You can add arbitrary number of output.
+ * This class is able to generate the CSV file for analyze.
+ */
 class NewTestResult {
 public:
   NewTestResult(std::vector<std::vector<TestInput*> > test_suite) : m_test_suite(test_suite) {}
@@ -193,4 +209,44 @@ private:
   std::set<std::string> m_i_headers;
   std::set<std::string> m_o_headers;
 };
+
+
+class BinaryFormula {
+public:
+  BinaryFormula(std::string raw);
+  ~BinaryFormula() {}
+  std::string GetLHS() {return m_lhs;}
+  std::string GetRHS() {return m_rhs;}
+  int GetConf() {return m_conf;}
+  std::string GetOP() {return m_op;}
+  // FIXME this should not be used actually, because I may modify the binary formula instance
+  // std::string GetRaw() {return m_raw;}
+  std::string dump() {
+    return m_lhs + m_op + m_rhs + " conf: " + std::to_string(m_conf);
+  }
+  std::set<std::string> GetVars();
+
+  std::string GetLHSVar() {
+    return getVar(m_lhs);
+  }
+  std::string GetRHSVar() {
+    return getVar(m_rhs);
+  }
+
+  void UpdateRHS(std::string rhs) {m_rhs = rhs;}
+  void UpdateLHS(std::string lhs) {m_lhs = lhs;}
+  void Inverse();
+private:
+  std::string getVar(std::string s);
+  std::string m_raw;
+  std::string m_lhs;
+  std::string m_rhs;
+  int m_conf = 0;
+  std::string m_op;
+};
+
+
+
 #endif /* SEG_H */
+
+

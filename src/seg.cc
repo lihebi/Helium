@@ -10,6 +10,8 @@
 #include "builder.h"
 #include "global_variable.h"
 #include "config.h"
+#include "analyzer.h"
+#include <gtest/gtest.h>
 
 using namespace ast;
 using namespace utils;
@@ -171,7 +173,8 @@ bool Seg::NextContext() {
     ctx->SetFirstNode(leaf);
     ctx->AddNode(leaf);
     // printing the new node
-    std::cout << leaf->dump()  << "\n";
+    // std::cout << leaf->dump()  << "\n";
+    utils::print(leaf->dump() + "\n", utils::CK_Purple);
   } else {
     // std::cerr << "Inter procedure"  << "\n";
     AST *ast = first_node->GetAST();
@@ -204,6 +207,12 @@ bool Seg::NextContext() {
   ctx->Resolve();
   // ctx->dump();
   ctx->Test();
+  if (ctx->IsResolved()) {
+    // query resolved.
+    return false; // stop increasing
+  } else {
+    return true;
+  }
   return true;
 }
 
@@ -794,6 +803,7 @@ void Ctx::Test() {
     for (auto metric : metrics) {
       std::string var = metric.first;
       NewType *type = metric.second;
+      // constructing inputs
       std::vector<TestInput*> inputs = type->GetTestInputSpec(var, test_number);
       assert((int)inputs.size() == test_number);
       for (int i=0;i<(int)inputs.size();i++) {
@@ -855,7 +865,8 @@ void Ctx::Test() {
     test_result.PrepareData();
     // std::string i_csv = test_result.GenerateCSV("I", "S");
     // std::string o_csv = test_result.GenerateCSV("O", "S");
-    std::string csv = test_result.GenerateCSV("IO", "S");
+    // HEBI Generating CSV file
+    std::string csv = test_result.GenerateCSV("IO", "SF");
     // std::cout << "icsv"  << "\n";
     // std::cout << i_csv  << "\n";
     // std::cout << "ocsv"  << "\n";
@@ -875,9 +886,33 @@ void Ctx::Test() {
     test_result.GetPreconditions();
     test_result.GetTransferFunctions();
 
-    std::string cmd = "compare.py -f " + csv_file;
-    std::string inv = utils::exec(cmd.c_str());
-    std::cout << inv  << "\n";
+    if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+      Analyzer analyzer(csv_file);
+      std::vector<std::string> invs = analyzer.GetInvariants();
+      std::vector<std::string> pres = analyzer.GetPreConditions();
+      std::vector<std::string> trans = analyzer.GetTransferFunctions();
+      std::cout << "------ invariants ------"  << "\n";
+      for (auto &s : invs) {
+        std::cout << "| " << s  << "\n";
+      }
+      std::cout << "------ pre condtions ------"  << "\n";
+      for (auto &s : pres) {
+        std::cout << "| " << s  << "\n";
+      }
+      std::cout << "------ transfer functions ------"  << "\n";
+      for (auto &s : trans) {
+        std::cout << "| " << s  << "\n";
+      }
+      std::cout << "------------------------------"  << "\n";
+
+      std::cout << "---- resolveQuery -----"  << "\n";
+      m_query_resolved = resolveQuery(invs, pres, trans);
+      std::cout << "------ end of query resolving -----"  << "\n";
+
+      // std::string cmd = "compare.py -f " + csv_file;
+      // std::string inv = utils::exec(cmd.c_str());
+      // std::cout << inv  << "\n";
+    }
 
     
     /**
@@ -909,6 +944,12 @@ void Ctx::Test() {
   // TODO return good or not, to decide whether to keep the newly added statements
 }
 
+
+
+/**
+ * @pram [in] output lines representing output. The format is xxx=yyy.
+ * @return xxx:yyy maps
+ */
 std::map<std::string, std::string> get_header_value_map(std::string output) {
   std::map<std::string, std::string> ret;
   std::vector<std::string> lines = utils::split(output, '\n');
@@ -1006,10 +1047,27 @@ void NewTestResult::PrepareData() {
     bool success = m_poi_output[i].second;
     std::map<std::string, std::string> m = get_header_value_map(output);
     std::map<std::string, std::string> om; // added prefix "O_"
+    std::map<std::string, std::string> im;
+    bool poi = false;
     // add prefix "O_"
     for (auto mm : m) {
-      om["O_" + mm.first] = mm.second;
-      m_o_headers.insert("O_" + mm.first);
+      // om["O_" + mm.first] = mm.second;
+      if (mm.first[0] == 'O') {
+        om[mm.first] = mm.second;
+        m_o_headers.insert(mm.first);
+      } else if (mm.first[0] == 'I') {
+        im[mm.first] = mm.second;
+        m_i_headers.insert(mm.first);
+      } else {
+        // HELIUM_POI
+        assert(mm.first == "HELIUM_POI");
+        im[mm.first] = mm.second;
+        om[mm.first] = mm.second;
+        m_i_headers.insert(mm.first);
+        m_o_headers.insert(mm.second);
+        if (mm.second == "true") poi = true;
+      }
+      // m_o_headers.insert("O_" + mm.first);
     }
     // input
     std::string input;
@@ -1018,10 +1076,12 @@ void NewTestResult::PrepareData() {
     }
     // std::cout << input  << "\n";
     m = get_header_value_map(input);
-    std::map<std::string, std::string> im;
     for (auto mm : m) {
-      im["I_" + mm.first] = mm.second;
-      m_i_headers.insert("I_" + mm.first);
+      assert(mm.first[0] == 'I');
+      im[mm.first] = mm.second;
+      m_i_headers.insert(mm.first);
+      // im["I_" + mm.first] = mm.second;
+      // m_i_headers.insert("I_" + mm.first);
     }
     // merge IO together
     m.clear();
@@ -1030,6 +1090,9 @@ void NewTestResult::PrepareData() {
     m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
     m_i_headers.insert("HELIUM_TEST_SUCCESS");
     m_o_headers.insert("HELIUM_TEST_SUCCESS");
+    m["HELIUM_POI"] = poi ? "true" : "false";
+    m_i_headers.insert("HELIUM_POI");
+    m_o_headers.insert("HELIUM_POI");
     m_headers.insert(m_i_headers.begin(), m_i_headers.end());
     m_headers.insert(m_o_headers.begin(), m_o_headers.end());
     m_header_value_maps.push_back(m);
@@ -1079,11 +1142,320 @@ std::string NewTestResult::GenerateCSV(std::string io_type, std::string sf_type)
       if (m.count(header) == 1) {
         ret += m[header] + ",";
       } else {
-        ret += "N/A,";
+        // if the record does not contains the record, give is NA
+        ret += "NA,";
       }
     }
     ret.pop_back();
     ret += "\n";
   }
   return ret;
+}
+
+
+
+
+
+/********************************
+ * Resolving Query
+ *******************************/
+/**
+ * Return the inversed version of op. > becomes <
+ */
+std::string inverse_op(std::string op) {
+  if (op == "=") return "=";
+  if (op == ">") return "<";
+  if (op == ">=") return "<=";
+  if (op == "<") return ">";
+  if (op == "<=") return ">=";
+  assert(false);
+}
+
+void BinaryFormula::Inverse() {
+  std::string tmp = m_rhs;
+  m_rhs = m_lhs;
+  m_lhs = tmp;
+  m_op = inverse_op(m_op);
+}
+
+
+BinaryFormula::BinaryFormula(std::string raw) : m_raw(raw) {
+  std::string formula = raw.substr(0, raw.find("conf:"));
+  std::string conf = raw.substr(raw.find("conf:") + 5);
+  m_conf = atoi(conf.c_str());
+  utils::trim(formula);
+  // find the <, >, <=, >=, =
+  size_t pos;
+  int offset;
+  if (formula.find("<=") != std::string::npos) {
+    pos = formula.find("<=");
+    offset = 2;
+    m_op = "<=";
+  } else if (formula.find(">=") != std::string::npos) {
+    pos = formula.find(">=");
+    offset = 2;
+    m_op = ">=";
+  } else if (formula.find("=") != std::string::npos) {
+    pos = formula.find("=");
+    offset = 1;
+    m_op = "=";
+  } else if (formula.find("<") != std::string::npos) {
+    pos = formula.find("<");
+    offset = 1;
+    m_op = "<";
+  } else if (formula.find(">") != std::string::npos) {
+    pos = formula.find(">");
+    offset = 1;
+    m_op = ">";
+  } else {
+    assert(false);
+  }
+  m_lhs = formula.substr(0, pos);
+  m_rhs = formula.substr(pos + offset);
+  utils::trim(m_lhs);
+  utils::trim(m_rhs);
+}
+
+
+
+TEST(SegTestCase, BinaryFormulaTest) {
+  BinaryFormula bf("Od_sizeof(tempname)=1024 conf:18");
+  EXPECT_EQ(bf.GetLHS(), "Od_sizeof(tempname)");
+  EXPECT_EQ(bf.GetRHS(), "1024");
+  EXPECT_EQ(bf.GetOP(), "=");
+  EXPECT_EQ(bf.GetConf(), 18);
+
+  BinaryFormula bf2("Id_strlen(argv[1])<=1024");
+  EXPECT_EQ(bf2.GetLHSVar(), "argv");
+  std::set<std::string> ss = bf2.GetVars();
+  // for (auto &s : ss) {
+  //   std::cout << s  << "\n";
+  // }
+  ASSERT_EQ(ss.size(), 1);
+  EXPECT_EQ(*ss.begin(), "argv");
+}
+
+/**
+ * Get the variables.
+ * for Od_strlen(*fileptr[1]), it will be fileptr along
+ * Since this is binary, the return set is at most of size 2
+ */
+std::set<std::string> BinaryFormula::GetVars() {
+  std::set<std::string> ret;
+  std::string tmp;
+  tmp = getVar(m_lhs);
+  if (!tmp.empty()) {
+    ret.insert(tmp);
+  }
+  tmp = getVar(m_rhs);
+  if (!tmp.empty()) {
+    ret.insert(tmp);
+  }
+  return ret;
+}
+
+
+std::string BinaryFormula::getVar(std::string s) {
+  // remove prefix
+  assert(s.size() > 3);
+  // assert(s[2] == '_');
+  if (s[2] != '_') return "";
+  s = s.substr(3);
+  // remove strlen, sizeof
+  // FIXME multiple sizeof?
+  if (s.find("sizeof") != std::string::npos) {
+    s = s.substr(s.find("sizeof") + strlen("sizeof"));
+  }
+  if (s.find("strlen") != std::string::npos) {
+    s = s.substr(s.find("strlen") + strlen("strlen"));
+  }
+  // remove ()
+  while (s.find('(') != std::string::npos) {
+    s.erase(s.find('('), 1);
+  }
+  while (s.find(')') != std::string::npos) {
+    s.erase(s.find(')'), 1);
+  }
+  // remove [xxx]
+  if (s.find('[') != std::string::npos) {
+    s = s.substr(0, s.find('['));
+  }
+  // remove .xxx
+  if (s.find('.') != std::string::npos) {
+    s = s.substr(0, s.find('.'));
+  }
+  // remove + ...
+  if (s.find('+') != std::string::npos) {
+    s = s.substr(0, s.find('+'));
+  }
+  utils::trim(s);
+  return s;
+}
+
+
+/**
+ * Od_sizeof(tempname)=1024 conf:18
+ * Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 18
+ */
+BinaryFormula* get_key_inv(std::vector<BinaryFormula*> invs) {
+  // loop through the invs, and split into two sets: constant assignment, and other
+  assert(!invs.empty());
+  BinaryFormula *ret = NULL;
+  std::vector<BinaryFormula*> cons;
+  for (BinaryFormula *bf : invs) {
+    if (bf->GetOP() == "=" && utils::is_number(bf->GetRHS())) {
+      cons.push_back(bf);
+    } else {
+      ret = bf;
+    }
+  }
+  assert(ret);
+  for (BinaryFormula *bf : cons) {
+    if (bf->GetLHS() == ret->GetRHS()) {
+      ret->UpdateRHS(bf->GetRHS());
+    }
+    if (bf->GetLHS() == ret->GetLHS()) {
+      ret->UpdateLHS(bf->GetRHS());
+      ret->Inverse();
+    }
+  }
+  return ret;
+}
+
+/**
+ * Derive inv from pres and trans.
+ * If cannot derive, return an empty set.
+ * Otherwise return the used pre-conditions.
+ * This return value is used to see if the variables are entry point.
+ * TODO multiple precondition
+ * TODO record the transfer function used.
+ *
+ * inv: Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 12
+ * trans: Od_strlen(*fileptr)=Id_strlen(argv[1]) conf:12
+ * pres: Id_strlen(argv[1])<=1024 conf: 12
+ */
+BinaryFormula* derive_key_inv(std::vector<BinaryFormula*> pres, std::vector<BinaryFormula*> trans, BinaryFormula *inv) {
+  // std::cout << "drive_key_inv"  << "\n";
+  // std::cout << "pres:"  << "\n";
+  // for (BinaryFormula *bf : pres) {
+  //   std::cout << bf->dump()  << "\n";
+  // }
+  // std::cout << "trans:"  << "\n";
+  // for (BinaryFormula *bf : trans) {
+  //   std::cout << bf->dump()  << "\n";
+  // }
+  // std::cout << "inv:"  << "\n";
+  // std::cout << inv->dump()  << "\n";
+  // randomly pair the trans and pres, to see if inv can be generated
+  for (BinaryFormula *pre : pres) {
+    for (BinaryFormula *tran : trans) {
+      BinaryFormula tmp(*pre);
+      if (tran->GetRHS() == tmp.GetLHS()) {
+        tmp.UpdateLHS(tran->GetLHS());
+      }
+      if (tran->GetRHS() == tmp.GetRHS()) {
+        tmp.UpdateRHS(tran->GetLHS());
+      }
+      // compare_formula(&tmp, inv);
+      if (tmp.GetLHS() == inv->GetLHS() && tmp.GetRHS() == inv->GetRHS() && tmp.GetOP() == inv->GetOP()) {
+        return pre;
+      }
+      if (tmp.GetLHS() == inv->GetRHS() && tmp.GetRHS() == inv->GetLHS() && inverse_op(tmp.GetOP()) == inv->GetOP()) {
+        return pre;
+      }
+    }
+  }
+  return NULL;
+}
+
+void free_binary_formula(std::vector<BinaryFormula*> bfs) {
+  for (BinaryFormula *bf : bfs) {
+    delete bf;
+  }
+}
+
+/**
+ * I want to start from invs, try to use pres and trans to derive it.
+ * Then I need to check the pres to see if those variables are entry point (argv, argc, optarg)
+ */
+bool Ctx::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {
+  // Construct binary forumlas
+  std::vector<BinaryFormula*> invs;
+  std::vector<BinaryFormula*> pres;
+  std::vector<BinaryFormula*> trans;
+  // create BinaryFormula here. CAUTION need to free them
+  for (std::string &s : str_invs) {
+    invs.push_back(new BinaryFormula(s));
+  }
+  for (std::string &s : str_pres) {
+    pres.push_back(new BinaryFormula(s));
+  }
+  for (std::string &s : str_trans) {
+    trans.push_back(new BinaryFormula(s));
+  }
+  if (invs.empty() || trans.empty() || pres.empty()) return false;
+  // how to identify the key invariant?
+  // the constant invariants is used for derive
+  // the relationship invariants are used as key
+  // any relationship invariants is enough, for now
+  BinaryFormula *key_inv = get_key_inv(invs);
+  std::cout << "| selected the key invariants: " << key_inv->dump()  << "\n";
+  
+  // STEP Then, find the variables used in the key invariant
+  // FIXME No, I need the whole header, e.g. strlen(fileptr). The sizeof(fileptr) is not useful at all.
+  // find the related transfer functions
+  // std::set<std::string> vars = key_inv->GetVars();
+  std::vector<BinaryFormula*> related_trans; // = get_related_trans(trans, vars);
+  for (BinaryFormula *bf : trans) {
+    // std::string output_var = bf->GetLHSVar();
+    // if (vars.count(output_var) == 1) {
+    //   related_trans.push_back(bf);
+    // }
+    std::string item = bf->GetLHS();
+    if (item == key_inv->GetLHS() || item == key_inv->GetRHS()) {
+      related_trans.push_back(bf);
+    }
+  }
+
+  // find the preconditions that define the input variables used in the transfer function
+  std::set<std::string> related_input_items;
+  for (BinaryFormula* bf : related_trans) {
+    // FIXME y = x + z; I only want x
+    related_input_items.insert(bf->GetRHS());
+  }
+  std::vector<BinaryFormula*> related_pres;
+  for (BinaryFormula *bf : pres) {
+    if (related_input_items.count(bf->GetLHS()) == 1 || related_input_items.count(bf->GetRHS()) == 1) {
+      related_pres.push_back(bf);
+    }
+  }
+  // use the preconditions and transfer funcitons to derive the invariants
+  BinaryFormula* used_pre = derive_key_inv(related_pres, related_trans, key_inv);
+  if (used_pre) {
+    std::cout << "| Found the precondition that can derive to the invariant: " << used_pre->dump()  << "\n";
+    // examine the variables in those preconditons, to see if they are entry points
+    std::set<std::string> used_vars = used_pre->GetVars();
+    // FIXME ugly
+    free_binary_formula(pres);
+    free_binary_formula(trans);
+    free_binary_formula(invs);
+    // for (BinaryFormula *bf : used_pres) {
+    //   used_vars.insert(bf->GetLHSVar());
+    //   used_vars.insert(bf->GetRHSVar());
+    // }
+    std::cout << "| The variables used: "  << "\n";
+    for (std::string var : used_vars) {
+      std::cout << "| " << var  << "\n";
+      if (var != "argv" && var != "argc" && var != "optarg") {
+        return false;
+      }
+    }
+    utils::print("Context Searching Success!\n", utils::CK_Green);
+    return true;
+  } else {
+    free_binary_formula(pres);
+    free_binary_formula(trans);
+    free_binary_formula(invs);
+    return false;
+  }
 }

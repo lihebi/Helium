@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "resolver.h"
 #include <iostream>
+#include "config.h"
 
 using namespace utils;
 using namespace ast;
@@ -273,27 +274,128 @@ std::string LocalNewType::GetTestInput() {
  * Models
  *******************************/
 
+/********************************
+ * Helper functions
+ *******************************/
 /**
- *
-
- Not let's talk about the input generation of different types.
-
- 1. value
- int a;
- scanf("%d", &a);
-
- 2. pointer
- int *a;
- a = (int*)malloc(sizeof(int)*helium_size);
-
- 3. array
- int a[MAX];
-
- 4. array of pointers
- char *argv[];
- scanf("%s", &argv[0]);
- scanf("%s", &argv[1]);
+ * Usage:
+ * - get_scanf_code("%c", "&" + var);
  */
+std::string get_scanf_code(std::string format, std::string var) {
+  return "scanf(\"" + format + "\", " + var + ");\n";
+}
+
+std::string get_malloc_code(std::string var, std::string type, std::string size) {
+  return var + " = (" + type + "*)malloc(sizeof(" + type + ")*" + size + ");\n";
+}
+
+/**
+ * For the printfs, the prefix will tell:
+ * - I/O
+ * - type:
+ *   + d: int
+ *   + p: address, hex
+ *   + n: NULL, !NULL
+ *   + c: char
+ *   + x: an arbitrary string
+ */
+
+static std::string get_sizeof_output(std::string var) {
+  return "printf(\"Od_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n";
+}
+static std::string get_strlen_output(std::string var) {
+  return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+}
+static std::string get_addr_output(std::string var) {
+  if (Config::Instance()->GetString("use-address") == "true") {
+    return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n";
+  } else {
+    return "";
+  }
+}
+static std::string get_addr_input(std::string var) {
+  if (Config::Instance()->GetString("use-address") == "true") {
+    return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n";
+  } else {
+    return "";
+  }
+}
+static std::string get_check_null_if(std::string var) {
+  return "if (" + var + " != NULL) {\n";
+}
+static std::string get_check_null_else() {
+  return "} else {\n";
+}
+static std::string get_check_null_fi() {
+  return "}\n";
+}
+static std::string get_null_output(std::string var, bool is_null) {
+  if (Config::Instance()->GetString("null-output") == "true") {
+    if (is_null) {
+      return "printf(\"On_" + var + " == NULL\\n\");\n";
+    } else {
+      return "printf(\"On_" + var + " = !NULL\\n\");\n";
+    }
+  } else {
+    return "";
+  }
+}
+
+/**
+ * branch construction for NULL of a variable
+ */
+static std::string get_check_null(std::string var, std::string true_branch, std::string false_branch) {
+  std::string ret;
+  ret += get_check_null_if(var);
+  ret += true_branch;
+  ret += get_check_null_else();
+  ret += false_branch;
+  ret += get_check_null_fi();
+  return ret;
+}
+
+/**
+ * Check whether helium_size is 0
+ */
+std::string get_helium_size_branch(std::string true_branch, std::string false_branch) {
+  std::string ret;
+  ret += "if (helium_size == 0) {\n";
+  ret += true_branch;
+  ret += "} else {\n";
+  ret += false_branch;
+  ret += "}\n";
+  return ret;
+}
+
+/**
+ * loop by helium_size. The index is "i"
+ */
+std::string get_helium_size_loop(std::string body) {
+  std::string ret;
+  ret += "for (int i=0;i<helium_size;i++) {\n";
+  ret += body;
+  ret += "}\n";
+  return ret;
+}
+
+/**
+ * generate code for a string scanf
+ */
+std::string get_str_input_code(std::string name) {
+  std::string ret;
+  ret += get_scanf_code("%d", "&helium_size");
+  ret += get_malloc_code(name, "char", "helium_size");
+  ret += get_helium_size_branch(name + " = NULL;\n",
+                                get_scanf_code("%s", name)
+                                );
+  return ret;
+}
+
+
+/********************************
+ * Models
+ *******************************/
+
 
 
 std::string Int::GetDeclCode(std::string var) {
@@ -307,9 +409,9 @@ std::string Int::GetInputCode(std::string var) {
   std::string ret;
   ret += "// Int::GetInputCode\n";
   if (m_pointer == 0) {
-    ret += "scanf(\"%d\", &"+var+");\n";
+    ret += get_scanf_code("%d", "&"+var);
   } else if (m_pointer == 1) {
-    ret += var + "=(int*)malloc(sizeof(int)*helium_size);\n";
+    ret += get_malloc_code(var, "int", "helium_size");
   } else {
     assert(false && "More than int**?");
   }
@@ -319,7 +421,8 @@ std::string Int::GetInputCode(std::string var) {
 std::string Int::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Int::GetOutputCode\n";
-  ret += "printf(\"%d\\n\", " + var + ");\n";
+  // TODO extract this into a helper function
+  ret += "printf(\"Od_" + var + " = %d\\n\", " + var + ");\n";
   return ret;
 }
 
@@ -349,24 +452,13 @@ std::string Char::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string get_str_input_code(std::string name) {
-  std::string ret;
-  ret += "  scanf(\"%d\", &helium_size);\n";
-  ret += "  " + name + " = (char*)malloc(sizeof(char)*helium_size);\n";
-  ret += "  if (helium_size == 0) {\n";
-  ret += "    " + name + " = NULL;\n";
-  ret += "  } else {\n";
-  ret += "    scanf(\"%s\", "+ name +");\n";
-  ret += "  }\n";
-  return ret;
-}
 
 std::string Char::GetInputCode(std::string var) {
   std::string ret;
   ret += "// Char::GetInputCode\n";
   if (m_pointer == 0) {
     if (m_dimension == 0) {
-      ret += "scanf(\"%c\", &"+var+");\n";
+      ret += get_scanf_code("%c", "&" + var);
     } else if (m_dimension == 1) {
       // TODO
       ret += "// HELIUM_TODO char[], should we init this?\n";
@@ -378,61 +470,26 @@ std::string Char::GetInputCode(std::string var) {
     }
   } else if (m_pointer == 1) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
-    ret += "scanf(\"%d\", &helium_size);\n";
-    // ret += "char* "+var+";\n";
-    // ret += "if (helium_size == 0) {\n";
-    // ret += "  " + var + " = NULL;\n";
-    // ret += "} else {\n";
-    // ret += "  " + var + " = (char*)malloc(sizeof(char)*helium_size);\n";
-    // NOTE: we don't need to have a branch to tell whether helium_size equals to 0.
-    // malloc will return NULL.
-    // FIXME but in this case, scanf will crash. It may not matter.
-    ret += var + " = (char*)malloc(sizeof(char)*helium_size);\n";
-    ret += "scanf(\"%s\", "+var+");\n}"; // FIXME this should be less than helium_size? Or just let the oracle do the trick
+    // ret += get_scanf_code("%d", "&helium_size");
+    // ret += get_malloc_code(var, "char", "helium_size");
+    ret += get_str_input_code(var);
+    ret += get_addr_input(var);
+    // FIXME this should be less than helium_size? Or just let the oracle do the trick
+    // ret += get_scanf_code("%s", var);
   } else if (m_pointer == 2) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
-    /**
-     * char **a;
-     * The input code should be:
-     * char **a;
-     * a = (char**)malloc(sizeof(char*)*helium_size);
-     * for (int i=0;i<helium_size;i++) {
-     *  int helium_size;
-     *  scanf(helium_size);
-     *  a[i] = (char*)malloc(sizeof(char*)*helium_size);
-     * }
-     */
-    ret += "scanf(\"%d\", &helium_size);\n";
-    ret += var + " = (char**)malloc(sizeof(char*)*helium_size);\n";
-    ret += "for (int i=0;i<helium_size;i++) {\n";
-    ret += "  int helium_size;\n";
-    // ret += "  scanf(\"%d\", &helium_size);\n";
-    // ret += "  " + var + "[i] = (char*)malloc(sizeof(char)*helium_size);\n";
-    // ret += "  if (helium_size == 0) {\n";
-    // ret += "    " + var + "[i] = NULL;\n";
-    // ret += "  } else {\n";
-    // ret += "  scanf(\"%s\", "+var+"[i]);\n}";
-    // ret += "  }";
-    ret += get_str_input_code(var + "[i]");
-    ret += "}\n";
+    ret += get_scanf_code("%d", "&helium_size");
+    ret += get_malloc_code(var, "char*", "helium_size");
+    ret += get_addr_input(var);
+    ret += get_helium_size_loop("int helium_size;\n" + get_str_input_code(var + "[i]"));
   } else {
     assert(false && "char ***");
   }
-  // if (m_pointer == 0 && m_dims.size() == 0) {
-  //   // ret += m_raw + " " + var + ";\n";
-  // } else if (m_pointer == 1 || m_dims.size() == 1) {
-  //   ret += "scanf(\"%d\", &helium_size);\n";
-  //   ret += "char* "+var+";\n";
-  //   ret += "if (helium_size == 0) {\n";
-  //   ret += "  " + var + " = NULL;\n";
-  //   ret += "} else {\n";
-  //   ret += "  " + var + " = (char*)malloc(sizeof(char)*helium_size);\n";
-  //   ret += "  scanf(\"%s\", "+var+");\n}";
-  // }
   return ret;
 }
 
 /**
+ * DEPRECATED Use GetTestInputSpec instead.
  * Char input generation is a little tricky.
  * We need to intentionally insert some special characters.
  * -, :, ", ', #, $
@@ -450,10 +507,15 @@ std::string Char::GetTestInput() {
       assert(false);
     }
   } else if (m_pointer == 1) {
-    int size = utils::rand_int(0,5);
-    ret += std::to_string(size);
-    for (int i=0;i<size;i++) {
-      ret += " " + utils::rand_str(utils::rand_int(0, 10));
+    // int size = utils::rand_int(0,5);
+    // ret += std::to_string(size);
+    // for (int i=0;i<size;i++) {
+    //   ret += " " + utils::rand_str(utils::rand_int(0, 10));
+    // }
+    int size = utils::rand_int(0, 3000);
+    ret += " " + std::to_string(size) + " ";
+    if (size != 0) {
+      ret += utils::rand_str(utils::rand_int(1, size));
     }
   } else if (m_pointer == 2) {
     // TODO
@@ -462,9 +524,6 @@ std::string Char::GetTestInput() {
     for (int i=0;i<size;i++) {
       int size2 = utils::rand_int(0, 3000);
       ret += " " + std::to_string(size2) + " ";
-      // for (int j=0;j<size2;j++) {
-      //   ret += utils::rand_str(utils::rand_int(0, 10)) + " ";
-      // }
       if (size2 != 0) {
         ret += utils::rand_str(utils::rand_int(1, size2));
       }
@@ -490,12 +549,16 @@ TestInput* Char::GetTestInputSpec(std::string var) {
       assert(false);
     }
   } else if (m_pointer == 1) {
+    // buffer size
     int size = utils::rand_int(0,3000);
     raw += std::to_string(size) + " ";
+    int len = 0; // strlen
     if (size != 0) {
-      raw += utils::rand_str(utils::rand_int(1, size));
+      std::string str = utils::rand_str(utils::rand_int(1, size));
+      raw += str;
+      len = str.length();
     }
-    strlens.push_back(size);
+    strlens.push_back(len);
     // for (int i=0;i<size;i++) {
     //   raw += " " + utils::rand_str(utils::rand_int(0, size));
     // }
@@ -509,10 +572,13 @@ TestInput* Char::GetTestInputSpec(std::string var) {
       // for (int j=0;j<size2;j++) {
       //   raw += utils::rand_str(utils::rand_int(0, 10)) + " ";
       // }
+      int len = 0;
       if (size2 != 0) {
-        raw += utils::rand_str(utils::rand_int(1, size2));
+        std::string str = utils::rand_str(utils::rand_int(1, size2));
+        raw += str;
+        len = str.length();
       }
-      strlens.push_back(size2);
+      strlens.push_back(len);
     }
   } else {
     assert(false);
@@ -523,21 +589,23 @@ TestInput* Char::GetTestInputSpec(std::string var) {
   return ret;
 }
 
+
 /**
  * TODO dimension and pointer
  */
 std::string Char::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Char::GetOutputCode\n";
-  // ret += "printf(\"%d\\n\", " + var + ");\n";
   if (m_pointer == 0) {
     if (m_dimension == 0) {
-      ret += "printf(\"%c\\n\", " + var + ");\n";
+      ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n";
     } else if (m_dimension == 1) {
       // TODO
-      // ret += "// HELIUM_TODO char[]\n";
-      ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n";
-      ret += "printf(\"strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+      ret += get_sizeof_output(var);
+      // FIXME for a char[], only output the sizeof the buffer.
+      // this is because I got too many not important invariants
+      // ret += get_strlen_output(var);
+      ret += get_addr_output(var);
     } else if (m_dimension == 2) {
       // TODO
       ret += "// HELIUM_TODO char[][]\n";
@@ -546,24 +614,24 @@ std::string Char::GetOutputCode(std::string var) {
     }
   } else if (m_pointer == 1) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
-    ret += "printf(\"" + var + " = %s\\n\", " + var + ");\n";
-    ret += "printf(\"strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+    // FIXME For a char pointer, do not output the size.
+    // ret += get_sizeof_output(var);
+    ret += get_strlen_output(var);
+    ret += get_addr_output(var);
   } else if (m_pointer == 2) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
     // TODO the size of the buffer?
-    // ret += "printf(\"" + var + " == NULL? : %d\\n\", " + var + " == NULL);\n";
-    ret += "if (" + var + " != NULL) {\n";
-    ret += "  printf(\"" + var + " = !NULL\\n\");\n";
-    ret += "  if (*" + var + " != NULL) {\n";
-    ret += "    printf(\"*" + var + " = !NULL\\n\");\n";
-    ret += "    printf(\"strlen(*" + var + ") = " +  "%d\\n\", strlen(*" + var + "));\n";
-    ret += "  } else {\n";
-    ret += "    printf(\"*" + var + " == NULL\\n\");\n";
-    ret += "  }\n";
-    ret += "} else {\n";
-    ret += "  printf(\"" + var + " == NULL\\n\");\n";
-    ret += "}";
-    // ret += "printf(\"sizeof(" + var + ") = %d\\n\", sizeof("+var+"));\n";
+    ret += get_check_null(var,
+                          get_null_output(var, false)
+                          + get_addr_output(var)
+                          + get_check_null("*"+var,
+                                           get_null_output("*"+var, false)
+                                           + get_strlen_output("*"+var)
+                                           + get_addr_output("*"+var),
+                                           get_null_output("*"+var, true)
+                                           ),
+                          get_null_output(var, true)
+                          );
   }
   return ret;
 }
@@ -590,7 +658,7 @@ std::string Float::GetInputCode(std::string var) {
 std::string Float::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Float::GetOutputCode\n";
-  ret += "printf(\"%f\\n\", " + var + ");\n";
+  ret += "printf(\"Of_" + var + " = %f\\n\", " + var + ");\n";
   return ret;
 }
 

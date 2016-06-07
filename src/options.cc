@@ -28,6 +28,8 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"br", POK_BuildRate}
   , {"exp-ast", POK_ExpAST}
   , {"io", POK_IOSpec}
+  , {"ana", POK_AnalysisResult}
+  , {"csvsum", POK_CSVSummary}
 };
 
 /**
@@ -52,6 +54,8 @@ void PrintOption::Help() {
   std::cout << "\t br: build rate"  << "\n";
   std::cout << "\t exp-ast: AST build rate special"  << "\n";
   std::cout << "\t io: IO specifications during testing"  << "\n";
+  std::cout << "\t ana: analysis result"  << "\n";
+  std::cout << "\t csvsum: csv summary"  << "\n";
 }
 
 

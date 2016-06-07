@@ -242,6 +242,9 @@ void utils::get_files_by_extension(
   }
 }
 
+/**
+ * Well, unforturnately the home directory tide, ~, is not able to be recognized by boost.
+ */
 bool
 utils::file_exists(const std::string& file) {
   fs::path file_path(file);
@@ -251,6 +254,10 @@ utils::file_exists(const std::string& file) {
 bool utils::exists(const std::string &file) {
   fs::path file_path(file);
   return fs::exists(file_path);
+}
+
+TEST(UtilsTestCase, DISABLED_FileExistsTest) {
+  EXPECT_TRUE(utils::file_exists("~/tmp/b.csv")); // this will gives false. tide is not recognized
 }
 
 /**

@@ -1,0 +1,49 @@
+#+TITLE: HELIUM Type System
+
+* Int
+** int
+#+BEGIN_SRC C
+ int a;
+ scanf("%d", &a);
+#+END_SRC
+** int*
+#+BEGIN_SRC C
+ int *a;
+ a = (int*)malloc(sizeof(int)*helium_size);
+#+END_SRC
+
+** int[MAx]
+
+
+* Char
+** char
+** char*
+#+BEGIN_SRC C
+char *a;
+scanf("%d", &helium_size);
+a = (char*)malloc(sizeof(char)*helium_size);
+scanf("%s", a);
+#+END_SRC
+NOTE: we don't need to have a branch to tell whether =helium_size= equals to 0.
+=malloc= will return NULL.
+FIXME but in this case, scanf will crash. It may not matter.
+
+** char**
+char **a;
+The input code should be:
+#+BEGIN_SRC C
+  char **a;                                        
+  a = (char**)malloc(sizeof(char*)*helium_size);   
+  for (int i=0;i<helium_size;i++) {                
+    int helium_size;                                
+    scanf(helium_size);                             
+    a[i] = (char*)malloc(sizeof(char*)*helium_size);
+    scanf("%s", a[i]);
+  }
+#+END_SRC
+** char *argv[]
+#+BEGIN_SRC C
+ char *argv[];
+ scanf("%s", &argv[0]);
+ scanf("%s", &argv[1]);
+#+END_SRC

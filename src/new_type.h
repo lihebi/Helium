@@ -295,12 +295,13 @@ public:
    */
   virtual std::string ToString() {
     std::string ret;
-    ret += m_var + " = Default\n";
+    ret += + "Ix_" + m_var + " = Default\n";
     return ret;
   }
 protected:
   NewType *m_type;
   std::string m_var;
+  // the raw data is used as the input to the executable under test
   std::string m_raw;
 };
 
@@ -320,11 +321,16 @@ public:
     }
     return ret;
   }
+  /**
+   * Input ToString function is used for record information.
+   * E.g. the size of the buffer, the strlen.
+   */
   virtual std::string ToString() {
     std::string ret;
-    ret += m_var + ".size() = " + std::to_string(m_strlens.size()) + "\n";
-    for (int i=0;i<(int)m_strlens.size();++i) {
-      ret += "strlen[" + std::to_string(i) + "] = " + std::to_string(m_strlens[i]) + "\n";
+    int size = m_strlens.size();
+    ret += "Id_" + m_var + ".size() = " + std::to_string(size) + "\n";
+    for (int i=0;i<size;++i) {
+      ret += "Id_strlen(" + m_var + "[" + std::to_string(i) + "]) = " + std::to_string(m_strlens[i]) + "\n";
     }
     return ret;
   }
