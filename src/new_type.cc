@@ -279,6 +279,8 @@ std::string LocalNewType::GetTestInput() {
   return ret;
 }
 
+const std::string flush_output = "fflush(stdout);\n";
+
 
 /********************************
  * Models
@@ -311,21 +313,21 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
  */
 
 static std::string get_sizeof_output(std::string var) {
-  return "printf(\"Od_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n";
+  return "printf(\"Od_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n" + flush_output;
 }
 static std::string get_strlen_output(std::string var) {
-  return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n";
+  return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
 }
 static std::string get_addr_output(std::string var) {
   if (Config::Instance()->GetString("use-address") == "true") {
-    return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n";
+    return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
   } else {
     return "";
   }
 }
 static std::string get_addr_input(std::string var) {
   if (Config::Instance()->GetString("use-address") == "true") {
-    return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n";
+    return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
   } else {
     return "";
   }
@@ -342,9 +344,9 @@ static std::string get_check_null_fi() {
 static std::string get_null_output(std::string var, bool is_null) {
   if (Config::Instance()->GetString("null-output") == "true") {
     if (is_null) {
-      return "printf(\"On_" + var + " == NULL\\n\");\n";
+      return "printf(\"On_" + var + " == NULL\\n\");\n" + flush_output;
     } else {
-      return "printf(\"On_" + var + " = !NULL\\n\");\n";
+      return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
     }
   } else {
     return "";
@@ -432,7 +434,7 @@ std::string Int::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Int::GetOutputCode\n";
   // TODO extract this into a helper function
-  ret += "printf(\"Od_" + var + " = %d\\n\", " + var + ");\n";
+  ret += "printf(\"Od_" + var + " = %d\\n\", " + var + ");\n" + flush_output;
   return ret;
 }
 
@@ -544,6 +546,7 @@ std::string Char::GetTestInput() {
   return ret;
 }
 
+#define STRLEN_MAX 5000
 
 TestInput* Char::GetTestInputSpec(std::string var) {
   std::string raw;
@@ -560,7 +563,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
     }
   } else if (m_pointer == 1) {
     // buffer size
-    int size = utils::rand_int(0,3000);
+    int size = utils::rand_int(0,STRLEN_MAX);
     raw += std::to_string(size) + " ";
     int len = 0; // strlen
     if (size != 0) {
@@ -577,7 +580,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
     int size = utils::rand_int(0, 5);
     raw += std::to_string(size);
     for (int i=0;i<size;i++) {
-      int size2 = utils::rand_int(0, 3000);
+      int size2 = utils::rand_int(0, STRLEN_MAX);
       raw += " " + std::to_string(size2) + " ";
       // for (int j=0;j<size2;j++) {
       //   raw += utils::rand_str(utils::rand_int(0, 10)) + " ";
@@ -608,7 +611,7 @@ std::string Char::GetOutputCode(std::string var) {
   ret += "// Char::GetOutputCode\n";
   if (m_pointer == 0) {
     if (m_dimension == 0) {
-      ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n";
+      ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
     } else if (m_dimension == 1) {
       // TODO
       ret += get_sizeof_output(var);
@@ -668,7 +671,7 @@ std::string Float::GetInputCode(std::string var) {
 std::string Float::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Float::GetOutputCode\n";
-  ret += "printf(\"Of_" + var + " = %f\\n\", " + var + ");\n";
+  ret += "printf(\"Of_" + var + " = %f\\n\", " + var + ");\n" + flush_output;
   return ret;
 }
 
@@ -698,7 +701,7 @@ std::string Void::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Void::GetOutputCode\n";
   // TODO check if it is NULL
-  ret += "printf(\"%d\\n\", " + var + ");\n";
+  ret += "printf(\"%d\\n\", " + var + ");\n" = flush_output;
   return ret;
 }
 
@@ -725,7 +728,7 @@ std::string Bool::GetInputCode(std::string var) {
 std::string Bool::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Bool::GetOutputCode\n";
-  ret += "printf(\"%d\\n\", " + var + ");\n";
+  ret += "printf(\"%d\\n\", " + var + ");\n" + flush_output;
   return ret;
 }
 

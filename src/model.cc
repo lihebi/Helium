@@ -89,6 +89,7 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
     std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
     if (vars.size() > 0) {
       ret += "printf(\"HELIUM_POI = true\\n\");\n";
+      ret += "fflush(stdout);\n";
       for (NewVariable var : vars) {
         ret += var.GetType()->GetOutputCode(var.GetName());
       }

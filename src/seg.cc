@@ -751,6 +751,15 @@ std::string Ctx::getMakefile() {
     return makefile;
 }
 
+TEST(SegTestCase, ExecTest) {
+  std::string cmd = "/tmp/helium-test-tmp.4B0xG7/a.out";
+  std::string input = utils::read_file("/tmp/helium-test-tmp.4B0xG7/input/2.txt");
+  int status = 0;
+  std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 10);
+  std::cout << status  << "\n";
+  std::cout << output  << "\n";
+}
+
 
 void Ctx::Test() {
   std::cout << "============= Ctx::Test() ================="  << "\n";
@@ -816,7 +825,8 @@ void Ctx::Test() {
     NewTestResult test_result(test_suite);
 
 
-    std::string test_dir = utils::create_tmp_dir();
+    // std::string test_dir = utils::create_tmp_dir();
+    utils::create_folder(builder.GetDir() + "/input");
     for (int i=0;i<test_number;i++) {
       // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
       // utils::write_file(test_file, test_suite[i]);
@@ -838,6 +848,8 @@ void Ctx::Test() {
         }
       }
       // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
+      // I'm also going to write the input file in the executable directory
+      utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt", input);
       std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 10);
       if (status == 0) {
         if (PrintOption::Instance()->Has(POK_TestInfo)) {
@@ -878,21 +890,22 @@ void Ctx::Test() {
     /**
      * Save to file, and output file name.
      */
-    std::string tmp_dir = utils::create_tmp_dir();
+    // std::string tmp_dir = utils::create_tmp_dir();
     // utils::write_file(tmp_dir + "/i.csv", i_csv);
     // utils::write_file(tmp_dir + "/o.csv", o_csv);
-    std::string csv_file = tmp_dir + "/io.csv";
+    // std::string csv_file = tmp_dir + "/io.csv";
+    std::string csv_file = builder.GetDir() + "/io.csv";
     utils::write_file(csv_file, csv);
     std::cout << "Output to: " << csv_file   << "\n";
     test_result.GetInvariants();
     test_result.GetPreconditions();
     test_result.GetTransferFunctions();
 
+    Analyzer analyzer(csv_file);
+    std::vector<std::string> invs = analyzer.GetInvariants();
+    std::vector<std::string> pres = analyzer.GetPreConditions();
+    std::vector<std::string> trans = analyzer.GetTransferFunctions();
     if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
-      Analyzer analyzer(csv_file);
-      std::vector<std::string> invs = analyzer.GetInvariants();
-      std::vector<std::string> pres = analyzer.GetPreConditions();
-      std::vector<std::string> trans = analyzer.GetTransferFunctions();
       std::cout << "------ invariants ------"  << "\n";
       for (auto &s : invs) {
         std::cout << "| " << s  << "\n";
@@ -907,15 +920,15 @@ void Ctx::Test() {
       }
       std::cout << "------------------------------"  << "\n";
 
-      std::cout << "---- resolveQuery -----"  << "\n";
-      m_query_resolved = resolveQuery(invs, pres, trans);
-      std::cout << "------ end of query resolving -----"  << "\n";
-
       // std::string cmd = "compare.py -f " + csv_file;
       // std::string inv = utils::exec(cmd.c_str());
       // std::cout << inv  << "\n";
     }
 
+
+    std::cout << "---- resolveQuery -----"  << "\n";
+    m_query_resolved = resolveQuery(invs, pres, trans);
+    std::cout << "------ end of query resolving -----"  << "\n";
     
     /**
      * FIXME Free the space of TestInput*

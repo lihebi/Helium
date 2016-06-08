@@ -26,6 +26,12 @@ GlobalVariableRegistry::GlobalVariableRegistry() {
       }
     }
   }
+  // special variables
+  NewType *type = NewTypeFactory::CreateType("char*", {});
+  // FIXME I add optarg here, but, there're some good and bad things:
+  // good: the variable is like a globla variable, no need to declare in generated program
+  // bad: the snippet id is set to -1, which might cause crash when look up in snippet db
+  m_variable_m["optarg"] = new GlobalVariable(type, "optarg", -1);
 }
 
 NewType *GlobalVariableRegistry::LookUp(std::string var) {

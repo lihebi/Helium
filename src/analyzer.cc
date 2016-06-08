@@ -339,8 +339,8 @@ Analyzer::Analyzer(std::string csv_file) {
         // reach POI
         if (row[1] == "true") {
           reach_poi_test_success++;
-          m_raw_data.push_back(row);
         } else {
+          m_raw_data.push_back(row);
           reach_poi_test_failure++;
         }
       } else {
