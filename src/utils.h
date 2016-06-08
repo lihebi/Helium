@@ -159,6 +159,7 @@ namespace utils {
   int rand_int(int low, int high);
   char rand_char();
   std::string rand_str(int size);
+  bool rand_bool();
 
   double get_time();
   void debug_time(std::string id="");

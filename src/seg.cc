@@ -810,18 +810,81 @@ void Ctx::Test() {
     /**
      * Using TestInput
      */
+
+    // when generating inputs, I need to monitor if the main file has the getopt staff
+    // 	while( ( o = getopt( argc, argv, "achtvf:" ) ) != -1 ){
+    // if yes, I need to get the spec
+    // then when generating argc and argv, I need to be careful to cover each case
+    // also, I need to mark the inputs as: argv_a, argv_c, argv_h
+    // argv_a is binary
+    // argv_f is a string!
+    ArgCV argcv;
+    if (code_main.find("getopt") != std::string::npos) {
+      std::string opt = code_main.substr(code_main.find("getopt"));
+      std::vector<std::string> lines = utils::split(opt, '\n');
+      assert(lines.size() > 0);
+      opt = lines[0];
+      assert(opt.find("\"") != std::string::npos);
+      opt = opt.substr(opt.find("\"")+1);
+      assert(opt.find("\"") != std::string::npos);
+      opt = opt.substr(0, opt.find("\""));
+      assert(opt.find("\"") == std::string::npos);
+      // print out the opt
+      utils::print(opt, utils::CK_Cyan);
+      // set the opt
+      argcv.SetOpt(opt);
+    }
+
+    // I should also capture the argc and argv variable used, but I can currently assume these variables here
+    // Also, for regular argc and argv, I need also care about them, e.g. sizeof(argv) = argc, to avoid crashes.
+    
+    // I'm going to pre-generate argc and argv.
+    // so that if later the metrics have that, I don't need to implement the match, just query
+    std::vector<std::pair<TestInput*, TestInput*> > argcv_inputs = argcv.GetTestInputSpec(test_number);
+    // used for freeing these inputs
+    bool argc_used = false;
+    bool argv_used = false;
+    
     std::vector<std::vector<TestInput*> > test_suite(test_number);
     for (auto metric : metrics) {
       std::string var = metric.first;
       NewType *type = metric.second;
-      // constructing inputs
-      std::vector<TestInput*> inputs = type->GetTestInputSpec(var, test_number);
+      std::vector<TestInput*> inputs;
+      if (var == "argc") {
+        argc_used = true;
+        for (auto p : argcv_inputs) {
+          inputs.push_back(p.first);
+        }
+      } else if (var == "argv") {
+        argv_used = true;
+        for (auto p : argcv_inputs) {
+          inputs.push_back(p.second);
+        }
+      } else {
+        inputs = type->GetTestInputSpec(var, test_number);
+      }
       assert((int)inputs.size() == test_number);
       for (int i=0;i<(int)inputs.size();i++) {
         test_suite[i].push_back(inputs[i]);
       }
     }
 
+    // free when not used, to avoid memory leak
+    if (!argc_used) {
+      for (auto p : argcv_inputs) {
+        delete p.first;
+      }
+    }
+    if (!argv_used) {
+      for (auto p : argcv_inputs) {
+        delete p.second;
+      }
+    }
+
+    // this is the other use place of test suite other than the execution of the executable itself
+    // create the test result!
+    // This will supply the input spec for the precondition and transfer function generation
+    // The used method is ToString()
     NewTestResult test_result(test_suite);
 
 
@@ -1461,6 +1524,10 @@ bool Ctx::resolveQuery(std::vector<std::string> str_invs, std::vector<std::strin
     std::cout << "| The variables used: "  << "\n";
     for (std::string var : used_vars) {
       std::cout << "| " << var  << "\n";
+      // this is argv:f!
+      if (var.find(':') != std::string::npos) {
+        var = var.substr(0, var.find(':'));
+      }
       if (var != "argv" && var != "argc" && var != "optarg") {
         return false;
       }

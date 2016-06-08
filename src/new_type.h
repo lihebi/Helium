@@ -308,32 +308,9 @@ protected:
 class CharTestInput : public TestInput {
 public:
   CharTestInput(NewType *type, std::string var) : TestInput(type, var) {}
-  void SetStrlen(std::vector<int> strlens) {
-    m_strlens = strlens;
-  }
-  virtual std::string dump() {
-    std::string ret;
-    ret += m_type->ToString() + " " + m_var + "\n";
-    ret += "size: " + std::to_string(m_strlens.size()) + ", ";
-    ret += "strlens:";
-    for (int len : m_strlens) {
-      ret += " " + std::to_string(len);
-    }
-    return ret;
-  }
-  /**
-   * Input ToString function is used for record information.
-   * E.g. the size of the buffer, the strlen.
-   */
-  virtual std::string ToString() {
-    std::string ret;
-    int size = m_strlens.size();
-    ret += "Id_" + m_var + ".size() = " + std::to_string(size) + "\n";
-    for (int i=0;i<size;++i) {
-      ret += "Id_strlen(" + m_var + "[" + std::to_string(i) + "]) = " + std::to_string(m_strlens[i]) + "\n";
-    }
-    return ret;
-  }
+  void SetStrlen(std::vector<int> strlens) {m_strlens = strlens;}
+  virtual std::string dump();
+  virtual std::string ToString();
 private:
   /**
    * If only one pointer, the strlen only has one size, and contains one integer.
@@ -343,6 +320,41 @@ private:
    * Thus the strlens only need one dimension
    */
   std::vector<int> m_strlens;
+};
+
+class ArgVTestInput : public TestInput {
+public:
+  ArgVTestInput(NewType *type, std::string var) : TestInput(type, var) {}
+  virtual std::string ToString() {
+    // remember to set spec!
+    return m_spec;
+  }
+  void SetSpec(std::string spec) {m_spec = spec;}
+private:
+  std::string m_spec;
+};
+
+class ArgCV {
+public:
+  // "achtvf:"
+  // only support single colon
+  void SetOpt(std::string opt) {
+    m_opt = opt;
+    for (int i=opt.length()-1;i>=0;i--) {
+      if (opt[i] == ':') {
+        i--;
+        m_str_opt.insert(opt[i]);
+      } else {
+        m_bool_opt.insert(opt[i]);
+      }
+    }
+  }
+  std::pair<TestInput*, TestInput*> GetTestInputSpec();
+  std::vector<std::pair<TestInput*, TestInput*> > GetTestInputSpec(int number);
+private:
+  std::string m_opt;
+  std::set<char> m_bool_opt; // ach
+  std::set<char> m_str_opt; // f
 };
 
 

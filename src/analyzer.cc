@@ -482,10 +482,14 @@ std::vector<std::string> Analyzer::GetPreConditions() {
  *******************************/
 
 
+/**
+ * Return the ready formula, not just the constant
+ */
 std::string Analyzer::checkConstant(std::string header) {
   // std::cout << "checking constant: " << header  << "\n";
   std::vector<std::string> data = m_data_m[header];
   validate(data);
+  if (data.size() < 2) return "";
   std::string ret;
   std::string res = check_constant(data);
   if (!res.empty()) {
@@ -518,6 +522,7 @@ std::vector<std::string> Analyzer::checkDiscoveredConstants(std::string header) 
   if (header[1] != 'd') return ret;
   std::vector<std::string> data = m_data_m[header];
   validate(data);
+  if (data.size() < 2) return ret;
   for (int a : m_discovered_constants) {
     RelKind k = check_against_constant(data, a);
     if (k != RK_NA) {
@@ -537,6 +542,7 @@ std::string Analyzer::checkRelation(std::string h1, std::string h2) {
   // only check when the type mtches
   // if (h1[1] != h2[1]) return RK_NA;
   validate(d1, d2);
+  if (d1.size() < 2) return "";
   RelKind kind;
   if (h1[1] == 'd' && h2[1] == 'd') {
     kind = check_relation_d(d1, d2);
@@ -562,6 +568,7 @@ std::string Analyzer::checkTransfer(std::string h1, std::string h2) {
   // only compare when type matches
   // if (h1[1] != h2[1]) return "";
   validate(d1, d2);
+  if (d1.size() < 2) return "";
   // check the distance is constant or not
   std::string dist;
   if (h1[1] == 'd' && h2[1] == 'd') {

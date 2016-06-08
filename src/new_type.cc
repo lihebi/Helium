@@ -5,6 +5,8 @@
 #include "config.h"
 #include "options.h"
 
+#include <gtest/gtest.h>
+
 using namespace utils;
 using namespace ast;
 
@@ -546,8 +548,6 @@ std::string Char::GetTestInput() {
   return ret;
 }
 
-#define STRLEN_MAX 5000
-
 TestInput* Char::GetTestInputSpec(std::string var) {
   std::string raw;
   std::vector<int> strlens;
@@ -563,7 +563,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
     }
   } else if (m_pointer == 1) {
     // buffer size
-    int size = utils::rand_int(0,STRLEN_MAX);
+    int size = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
     raw += std::to_string(size) + " ";
     int len = 0; // strlen
     if (size != 0) {
@@ -580,7 +580,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
     int size = utils::rand_int(0, 5);
     raw += std::to_string(size);
     for (int i=0;i<size;i++) {
-      int size2 = utils::rand_int(0, STRLEN_MAX);
+      int size2 = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
       raw += " " + std::to_string(size2) + " ";
       // for (int j=0;j<size2;j++) {
       //   raw += utils::rand_str(utils::rand_int(0, 10)) + " ";
@@ -735,4 +735,110 @@ std::string Bool::GetOutputCode(std::string var) {
 std::string Bool::GetTestInput() {
   std::string ret;
   return ret;
+}
+
+
+
+/********************************
+ * TestInputSpec
+ *******************************/
+
+std::string CharTestInput::dump() {
+  std::string ret;
+  ret += m_type->ToString() + " " + m_var + "\n";
+  ret += "size: " + std::to_string(m_strlens.size()) + ", ";
+  ret += "strlens:";
+  for (int len : m_strlens) {
+    ret += " " + std::to_string(len);
+  }
+  return ret;
+}
+
+/**
+ * Input ToString function is used for record information.
+ * E.g. the size of the buffer, the strlen.
+ */
+std::string CharTestInput::ToString() {
+  std::string ret;
+  int size = m_strlens.size();
+  ret += "Id_" + m_var + ".size() = " + std::to_string(size) + "\n";
+  for (int i=0;i<size;++i) {
+    ret += "Id_strlen(" + m_var + "[" + std::to_string(i) + "]) = " + std::to_string(m_strlens[i]) + "\n";
+  }
+  return ret;
+}
+
+
+/********************************
+ * ArgCV
+ *******************************/
+
+std::vector<std::pair<TestInput*, TestInput*> > ArgCV::GetTestInputSpec(int number) {
+    std::vector<std::pair<TestInput*, TestInput*> > ret;
+    for (int i=0;i<number;i++) {
+      ret.push_back(GetTestInputSpec());
+    }
+    return ret;
+}
+
+std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
+  ArgVTestInput *argv_input = new ArgVTestInput(NULL, "argv");
+  // according to spec, generate the raw
+  std::vector<std::string> components;
+  std::string argv_spec;
+  components.push_back("helium_program");
+  for (char c : m_bool_opt) {
+    if (utils::rand_bool()) {
+      components.push_back("-" + std::string(1, c));
+      argv_spec += "Ix_argv:" + std::string(1, c) + " = true\n";
+    } else {
+      argv_spec += "Ix_argv:" + std::string(1, c) + " = false\n";
+    }
+  }
+  for (char c : m_str_opt) {
+    if (utils::rand_bool()) {
+      components.push_back("-" + std::string(1, c));
+      // the string for the argument
+      int size = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
+      std::string str = utils::rand_str(utils::rand_int(1, size));
+      components.push_back(str);
+      argv_spec += "Ix_argv:" + std::string(1, c) + " = true\n";
+      argv_spec += "Id_strlen(argv:" + std::string(1, c) + ") = " + std::to_string(str.length())+ "\n";
+    }
+  }
+  // add 0-3 more random staff
+  int random_staff = utils::rand_int(0, 3);
+  for (int i=0;i<random_staff;i++) {
+    int size = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
+    std::string str = utils::rand_str(utils::rand_int(1, size));
+    components.push_back(str);
+    argv_spec += "Id_strlen(argv:r" + std::to_string(i) + ") = " + std::to_string(str.length()) + "\n";
+  }
+  std::string raw;
+  raw += std::to_string(components.size()) + " ";
+  for (std::string &s : components) {
+    raw += std::to_string(s.length()+1) + " ";
+    raw += s + " ";
+  }
+  TestInput *argc_input = new TestInput(NULL, "argc");
+  int size = components.size();
+  argc_input->SetRaw(std::to_string(size));
+  argv_input->SetRaw(raw);
+  argv_input->SetSpec(argv_spec);
+  return {argc_input, argv_input};
+}
+
+TEST(NewTypeTestCase, ArgCVTest) {
+  ArgCV argcv;
+  argcv.SetOpt("achtvf:");
+  std::pair<TestInput*, TestInput*> inputs = argcv.GetTestInputSpec();
+  // inputs.first->ToString();
+  // inputs.first->GetRaw();
+  // inputs.second->ToString();
+  // inputs.second->GetRaw();
+
+  std::cout << inputs.first->ToString() << "\n";
+  std::cout << inputs.first->GetRaw() << "\n";
+  std::cout << inputs.second->ToString() << "\n";
+  std::cout << inputs.second->GetRaw() << "\n";
 }

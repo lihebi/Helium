@@ -607,6 +607,18 @@ int utils::rand_int(int low, int high) {
   return a % (high - low + 1) + low;
 }
 
+TEST(UtilsTestCase, RandIntTest) {
+  for (int i=0;i<10;i++) {
+    std::cout << utils::rand_int(0, 1) << "\n";
+  }
+}
+
+bool utils::rand_bool() {
+  int a = utils::rand_int(1, 2);
+  if (a == 1) return true;
+  else return false;
+}
+
 /**
  * Random character, a-Z, A-Z
  */
