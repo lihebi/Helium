@@ -17,6 +17,34 @@ using namespace ast;
 using namespace utils;
 
 /**
+ * On xml node (pugixml), remove node, add a new node with tag name "tagname", and pure text value content
+ * The node should NOT be the root node, otherwise assertion failure will occur.
+ */
+static void replace_xml_node(XMLNode node, std::string tagname, std::string content) {
+  assert(node.parent());
+  Node new_node = node.parent().insert_child_before(tagname.c_str(), node);
+  new_node.append_child(pugi::node_pcdata).set_value(content.c_str());
+  node.parent().remove_child(node);
+}
+
+/**
+ * Replace all the return xxx; statement to return 35;
+ */
+static std::string replace_return_to_35(const std::string &code) {
+  // TODO pattern matching or using paser?
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  XMLNode root = doc->document_element();
+  XMLNodeList nodes = find_nodes(root, NK_Return);
+  for (XMLNode node : nodes) {
+    // not sure if I need to add 
+    replace_xml_node(node, "return", "return 35;");
+  }
+  std::string ret = ast::get_text(root);
+  delete doc;
+  return ret;
+}
+
+/**
  * Resolve the type of a variable at an AST node.
  * Recall that Type* instance is created in the ASTNode, by means of Decl*.
  * This function will resolve:
@@ -201,6 +229,9 @@ bool Seg::NextContext() {
     // get callsite node
     Node callsite_xmlnode = find_callsite(*doc, ast->GetFunctionName());
     ASTNode *callsite = newast->GetEnclosingNodeByXMLNode(callsite_xmlnode);
+    // if there're two functions in the project with the same name, I really have no idea which one to use.
+    // Wait, I may have some clues by the filename and whether the callsite is in, but it is hard to implement, and not good solution.
+    // The callsite may not be found if I choose the wrong one
     assert(callsite);
     assert(callsite->GetAST());
     ctx->SetFirstNode(callsite);
@@ -667,8 +698,19 @@ std::string Ctx::getMain() {
       //     std::cout << s  << "\n";
       //   }
       // }
+
+      // FIXME TODO this is inside the main function. The main function is declared as int main(int argc, char *argv[])
+      // No, because we will generate argc and argv, the main function actually is int main()
+      // so the return statement should be a integer.
+      // some code may just "return",
+      // some may return some strange value
+      // If I want to know the return value, I first needs to know its value.
+      // So, lets modify all the return statements to be return 35, indicating an error
+      // the return value in this can be restricted to a perdefined constant, to indicate such situation.
       std::string code = ast->GetCode(nodes);
       ast->ClearDecl();
+      // modify the code, specifically change all return statement to return 35;
+      code = replace_return_to_35(code);
       main_func += code;
       main_func += "return 0;";
       main_func += "};\n";

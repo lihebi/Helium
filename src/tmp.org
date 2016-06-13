@@ -1,0 +1,49 @@
+** Done
+- [X] collect address information and its variants, infer the invariants and transfer functions
+- [X] Implement the buffer size increasing approach
+- [X] use address to record heap buffer
+- [X] automate the selecting of changed properties
+- [X] debug and make the whole framework running
+  - I have made the whole framework working fully automatic on =ncompress= and =polymorphy= benchmark.
+    Both the safe condition and error condition is working, and it can stop properly.
+- [X] see if the input generation is good enough to trigger the important paths. If not, need to handle the =argc,argv,getopt=
+  - for =polymorphy=, it has =getopt( argc, argv, "achtvf:" )=, and random generation cannot trigger the =f= branch.
+    I implemented the code to generate such inputs, by extract the string specification from the code and generate accordingly.
+
+** A problem about the stop point
+as we discussed before, the stop point is
+1) when the precondition and transfer function can imply invariants, in safe condition or error condition.
+2) the precondition variables are entry points.
+This works most of the time, but
+#+BEGIN_SRC C
+int main(int argc, char *argv[]) {
+  if (strlen(argv[1]) > 1024) exit 1;
+  foo(argv[1]);
+}
+void foo(char *src) {
+  char buf[1024];
+  strcpy(buf, src);
+}
+#+END_SRC
+
+In this example, =argv[1]= is checked before entering the =foo= function. But at the call site, we have:
+- precondition: =argv[1] > 1024=
+- transfer function: =strlen(argv[1]) = strlen(src)=
+- invariants: =strlen(src) > 1024=
+Which indicates successfully find the stop point.
+
+** TODOs
+Direction 1: write up
+- [ ] Write down the design decision made along the framework
+- [ ] Write down analysis of the results
+- [ ] Study comprehensively about the new related work and write the related work section.
+Direction 2: slice
+- [ ] Try srcml slicer, run the same algorithm on slice to see the result
+Direction 3: remove statements
+- [ ] think about search algorithms to remove irrelevant statements
+Direction 4: more benchmarks
+- =gzip=: compile error, as I mentioned before, caused by SrcML bug. I need to debug into this and report to SrcML team or fix myself.
+  Or I can adjust the benchmark.
+- =man=: most complicated one, not tried yet. This is different from the other three bugs:
+  - This is a different buffer overflow bug type (pointer address out of buffer)
+  - The point of interest will executed many times due to two loops.

@@ -172,6 +172,15 @@ Snippet::Snippet(const CtagsEntry& entry) {
     m_main_kind = SK_Function;
     m_main_name = entry.GetName();
     m_code = get_func_code(entry);
+    // int loc = std::count(m_code.begin(), m_code.end(), '\n');
+    // if (loc == 222) {
+    //   std::cout << "1064: ";
+    //   std::cout << "function: ";
+    //   std::cout <<m_main_name << ":";
+    //   std::cout << entry.GetFileName()  << "\n";
+    //   std::cout << entry.GetLineNumber()  << "\n";
+    //   std::cout << loc  << "\n";
+    // }
     // m_sig.emplace(entry.GetName(), SK_Function);
     m_sig[entry.GetName()].insert(SK_Function);
     break;

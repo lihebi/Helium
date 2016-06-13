@@ -101,7 +101,7 @@ namespace utils {
    * ".dot" will be added
    * @param [in] filename The simple filename
    */
-  void visualize_dot_graph(const std::string& dot, std::string filename="out");
+  std::string visualize_dot_graph(const std::string& dot, std::string filename="out");
 
   std::string create_tmp_dir(std::string s="/tmp/helium-XXXXXX");
 

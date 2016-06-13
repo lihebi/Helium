@@ -639,6 +639,7 @@ std::string AST::Visualize(std::string filename) {
  * first will overwrite second
  * yellow_s will not completely overwrite cyan_s.
  * If they overlap, the color will be yellow_s, but the node shape will be dotted.
+ * TODO use dot.h utilities
  */
 std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::string filename) {
   std::string dot;
@@ -648,7 +649,7 @@ std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::s
     std::string name = std::to_string(i);
     std::string label = m_nodes[i]->GetLabel();
     // remove all double quotes because it will conflict with label string
-    label.erase(std::remove(label.begin(), label.end(), '"'));
+    label.erase(std::remove(label.begin(), label.end(), '"'), label.end());
     std::string attr = "[";
     attr += "label=\"" + name + ":" + label + "\"";
     /**
@@ -676,7 +677,8 @@ std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::s
     }
   }
   dot += "}";
-  utils::visualize_dot_graph(dot, filename);
+  std::string dot_file = utils::visualize_dot_graph(dot, filename);
+  std::cout << "written to " << dot_file  << "\n";
   return dot;
 }
 std::string AST::VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan_s, std::string filename) {

@@ -51,3 +51,128 @@ local void treat_file(iname)
     }
 
 #+END_SRC
+
+* Report
+** Done
+- [X] collect address information and its variants, infer the invariants and transfer functions
+- [X] Implement the buffer size increasing approach
+- [X] use address to record heap buffer
+- [X] automate the selecting of changed properties
+- [X] debug and make the whole framework running
+  - I have made the whole framework working fully automatic on =ncompress= and =polymorphy= benchmark.
+    Both the safe condition and error condition is working, and it can stop properly.
+- [X] see if the input generation is good enough to trigger the important paths. If not, need to handle the =argc,argv,getopt=
+  - for =polymorphy=, it has =getopt( argc, argv, "achtvf:" )=, and random generation cannot trigger the =f= branch.
+    I implemented the code to generate such inputs, by extract the string specification from the code and generate accordingly.
+
+** A problem about the stop point
+as we discussed before, the stop point is
+1) when the precondition and transfer function can imply invariants, in safe condition or error condition.
+2) the precondition variables are entry points.
+This works most of the time, but
+#+BEGIN_SRC C
+int main(int argc, char *argv[]) {
+  if (strlen(argv[1]) > 1024) exit 1;
+  foo(argv[1]);
+}
+void foo(char *src) {
+  char buf[1024];
+  strcpy(buf, src);
+}
+#+END_SRC
+
+In this example, =argv[1]= is checked before entering the =foo= function. But at the call site, we have:
+- precondition: =argv[1] > 1024=
+- transfer function: =strlen(argv[1]) = strlen(src)=
+- invariants: =strlen(src) > 1024=
+Which indicates successfully find the stop point.
+
+** TODOs
+Direction 1: write up
+- [ ] Write down the design decision made along the framework
+- [ ] Write down analysis of the results
+- [ ] Study comprehensively about the new related work and write the related work section.
+Direction 2: slice
+- [ ] Try srcml slicer, run the same algorithm on slice to see the result
+Direction 3: remove statements
+- [ ] think about search algorithms to remove irrelevant statements
+Direction 4: more benchmarks
+- =gzip=: compile error, as I mentioned before, caused by SrcML bug. I need to debug into this and report to SrcML team or fix myself.
+  Or I can adjust the benchmark.
+- =man=: most complicated one, not tried yet. This is different from the other three bugs:
+  - This is a different buffer overflow bug type (pointer address out of buffer)
+  - The point of interest will executed many times due to two loops.
+
+* Another thing: the gzip benchmark snippet too long
+TODO: should output warning when this happens!
+Should be able to do it by srcml warning.
+Does srcml output unmatched braces warning?
+Currently Just list the errors here, and modify manually.
+
+gzip.c:707:
+#+BEGIN_SRC C
+#ifdef NO_FSTAT
+	if (stat(ofname, &ostat) != 0) {
+#else
+	if (fstat(ofd, &ostat) != 0) {
+#endif
+	    fprintf(stderr, "%s: ", progname);
+	    perror(ofname);
+	    close(ifd); close(ofd);
+	    unlink(ofname);
+	    exit_code = ERROR;
+	    return ERROR;
+	}
+#+END_SRC
+
+the above code is not passing correctly.
+The conditional compilation will cause the code to have unmatched braces.
+
+Similar ones:
+gzip/src/tree.c:896
+
+These are the only two files that has the issue. After manual remove the conditional compilation, it should works.
+
+* Another compile error
+gzip/deflate.c:220
+#+BEGIN_SRC C
+#ifdef  FULL_SEARCH
+# define nice_match MAX_MATCH
+#else
+  int near nice_match; /* Stop searching when current match exceeds this */
+#endif
+#+END_SRC
+
+gzip.c:174
+#+BEGIN_SRC C
+#ifdef NO_OFF_T
+  typedef long off_t;
+  off_t lseek OF((int fd, off_t offset, int whence));
+#endif
+#+END_SRC
+
+The problem is, off_t is defined, and if no this conditional compilation, the compiler will complain for redefine the type.
+
+* another VERY VERY strange code
+unlzh.c:82-106
+
+#+BEGIN_SRC C
+/* local ush c_table[4096]; */
+#define c_table d_buf
+#if (DIST_BUFSIZE-1) < 4095
+    error cannot overlay c_table and d_buf
+#endif
+
+local ush       bitbuf;
+#+END_SRC
+
+You see that "error cannot overlay c_table and d_buf"?
+This must be a macro, for error.
+But, it will influence the later =bitbuf= variable declaration!
+SrcML doesn't know this,
+so the type of =bitbuf= becomes "error cannot ... local ush", including whatever in between, even the comments!
+
+* Maybe the last issue for gzip!
+The =gzip/src/getopt.c= file is actually not needed!
+And it has a main function, which will cause me trouble when I get the callsite, main function.
+If I select the wrong main function, it will of course not contain the callsite and the context I want.

@@ -621,6 +621,26 @@ int a[3][8];
   }
 
   /**
+   * This is to test the conditional compilation which includes extra unmatched braces.
+   * E.g.
+
+   #ifdef NO_FSTAT
+   if (stat(ofname, &ostat) != 0) {
+   #else
+   if (fstat(ofd, &ostat) != 0) {
+   #endif
+
+   * 
+   */
+  TEST(ASTHelperTestCase, DISABLED_CodeEnclosingLineTest) {
+    std::string filename = "/Users/hebi/benchmark/gzip-1.2.4/src/gzip.c";
+    int linum = 1557;
+    std::string tagname = "function";
+    std::string code = get_code_enclosing_line(filename, linum, tagname);
+    std::cout << code  << "\n";
+  }
+
+  /**
    * This require the benchmark, so disable it.
    * It is used to find the unbalanced braces caused by conditional compilation.
    * We actually cannot do much for it unless we perform the preprocess, but the output is not easily parsable.

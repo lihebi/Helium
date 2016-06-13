@@ -12,7 +12,9 @@
 
 class DotNode {
 public:
-  DotNode(std::string id, std::string label) : m_id(id), m_label(label) {}
+  DotNode(std::string id, std::string label) : m_id(id), m_label(label) {
+    m_label.erase(std::remove(m_label.begin(), m_label.end(), '"'), m_label.end());
+  }
   ~DotNode() {}
   std::string GetID() const {return m_id;}
   std::string GetLabel() const {return m_label;}

@@ -392,7 +392,11 @@ utils::create_folder(const std::string& folder) {
   }
 }
 
-void utils::visualize_dot_graph(const std::string& dot, std::string filename) {
+/**
+ * Visualize dot graph, create a tmp dir to hold the filename
+ * @return the dot file generated
+ */
+std::string utils::visualize_dot_graph(const std::string& dot, std::string filename) {
   std::string dir = create_tmp_dir();
   // std::string extension = filename.substr(filename.find_last_of('.'));
   // if (extension == "dot") {
@@ -417,6 +421,7 @@ void utils::visualize_dot_graph(const std::string& dot, std::string filename) {
   std::string display_cmd = "display "+dir+"/out.png";
 #endif
   utils::exec(display_cmd.c_str());
+  return filename;
 }
 
 /**

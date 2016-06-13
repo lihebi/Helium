@@ -33,3 +33,5 @@ tmp/*
 
 *.dot
 *.png
+
+*.html
