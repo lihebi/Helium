@@ -2,7 +2,7 @@
 #include <boost/regex.hpp>
 #include "utils.h"
 #include "xml_doc_reader.h"
-
+#include <gtest/gtest.h>
 /**
  * Extract id which is not c keyword
  * This is the master copy of this resolving
@@ -33,6 +33,12 @@ extract_id_to_resolve(std::string code) {
   return ss;
 }
 
+TEST(ResolverTestCase, ExtractIdTest) {
+  std::string code = "[MAXPATHLEN]";
+  std::set<std::string> ids = extract_id_to_resolve(code);
+  ASSERT_EQ(ids.size(), 1);
+  EXPECT_EQ(*ids.begin(), "MAXPATHLEN");
+}
 
 std::set<std::string>
 extract_id_to_resolve(ast::NodeList nodes) {

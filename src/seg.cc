@@ -590,20 +590,40 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
 void Ctx::resolveSnippet(AST *ast) {
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
-  decl_deco decl_m = m_ast_to_deco_m[ast].first;
-  decl_deco decl_input_m = m_ast_to_deco_m[ast].second;
-  all_decls.insert(decl_input_m.begin(), decl_input_m.end());
-  all_decls.insert(decl_m.begin(), decl_m.end());
-  for (auto item : all_decls) {
-    ASTNode *node = item.first;
-    std::set<std::string> names = item.second;
-    for (std::string name : names) {
-      SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
-      std::string type = value->GetType()->Raw();
-      std::set<std::string> ids = extract_id_to_resolve(type);
-      all_ids.insert(ids.begin(), ids.end());
-    }
+  // Since I changed the decl mechanism to m_decls, I need to change here
+  
+  // decl_deco decl_m = m_ast_to_deco_m[ast].first;
+  // decl_deco decl_input_m = m_ast_to_deco_m[ast].second;
+  // all_decls.insert(decl_input_m.begin(), decl_input_m.end());
+  // all_decls.insert(decl_m.begin(), decl_m.end());
+  // for (auto item : all_decls) {
+  //   ASTNode *node = item.first;
+  //   std::set<std::string> names = item.second;
+  //   for (std::string name : names) {
+  //     SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
+  //     std::string type = value->GetType()->Raw();
+  //     std::set<std::string> ids = extract_id_to_resolve(type);
+  //     all_ids.insert(ids.begin(), ids.end());
+  //   }
+  // }
+
+  /**
+   * I want to resolve the type of the decls
+   * And also the char array[MAX_LENGTH], see that macro?
+   */
+  for (auto m : m_decls[ast]) {
+    std::string var = m.first;
+    NewType *t = m.second;
+    std::string raw = t->Raw();
+    // the type raw itself (does not contain dimension suffix)
+    std::set<std::string> ids = extract_id_to_resolve(raw);
+    all_ids.insert(ids.begin(), ids.end());
+    // dimension suffix
+    std::string dim = t->DimensionSuffix();
+    ids = extract_id_to_resolve(dim);
+    all_ids.insert(ids.begin(), ids.end());
   }
+  
   // resolve the nodes selected by gene
   std::set<ASTNode*> nodes = m_ast_to_node_m[ast];
   for (ASTNode *n : nodes) {
@@ -620,6 +640,17 @@ void Ctx::resolveSnippet(AST *ast) {
     std::string func = ast->GetFunctionName();
     all_ids.erase(func);
   }
+
+  // FIXME This output more than I want
+  // e.g. Char GetOutputCode HELIUM_POI MAXPATHLEN Od_sizeof Od_strlen d fflush fileptr n printf stdout strcpy strlen tempname
+  // some is in the string, e.g. HELIUM_POI
+  // some is output variable, e.g. Od_sizeof
+  // some is C reserved keywords, e.g. printf
+  // std::cout << "ids to resolve snippets:"  << "\n";
+  // for (auto id : all_ids) {
+  //   std::cout << id  << " ";
+  // }
+  // std::cout << ""  << "\n";
   
   std::set<int> snippet_ids = SnippetDB::Instance()->LookUp(all_ids);
   // not sure if it should be here ..
