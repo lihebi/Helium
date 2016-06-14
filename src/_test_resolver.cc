@@ -100,7 +100,7 @@ TEST(resolver_test_case, system) {
   output = SystemResolver::Instance()->ResolveType("u_int");
   EXPECT_EQ(output, "unsigned int");
   output = SystemResolver::Instance()->ResolveType("u_long");
-  EXPECT_EQ(output, "unsigned long");
+  EXPECT_EQ(output, "unsigned long int");
   output = SystemResolver::Instance()->ResolveType("u_char");
   EXPECT_EQ(output, "unsigned char");
   output = SystemResolver::Instance()->ResolveType("u_int8_t");

@@ -203,7 +203,7 @@ TEST(ThreadTestCase, TimeoutTest) {
   // utils::exec("/Users/hebi/github/Helium/scratch/a.out", &status, 1);
   // utils::exec("/tmp/helium-test-tmp.2D6sfk/a.out", &status, 1);
   // std::cout << status  << "\n";
-  utils::exec("sleep 10", &status, 100000); // 100000 MICROseconds, 0.1s
+  utils::exec("sleep 10", &status, 0.1); // 100000 MICROseconds, 0.1s
   std::cout << status  << "\n";
 }
 
