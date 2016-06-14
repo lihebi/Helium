@@ -186,6 +186,22 @@ ASTNode *AST::GetPreviousLeafNode(ASTNode *node) {
   return NULL;
 }
 
+ASTNode *AST::GetPreviousLeafNodeInSlice(ASTNode *node) {
+  assert(node);
+  if (m_is_slice_active) {
+    // if slice is active, 
+    ASTNode *ret = node;
+    while (true) {
+      ret = GetPreviousLeafNode(ret);
+      if (!ret) return NULL;
+      if (m_slice.count(ret) == 1) return ret;
+    }
+  } else {
+    // if slice is not active, behavior exactly as GetPreviousLeafNode
+    return GetPreviousLeafNode(node);
+  }
+}
+
 
 ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
   ast::NodeKind nk = ast::kind(xml_node);
@@ -492,6 +508,7 @@ ast::AST::AST(ast::XMLNode node) {
   print_trace("AST::AST(ast::XMLNode node)");
   // create root, and the root will create everything else
   m_root = ASTNodeFactory::CreateASTNode(node, NULL, this);
+  m_filename = ast::unit_get_filename(node);
   if (!m_root) return;
   // depth-first-search to traverse(keep) all nodes
   dfs(m_root, m_nodes);
@@ -506,6 +523,43 @@ ast::AST::AST(ast::XMLNode node) {
     m_xmlnode_m[n->GetXMLNode()] = n;
   }
 }
+
+void AST::SetSlice() {
+  // when calling this method, make sure it is valid
+  assert(SimpleSlice::Instance()->IsValid());
+  std::set<int> linums = SimpleSlice::Instance()->GetLineNumbers(m_filename);
+  // for (int l : linums) {
+  //   std::cout << l  << " ";
+  // }
+  // std::cout  << "\n";
+  for (ASTNode* node : m_nodes) {
+    // TODO for each node model, I need to judge whether it is in slice?
+    // e.g. a for loop, the linum should be its for condition.
+    // the body of the for loop should not contribute to its (end) linum?
+    int begin = node->GetBeginLinum();
+    int end = node->GetEndLinum();
+    // if between begin and end, there exists any line in the slice, we count it as in the slice
+    // This code is ugly
+    for (int linum : linums) {
+      if (linum >= begin && linum <= end) {
+        m_slice.insert(node);
+        break;
+      }
+    }
+  }
+  m_is_slice_active = true;
+}
+void AST::ClearSlice() {
+  m_slice.clear();
+  m_is_slice_active = false;
+}
+
+ASTNode* AST::GetCallSite(std::string func_name) {
+  assert(m_root);
+  XMLNode callsite = ast::find_callsite(m_root->GetXMLNode(), func_name);
+  return GetEnclosingNodeByXMLNode(callsite);
+}
+
 
 void ast::dfs(ASTNode *node, std::vector<ASTNode*> &visited) {
   visited.push_back(node);
@@ -570,6 +624,9 @@ std::string AST::GetCode(std::set<ASTNode*> nodes) {
   return ret;
 }
 
+/**
+ * Hehe, duplicate!
+ */
 std::string AST::GetFilename() {
   assert(m_root);
   std::string ret;
@@ -691,6 +748,10 @@ std::string AST::VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan
     cyan_d_s.insert(m_idx_m[n]);
   }
   return VisualizeI(yellow_d_s, cyan_d_s, filename);
+}
+
+std::string AST::VisualizeSlice(std::string filename) {
+  return VisualizeN(m_slice, {});
 }
 
 

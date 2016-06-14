@@ -247,6 +247,14 @@ Helium::Helium(int argc, char* argv[]) {
     std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
     exit(0);
   }
+
+  /**
+   * TODO so many singletons are good practice? Maybe I need to make the Helium class singleton and accessible, and make these singletons its fields.
+   */
+  if (args.Has("slice-file")) {
+    std::string slice_file = args.GetString("slice-file");
+    SimpleSlice::Instance()->SetSliceFile(slice_file);
+  }
 }
 Helium::~Helium() {}
 

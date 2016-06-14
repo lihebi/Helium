@@ -32,5 +32,31 @@ private:
   std::map<std::string, int> m_slices; // filename to linum mapping
 };
 
+/**
+ * Use only relative path
+ * It is simple in the sense that it only use the last component of the path, the filename
+ */
+class SimpleSlice {
+public:
+  static SimpleSlice *Instance() {
+    if (!m_instance) {
+      m_instance = new SimpleSlice();
+    }
+    return m_instance;
+  }
+  std::set<int> GetLineNumbers(std::string filename);
+  bool IsValid() {
+    return m_valid;
+  }
+  void SetSliceFile(std::string slice_file);
+private:
+  SimpleSlice() {}
+  // a.c => {1, 5, 10}
+  // b.c => {3, 18}
+  std::map<std::string, std::set<int> > m_slice;
+  static SimpleSlice *m_instance;
+  bool m_valid = false;
+};
+
 
 #endif /* SLICE_READER_H */

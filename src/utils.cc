@@ -363,6 +363,32 @@ utils::read_file(const std::string& file) {
 }
 
 /**
+ * Get the last component of the path.
+ * /path/to/a.c => a.c
+ * /path/to/ => ""
+ * path/to/a.c => a.c
+ */
+std::string utils::file_name_last_component(std::string filename) {
+  if (filename.find('/') == std::string::npos) {
+    return filename;
+  } else {
+    filename = filename.substr(filename.find_last_of('/')+1);
+    return filename;
+  }
+}
+
+TEST(UtilsTestCase, FileNameLastComponentTest) {
+  std::string name;
+  name = utils::file_name_last_component("/path/to/a.c");
+  EXPECT_EQ(name, "a.c");
+  name = utils::file_name_last_component("/path/to/");
+  EXPECT_EQ(name, "");
+  name = utils::file_name_last_component("path/to/a.c");
+  EXPECT_EQ(name, "a.c");
+}
+
+
+/**
  * rm -r <folder>
  */
 void

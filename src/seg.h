@@ -33,6 +33,7 @@ private:
   // ast::AST* getAST(ast::XMLNode function_node);
   // std::map<ast::XMLNode, ast::AST*> m_asts_m; // map from function xml node, to AST created.
   ast::XMLDoc* createCallerDoc(ast::AST *ast);
+  ast::XMLNode getCallerNode(ast::AST *ast);
 
   /**
    * Local storage. Free after use.

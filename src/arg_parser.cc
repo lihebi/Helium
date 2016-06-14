@@ -29,6 +29,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print,p", po::value<std::string>()->implicit_value(""), "what to be print")
     ("debug,d", po::value<std::string>()->implicit_value(""), "debugging pause point")
     ("slice", po::value<std::string>(), "slice to use, as the code selection. THIS WILL SET THE CODE SELECTION METHOD TO SLICE")
+    ("slice-file", po::value<std::string>(), "the slice file, this will be used as a mask on the AST")
     ;
 
   po::options_description util_options("Utils");

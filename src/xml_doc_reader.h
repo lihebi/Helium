@@ -36,8 +36,10 @@ public:
   /**
    * These two methods are static, meaning the user is responsible to free the returned document
    * The cache is not used even for the file option, because there's no instance of XMLDocReader involved
+   * Since it is created from string, the default filename is empty.
+   * But it is able to set the file name
    */
-  static ast::XMLDoc* CreateDocFromString(const std::string &code);
+  static ast::XMLDoc* CreateDocFromString(const std::string &code, std::string filename = "");
   static ast::XMLDoc* CreateDocFromFile(std::string filename);
 private:
   XMLDocReader() {}

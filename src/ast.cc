@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "arg_parser.h"
 #include "options.h"
+#include "xml_doc_reader.h"
 
 using namespace ast;
 
@@ -401,6 +402,36 @@ std::set<std::string> ast::node_get_var_ids(Node node) {
     result.insert(tmp.begin(), tmp.end());
   }
   return result;
+}
+
+/*******************************
+ ** Unit
+ *******************************/
+
+/**
+ * OK, this node is not necessary to be a <unit> node
+ */
+std::string ast::unit_get_filename(XMLNode node) {
+  XMLNode root = node.root();
+  XMLNode unit_node = root.select_node("/unit").node();
+  assert(unit_node);
+  std::string ret = unit_node.attribute("filename").value();
+  return ret;
+}
+
+
+TEST(ASTTestCase, UnitGetFilenameTest) {
+  std::string tmp_dir = utils::create_tmp_dir();
+  std::string file = tmp_dir + "/a.c";
+  utils::write_file(file, "");
+  // 1. the name should be absolute path
+  // XMLDoc *doc = XMLDocReader::CreateDocFromFile("/Users/hebi/tmp/a.c");
+  XMLDoc *doc = XMLDocReader::CreateDocFromFile(file);
+  std::string filename = unit_get_filename(doc->document_element());
+  // std::cout << filename  << "\n";
+  // 2. the leading slash is removed by srcml
+  EXPECT_EQ("/" + filename, file);
+  delete doc;
 }
 
 

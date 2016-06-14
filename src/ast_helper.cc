@@ -591,6 +591,16 @@ int a[3][8];
     return Node();
   }
 
+  Node find_callsite(pugi::xml_node node, std::string func) {
+    NodeList call_nodes = find_nodes(node, NK_Call);
+    for (Node call_node : call_nodes) {
+      std::string callee = call_get_name(call_node);
+      if (callee == func) {
+        return call_node;
+      }
+    }
+    return Node();
+  }
 
   /*******************************
    ** build doc from scratch

@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "snippet_db.h"
 #include "xml_doc_reader.h"
+#include "slice_reader.h"
 
 #include "segment.h" // for get_header, etc
 #include "resolver.h" // for SystemResolver
@@ -76,6 +77,12 @@ Seg::Seg(ast::XMLNode xmlnode) {
   std::string func_name = function_get_name(function_node);
   // AST *ast = getAST(function_node);
   AST *ast = new AST(function_node);
+  if (SimpleSlice::Instance()->IsValid()) {
+    ast->SetSlice();
+    // DEBUG
+    // ast->VisualizeSlice();
+    // getchar();
+  }
 
   // dumping the ast
   // ast->Visualize();
@@ -190,7 +197,8 @@ bool Seg::NextContext() {
   ASTNode *first_node = ctx->GetFirstNode();
   assert(first_node);
   assert(first_node->GetAST());
-  ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNode(first_node);
+  // ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNode(first_node);
+  ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
   /**
    * Note: the leaf should not be a declaration of a variable, which will be included if the variable is used.
    * It will not contribute to the property, thus no need to tes.
@@ -213,12 +221,21 @@ bool Seg::NextContext() {
       utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
       return false;
     }
-    XMLDoc *doc = createCallerDoc(ast);
-    // reach the function def
-    // query the callgraph, find call-sites, try one callsite.
-    // from that, form the new context
-    AST *newast = ASTFactory::CreateASTFromDoc(doc);
-
+    // FIXME wait, where did I free the doc?
+    // XMLDoc *doc = createCallerDoc(ast);
+    // // reach the function def
+    // // query the callgraph, find call-sites, try one callsite.
+    // // from that, form the new context
+    // AST *newast = ASTFactory::CreateASTFromDoc(doc);
+    XMLNode func_node = getCallerNode(ast);
+    AST *newast = new AST(func_node);
+    if (SimpleSlice::Instance()->IsValid()) {
+      newast->SetSlice();
+      // DEBUG
+      // std::cout << newast->GetFilename() << "\n";
+      // newast->VisualizeSlice();
+      // getchar();
+    }
 
     // dumping the ast
     // newast->Visualize();
@@ -227,11 +244,13 @@ bool Seg::NextContext() {
     m_asts.push_back(newast);
     m_func_to_ast_m[newast->GetFunctionName()] = newast;
     // get callsite node
-    Node callsite_xmlnode = find_callsite(*doc, ast->GetFunctionName());
-    ASTNode *callsite = newast->GetEnclosingNodeByXMLNode(callsite_xmlnode);
+    // Node callsite_xmlnode = find_callsite(*doc, ast->GetFunctionName());
+    // ASTNode *callsite = newast->GetEnclosingNodeByXMLNode(callsite_xmlnode);
+    
     // if there're two functions in the project with the same name, I really have no idea which one to use.
     // Wait, I may have some clues by the filename and whether the callsite is in, but it is hard to implement, and not good solution.
     // The callsite may not be found if I choose the wrong one
+    ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
     assert(callsite);
     assert(callsite->GetAST());
     ctx->SetFirstNode(callsite);
@@ -260,12 +279,50 @@ ast::XMLDoc* Seg::createCallerDoc(AST *ast) {
   std::set<int> caller_ids = SnippetDB::Instance()->LookUp(caller_func, {SK_Function});
   assert(!caller_ids.empty());
   int caller_id = *caller_ids.begin();
+  // FIXME I should not create the doc here, by the code of the function only.
+  // I want to keep the line numbers the same as orignal one
+  // So, I may need to find the file (by the filename), and then get the function from that doc
   std::string func_code = SnippetDB::Instance()->GetCode(caller_id);
-  XMLDoc *doc = XMLDocReader::CreateDocFromString(func_code);
+  std::string filename = SnippetDB::Instance()->GetMeta(caller_id).filename;
+  // FIXME the filename is what in the snippet db, not the true filename that was passed by the command line
+  // but they should be the same
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(func_code, filename);
   m_docs.push_back(doc);
   return doc;
 }
 
+/**
+ * This will create a doc! The doc will be added into m_docs, and freed when the segment deconstruct
+ */
+ast::XMLNode Seg::getCallerNode(AST *ast) {
+  print_trace("Seg::createCallerDoc()");
+  std::string func = ast->GetFunctionName();
+  std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
+  // std::cout << "caller function: " << caller_func  << "\n";
+  // if the function AST is already created, this indicates a recursive function call.
+  // TODO for now. Just assert
+  assert(m_func_to_ast_m.count(caller_func) == 0 && "Recursive function call");
+  std::set<int> caller_ids = SnippetDB::Instance()->LookUp(caller_func, {SK_Function});
+  assert(!caller_ids.empty());
+  int caller_id = *caller_ids.begin();
+  // FIXME I should not create the doc here, by the code of the function only.
+  // I want to keep the line numbers the same as orignal one
+  // So, I may need to find the file (by the filename), and then get the function from that doc
+  std::string func_code = SnippetDB::Instance()->GetCode(caller_id);
+  std::string filename = SnippetDB::Instance()->GetMeta(caller_id).filename;
+  // FIXME the filename is what in the snippet db, not the true filename that was passed by the command line
+  // but they should be the same
+  // FIXME this is not cached! Performance issue! See XMLDocReader doc for detail
+  XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
+  XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
+  m_docs.push_back(doc);
+  for (XMLNode func : funcs) {
+    if (function_get_name(func) == caller_func) {
+      return func;
+    }
+  }
+  assert(false);
+}
 
 
 /**

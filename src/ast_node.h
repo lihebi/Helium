@@ -8,6 +8,7 @@
 #include "new_type.h"
 
 #include "resolver.h"
+#include "slice_reader.h"
 
 namespace ast {
   typedef enum {
@@ -172,6 +173,7 @@ namespace ast {
    */
   class AST {
   public:
+    // FIXME should I remove this constructor?
     AST() {}
     AST(ast::XMLNode xmlnode);
     ~AST();
@@ -183,6 +185,7 @@ namespace ast {
     std::string Visualize(std::string filename="out");
     std::string VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::string filename="out");
     std::string VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan_s, std::string filename="out");
+    std::string VisualizeSlice(std::string filename="out");
     /**
      * Code
      */
@@ -193,6 +196,14 @@ namespace ast {
     std::string GetCode();
     std::string GetFilename();
     int GetLineNumber();
+
+    /**
+     * The first callsite (or random one because I have a set)
+     */
+    ASTNode* GetCallSite(std::string func_name);
+
+    void SetSlice();
+    void ClearSlice();
 
     std::set<ASTNode*> GetLeafNodes();
 
@@ -347,6 +358,7 @@ namespace ast {
       return NULL;
     }
     ASTNode *GetPreviousLeafNode(ASTNode *node);
+    ASTNode *GetPreviousLeafNodeInSlice(ASTNode *node);
     /**
      * Get the first nodes AMONG the input nodes
      */
@@ -383,6 +395,13 @@ namespace ast {
     std::map<ASTNode*, std::set<std::string> > m_decl_m;
     std::map<ASTNode*, std::set<std::string> > m_deco_output_m; // deprecated
     std::map<ASTNode*, std::vector<NewVariable> > m_output_m;
+
+    // slicing
+    std::set<ASTNode*> m_slice; // nodes in the set of slice
+    bool m_is_slice_active = false; // whether the slice is set, or cleared.
+    // FIXME this should be set when creating the AST.
+    // It can be empty, when I just want the AST, but then I can do nothing for the filename related operations, like slice mask
+    std::string m_filename; // the filename current AST belongs
   };
 
   class ASTNodeFactory {

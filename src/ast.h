@@ -120,6 +120,9 @@ namespace ast {
    ** For specific type of node
    *******************************/
 
+  // get the filename field of this SrcML document belongs
+  std::string unit_get_filename(XMLNode node);
+
   // TODO validate node
   
   std::string function_get_return_type(Node node);
@@ -288,7 +291,7 @@ namespace ast {
    * Find the first <call> whose name is func.
    */
   Node find_callsite(pugi::xml_document &doc, std::string func);
-
+  Node find_callsite(pugi::xml_node node, std::string func);
   
   
 

@@ -95,6 +95,14 @@ namespace utils {
   void remove_file(const std::string &file);
 
   /**
+   * Get the last component of the path.
+   * /path/to/a.c => a.c
+   * /path/to/ => to
+   * path/to/a.c => a.c
+   */
+  std::string file_name_last_component(std::string filename);
+
+  /**
    * TODO Will generate format according to "filename"
    * If filename do not have a valid extension, use ".dot"
    * Will open the result.

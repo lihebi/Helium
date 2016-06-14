@@ -35,8 +35,11 @@ ast::XMLDoc* XMLDocReader::ReadString(const std::string &code) {
   return doc;
 }
 
-ast::XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code) {
+ast::XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
   std::string cmd = "srcml --position -lC";
+  if (!filename.empty()) {
+    cmd += " -f " + filename;
+  }
   // std::string cmd = "srcml -lC";
   std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
