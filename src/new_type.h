@@ -82,8 +82,8 @@ public:
   }
   int Pointer() const {return m_pointer;}
   int Dimension() const {return m_dims.size();}
-  friend std::string get_input_code(NewType type, const std::string &name);
-  friend std::string get_random_input(NewType type);
+  // friend std::string get_input_code(NewType type, const std::string &name);
+  // friend std::string get_random_input(NewType type);
 
   /**
    * Before the input, we need decl the variable.
