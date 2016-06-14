@@ -132,8 +132,10 @@ test: $(TEST_TARGET)
 dotest: test
 	$(TEST_TARGET)
 
+#	$(CC) -o $@ $(TEST_MAIN) $(OBJECTS)  $(C_LIB)
+#	$(CC) -o $@ $^  $(C_LIB)
 $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
-	$(CC) $(CFLAGS) $(C_LIB) -o $@ $^
+	$(CC) -o $@ $^ $(CFLAGS) $(C_LIB)
 
 ##############################
 ## General compile rule
