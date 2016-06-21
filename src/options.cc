@@ -14,6 +14,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"as", POK_AddSnippet}
   , {"asd", POK_AddSnippetDot}
   , {"t", POK_Trace}
+  , {"w", POK_Warning}
   , {"trace", POK_Trace}
   , {"un", POK_UnresolvedID}
   , {"seg", POK_Segment}
@@ -41,6 +42,7 @@ void PrintOption::Help() {
   std::cout << "\t ce: compile-error"  << "\n";
   std::cout << "\t as: add-snippet"  << "\n";
   std::cout << "\t t: trace"  << "\n";
+  std::cout << "\t w: warning"  << "\n";
   std::cout << "\t un: unresolved ids when resolving snippets"  << "\n";
   std::cout << "\t seg: print out the segment."  << "\n";
   std::cout << "\t segno: print current segment NO."  << "\n";
@@ -81,6 +83,13 @@ void print_trace(const std::string &s) {
     std::cout << "[trace] " << s  << "\n";
   }
 }
+
+void print_warning(const std::string &s) {
+  if (PrintOption::Instance()->Has(POK_Warning)) {
+    std::cerr << "[Warning] " << s  << "\n";
+  }
+}
+
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;
 }

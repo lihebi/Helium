@@ -674,6 +674,81 @@ Node ast::param_get_decl(Node node) {
 
 
 /**
+ *
+ FIXME
+ local int get_istat(iname, sbuf)
+    char *iname;
+    struct stat *sbuf;
+{
+ * FIXME I need to use a parser because the code may contain comments
+ */
+std::string ast::get_function_decl(std::string code) {
+
+  // std::cout << "======"  << "\n";
+  // std::cout << code  << "\n";
+  // 1. remove whatever after {,
+  // 2. if ; inside, remove (), and add another, move the ; into ",", and remove the last one. add ; after it.
+  // assert(code.find("(") != std::string::npos);
+  // // This might fail because of srcml bug: the function body is not parsed into the <function> tag.
+  // assert(code.find("{") != std::string::npos);
+  // assert(code.find(")") != std::string::npos);
+  // assert(code.find("(") < code.find(")"));
+  // assert(code.find(")") < code.find("{"));
+  if (code.find("(") == std::string::npos
+      || code.find("{") == std::string::npos
+      || code.find(")") == std::string::npos
+      || code.find("(") >= code.find(")")
+      || code.find(")") >= code.find("{")
+      ) {
+    print_warning("get_function_decl: not a good function");
+    return "";
+  }
+  
+  std::string ret = code.substr(0, code.find('{'));
+  if (ret.find(';') == std::string::npos) {
+    ret += ";";
+  } else {
+    std::string first, last;
+    first = ret.substr(0, ret.find('('));
+    last = ret.substr(ret.find(')')+1);
+    std::string params;
+    while (last.find(';') != std::string::npos) {
+      int pos = last.find(';');
+      params += last.substr(0, pos) + ",";
+      last = last.substr(pos+1);
+    }
+    params.pop_back();
+    ret = first + "(" + params + ");";
+  }
+  return ret;
+}
+
+TEST(ASTTestCase, FunctionDeclTest) {
+  const char *code = R"prefix(
+ local int get_istat(iname, sbuf)
+    char *iname;
+    struct stat *sbuf;
+{
+lalala
+}
+)prefix";
+  std::string s(code);
+  std::string decl = ast::get_function_decl(s);
+  std::cout << decl  << "\n";
+
+  code = R"prefix(
+local int get_istat(iname, sbuf)
+    char *iname;
+    struct stat *sbuf;
+{
+    int ilen;  /* strlen(ifname) */
+}
+)prefix";
+  decl = ast::get_function_decl(code);
+  std::cout << decl  << "\n";
+}
+
+/**
  * Get function node the node belongs to.
  */
 Node ast::get_function_node(Node node) {

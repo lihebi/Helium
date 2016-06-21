@@ -4,6 +4,7 @@
 #include "common.h"
 
 void print_trace(const std::string &s);
+void print_warning(const std::string &s);
 
 typedef enum {
   POK_CompileError // print compile error
@@ -13,6 +14,7 @@ typedef enum {
   , POK_Context // print current context
   , POK_Main // the main.c file (not only the main function)
   , POK_Trace // print traces
+  , POK_Warning // print warnings
   , POK_UnresolvedID // print unresolved id
   , POK_SegNo // current segment number
   , POK_CodeOutputLocation // output folder location

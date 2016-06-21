@@ -799,7 +799,7 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
     if (utils::rand_bool()) {
       components.push_back("-" + std::string(1, c));
       // the string for the argument
-      int size = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
+      int size = utils::rand_int(1, Config::Instance()->GetInt("max-strlen"));
       std::string str = utils::rand_str(utils::rand_int(1, size));
       components.push_back(str);
       argv_spec += "Ix_argv:" + std::string(1, c) + " = true\n";
@@ -809,7 +809,7 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
   // add 0-3 more random staff
   int random_staff = utils::rand_int(0, 3);
   for (int i=0;i<random_staff;i++) {
-    int size = utils::rand_int(0, Config::Instance()->GetInt("max-strlen"));
+    int size = utils::rand_int(1, Config::Instance()->GetInt("max-strlen"));
     std::string str = utils::rand_str(utils::rand_int(1, size));
     components.push_back(str);
     argv_spec += "Id_strlen(argv:r" + std::to_string(i) + ") = " + std::to_string(str.length()) + "\n";

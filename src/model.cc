@@ -242,6 +242,9 @@ std::string Function::GetLabel() {
   return ret;
 }
 
+/**
+ * Should not have the name of the function!
+ */
 std::set<std::string> Function::GetIdToResolve() {
   std::set<std::string> ret;
   std::set<std::string> tmp;

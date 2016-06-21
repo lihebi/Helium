@@ -484,11 +484,6 @@ std::vector<Snippet*> sort_snippets(std::set<Snippet*> all) {
   return sorted;
 }
 
-std::string get_function_decl(std::string code) {
-  std::string decl = code.substr(0, code.find('{')) + ";";
-  if (std::count(decl.begin(), decl.end(), ';') > 1) return "";
-  else return decl;
-}
 
 /**
  * TODO if two snippet has exactly the same signature (but different code, because if the same, it is already removed.),

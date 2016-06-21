@@ -134,6 +134,8 @@ namespace ast {
 
   NodeList function_get_param_decls(Node node);
 
+  std::string get_function_decl(std::string code);
+
 
   // deprecated
   std::string param_get_type(Node node);

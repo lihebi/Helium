@@ -843,6 +843,30 @@ std::string Ctx::getSupport() {
   for (auto m : m_ast_to_node_m) {
     avoid_funcs.insert(m.first->GetFunctionName());
   }
+  // but, but, we should not avoid the function for the "first node", because it is in the main function
+  avoid_funcs.erase(m_first->GetAST()->GetFunctionName());
+
+  // DEBUG printing out avoid functions
+
+  // for (auto &s : avoid_funcs) {
+  //   std::cout << s  << "\n";
+  // }
+
+  // decl the avoid func here
+  for (std::string s : avoid_funcs) {
+    std::set<int> ids = SnippetDB::Instance()->LookUp(s, {SK_Function});
+    assert(ids.size() == 1);
+    int id = *ids.begin();
+    std::string code = SnippetDB::Instance()->GetCode(id);
+    std::string decl_code = ast::get_function_decl(code);
+    code_func_decl +=
+      "// Decl Code for " + s + "\n"
+      + decl_code + "\n";
+    // std::cout << "decl code for " << s << " is: " << decl_code  << "\n";
+    // std::cout << "original code is " << code  << "\n";
+  }
+
+  
   // std::cout << sorted_snippet_ids.size()  << "\n";
   for (int id : sorted_snippet_ids) {
     SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
@@ -852,6 +876,13 @@ std::string Ctx::getSupport() {
         code_func += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
         code_func += SnippetDB::Instance()->GetCode(id) + '\n';
         code_func_decl += get_function_decl(SnippetDB::Instance()->GetCode(id))+"\n";
+      } else {
+        // assert(false);
+        // add only function decls
+        // FIXME It seems to be empty string
+        // std::cout << func << " avoid detected"  << "\n";
+        // std::string decl = get_function_decl(SnippetDB::Instance()->GetCode(id) + "\n");
+        // code_func_decl += decl;
       }
     } else {
       // every other support code(structures) first
@@ -1670,6 +1701,12 @@ bool Ctx::resolveQuery(std::vector<std::string> str_invs, std::vector<std::strin
       }
       if (var != "argv" && var != "argc" && var != "optarg") {
         return false;
+      }
+      if (var == "argv" || var == "argc") {
+        // the argv should come from main
+        if (m_first->GetAST()->GetFunctionName() != "main") {
+          return false;
+        }
       }
     }
     utils::print("Context Searching Success!\n", utils::CK_Green);
