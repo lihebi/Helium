@@ -334,9 +334,11 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
      */
     std::cout << '.' << std::flush;
     CtagsEntry ctags_entry(entry);
+    // std::cout << "creating for snippet: " << ctags_entry.GetName();
     Snippet *snippet = new Snippet(ctags_entry);
     if (snippet != NULL) {
       if (snippet->IsValid()) {
+        // std::cout << ": *********************************!";
         /**
          * Since we are iterating the tag file, for the enumerator, we will add them many times.
          * Apparently this is not desired.
@@ -348,6 +350,7 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
       }
       delete snippet;
     }
+    // std::cout  << "\n";
     res = tagsNext(tag, entry);
   }
   std::cout  << "\n";

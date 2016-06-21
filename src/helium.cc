@@ -34,6 +34,7 @@ create_tagfile(const std::string& folder, const std::string& file) {
   cmd += file;
   cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
   cmd += full_path;
+  // std::cout << cmd  << "\n";
   // std::system(cmd.c_str());
   int status;
   utils::exec(cmd.c_str(), &status);
@@ -92,11 +93,9 @@ Helium::Helium(int argc, char* argv[]) {
    ** utilities
    *******************************/
   if (args.Has("create-tagfile")) {
-    if (args.Has("output")) {
-      std::string output_file = args.GetString("output");
-      if (output_file.empty()) output_file = "tags";
-      create_tagfile(m_folder, output_file);
-    }
+    std::string output_file = args.GetString("output");
+    if (output_file.empty()) output_file = "tags";
+    create_tagfile(m_folder, output_file);
     exit(0);
   }
 

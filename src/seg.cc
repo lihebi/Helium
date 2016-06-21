@@ -835,6 +835,7 @@ std::string Ctx::getSupport() {
   code += "\n/****** codes *****/\n";
   // snippets
   std::string code_func_decl;
+  std::string code_variable;
   std::string code_func;
   /**
    * Avoid all the functions
@@ -884,6 +885,12 @@ std::string Ctx::getSupport() {
         // std::string decl = get_function_decl(SnippetDB::Instance()->GetCode(id) + "\n");
         // code_func_decl += decl;
       }
+    } else if (meta.HasKind(SK_Variable)) {
+      // for variable, put it AFTER function decl
+      // this is because the variable may be a function pointer decl, and it may use the a funciton.
+      // But of course it should be before the function definition itself, because it is
+      code_variable += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+      code_variable += SnippetDB::Instance()->GetCode(id) + '\n';
     } else {
       // every other support code(structures) first
       code += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
@@ -893,6 +900,8 @@ std::string Ctx::getSupport() {
 
   code += "\n// function declarations\n";
   code += code_func_decl;
+  code += "\n// variables and function pointers\n";
+  code += code_variable;
   code += "\n// functions\n";
   code += code_func;
   // foot

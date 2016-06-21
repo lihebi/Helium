@@ -550,6 +550,10 @@ char *t;
 } *a;
 
 will be <struct>, and *a will not be a <decl_stmt>
+
+FIXME the function pointer is also recognized as variable by ctags
+int (*work) (int infile, int outfile) = zip;
+int (*read_buf) (char *buf, unsigned size);
  */
 std::string get_var_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
@@ -566,6 +570,10 @@ std::string get_var_code(const CtagsEntry& entry) {
     if (!ret.empty()) return ret;
     ret = ast::get_code_enclosing_line(filename, line_number, "union");
     if (!ret.empty()) return ret;
+  }
+  if (ret.empty()) {
+    // check if it is a function decl.
+    ret = ast::get_code_enclosing_line(filename, line_number, "function_decl");
   }
   return ret;
 }
