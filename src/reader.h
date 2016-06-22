@@ -38,7 +38,7 @@ private:
   void getFuncCallSegments(std::string func_name);
   void GA();
   // SegmentList m_segments;
-  ast::Doc m_doc;
+  ast::Doc *m_doc;
   std::string m_filename;
   static int m_skip_segment; // store config number
   static int m_cur_seg_no; // statically +1 to record current segment

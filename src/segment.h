@@ -29,12 +29,24 @@ public:
   ~Segment();
   void SetPOI() {}
   bool NextContext();
+  void TestNextContext();
+  bool ContinueNextContext() {
+    if (m_resolved) return false;
+    return !m_context_worklist.empty();
+  }
   ast::ASTNode* GetFirstNode() {
     assert(!m_nodes.empty());
     return (*m_nodes.begin())->GetAST()->GetFirstNode(m_nodes);
   }
   std::set<ast::ASTNode*> GetPOI() {
     return m_nodes;
+  }
+
+  void DeclOutput() {
+    m_poi_ast->SetOutput(m_output_vars);
+  }
+  void UnDeclOutput() {
+    m_poi_ast->ClearOutput();
   }
 private:
   // ast::AST* getAST(ast::XMLNode function_node);
@@ -47,13 +59,20 @@ private:
    */
   std::map<std::string, ast::AST*> m_func_to_ast_m; // map from function name to AST
   std::vector<ast::AST*> m_asts;
+  ast::AST *m_poi_ast = NULL;
   std::vector<ast::XMLDoc*> m_docs;
   std::vector<Context*> m_ctxs;
+
+
+  std::deque<Context*> m_context_worklist;
+  
   // FIXME this should be a vector
   // but for now, it is ok, we only use one node
   std::set<ast::ASTNode*> m_nodes; // POI
   std::map<ast::ASTNode*, std::set<std::string> > m_deco; // POI output decoration of AST
   std::map<ast::ASTNode*, std::vector<NewVariable> > m_output_vars;
+
+  bool m_resolved = false;
 };
 
 

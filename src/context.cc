@@ -63,11 +63,13 @@ void Context::SetFirstNode(ast::ASTNode* node) {
   m_first = node;
 }
 
-void Context::AddNode(ASTNode* node) {
+bool Context::AddNode(ASTNode* node) {
   // insert here
   // but if test shows it should not be in, it will be removed
+  if (m_nodes.count(node) == 1) return false;
   m_nodes.insert(node);
   m_ast_to_node_m[node->GetAST()].insert(node);
+  return true;
 }
 
 void Context::RemoveNode(ASTNode *node) {
@@ -101,6 +103,7 @@ void Context::dump() {
   // std::cout << "AST number: " << asts.size()  << "\n";
   static int count = 0;
   count ++;
+  m_seg->UnDeclOutput();
   for (auto m : m_ast_to_node_m) {
     std::cout << "-----------"  << "\n";
     AST *ast = m.first;
@@ -109,6 +112,7 @@ void Context::dump() {
     utils::print(code+"\n", utils::CK_Blue);
     // ast->VisualizeN(nodes, {}, std::to_string(count));
   }
+  m_seg->DeclOutput();
 }
 
 

@@ -18,6 +18,10 @@
 using namespace ast;
 using namespace utils;
 
+/********************************
+ * Code Generation Helper functions
+ ********************************/
+
 std::string
 get_head() {
   return
@@ -65,8 +69,6 @@ std::string get_header() {
   }
   return s;
 }
-
-
 
 
 /**
@@ -123,6 +125,11 @@ NewType* resolve_type(std::string var, ASTNode *node) {
   }
 }
 
+
+/********************************
+ * The Segment Class
+ ********************************/
+
 Segment::Segment(ast::XMLNode xmlnode) {
   print_trace("Segment::Segment()");
   XMLNode function_node = get_function_node(xmlnode);
@@ -149,6 +156,7 @@ Segment::Segment(ast::XMLNode xmlnode) {
 
 
   // POI output statement decoration to AST
+  m_poi_ast = ast;
 
   assert(m_nodes.size() > 0);
   std::set<std::string> ids;
@@ -212,6 +220,7 @@ Segment::Segment(ast::XMLNode xmlnode) {
   
   // Initial context
   // m_ctxs.push_back(new Context(this));
+  m_context_worklist.push_back(new Context(this));
 }
 Segment::~Segment() {
   for (ast::AST *ast : m_asts) {
@@ -226,6 +235,119 @@ Segment::~Segment() {
 }
 
 /**
+ * Query all the caller of the func, and get all the <function> nodes
+ * The XML doc will be stored in XMLDocReader, no need to free
+ */
+XMLNodeList get_caller_nodes(std::string func) {
+  std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
+  XMLNodeList ret;
+  for (std::string caller : caller_funcs) {
+    std::set<int> ids = SnippetDB::Instance()->LookUp(caller, {SK_Function});
+    for (int id : ids) {
+      std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
+      XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
+      XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
+      for (XMLNode func : funcs) {
+        if (function_get_name(func) == caller) {
+          ret.push_back(func);
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+/**
+ * 
+ How about this: TestNextContext()
+ 1. extract context from worklist
+ 2. test this context
+   2.1 if it is resolved, output
+   2.2 if it reaches main, stop
+   2.3 otherwise, search for new context, and push to the end of worklist
+ */
+void Segment::TestNextContext() {
+  print_trace("void Segment::TestNextContext()");
+  if (m_context_worklist.empty()) {
+    return;
+  }
+  // utils::print(std::to_string(m_context_worklist.size()), utils::CK_Purple);
+  Context *ctx = m_context_worklist.front();
+  m_context_worklist.pop_front();
+  // Testing
+  std::cout << "testing context with new code:";
+  ASTNode *first_node = ctx->GetFirstNode();
+  assert(first_node);
+  assert(first_node->GetAST());
+  utils::print(first_node->dump() + "\n", utils::CK_Purple);
+  ctx->Resolve();
+  ctx->Test();
+  if (ctx->IsResolved()) {
+    m_resolved = true;
+    // output?
+    ctx->dump();
+    delete ctx;
+    return;
+  }
+  // Context Searching
+  ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
+  if (leaf) {
+    Context *new_ctx = new Context(*ctx);
+    // found leaf node
+    std::string code;
+    new_ctx->SetFirstNode(leaf);
+    // here do not need to check validity.
+    // only check when inter-procedure, this is to remove some recursive calls
+    new_ctx->AddNode(leaf);
+    m_context_worklist.push_back(new_ctx);
+  } else {
+    // inter procedure
+    AST *ast = first_node->GetAST();
+    utils::print("Inter procedure: " + ast->GetFunctionName() + "\n", utils::CK_Cyan);
+    if (ast->GetFunctionName() == "main") {
+      utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
+      delete ctx;
+      return;
+    }
+
+    // get multiple callsites
+    XMLNodeList callers = get_caller_nodes(ast->GetFunctionName());
+    for (XMLNode func_node : callers) {
+      // create or retrieve AST
+      // I should not just create teh AST
+      // I should first check if the AST is already there
+      std::string new_func_name = function_get_name(func_node);
+      AST *newast;
+      if (m_func_to_ast_m.count(new_func_name) == 1) {
+        newast = m_func_to_ast_m[new_func_name];
+      } else {
+        newast = new AST(func_node);
+        if (SimpleSlice::Instance()->IsValid()) {
+          newast->SetSlice();
+        }
+        assert(newast);
+        m_asts.push_back(newast);
+        m_func_to_ast_m[newast->GetFunctionName()] = newast;
+      }
+      ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
+      if (callsite && callsite->GetAST()) {
+        Context *new_ctx = new Context(*ctx);
+        new_ctx->SetFirstNode(callsite);
+        // I can remove the recursive calls here
+        // When adding node, we check if
+        // 2. the newly added node is already in the selection. (this only works if we use linear context search)
+        if (new_ctx->AddNode(callsite)) {
+          m_context_worklist.push_back(new_ctx); // add all the contexts
+        } else {
+          delete new_ctx;
+        }
+      }
+    }
+  }
+  delete ctx;
+}
+
+/**
  * Get the next context.
  1. get the newest context
  2. get the first ASTNode
@@ -233,6 +355,21 @@ Segment::~Segment() {
  4. if interprocedure, query call graph, create a new AST and move from there
 
  @return true if need to continue. false to stop.
+
+
+ This method extract next newest context from m_worklist, and from there try next context.
+ Each time callsite resolving, it may found many callsite.
+ If so, test all of them, and add all the valid ones to the worklist.
+ Otherwise just add one to the worklist.
+
+ return true if
+ 1. worklist is not empty
+
+ return false if
+ 1. successfully resolve the query, don't need to continue
+ 2. worklist is empty
+
+ DEPRECATED
  */
 bool Segment::NextContext() {
   print_trace("Segment::NextContext()");

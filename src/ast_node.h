@@ -235,6 +235,9 @@ namespace ast {
     void SetOutput(std::map<ASTNode*, std::vector<NewVariable> > output_m) {
       m_output_m = output_m;
     }
+    void ClearOutput() {
+      m_output_m.clear();
+    }
     void ClearDecl() {
       m_decl_input_m.clear();
       m_decl_m.clear();

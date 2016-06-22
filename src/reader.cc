@@ -22,6 +22,8 @@
 #include "slice_reader.h"
 #include "context.h"
 
+#include "xml_doc_reader.h"
+
 
 /*******************************
  ** portable timing
@@ -45,7 +47,7 @@ int Reader::m_cur_seg_no = 0;
 
 void Reader::GA() {
   // std::cout << "Genetic Algorithm"  << "\n";
-  NodeList func_nodes = ast::find_nodes(m_doc, NK_Function);
+  NodeList func_nodes = ast::find_nodes(*m_doc, NK_Function);
   for (Node func : func_nodes) {
     std::cerr << "."  << std::flush;
     // std::cout << "For func: " << func.child_value("name") << "\n";
@@ -206,7 +208,8 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
  */
 void ProcessSeg(Segment *seg) {
   print_trace("ProcessSeg()");
-  while(seg->NextContext()) {
+  while(seg->ContinueNextContext()) {
+    seg->TestNextContext();
     // build
     // Builder builder;
     // builder.SetMain(seg->GetMain());
@@ -229,7 +232,8 @@ void ProcessSeg(Segment *seg) {
  */
 Reader::Reader(const std::string &filename) : m_filename(filename) {
   print_trace("Reader: " + filename);
-  utils::file2xml(filename, m_doc);
+  // utils::file2xml(filename, m_doc);
+  m_doc = XMLDocReader::Instance()->ReadFile(filename);
   std::string method = Config::Instance()->GetString("code-selection");
   if (method == "loop") {
     // getLoopSegments();
@@ -463,7 +467,7 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
  */
 Segment* Reader::getAnnotSeg() {
   print_trace("Reader::getAnnotSeg");
-  NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
+  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
     // std::cerr << "Error: Currently only support ONE single statement.";
     // std::cerr << "But Found: " << comment_nodes.size() << "\n";

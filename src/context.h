@@ -20,7 +20,11 @@ public:
     return m_first;
   }
   void SetFirstNode(ast::ASTNode* node);
-  void AddNode(ast::ASTNode* node);
+  // not valid if:
+  // 2. newly added node already selected
+  // So, set when AddNode
+  // @return whether it is valid
+  bool AddNode(ast::ASTNode* node);
   void RemoveNode(ast::ASTNode *node);
   std::set<ast::ASTNode*> GetNodes() {
     return m_nodes;

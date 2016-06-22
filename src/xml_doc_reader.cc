@@ -1,13 +1,17 @@
 #include "xml_doc_reader.h"
 #include "utils.h"
 #include <iostream>
-
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 XMLDocReader *XMLDocReader::m_instance = NULL;
 
 ast::XMLDoc *XMLDocReader::ReadFile(std::string filename) {
   /**
    * Will not check the real path of filename. The key is the filename provided.
    */
+  // should this file name be a absolute one? Do I need to unify them?
+  // FIXME if the file does not exist, exception will be thrown, but should I output some debug information?
+  filename = fs::canonical(fs::path(filename)).string();
   if (m_docs.count(filename) == 1) return m_docs[filename];
   std::string cmd;
   cmd = "srcml --position -lC " + filename;
