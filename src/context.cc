@@ -1,341 +1,22 @@
-#include "seg.h"
+#include "context.h"
 #include "options.h"
 #include <iostream>
 #include "utils.h"
 #include "snippet_db.h"
 #include "xml_doc_reader.h"
 #include "slice_reader.h"
-
-#include "segment.h" // for get_header, etc
-#include "resolver.h" // for SystemResolver
-#include "builder.h"
+#include "ast_node.h"
 #include "global_variable.h"
-#include "config.h"
+
+#include "builder.h"
 #include "analyzer.h"
+#include "config.h"
+#include "tester.h"
+
 #include <gtest/gtest.h>
 
 using namespace ast;
 using namespace utils;
-
-/**
- * On xml node (pugixml), remove node, add a new node with tag name "tagname", and pure text value content
- * The node should NOT be the root node, otherwise assertion failure will occur.
- */
-static void replace_xml_node(XMLNode node, std::string tagname, std::string content) {
-  assert(node.parent());
-  Node new_node = node.parent().insert_child_before(tagname.c_str(), node);
-  new_node.append_child(pugi::node_pcdata).set_value(content.c_str());
-  node.parent().remove_child(node);
-}
-
-/**
- * Replace all the return xxx; statement to return 35;
- */
-static std::string replace_return_to_35(const std::string &code) {
-  // TODO pattern matching or using paser?
-  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
-  XMLNode root = doc->document_element();
-  XMLNodeList nodes = find_nodes(root, NK_Return);
-  for (XMLNode node : nodes) {
-    // not sure if I need to add 
-    replace_xml_node(node, "return", "return 35;");
-  }
-  std::string ret = ast::get_text(root);
-  delete doc;
-  return ret;
-}
-
-/**
- * Resolve the type of a variable at an AST node.
- * Recall that Type* instance is created in the ASTNode, by means of Decl*.
- * This function will resolve:
- *   1. symbol table in AST (procedure level)
- *   2. Global Variables
- *   3. Special Variables, e.g. optarg
- */
-NewType* resolve_type(std::string var, ASTNode *node) {
-  print_trace("resolve_type(std::string var, ASTNode *node)");
-  SymbolTable *tbl = node->GetSymbolTable();
-  SymbolTableValue* value = tbl->LookUp(var);
-  if (value) {
-    return value->GetType();
-  } else {
-    NewType* type = GlobalVariableRegistry::Instance()->LookUp(var);
-    if (type) return type;
-    else {
-      // special
-      std::cerr << var  << "\n";
-      assert(false);
-    }
-  }
-}
-
-Seg::Seg(ast::XMLNode xmlnode) {
-  print_trace("Seg::Seg()");
-  XMLNode function_node = get_function_node(xmlnode);
-  assert(function_node);
-  std::string func_name = function_get_name(function_node);
-  // AST *ast = getAST(function_node);
-  AST *ast = new AST(function_node);
-  if (SimpleSlice::Instance()->IsValid()) {
-    ast->SetSlice();
-    // DEBUG
-    // ast->VisualizeSlice();
-    // getchar();
-  }
-
-  // dumping the ast
-  // ast->Visualize();
-
-  m_func_to_ast_m[func_name] = ast;
-  m_asts.push_back(ast);
-  // POI
-  // FIXME Not sure if I should use GetEnclosingNodeByXMLNode
-  ASTNode *astnode = ast->GetNodeByXMLNode(xmlnode);
-  m_nodes.insert(astnode);
-
-
-  // POI output statement decoration to AST
-
-  assert(m_nodes.size() > 0);
-  std::set<std::string> ids;
-  for (ASTNode *poi_node : m_nodes) {
-    std::set<std::string> _ids = poi_node->GetVarIds();
-    ids.insert(_ids.begin(),_ids.end());
-  }
-  ASTNode *poi_node = *m_nodes.begin();
-  for (std::string id : ids) {
-    // std::cout << id  << "\n";
-    if (id.empty()) continue;
-    if (is_c_keyword(id)) continue;
-    NewType *type = resolve_type(id, *m_nodes.begin());
-    if (type) {
-      m_output_vars[poi_node].push_back({type, id});
-    }
-  }
-  
-  // std::cout << "getting POI output vars"  << "\n";
-  // for (ASTNode *poi_node : m_nodes) {
-  //   std::set<std::string> ids = poi_node->GetVarIds();
-  //   for (std::string id : ids) {
-  //     // std::cout << id  << "\n";
-  //     if (id.empty()) continue;
-  //     if (is_c_keyword(id)) continue;
-  //     SymbolTable *tbl = poi_node->GetSymbolTable();
-  //     SymbolTableValue *decl = tbl->LookUp(id);
-  //     if (decl) {
-  //       m_deco[poi_node].insert(id);
-  //     } else {
-  //       // will need to query global variables
-  //       // will need to query system types, like optarg
-  //     }
-  //   }
-  // }
-  // FIXME
-  // assert(!m_deco.empty());
-  // std::cout << "deco output:"  << "\n";
-  // for (auto m : m_deco) {
-  //   for (std::string s : m.second) {
-  //     std::cout << s  << "\n";
-  //   }
-  // }
-  // ast->SetDecoOutput(m_deco);
-  ast->SetOutput(m_output_vars);
-
-  /**
-   * Debugging: print out output variables
-   */
-  // std::cout << "output variables:"  << "\n";
-  if (PrintOption::Instance()->Has(POK_IOSpec)) {
-    utils::print("Output Variables:\n", CK_Blue);
-    for (auto m : m_output_vars) {
-      for (NewVariable var : m.second) {
-        // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
-        utils::print(var.GetType()->ToString() + "\n", CK_Blue);
-        utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
-      }
-    }
-  }
-  
-  // Initial context
-  // m_ctxs.push_back(new Ctx(this));
-}
-Seg::~Seg() {
-  for (ast::AST *ast : m_asts) {
-    delete ast;
-  }
-  for (ast::XMLDoc* doc : m_docs) {
-    delete doc;
-  }
-  for (Ctx *ctx : m_ctxs) {
-    delete ctx;
-  }
-}
-
-/**
- * Get the next context.
- 1. get the newest context
- 2. get the first ASTNode
- 3. get previous leaf node
- 4. if interprocedure, query call graph, create a new AST and move from there
-
- @return true if need to continue. false to stop.
- */
-bool Seg::NextContext() {
-  print_trace("Seg::NextContext()");
-  Ctx *ctx;
-  if (m_ctxs.empty()) {
-    ctx = new Ctx(this);
-    m_ctxs.push_back(ctx);
-    ctx->Resolve();
-    ctx->Test();
-    return true;
-  }
-  Ctx *last = m_ctxs.back();
-  ctx = new Ctx(*last);
-  m_ctxs.push_back(ctx);
-  ASTNode *first_node = ctx->GetFirstNode();
-  assert(first_node);
-  assert(first_node->GetAST());
-  // ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNode(first_node);
-  ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
-  /**
-   * Note: the leaf should not be a declaration of a variable, which will be included if the variable is used.
-   * It will not contribute to the property, thus no need to tes.
-   */
-  if (leaf) {
-    // leaf is found
-    std::string code;
-    // leaf->GetCode({}, code, true);
-    // utils::print(code, utils::CK_Blue);
-    ctx->SetFirstNode(leaf);
-    ctx->AddNode(leaf);
-    // printing the new node
-    // std::cout << leaf->dump()  << "\n";
-    utils::print(leaf->dump() + "\n", utils::CK_Purple);
-  } else {
-    // std::cerr << "Inter procedure"  << "\n";
-    AST *ast = first_node->GetAST();
-    utils::print("Inter procedure: " + ast->GetFunctionName() + "\n", utils::CK_Cyan);
-    if (ast->GetFunctionName() == "main") {
-      utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
-      return false;
-    }
-    // FIXME wait, where did I free the doc?
-    // XMLDoc *doc = createCallerDoc(ast);
-    // // reach the function def
-    // // query the callgraph, find call-sites, try one callsite.
-    // // from that, form the new context
-    // AST *newast = ASTFactory::CreateASTFromDoc(doc);
-    XMLNode func_node = getCallerNode(ast);
-    AST *newast = new AST(func_node);
-    if (SimpleSlice::Instance()->IsValid()) {
-      newast->SetSlice();
-      // DEBUG
-      // std::cout << newast->GetFilename() << "\n";
-      // newast->VisualizeSlice();
-      // getchar();
-    }
-
-    // dumping the ast
-    // newast->Visualize();
-    
-    assert(newast);
-    m_asts.push_back(newast);
-    m_func_to_ast_m[newast->GetFunctionName()] = newast;
-    // get callsite node
-    // Node callsite_xmlnode = find_callsite(*doc, ast->GetFunctionName());
-    // ASTNode *callsite = newast->GetEnclosingNodeByXMLNode(callsite_xmlnode);
-    
-    // if there're two functions in the project with the same name, I really have no idea which one to use.
-    // Wait, I may have some clues by the filename and whether the callsite is in, but it is hard to implement, and not good solution.
-    // The callsite may not be found if I choose the wrong one
-    ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
-    assert(callsite);
-    assert(callsite->GetAST());
-    ctx->SetFirstNode(callsite);
-    ctx->AddNode(callsite);
-  }
-  ctx->Resolve();
-  // ctx->dump();
-  ctx->Test();
-  if (ctx->IsResolved()) {
-    // query resolved.
-    return false; // stop increasing
-  } else {
-    return true;
-  }
-  return true;
-}
-
-ast::XMLDoc* Seg::createCallerDoc(AST *ast) {
-  print_trace("Seg::createCallerDoc()");
-  std::string func = ast->GetFunctionName();
-  std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
-  // std::cout << "caller function: " << caller_func  << "\n";
-  // if the function AST is already created, this indicates a recursive function call.
-  // TODO for now. Just assert
-  assert(m_func_to_ast_m.count(caller_func) == 0 && "Recursive function call");
-  std::set<int> caller_ids = SnippetDB::Instance()->LookUp(caller_func, {SK_Function});
-  assert(!caller_ids.empty());
-  int caller_id = *caller_ids.begin();
-  // FIXME I should not create the doc here, by the code of the function only.
-  // I want to keep the line numbers the same as orignal one
-  // So, I may need to find the file (by the filename), and then get the function from that doc
-  std::string func_code = SnippetDB::Instance()->GetCode(caller_id);
-  std::string filename = SnippetDB::Instance()->GetMeta(caller_id).filename;
-  // FIXME the filename is what in the snippet db, not the true filename that was passed by the command line
-  // but they should be the same
-  XMLDoc *doc = XMLDocReader::CreateDocFromString(func_code, filename);
-  m_docs.push_back(doc);
-  return doc;
-}
-
-/**
- * This will create a doc! The doc will be added into m_docs, and freed when the segment deconstruct
- */
-ast::XMLNode Seg::getCallerNode(AST *ast) {
-  print_trace("Seg::createCallerDoc()");
-  std::string func = ast->GetFunctionName();
-  std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
-  // std::cout << "caller function: " << caller_func  << "\n";
-  // if the function AST is already created, this indicates a recursive function call.
-  // TODO for now. Just assert
-  assert(m_func_to_ast_m.count(caller_func) == 0 && "Recursive function call");
-  std::set<int> caller_ids = SnippetDB::Instance()->LookUp(caller_func, {SK_Function});
-  assert(!caller_ids.empty());
-  int caller_id = *caller_ids.begin();
-  // FIXME I should not create the doc here, by the code of the function only.
-  // I want to keep the line numbers the same as orignal one
-  // So, I may need to find the file (by the filename), and then get the function from that doc
-  std::string func_code = SnippetDB::Instance()->GetCode(caller_id);
-  std::string filename = SnippetDB::Instance()->GetMeta(caller_id).filename;
-  // FIXME the filename is what in the snippet db, not the true filename that was passed by the command line
-  // but they should be the same
-  // FIXME this is not cached! Performance issue! See XMLDocReader doc for detail
-  XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
-  XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
-  m_docs.push_back(doc);
-  for (XMLNode func : funcs) {
-    if (function_get_name(func) == caller_func) {
-      return func;
-    }
-  }
-  assert(false);
-}
-
-
-/**
- * Create AST based on function node
- */
-// AST* Seg::getAST(XMLNode function_node) {
-//   assert(function_node && kind(function_node) == NK_Function);
-//   if (m_asts_m.count(function_node) == 0) {
-//     m_asts_m[function_node] = new AST(function_node);
-//   }
-//   return m_asts_m[function_node];
-// }
-
 
 /********************************
  * Context
@@ -348,8 +29,8 @@ ast::XMLNode Seg::getCallerNode(AST *ast) {
  * But the ast to node map should contain the POI already.
  * UPDATE: OK, I give up, keep the POI also in the context.
  */
-Ctx::Ctx(Seg *seg) : m_seg(seg) {
-  print_trace("Ctx::Ctx(Seg *seg)");
+Context::Context(Segment *seg) : m_seg(seg) {
+  print_trace("Context::Context(Segment *seg)");
   // this is the beginning.
   // use the POI as the first node.
   SetFirstNode(seg->GetFirstNode());
@@ -363,8 +44,8 @@ Ctx::Ctx(Seg *seg) : m_seg(seg) {
  * Do I really need to manually copy these?
  * Maybe the default one already works good.
  */
-Ctx::Ctx(const Ctx &rhs) {
-  print_trace("Ctx::Ctx(const Ctx &rhs)");
+Context::Context(const Context &rhs) {
+  print_trace("Context::Context(const Context &rhs)");
   m_seg = rhs.m_seg;
   m_nodes = rhs.m_nodes;
   m_first = rhs.m_first;
@@ -378,18 +59,18 @@ Ctx::Ctx(const Ctx &rhs) {
 /**
  * The first node denote which the most recent AST is.
  */
-void Ctx::SetFirstNode(ast::ASTNode* node) {
+void Context::SetFirstNode(ast::ASTNode* node) {
   m_first = node;
 }
 
-void Ctx::AddNode(ASTNode* node) {
+void Context::AddNode(ASTNode* node) {
   // insert here
   // but if test shows it should not be in, it will be removed
   m_nodes.insert(node);
   m_ast_to_node_m[node->GetAST()].insert(node);
 }
 
-void Ctx::RemoveNode(ASTNode *node) {
+void Context::RemoveNode(ASTNode *node) {
   // remove
   // FIXME assert exist
   m_nodes.erase(node);
@@ -402,7 +83,7 @@ void Ctx::RemoveNode(ASTNode *node) {
  * Debugging
  *******************************/
 
-void Ctx::dump() {
+void Context::dump() {
   // separate nodes by their AST
   // std::map<AST*, std::set<ASTNode*> > asts;
   // for (ASTNode* node : m_nodes) {
@@ -439,7 +120,7 @@ void Ctx::dump() {
 /**
  * TODO
  */
-void Ctx::Resolve() {
+void Context::Resolve() {
   // gather ASTs UPDATE already a member field: m_ast_to_node_m
   // resolve for each AST
   AST *first_ast = m_first->GetAST();
@@ -500,8 +181,8 @@ void Ctx::Resolve() {
  * HEBI Need to disable the first ast decl resolving
  * @return m_decls
  */
-void Ctx::getUndefinedVariables(AST *ast) {
-  print_trace("Ctx::getUndefinedVariables(AST *ast)");
+void Context::getUndefinedVariables(AST *ast) {
+  print_trace("Context::getUndefinedVariables(AST *ast)");
   std::set<ASTNode*> sel = m_ast_to_node_m[ast];
   for (ASTNode *node : sel) {
     std::set<std::string> ids = node->GetVarIds();
@@ -530,8 +211,8 @@ void Ctx::getUndefinedVariables(AST *ast) {
 }
 
 
-std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
-  print_trace("Ctx::resolveDecl");
+std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
+  print_trace("Context::resolveDecl");
   std::set<ASTNode*> ret = m_ast_to_node_m[ast];
   // FIXME do I need to complete again after I recursively add the dependencies
   if (first_ast_p) {
@@ -567,6 +248,7 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
       // tbl->dump();
       SymbolTableValue *decl = tbl->LookUp(id);
       ASTNode *def = node->LookUpDefinition(id);
+      // FIXME I didn't use my new function resolve_type, which takes care of global variable and special variables like optarg
       if (!decl) continue;
       if (def) {
         // utils::print("found def: " + id + "\n", utils::CK_Cyan);
@@ -644,7 +326,7 @@ std::set<ASTNode*> Ctx::resolveDecl(AST *ast, bool first_ast_p) {
 /**
  * TODO
  */
-void Ctx::resolveSnippet(AST *ast) {
+void Context::resolveSnippet(AST *ast) {
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
   // Since I changed the decl mechanism to m_decls, I need to change here
@@ -720,8 +402,8 @@ void Ctx::resolveSnippet(AST *ast) {
  * Getting code
  *******************************/
 
-std::string Ctx::getMain() {
-  print_trace("Ctx::getMain()");
+std::string Context::getMain() {
+  print_trace("Context::getMain()");
   std::string ret;
   ret += get_header();
   std::string main_func;
@@ -826,7 +508,7 @@ std::string Ctx::getMain() {
   ret += main_func;
   return ret;
 }
-std::string Ctx::getSupport() {
+std::string Context::getSupport() {
   std::vector<int> sorted_snippet_ids = SnippetDB::Instance()->SortSnippets(m_snippet_ids);
   std::string code = "";
   // head
@@ -908,7 +590,7 @@ std::string Ctx::getSupport() {
   code += get_foot();
   return code;
 }
-std::string Ctx::getMakefile() {
+std::string Context::getMakefile() {
   std::string makefile;
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
@@ -921,7 +603,7 @@ std::string Ctx::getMakefile() {
     return makefile;
 }
 
-TEST(SegTestCase, ExecTest) {
+TEST(SegmentTestCase, ExecTest) {
   std::string cmd = "/tmp/helium-test-tmp.4B0xG7/a.out";
   std::string input = utils::read_file("/tmp/helium-test-tmp.4B0xG7/input/2.txt");
   int status = 0;
@@ -931,8 +613,8 @@ TEST(SegTestCase, ExecTest) {
 }
 
 
-void Ctx::Test() {
-  std::cout << "============= Ctx::Test() ================="  << "\n";
+void Context::Test() {
+  std::cout << "============= Context::Test() ================="  << "\n";
   Builder builder;
   std::string code_main = getMain();
   std::string code_sup = getSupport();
@@ -1193,450 +875,18 @@ void Ctx::Test() {
 }
 
 
-
-/**
- * @pram [in] output lines representing output. The format is xxx=yyy.
- * @return xxx:yyy maps
- */
-std::map<std::string, std::string> get_header_value_map(std::string output) {
-  std::map<std::string, std::string> ret;
-  std::vector<std::string> lines = utils::split(output, '\n');
-  for (std::string line : lines) {
-    if (line.empty()) continue;
-    // std::cout << line  << "\n";
-    // assert(line.find("=") != std::string::npos);
-    if (line.find("=") == std::string::npos) {
-      // std::cerr << "The Line does not contain a =" << "\n";
-      // std::cerr << line  << "\n";
-      // assert(false);
-      // FIXME sometimes the code we included from the program has output statements
-      // So I just ignore such case
-      // But, this may cause some hard to debug bugs
-      // maybe it is a good idea to write this information to a log file for debugging
-      continue;
-    }
-    std::string header = line.substr(0, line.find("="));
-    utils::trim(header);
-    std::string value = line.substr(line.find("=") + 1);
-    utils::trim(value);
-    ret[header] = value;
-  }
-  return ret;
-}
-
-
-/**
- * Invariants generation
- * This will parse the output.
- * The output format matters.
- * OK, I'm going to generate a CSV file, and use R to solve it.
- *
- * The output should be:
- * xxx = yyy
- * xxx != NULL
- *
- * Also, the output should be separate to test success and failure
- */
-// void NewTestResult::GetInvariants() {
-//   // 1. separate success and failure output
-//   // std::vector<std::string> outputs = m_poi_output_success;
-//   // 2. get all the headers (xxx)
-//   std::vector<std::map<std::string, std::string> > header_value_maps;
-//   for (std::string output : m_poi_output_success) {
-//     std::map<std::string, std::string> m = get_header_value_map(output);
-//     m["HELIUM_TEST_SUCCESS"] = "true";
-//     header_value_maps.push_back(m);
-//   }
-//   for (std::string output : m_poi_output_failure) {
-//     std::map<std::string, std::string> m = get_header_value_map(output);
-//     m["HELIUM_TEST_SUCCESS"] = "false";
-//     header_value_maps.push_back(m);
-//   }
-//   std::set<std::string> headers;
-//   for (auto &m : header_value_maps) {
-//     for (auto mm : m) {
-//       headers.insert(mm.first);
-//     }
-//   }
-//   // 3. generate the CVS file, all the unavailable fields should be marked as N/A
-//   std::string csv;
-//   assert(headers.size() > 0);
-//   for (const std::string &header : headers) {
-//     csv += header;
-//     csv += ",";
-//   }
-//   csv.pop_back();
-//   csv += "\n";
-
-//   for (auto m : header_value_maps) {
-//     // for every output, one line
-//     for (const std::string &header : headers) {
-//       if (m.count(header) == 1) {
-//         csv += m[header] + ",";
-//       } else {
-//         csv += "N/A,";
-//       }
-//     }
-//     csv.pop_back();
-//     csv += "\n";
-//   }
-//   // 4. Call R script, generate result, in some format.
-//   std::cout << csv  << "\n";
-// }
-
-void NewTestResult::GetInvariants() {
-}
-
-void NewTestResult::GetPreconditions() {
-}
-
-void NewTestResult::GetTransferFunctions() {
-}
-
-/**
- * I want the output, the precondition, to be in the same CVS file.
- * I need a data structure to hold the data.
- */
-void NewTestResult::PrepareData() {
-  std::set<std::string> output_headers;
-  for (int i=0;i<(int)m_test_suite.size();i++) {
-    // output
-    std::string output = m_poi_output[i].first;
-    bool success = m_poi_output[i].second;
-    std::map<std::string, std::string> m = get_header_value_map(output);
-    std::map<std::string, std::string> om; // added prefix "O_"
-    std::map<std::string, std::string> im;
-    bool poi = false;
-    // add prefix "O_"
-    for (auto mm : m) {
-      // om["O_" + mm.first] = mm.second;
-      if (mm.first[0] == 'O') {
-        om[mm.first] = mm.second;
-        m_o_headers.insert(mm.first);
-      } else if (mm.first[0] == 'I') {
-        im[mm.first] = mm.second;
-        m_i_headers.insert(mm.first);
-      } else {
-        // HELIUM_POI
-        assert(mm.first == "HELIUM_POI");
-        im[mm.first] = mm.second;
-        om[mm.first] = mm.second;
-        m_i_headers.insert(mm.first);
-        m_o_headers.insert(mm.second);
-        if (mm.second == "true") poi = true;
-      }
-      // m_o_headers.insert("O_" + mm.first);
-    }
-    // input
-    std::string input;
-    for (TestInput *in : m_test_suite[i]) {
-      input += in->ToString();
-    }
-    // std::cout << input  << "\n";
-    m = get_header_value_map(input);
-    for (auto mm : m) {
-      assert(mm.first[0] == 'I');
-      im[mm.first] = mm.second;
-      m_i_headers.insert(mm.first);
-      // im["I_" + mm.first] = mm.second;
-      // m_i_headers.insert("I_" + mm.first);
-    }
-    // merge IO together
-    m.clear();
-    m.insert(im.begin(), im.end());
-    m.insert(om.begin(), om.end());
-    m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
-    m_i_headers.insert("HELIUM_TEST_SUCCESS");
-    m_o_headers.insert("HELIUM_TEST_SUCCESS");
-    m["HELIUM_POI"] = poi ? "true" : "false";
-    m_i_headers.insert("HELIUM_POI");
-    m_o_headers.insert("HELIUM_POI");
-    m_headers.insert(m_i_headers.begin(), m_i_headers.end());
-    m_headers.insert(m_o_headers.begin(), m_o_headers.end());
-    m_header_value_maps.push_back(m);
-  }
-}
-
-/**
- * Must be called after PrepareData
- * @param [in] io_type "I" "O" "IO"
- * @param [in] sf_type "S" "F" "SF"
- */
-std::string NewTestResult::GenerateCSV(std::string io_type, std::string sf_type) {
-  std::string ret;
-  std::set<std::string> headers;
-  assert(m_headers.size() > 0);
-  assert(m_i_headers.size() > 0);
-  assert(m_o_headers.size() > 0);
-  // std::cout << m_headers.size()  << "\n";
-  // std::cout << m_i_headers.size()  << "\n";
-  // std::cout << m_o_headers.size()  << "\n";
-  // different types
-  if (io_type == "I") {
-    // only input, preconditions
-    headers = m_i_headers;
-  } else if (io_type == "O") {
-    // only output
-    headers = m_o_headers;
-  } else if (io_type == "IO") {
-    headers = m_headers;
-  } else {
-    assert(false);
-  }
-  // header
-  for (const std::string &header : headers) {
-    ret += header;
-    ret += ",";
-  }
-  ret.pop_back();
-  ret += "\n";
-  // data
-  assert(sf_type == "S" || sf_type == "F" || sf_type == "SF");
-  for (auto m : m_header_value_maps) {
-    assert(m.count("HELIUM_TEST_SUCCESS") == 1);
-    if (sf_type == "S" && m["HELIUM_TEST_SUCCESS"] == "false") continue;
-    if (sf_type == "F" && m["HELIUM_TEST_SUCCESS"] == "true") continue;
-    for (const std::string &header : headers) {
-      if (m.count(header) == 1) {
-        ret += m[header] + ",";
-      } else {
-        // if the record does not contains the record, give is NA
-        ret += "NA,";
-      }
-    }
-    ret.pop_back();
-    ret += "\n";
-  }
-  return ret;
-}
-
-
-
-
-
-/********************************
- * Resolving Query
- *******************************/
-/**
- * Return the inversed version of op. > becomes <
- */
-std::string inverse_op(std::string op) {
-  if (op == "=") return "=";
-  if (op == ">") return "<";
-  if (op == ">=") return "<=";
-  if (op == "<") return ">";
-  if (op == "<=") return ">=";
-  assert(false);
-}
-
-void BinaryFormula::Inverse() {
-  std::string tmp = m_rhs;
-  m_rhs = m_lhs;
-  m_lhs = tmp;
-  m_op = inverse_op(m_op);
-}
-
-
-BinaryFormula::BinaryFormula(std::string raw) : m_raw(raw) {
-  std::string formula = raw.substr(0, raw.find("conf:"));
-  std::string conf = raw.substr(raw.find("conf:") + 5);
-  m_conf = atoi(conf.c_str());
-  utils::trim(formula);
-  // find the <, >, <=, >=, =
-  size_t pos;
-  int offset;
-  if (formula.find("<=") != std::string::npos) {
-    pos = formula.find("<=");
-    offset = 2;
-    m_op = "<=";
-  } else if (formula.find(">=") != std::string::npos) {
-    pos = formula.find(">=");
-    offset = 2;
-    m_op = ">=";
-  } else if (formula.find("=") != std::string::npos) {
-    pos = formula.find("=");
-    offset = 1;
-    m_op = "=";
-  } else if (formula.find("<") != std::string::npos) {
-    pos = formula.find("<");
-    offset = 1;
-    m_op = "<";
-  } else if (formula.find(">") != std::string::npos) {
-    pos = formula.find(">");
-    offset = 1;
-    m_op = ">";
-  } else {
-    assert(false);
-  }
-  m_lhs = formula.substr(0, pos);
-  m_rhs = formula.substr(pos + offset);
-  utils::trim(m_lhs);
-  utils::trim(m_rhs);
-}
-
-
-
-TEST(SegTestCase, BinaryFormulaTest) {
-  BinaryFormula bf("Od_sizeof(tempname)=1024 conf:18");
-  EXPECT_EQ(bf.GetLHS(), "Od_sizeof(tempname)");
-  EXPECT_EQ(bf.GetRHS(), "1024");
-  EXPECT_EQ(bf.GetOP(), "=");
-  EXPECT_EQ(bf.GetConf(), 18);
-
-  BinaryFormula bf2("Id_strlen(argv[1])<=1024");
-  EXPECT_EQ(bf2.GetLHSVar(), "argv");
-  std::set<std::string> ss = bf2.GetVars();
-  // for (auto &s : ss) {
-  //   std::cout << s  << "\n";
-  // }
-  ASSERT_EQ(ss.size(), 1);
-  EXPECT_EQ(*ss.begin(), "argv");
-}
-
-/**
- * Get the variables.
- * for Od_strlen(*fileptr[1]), it will be fileptr along
- * Since this is binary, the return set is at most of size 2
- */
-std::set<std::string> BinaryFormula::GetVars() {
-  std::set<std::string> ret;
-  std::string tmp;
-  tmp = getVar(m_lhs);
-  if (!tmp.empty()) {
-    ret.insert(tmp);
-  }
-  tmp = getVar(m_rhs);
-  if (!tmp.empty()) {
-    ret.insert(tmp);
-  }
-  return ret;
-}
-
-
-std::string BinaryFormula::getVar(std::string s) {
-  // remove prefix
-  assert(s.size() > 3);
-  // assert(s[2] == '_');
-  if (s[2] != '_') return "";
-  s = s.substr(3);
-  // remove strlen, sizeof
-  // FIXME multiple sizeof?
-  if (s.find("sizeof") != std::string::npos) {
-    s = s.substr(s.find("sizeof") + strlen("sizeof"));
-  }
-  if (s.find("strlen") != std::string::npos) {
-    s = s.substr(s.find("strlen") + strlen("strlen"));
-  }
-  // remove ()
-  while (s.find('(') != std::string::npos) {
-    s.erase(s.find('('), 1);
-  }
-  while (s.find(')') != std::string::npos) {
-    s.erase(s.find(')'), 1);
-  }
-  // remove [xxx]
-  if (s.find('[') != std::string::npos) {
-    s = s.substr(0, s.find('['));
-  }
-  // remove .xxx
-  if (s.find('.') != std::string::npos) {
-    s = s.substr(0, s.find('.'));
-  }
-  // remove + ...
-  if (s.find('+') != std::string::npos) {
-    s = s.substr(0, s.find('+'));
-  }
-  utils::trim(s);
-  return s;
-}
-
-
-/**
- * Od_sizeof(tempname)=1024 conf:18
- * Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 18
- */
-BinaryFormula* get_key_inv(std::vector<BinaryFormula*> invs) {
-  // loop through the invs, and split into two sets: constant assignment, and other
-  assert(!invs.empty());
-  BinaryFormula *ret = NULL;
-  std::vector<BinaryFormula*> cons;
-  for (BinaryFormula *bf : invs) {
-    if (bf->GetOP() == "=" && utils::is_number(bf->GetRHS())) {
-      cons.push_back(bf);
-    } else {
-      ret = bf;
-    }
-  }
-  assert(ret);
-  for (BinaryFormula *bf : cons) {
-    if (bf->GetLHS() == ret->GetRHS()) {
-      ret->UpdateRHS(bf->GetRHS());
-    }
-    if (bf->GetLHS() == ret->GetLHS()) {
-      ret->UpdateLHS(bf->GetRHS());
-      ret->Inverse();
-    }
-  }
-  return ret;
-}
-
-/**
- * Derive inv from pres and trans.
- * If cannot derive, return an empty set.
- * Otherwise return the used pre-conditions.
- * This return value is used to see if the variables are entry point.
- * TODO multiple precondition
- * TODO record the transfer function used.
- *
- * inv: Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 12
- * trans: Od_strlen(*fileptr)=Id_strlen(argv[1]) conf:12
- * pres: Id_strlen(argv[1])<=1024 conf: 12
- */
-BinaryFormula* derive_key_inv(std::vector<BinaryFormula*> pres, std::vector<BinaryFormula*> trans, BinaryFormula *inv) {
-  // std::cout << "drive_key_inv"  << "\n";
-  // std::cout << "pres:"  << "\n";
-  // for (BinaryFormula *bf : pres) {
-  //   std::cout << bf->dump()  << "\n";
-  // }
-  // std::cout << "trans:"  << "\n";
-  // for (BinaryFormula *bf : trans) {
-  //   std::cout << bf->dump()  << "\n";
-  // }
-  // std::cout << "inv:"  << "\n";
-  // std::cout << inv->dump()  << "\n";
-  // randomly pair the trans and pres, to see if inv can be generated
-  for (BinaryFormula *pre : pres) {
-    for (BinaryFormula *tran : trans) {
-      BinaryFormula tmp(*pre);
-      if (tran->GetRHS() == tmp.GetLHS()) {
-        tmp.UpdateLHS(tran->GetLHS());
-      }
-      if (tran->GetRHS() == tmp.GetRHS()) {
-        tmp.UpdateRHS(tran->GetLHS());
-      }
-      // compare_formula(&tmp, inv);
-      if (tmp.GetLHS() == inv->GetLHS() && tmp.GetRHS() == inv->GetRHS() && tmp.GetOP() == inv->GetOP()) {
-        return pre;
-      }
-      if (tmp.GetLHS() == inv->GetRHS() && tmp.GetRHS() == inv->GetLHS() && inverse_op(tmp.GetOP()) == inv->GetOP()) {
-        return pre;
-      }
-    }
-  }
-  return NULL;
-}
-
 void free_binary_formula(std::vector<BinaryFormula*> bfs) {
   for (BinaryFormula *bf : bfs) {
     delete bf;
   }
 }
 
+
 /**
  * I want to start from invs, try to use pres and trans to derive it.
  * Then I need to check the pres to see if those variables are entry point (argv, argc, optarg)
  */
-bool Ctx::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {
+bool Context::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {
   // Construct binary forumlas
   std::vector<BinaryFormula*> invs;
   std::vector<BinaryFormula*> pres;

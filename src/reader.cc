@@ -20,6 +20,7 @@
 
 #include "dump.h"
 #include "slice_reader.h"
+#include "context.h"
 
 
 /*******************************
@@ -32,7 +33,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
-#include "seg.h"
+// #include "seg.h"
 namespace fs = boost::filesystem;
 
 
@@ -203,7 +204,7 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
 /**
  * Process the segment
  */
-void ProcessSeg(Seg *seg) {
+void ProcessSeg(Segment *seg) {
   print_trace("ProcessSeg()");
   while(seg->NextContext()) {
     // build
@@ -231,16 +232,18 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   utils::file2xml(filename, m_doc);
   std::string method = Config::Instance()->GetString("code-selection");
   if (method == "loop") {
-    getLoopSegments();
+    // getLoopSegments();
+    assert(false);
   } else if (method == "annotation") {
     // getAnnotationSegments();
-    Seg *seg = getAnnotSeg();
+    Segment *seg = getAnnotSeg();
     if (seg) {
       ProcessSeg(seg);
       delete seg;
     }
   } else if (method == "divide") {
-    getDivideSegments();
+    // getDivideSegments();
+    assert(false);
   } else if (method == "function") {
     // use GA. Do not use segment.
     GA();
@@ -253,27 +256,28 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   }
   // calling the read
   // this is for the old segment system, not for the new one.
-  Read();
+  // Read();
+  // assert(false);
 }
 
 /**
  * Use line numbers for a segment selection.
  */
-Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
-  : m_filename(filename)
-{
-  utils::file2xml(filename, m_doc);
-  std::vector<NodeKind> kinds;
-  kinds.push_back(NK_DeclStmt);
-  kinds.push_back(NK_ExprStmt);
-  NodeList nodes = ast::find_nodes_on_lines(m_doc, kinds, line_numbers);
-  for (Node n : nodes) {
-    Segment seg;
-    seg.PushBack(n);
-    m_segments.push_back(seg);
-  }
-  Read();
-}
+// Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
+//   : m_filename(filename)
+// {
+//   utils::file2xml(filename, m_doc);
+//   std::vector<NodeKind> kinds;
+//   kinds.push_back(NK_DeclStmt);
+//   kinds.push_back(NK_ExprStmt);
+//   NodeList nodes = ast::find_nodes_on_lines(m_doc, kinds, line_numbers);
+//   for (Node n : nodes) {
+//     Segment seg;
+//     seg.PushBack(n);
+//     m_segments.push_back(seg);
+//   }
+//   Read();
+// }
 
 
 /*
@@ -286,91 +290,91 @@ Reader::Reader(const std::string &filename, std::vector<int> line_numbers)
  */
 
 
-void
-Reader::Read() {
-  for (Segment &seg : m_segments) {
-    global_seg_no++;
-    if (Config::Instance()->GetInt("skip-to-seg") > global_seg_no) {
-      continue;
-    }
-    if (PrintOption::Instance()->Has(POK_SegNo)) {
-      std::cerr <<"[Helium] processing segment NO." << global_seg_no  << "\n";
-    }
-    if (PrintOption::Instance()->Has(POK_Segment)) {
-      utils::print(seg.GetSegmentText(), utils::CK_Blue);
-    }
-    for(;seg.IsValid();) {
-      if (PrintOption::Instance()->Has(POK_Context)) {
-        utils::print(seg.GetContextText(), utils::CK_Purple);
-      }
+// void
+// Reader::Read() {
+//   for (Segment &seg : m_segments) {
+//     global_seg_no++;
+//     if (Config::Instance()->GetInt("skip-to-seg") > global_seg_no) {
+//       continue;
+//     }
+//     if (PrintOption::Instance()->Has(POK_SegNo)) {
+//       std::cerr <<"[Helium] processing segment NO." << global_seg_no  << "\n";
+//     }
+//     if (PrintOption::Instance()->Has(POK_Segment)) {
+//       utils::print(seg.GetSegmentText(), utils::CK_Blue);
+//     }
+//     for(;seg.IsValid();) {
+//       if (PrintOption::Instance()->Has(POK_Context)) {
+//         utils::print(seg.GetContextText(), utils::CK_Purple);
+//       }
 
-      /*******************************
-       ** Processing segment
-       *******************************/
-      // std::cout <<"================"  << "\n";
-      // std::cout <<"segment:"  << "\n";
-      // std::cout <<seg.GetSegmentText()  << "\n";
-      // std::cout <<"context:"  << "\n";
-      // std::cout <<seg.GetContextText()  << "\n";
-      // std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
-      seg.ResolveInput();
-      // seg.ResolveOutput();
-      seg.ResolveSnippets();
+//       /*******************************
+//        ** Processing segment
+//        *******************************/
+//       // std::cout <<"================"  << "\n";
+//       // std::cout <<"segment:"  << "\n";
+//       // std::cout <<seg.GetSegmentText()  << "\n";
+//       // std::cout <<"context:"  << "\n";
+//       // std::cout <<seg.GetContextText()  << "\n";
+//       // std::cout <<utils::CYAN<<seg.GetText()  << utils::RESET << "\n";
+//       seg.ResolveInput();
+//       // seg.ResolveOutput();
+//       seg.ResolveSnippets();
 
-      /** outputing input variables */
-      VariableList vars = seg.GetInputVariables();
-      // VariableList out_vars = seg.GetOutputVariables();
-      // std::cout <<"input vars: "<<vars.size()  << "\n";
-      // for (Variable v : vars) {
-      //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
-      // }
+//       /** outputing input variables */
+//       VariableList vars = seg.GetInputVariables();
+//       // VariableList out_vars = seg.GetOutputVariables();
+//       // std::cout <<"input vars: "<<vars.size()  << "\n";
+//       // for (Variable v : vars) {
+//       //   std::cout <<"\t" << v.Name() << ":" << v.GetType().ToString()  << "\n";
+//       // }
 
-      /*******************************
-       ** Compiling
-       *******************************/
-      Builder builder;
-      builder.SetMain(seg.GetMain());
-      builder.SetSupport(seg.GetSupport());
-      builder.SetMakefile(seg.GetMakefile());
-      for (auto script : seg.GetScripts()) {
-        builder.AddScript(script);
-      }
-      builder.Write();
-      if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
-        std::cout <<"code outputed to " << builder.GetDir()  << "\n";
-      }
-      builder.Compile();
-      if (builder.Success()) {
-        g_compile_success_no++;
-        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          utils::print("compile success", utils::CK_Green);
-        }
-        /*******************************
-         ** Testing
-         *******************************/
-        if (Config::Instance()->GetString("run-test") == "true") {
-          Tester tester(builder.GetDir(), &seg);
-          // double t1 = get_time();
-          tester.Test();
-          // double t2 = get_time();
-          // printf("%f\n", t2-t1);
-          tester.WriteCSV();
-        }
-      } else {
-        g_compile_error_no++;
-        if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-          utils::print("compile error", utils::CK_Red);
-        }
-        if (DebugOption::Instance()->Has(DOK_PauseCompileError)) {
-          std::cout <<".. print enter to continue .."  << "\n";
-          getchar();
-        }
-      }
-      seg.IncreaseContext();
-    }
-    // std::cout <<seg.GetInvalidReason()  << "\n";
-  }
-}
+//       /*******************************
+//        ** Compiling
+//        *******************************/
+//       Builder builder;
+//       builder.SetMain(seg.GetMain());
+//       builder.SetSupport(seg.GetSupport());
+//       builder.SetMakefile(seg.GetMakefile());
+//       for (auto script : seg.GetScripts()) {
+//         builder.AddScript(script);
+//       }
+//       builder.Write();
+//       if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+//         std::cout <<"code outputed to " << builder.GetDir()  << "\n";
+//       }
+//       builder.Compile();
+//       if (builder.Success()) {
+//         g_compile_success_no++;
+//         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+//           utils::print("compile success", utils::CK_Green);
+//         }
+//         /*******************************
+//          ** Testing
+//          *******************************/
+//         if (Config::Instance()->GetString("run-test") == "true") {
+//           Tester tester(builder.GetDir(), &seg);
+//           // double t1 = get_time();
+//           tester.Test();
+//           // double t2 = get_time();
+//           // printf("%f\n", t2-t1);
+//           tester.WriteCSV();
+//         }
+//       } else {
+//         g_compile_error_no++;
+//         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+//           utils::print("compile error", utils::CK_Red);
+//         }
+//         if (DebugOption::Instance()->Has(DOK_PauseCompileError)) {
+//           std::cout <<".. print enter to continue .."  << "\n";
+//           getchar();
+//         }
+//       }
+//       seg.IncreaseContext();
+//     }
+//     // std::cout <<seg.GetInvalidReason()  << "\n";
+//   }
+// }
 
 // void
 // Reader::Read() {
@@ -413,51 +417,51 @@ Reader::Read() {
 //   }
 // }
 
-void Reader::getLoopSegments() {
-  std::vector<NodeKind> kinds = {NK_Do, NK_For, NK_While};
-  NodeList loops = find_nodes(m_doc, kinds);
-  for (Node loop : loops) {
-    Segment seg;
-    seg.PushBack(loop);
-    m_segments.push_back(seg);
-  }
-}
+// void Reader::getLoopSegments() {
+//   std::vector<NodeKind> kinds = {NK_Do, NK_For, NK_While};
+//   NodeList loops = find_nodes(m_doc, kinds);
+//   for (Node loop : loops) {
+//     Segment seg;
+//     seg.PushBack(loop);
+//     m_segments.push_back(seg);
+//   }
+// }
 /**
  * Get segemnt based on annotation in source code.
  * 1. @HeliumStmt
  * 2. @HeliumSegmentBegin -- @HeliumSegmentEnd
  */
-void Reader::getAnnotationSegments() {
-  // format 1: @HeliumStmt
-  NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
-  for (Node node : comment_nodes) {
-    Segment seg;
-    seg.PushBack(helium_next_sibling(node));
-    m_segments.push_back(seg);
-  }
-  // format 2: @HeliumSegmentBegin/End
-  comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumSegmentBegin");
-  for (Node node : comment_nodes) {
-    // do not use helium_xxx version because I need the comment node.
-    Node n = next_sibling(node);
-    Segment seg;
-    for (;;n = next_sibling(n)) {
-      if (kind(n) == NK_Comment) {
-        std::string text = get_text(n);
-        if (text.find("@HeliumSegmentEnd") != std::string::npos) {
-          m_segments.push_back(seg);
-          break;
-        }
-      }
-      seg.PushBack(n);
-    }
-  }
-}
+// void Reader::getAnnotationSegments() {
+//   // format 1: @HeliumStmt
+//   NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
+//   for (Node node : comment_nodes) {
+//     Segment seg;
+//     seg.PushBack(helium_next_sibling(node));
+//     m_segments.push_back(seg);
+//   }
+//   // format 2: @HeliumSegmentBegin/End
+//   comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumSegmentBegin");
+//   for (Node node : comment_nodes) {
+//     // do not use helium_xxx version because I need the comment node.
+//     Node n = next_sibling(node);
+//     Segment seg;
+//     for (;;n = next_sibling(n)) {
+//       if (kind(n) == NK_Comment) {
+//         std::string text = get_text(n);
+//         if (text.find("@HeliumSegmentEnd") != std::string::npos) {
+//           m_segments.push_back(seg);
+//           break;
+//         }
+//       }
+//       seg.PushBack(n);
+//     }
+//   }
+// }
 
 /**
  * For now, only the first statment marked by @HeliumStmt
  */
-Seg* Reader::getAnnotSeg() {
+Segment* Reader::getAnnotSeg() {
   print_trace("Reader::getAnnotSeg");
   NodeList comment_nodes = find_nodes_containing_str(m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
@@ -468,7 +472,7 @@ Seg* Reader::getAnnotSeg() {
   ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
   assert(node);
   // FIXME seg should be free-d outside
-  Seg *seg = new Seg(node);
+  Segment *seg = new Segment(node);
   return seg;
 }
 
@@ -477,16 +481,16 @@ Seg* Reader::getAnnotSeg() {
  * Get helium recognized AST of parent of <call> node.
  * Example: strcpy
  */
-void Reader::getFuncCallSegments(std::string func_name) {
-  NodeList call_nodes = find_nodes(m_doc, NK_Call);
-  for (Node n : call_nodes) {
-    if (function_get_name(n) == func_name) {
-      Segment seg;
-      seg.PushBack(helium_parent(n));
-      m_segments.push_back(seg);
-    }
-  }
-}
+// void Reader::getFuncCallSegments(std::string func_name) {
+//   NodeList call_nodes = find_nodes(m_doc, NK_Call);
+//   for (Node n : call_nodes) {
+//     if (function_get_name(n) == func_name) {
+//       Segment seg;
+//       seg.PushBack(helium_parent(n));
+//       m_segments.push_back(seg);
+//     }
+//   }
+// }
 
 /*
  * for every function, divide code by comments, start of loop, start of branch condition.
@@ -496,39 +500,39 @@ void Reader::getFuncCallSegments(std::string func_name) {
 for every block, if it is simple statement, combine into a NodeList.
 If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
  */
-void
-Reader::getDivideSegments() {
-  NodeList functions = find_nodes(m_doc, NK_Function);
-  for (Node function : functions) {
-    Node block = function_get_block(function);
-    getDivideRecursive(block_get_nodes(block));
-  }
-}
+// void
+// Reader::getDivideSegments() {
+//   NodeList functions = find_nodes(m_doc, NK_Function);
+//   for (Node function : functions) {
+//     Node block = function_get_block(function);
+//     getDivideRecursive(block_get_nodes(block));
+//   }
+// }
 
-static bool is_leaf_node(Node node) {
-  switch(ast::kind(node)) {
-  case NK_ExprStmt:
-  case NK_Return:
-  case NK_Continue:
-  case NK_Break:
-  case NK_Define:
-  case NK_IfnDef:
-  case NK_IfDef:
-  case NK_DefElse:
-  case NK_EndIf:
-  case NK_DeclStmt: return true;
-  case NK_If:
-  case NK_Comment:
-  case NK_Do:
-  case NK_While:
-  case NK_Switch:
-  case NK_For: return false;
-  default:
-    std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
-    assert(false);
-    return true;
-  }
-}
+// static bool is_leaf_node(Node node) {
+//   switch(ast::kind(node)) {
+//   case NK_ExprStmt:
+//   case NK_Return:
+//   case NK_Continue:
+//   case NK_Break:
+//   case NK_Define:
+//   case NK_IfnDef:
+//   case NK_IfDef:
+//   case NK_DefElse:
+//   case NK_EndIf:
+//   case NK_DeclStmt: return true;
+//   case NK_If:
+//   case NK_Comment:
+//   case NK_Do:
+//   case NK_While:
+//   case NK_Switch:
+//   case NK_For: return false;
+//   default:
+//     std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
+//     assert(false);
+//     return true;
+//   }
+// }
 
 /**
  * Get body node list of block.
@@ -575,6 +579,17 @@ std::vector<NodeList> get_block_bodies(Node node) {
   return result;
 }
 
+
+
+
+
+
+
+
+
+
+
+#if 0
 
 void Reader::getDivideRecursive(NodeList nodes) {
   std::vector<NodeList> seg_cands;
@@ -631,7 +646,7 @@ void Reader::PrintSegments() {
   }
 }
   
-
+#endif
 
 /*******************************
  ** Deprecated code

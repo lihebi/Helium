@@ -1,253 +1,436 @@
 #include "tester.h"
-#include <fstream>
+#include <gtest/gtest.h>
 #include "utils.h"
-#include "config.h"
 
-#include <iostream>
-
-using namespace utils;
-
-static int
-myrand(int low, int high) {
-  double d = rand();
-  d /= RAND_MAX;
-  return low + (high-low)*d;
-}
-
-Tester::Tester(const std::string &dir, Segment *seg)
-  : m_dir(dir), m_seg(seg), m_success(false) {
-  srand(time(0));
-  // the first random number is highly related to the time, so we don't use it
-  rand();
-  // one defect per file!
-  m_segment_begin_line = utils::get_line_number(dir+"/main.c", "@HeliumSegmentBegin");
-  m_segment_end_line = utils::get_line_number(dir+"/main.c", "@HeliumSegmentEnd");
-}
-
-Tester::~Tester() {}
-
-std::string
-get_input_by_spec(std::string spec) {
-  std::vector<std::string> specs = split(spec, ',');
-  std::string text;
-  int size = 1;
-  if (specs.size() == 0) return "";
-  // array
-  if (specs[0] == "size") {
-    size = myrand(1, 10);
-    text += std::to_string(size);
-    text += " ";
-    specs.erase(specs.begin());
-  }
-  for (int i=0;i<size;i++) {
-    for (auto it=specs.begin();it!=specs.end();it++) {
-      if (it->find("_") == std::string::npos) continue;
-      int low = atoi(it->substr(0, it->find("_")).c_str());
-      int high = atoi(it->substr(it->find("_")+1).c_str());
-      text += std::to_string(myrand(low, high)) + " ";
+/**
+ * @pram [in] output lines representing output. The format is xxx=yyy.
+ * @return xxx:yyy maps
+ */
+std::map<std::string, std::string> get_header_value_map(std::string output) {
+  std::map<std::string, std::string> ret;
+  std::vector<std::string> lines = utils::split(output, '\n');
+  for (std::string line : lines) {
+    if (line.empty()) continue;
+    // std::cout << line  << "\n";
+    // assert(line.find("=") != std::string::npos);
+    if (line.find("=") == std::string::npos) {
+      // std::cerr << "The Line does not contain a =" << "\n";
+      // std::cerr << line  << "\n";
+      // assert(false);
+      // FIXME sometimes the code we included from the program has output statements
+      // So I just ignore such case
+      // But, this may cause some hard to debug bugs
+      // maybe it is a good idea to write this information to a log file for debugging
+      continue;
     }
+    std::string header = line.substr(0, line.find("="));
+    utils::trim(header);
+    std::string value = line.substr(line.find("=") + 1);
+    utils::trim(value);
+    ret[header] = value;
   }
-  return text;
+  return ret;
 }
 
-std::string
-Tester::generateInput() {
-  // get input specification
-  VariableList inv = m_seg->GetInputVariables();
-  std::string text;
-  // for (auto it=inv.begin();it!=inv.end();it++) {
-  //   std::string input_spec = (*it)->GetInputSpecification();
-  //   text += get_input_by_spec(input_spec);
-  // }
-  // random & pair
-  return text;
-}
 
-enum ValgrindKind parse_valgrind(std::string filename, int begin, int end) {
-  // std::cout <<"parse valgrind: " << filename  << "\n";
-  if (!utils::is_file(filename)) {
-    std::cerr << "valgrind filename " << filename << "doesnot exist\n";
-    assert(false);
-  }
-  /*******************************
-   ** parse valgrind
-   *******************************/
-  pugi::xml_document val_doc;
-  // std::cout <<"segline:"<<m_defect_line  << "\n";
-  val_doc.load_file(filename.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
-  std::set<int> lines;
-  for (auto error : val_doc.select_nodes("//error")) {
-    pugi::xml_node error_node = error.node();
-    std::string kind = error_node.child_value("kind");
-    if (kind != "InvalidRead" && kind != "InvalidWrite") continue;
-    for (pugi::xml_node frame : error_node.child("stack").children("frame")) {
-      std::string filename = frame.child_value("file");
-      std::string line = frame.child_value("line");
-      if (filename == "main.c") {
-        lines.insert(atoi(line.c_str()));
-        // utils::print(kind+":"+line, utils::CK_Cyan);
-      }
-    }
-  }
-  if (lines.empty()) {
-    return VK_Success; // m_val_success ++;
-  } else {
-    for (int line : lines) {
-      if (line >= begin && line <= end) {
-        return VK_CorrectFailure;
-      }
-    }
-    return VK_WrongFailure;
-  }
-}
 
-// void run_valgrind(std::string dir, std::string input_filename, int begin, int end, TestResult &result) {
-//   /*******************************
-//    ** valgrind
-//    *******************************/
-//   std::string valgrind_output = dir+"/valgrind.out.xml";
-//   std::string executable = dir+"/a.out";
-//   std::string cmd =
-//     "valgrind --xml=yes --xml-file="
-//     + valgrind_output
-//     + " " + executable + "< " + input_filename + " 2> /dev/null";
-//   // cmd = "{ " + cmd + "; } >/dev/null 2>&1";
-//   // int status=0;
-//   utils::exec(cmd.c_str(), NULL);
-//   // result.return_code = status;
-//   result.vk = parse_valgrind(valgrind_output, begin, end);
+/**
+ * Invariants generation
+ * This will parse the output.
+ * The output format matters.
+ * OK, I'm going to generate a CSV file, and use R to solve it.
+ *
+ * The output should be:
+ * xxx = yyy
+ * xxx != NULL
+ *
+ * Also, the output should be separate to test success and failure
+ */
+// void NewTestResult::GetInvariants() {
+//   // 1. separate success and failure output
+//   // std::vector<std::string> outputs = m_poi_output_success;
+//   // 2. get all the headers (xxx)
+//   std::vector<std::map<std::string, std::string> > header_value_maps;
+//   for (std::string output : m_poi_output_success) {
+//     std::map<std::string, std::string> m = get_header_value_map(output);
+//     m["HELIUM_TEST_SUCCESS"] = "true";
+//     header_value_maps.push_back(m);
+//   }
+//   for (std::string output : m_poi_output_failure) {
+//     std::map<std::string, std::string> m = get_header_value_map(output);
+//     m["HELIUM_TEST_SUCCESS"] = "false";
+//     header_value_maps.push_back(m);
+//   }
+//   std::set<std::string> headers;
+//   for (auto &m : header_value_maps) {
+//     for (auto mm : m) {
+//       headers.insert(mm.first);
+//     }
+//   }
+//   // 3. generate the CVS file, all the unavailable fields should be marked as N/A
+//   std::string csv;
+//   assert(headers.size() > 0);
+//   for (const std::string &header : headers) {
+//     csv += header;
+//     csv += ",";
+//   }
+//   csv.pop_back();
+//   csv += "\n";
+
+//   for (auto m : header_value_maps) {
+//     // for every output, one line
+//     for (const std::string &header : headers) {
+//       if (m.count(header) == 1) {
+//         csv += m[header] + ",";
+//       } else {
+//         csv += "N/A,";
+//       }
+//     }
+//     csv.pop_back();
+//     csv += "\n";
+//   }
+//   // 4. Call R script, generate result, in some format.
+//   std::cout << csv  << "\n";
 // }
 
-void run(std::string dir, std::string input_filename, TestResult &result) {
-  std::string executable = dir+"/a.out";
-  std::string cmd = executable + "< " + input_filename +  " 2>/dev/null";
-  // redirect segment fault, which is not the output of this program, but that of the process that runs ths one.
-  cmd = "{ " + cmd + "; } 2>/dev/null";
-  // std::cout <<cmd  << "\n";
-  int status=0;
-  std::string output = utils::exec(cmd.c_str(), &status);
-  // if (!output.empty()) std::cout <<output  << "\n";
-  // std::cout <<output  << "\n";
-  // this actually is not a caution.
-  // See the report for detailed discussion.
-  // basically it may because the input just doesn't execute the segment, and still terminate gracefully.
-  // an example is: if (strlen(from)<bound) strcpy(to, from)
-  // a string `from` longer than bound will not pass the checking, thus avoid the buggy strcpy. Which is GOOD.
-  // if (output.find("@HeliumBeforeSegment") == std::string::npos && status==0) {
-  //   // so i need to really implement checking of output for HeliumBeforesegment and HeliumAfterSegment
-  //   std::cout <<"caution";
-  // }
-  result.return_code = status;
+void NewTestResult::GetInvariants() {
 }
 
+void NewTestResult::GetPreconditions() {
+}
 
-void
-Tester::Test() {
-  // int count1=0;
-  // int count2=0;
-  // CAUTION length_vec is only used for store length
-  std::vector<std::string> length_vec;
-  /*******************************
-   ** Running tests
-   *******************************/
-  std::string executable = m_dir+"/a.out";
-  std::string test_dir = m_dir + "/test";
-  utils::create_folder(test_dir);
-  int test_number = Config::Instance()->GetInt("test-number");
-  for (int i=0;i<test_number;i++) { // 10 tests each
-    /*******************************
-     ** constructing input
-     *******************************/
+void NewTestResult::GetTransferFunctions() {
+}
+
+/**
+ * I want the output, the precondition, to be in the same CVS file.
+ * I need a data structure to hold the data.
+ */
+void NewTestResult::PrepareData() {
+  std::set<std::string> output_headers;
+  for (int i=0;i<(int)m_test_suite.size();i++) {
+    // output
+    std::string output = m_poi_output[i].first;
+    bool success = m_poi_output[i].second;
+    std::map<std::string, std::string> m = get_header_value_map(output);
+    std::map<std::string, std::string> om; // added prefix "O_"
+    std::map<std::string, std::string> im;
+    bool poi = false;
+    // add prefix "O_"
+    for (auto mm : m) {
+      // om["O_" + mm.first] = mm.second;
+      if (mm.first[0] == 'O') {
+        om[mm.first] = mm.second;
+        m_o_headers.insert(mm.first);
+      } else if (mm.first[0] == 'I') {
+        im[mm.first] = mm.second;
+        m_i_headers.insert(mm.first);
+      } else {
+        // HELIUM_POI
+        assert(mm.first == "HELIUM_POI");
+        im[mm.first] = mm.second;
+        om[mm.first] = mm.second;
+        m_i_headers.insert(mm.first);
+        m_o_headers.insert(mm.second);
+        if (mm.second == "true") poi = true;
+      }
+      // m_o_headers.insert("O_" + mm.first);
+    }
+    // input
     std::string input;
-    VariableList inv = m_seg->GetInputVariables();
-    // CAUTION length is used only for stack-vs-heap experiment
-    // std::string length = "";
-    for (Variable v : inv) {
-      std::string text = get_random_input(v.GetType());
-      input += text;
-      // length = utils::split(text)[0];
+    for (TestInput *in : m_test_suite[i]) {
+      input += in->ToString();
     }
-    // std::cout <<input  << "\n";
-    // std::cout <<"input:"  <<input<< "\n";
-    std::string input_filename = test_dir + "/test-" + std::to_string(i) + "-input.txt";
-    utils::write_file(input_filename, input);
-    TestResult tr;
-    run(m_dir, input_filename, tr);
-    // run_valgrind(m_dir, input_filename, m_segment_begin_line, m_segment_end_line, tr);
-    m_results.push_back(tr);
-    if (tr.return_code == 0) {
-      std::cout <<'.';
+    // std::cout << input  << "\n";
+    m = get_header_value_map(input);
+    for (auto mm : m) {
+      assert(mm.first[0] == 'I');
+      im[mm.first] = mm.second;
+      m_i_headers.insert(mm.first);
+      // im["I_" + mm.first] = mm.second;
+      // m_i_headers.insert("I_" + mm.first);
+    }
+    // merge IO together
+    m.clear();
+    m.insert(im.begin(), im.end());
+    m.insert(om.begin(), om.end());
+    m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
+    m_i_headers.insert("HELIUM_TEST_SUCCESS");
+    m_o_headers.insert("HELIUM_TEST_SUCCESS");
+    m["HELIUM_POI"] = poi ? "true" : "false";
+    m_i_headers.insert("HELIUM_POI");
+    m_o_headers.insert("HELIUM_POI");
+    m_headers.insert(m_i_headers.begin(), m_i_headers.end());
+    m_headers.insert(m_o_headers.begin(), m_o_headers.end());
+    m_header_value_maps.push_back(m);
+  }
+}
+
+/**
+ * Must be called after PrepareData
+ * @param [in] io_type "I" "O" "IO"
+ * @param [in] sf_type "S" "F" "SF"
+ */
+std::string NewTestResult::GenerateCSV(std::string io_type, std::string sf_type) {
+  std::string ret;
+  std::set<std::string> headers;
+  assert(m_headers.size() > 0);
+  assert(m_i_headers.size() > 0);
+  assert(m_o_headers.size() > 0);
+  // std::cout << m_headers.size()  << "\n";
+  // std::cout << m_i_headers.size()  << "\n";
+  // std::cout << m_o_headers.size()  << "\n";
+  // different types
+  if (io_type == "I") {
+    // only input, preconditions
+    headers = m_i_headers;
+  } else if (io_type == "O") {
+    // only output
+    headers = m_o_headers;
+  } else if (io_type == "IO") {
+    headers = m_headers;
+  } else {
+    assert(false);
+  }
+  // header
+  for (const std::string &header : headers) {
+    ret += header;
+    ret += ",";
+  }
+  ret.pop_back();
+  ret += "\n";
+  // data
+  assert(sf_type == "S" || sf_type == "F" || sf_type == "SF");
+  for (auto m : m_header_value_maps) {
+    assert(m.count("HELIUM_TEST_SUCCESS") == 1);
+    if (sf_type == "S" && m["HELIUM_TEST_SUCCESS"] == "false") continue;
+    if (sf_type == "F" && m["HELIUM_TEST_SUCCESS"] == "true") continue;
+    for (const std::string &header : headers) {
+      if (m.count(header) == 1) {
+        ret += m[header] + ",";
+      } else {
+        // if the record does not contains the record, give is NA
+        ret += "NA,";
+      }
+    }
+    ret.pop_back();
+    ret += "\n";
+  }
+  return ret;
+}
+
+
+
+/********************************
+ * Resolving Query
+ *******************************/
+/**
+ * Return the inversed version of op. > becomes <
+ */
+std::string inverse_op(std::string op) {
+  if (op == "=") return "=";
+  if (op == ">") return "<";
+  if (op == ">=") return "<=";
+  if (op == "<") return ">";
+  if (op == "<=") return ">=";
+  assert(false);
+}
+
+void BinaryFormula::Inverse() {
+  std::string tmp = m_rhs;
+  m_rhs = m_lhs;
+  m_lhs = tmp;
+  m_op = inverse_op(m_op);
+}
+
+
+BinaryFormula::BinaryFormula(std::string raw) : m_raw(raw) {
+  std::string formula = raw.substr(0, raw.find("conf:"));
+  std::string conf = raw.substr(raw.find("conf:") + 5);
+  m_conf = atoi(conf.c_str());
+  utils::trim(formula);
+  // find the <, >, <=, >=, =
+  size_t pos;
+  int offset;
+  if (formula.find("<=") != std::string::npos) {
+    pos = formula.find("<=");
+    offset = 2;
+    m_op = "<=";
+  } else if (formula.find(">=") != std::string::npos) {
+    pos = formula.find(">=");
+    offset = 2;
+    m_op = ">=";
+  } else if (formula.find("=") != std::string::npos) {
+    pos = formula.find("=");
+    offset = 1;
+    m_op = "=";
+  } else if (formula.find("<") != std::string::npos) {
+    pos = formula.find("<");
+    offset = 1;
+    m_op = "<";
+  } else if (formula.find(">") != std::string::npos) {
+    pos = formula.find(">");
+    offset = 1;
+    m_op = ">";
+  } else {
+    assert(false);
+  }
+  m_lhs = formula.substr(0, pos);
+  m_rhs = formula.substr(pos + offset);
+  utils::trim(m_lhs);
+  utils::trim(m_rhs);
+}
+
+
+
+TEST(SegTestCase, BinaryFormulaTest) {
+  BinaryFormula bf("Od_sizeof(tempname)=1024 conf:18");
+  EXPECT_EQ(bf.GetLHS(), "Od_sizeof(tempname)");
+  EXPECT_EQ(bf.GetRHS(), "1024");
+  EXPECT_EQ(bf.GetOP(), "=");
+  EXPECT_EQ(bf.GetConf(), 18);
+
+  BinaryFormula bf2("Id_strlen(argv[1])<=1024");
+  EXPECT_EQ(bf2.GetLHSVar(), "argv");
+  std::set<std::string> ss = bf2.GetVars();
+  // for (auto &s : ss) {
+  //   std::cout << s  << "\n";
+  // }
+  ASSERT_EQ(ss.size(), 1);
+  EXPECT_EQ(*ss.begin(), "argv");
+}
+
+/**
+ * Get the variables.
+ * for Od_strlen(*fileptr[1]), it will be fileptr along
+ * Since this is binary, the return set is at most of size 2
+ */
+std::set<std::string> BinaryFormula::GetVars() {
+  std::set<std::string> ret;
+  std::string tmp;
+  tmp = getVar(m_lhs);
+  if (!tmp.empty()) {
+    ret.insert(tmp);
+  }
+  tmp = getVar(m_rhs);
+  if (!tmp.empty()) {
+    ret.insert(tmp);
+  }
+  return ret;
+}
+
+
+std::string BinaryFormula::getVar(std::string s) {
+  // remove prefix
+  assert(s.size() > 3);
+  // assert(s[2] == '_');
+  if (s[2] != '_') return "";
+  s = s.substr(3);
+  // remove strlen, sizeof
+  // FIXME multiple sizeof?
+  if (s.find("sizeof") != std::string::npos) {
+    s = s.substr(s.find("sizeof") + strlen("sizeof"));
+  }
+  if (s.find("strlen") != std::string::npos) {
+    s = s.substr(s.find("strlen") + strlen("strlen"));
+  }
+  // remove ()
+  while (s.find('(') != std::string::npos) {
+    s.erase(s.find('('), 1);
+  }
+  while (s.find(')') != std::string::npos) {
+    s.erase(s.find(')'), 1);
+  }
+  // remove [xxx]
+  if (s.find('[') != std::string::npos) {
+    s = s.substr(0, s.find('['));
+  }
+  // remove .xxx
+  if (s.find('.') != std::string::npos) {
+    s = s.substr(0, s.find('.'));
+  }
+  // remove + ...
+  if (s.find('+') != std::string::npos) {
+    s = s.substr(0, s.find('+'));
+  }
+  utils::trim(s);
+  return s;
+}
+
+
+/**
+ * Od_sizeof(tempname)=1024 conf:18
+ * Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 18
+ */
+BinaryFormula* get_key_inv(std::vector<BinaryFormula*> invs) {
+  // loop through the invs, and split into two sets: constant assignment, and other
+  assert(!invs.empty());
+  BinaryFormula *ret = NULL;
+  std::vector<BinaryFormula*> cons;
+  for (BinaryFormula *bf : invs) {
+    if (bf->GetOP() == "=" && utils::is_number(bf->GetRHS())) {
+      cons.push_back(bf);
     } else {
-      std::cout <<'x';
-      // count1++;
+      ret = bf;
     }
-    // if (tr.vk == VK_CorrectFailure) {
-    //   valgrind_fail++;
-    //   if (tr.return_code == 0) {
-    //     vs.push_back(length);
-    //   }
-    // }
-
-    // if (atoi(length.c_str()) > 100) {
-    //   count2++;
-    //   if (tr.return_code == 0) {
-    //     length_vec.push_back(length);
-    //   }
-    // }
-    
-    flush(std::cout);
   }
-  std::cout << "\n";
-  // std::cout <<count1<<"," << count2  << "\n";
-  // for (std::string& s : length_vec) {
-  //   std::cout <<s  << " ";
-  // }
+  assert(ret);
+  for (BinaryFormula *bf : cons) {
+    if (bf->GetLHS() == ret->GetRHS()) {
+      ret->UpdateRHS(bf->GetRHS());
+    }
+    if (bf->GetLHS() == ret->GetLHS()) {
+      ret->UpdateLHS(bf->GetRHS());
+      ret->Inverse();
+    }
+  }
+  return ret;
 }
 
-void
-Tester::WriteCSV() {
-  // std::cout << utils::PURPLE <<"val_success: " << m_val_success  << "\n";
-  // std::cout <<"val_correct_failure: " << m_val_correct_failure  << "\n";
-  // std::cout <<"val_wrong_failure: " << m_val_wrong_failure << "\n";
-  // std::cout <<"return success: " << m_return_success  << "\n";
-  // std::cout <<"return fail: " << m_return_failure  << "\n";
-  // std::cout << utils::RESET<< "\n";
-  // mylog(m_val_success);
-  // mylog(",");
-  // mylog(m_val_correct_failure);
-  // mylog(",");
-  // mylog(m_val_wrong_failure);
-  // mylog(",");
-  // mylog(m_return_success);
-  // mylog(",");
-  // mylog(m_return_failure);
-  // mylog("\n");
-  
-  // FILE *fp = fopen((m_dir+ "/result.txt").c_str(), "w");
-  // fprintf(fp, "ID, return code, valgrind(0:suc 1:cf 2:wf)\n");
-  // for (size_t i=0;i<m_results.size();i++) {
-  //   fprintf(fp, "%lu,%d,%d\n",
-  //           i,
-  //           m_results[i].return_code,
-  //           m_results[i].vk
-  //           );
+/**
+ * Derive inv from pres and trans.
+ * If cannot derive, return an empty set.
+ * Otherwise return the used pre-conditions.
+ * This return value is used to see if the variables are entry point.
+ * TODO multiple precondition
+ * TODO record the transfer function used.
+ *
+ * inv: Od_sizeof(tempname)>=Od_strlen(*fileptr) conf: 12
+ * trans: Od_strlen(*fileptr)=Id_strlen(argv[1]) conf:12
+ * pres: Id_strlen(argv[1])<=1024 conf: 12
+ */
+BinaryFormula* derive_key_inv(std::vector<BinaryFormula*> pres, std::vector<BinaryFormula*> trans, BinaryFormula *inv) {
+  // std::cout << "drive_key_inv"  << "\n";
+  // std::cout << "pres:"  << "\n";
+  // for (BinaryFormula *bf : pres) {
+  //   std::cout << bf->dump()  << "\n";
   // }
-  static int idx = 0;
-  idx++;
-  if (idx == 1) {
-    FILE *fp = fopen("/tmp/helium-result.csv", "w");
-    fprintf(fp, "ID, runtime failure, total\n");
-    fclose(fp);
+  // std::cout << "trans:"  << "\n";
+  // for (BinaryFormula *bf : trans) {
+  //   std::cout << bf->dump()  << "\n";
+  // }
+  // std::cout << "inv:"  << "\n";
+  // std::cout << inv->dump()  << "\n";
+  // randomly pair the trans and pres, to see if inv can be generated
+  for (BinaryFormula *pre : pres) {
+    for (BinaryFormula *tran : trans) {
+      BinaryFormula tmp(*pre);
+      if (tran->GetRHS() == tmp.GetLHS()) {
+        tmp.UpdateLHS(tran->GetLHS());
+      }
+      if (tran->GetRHS() == tmp.GetRHS()) {
+        tmp.UpdateRHS(tran->GetLHS());
+      }
+      // compare_formula(&tmp, inv);
+      if (tmp.GetLHS() == inv->GetLHS() && tmp.GetRHS() == inv->GetRHS() && tmp.GetOP() == inv->GetOP()) {
+        return pre;
+      }
+      if (tmp.GetLHS() == inv->GetRHS() && tmp.GetRHS() == inv->GetLHS() && inverse_op(tmp.GetOP()) == inv->GetOP()) {
+        return pre;
+      }
+    }
   }
-
-  FILE *fp = fopen("/tmp/helium-result.csv", "a");
-  // ID, runtime failure, total
-  size_t size = m_results.size();
-  int count=0;
-  for (TestResult &tr : m_results) {
-    if (tr.return_code != 0) count++;
-  }
-  fprintf(fp, "%d,%d,%lu\n", idx, count, size);
-  fclose(fp);
+  return NULL;
 }
+
 

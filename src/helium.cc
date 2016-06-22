@@ -223,18 +223,20 @@ Helium::Helium(int argc, char* argv[]) {
    *******************************/
 
   if (args.Has("print-segments")) {
+    assert(false);
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
-      std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
+      // std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
       reader.PrintSegments();
     }
     exit(0);
   }
   if (args.Has("print-segment-info")) {
+    assert(false);
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
-      std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
-      std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
+      // std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
+      // std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
     }
     exit(0);
   }
@@ -344,16 +346,16 @@ Helium::Run() {
    */
   if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
     // code selection method is a config file, we only need to check those files in the config.
-    std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));
-    for (auto c : conf) {
-      std::string filename = m_folder + "/" + c.first;
-      if (utils::file_exists(filename)) {
-        std::cerr << "processing: " << filename << " ...\n";
-        Reader reader(filename, c.second);
-        reader.PrintSegments();
-        // reader.Read();
-      }
-    }
+    // std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));
+    // for (auto c : conf) {
+    //   std::string filename = m_folder + "/" + c.first;
+    //   if (utils::file_exists(filename)) {
+    //     std::cerr << "processing: " << filename << " ...\n";
+    //     Reader reader(filename, c.second);
+    //     reader.PrintSegments();
+    //     // reader.Read();
+    //   }
+    // }
   } else {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);

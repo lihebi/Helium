@@ -4,41 +4,40 @@
 #include "segment.h"
 #include "ast.h"
 #include "utils.h"
-#include "seg.h"
 
 class Reader {
 public:
   Reader(const std::string &filename);
-  Reader(const std::string &filename, std::vector<int> line_numbers);
+  // Reader(const std::string &filename, std::vector<int> line_numbers);
   virtual ~Reader() {}
   void Read();
   
   /* meta data for test */
-  int GetSegmentCount() {
-    return m_segments.size();
-  }
+  // int GetSegmentCount() {
+  //   return m_segments.size();
+  // }
   void PrintSegments();
   /**
    * get loc of all segments
    */
-  int GetSegmentLOC() {
-    int result = 0;
-    for (Segment &seg : m_segments) {
-      std::string code = seg.GetText();
-      result += std::count(code.begin(), code.end(), '\n');
-    }
-    return result;
-  }
+  // int GetSegmentLOC() {
+  //   int result = 0;
+  //   for (Segment &seg : m_segments) {
+  //     std::string code = seg.GetText();
+  //     result += std::count(code.begin(), code.end(), '\n');
+  //   }
+  //   return result;
+  // }
   static void slice(std::string slice_file, std::string benchmark_folder);
 private:
-  void getLoopSegments();
+  // void getLoopSegments();
   void getAnnotationSegments();
-  Seg* getAnnotSeg();
-  void getDivideSegments();
-  void getDivideRecursive(ast::NodeList nodes);
+  Segment* getAnnotSeg();
+  // void getDivideSegments();
+  // void getDivideRecursive(ast::NodeList nodes);
   void getFuncCallSegments(std::string func_name);
   void GA();
-  SegmentList m_segments;
+  // SegmentList m_segments;
   ast::Doc m_doc;
   std::string m_filename;
   static int m_skip_segment; // store config number
