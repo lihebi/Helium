@@ -555,14 +555,21 @@ std::string Context::getSupport() {
 
   
   // std::cout << sorted_snippet_ids.size()  << "\n";
+  // FIXME if two snippets are exactly the same code, only include once
+  // e.g. char tmpbuf[2048], target[2048], wd[2048];
+  std::set<std::string> code_set;
   for (int id : sorted_snippet_ids) {
     SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
     if (meta.HasKind(SK_Function)) {
       std::string func = meta.GetKey();
       if (avoid_funcs.count(func) == 0) {
-        code_func += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
-        code_func += SnippetDB::Instance()->GetCode(id) + '\n';
-        code_func_decl += get_function_decl(SnippetDB::Instance()->GetCode(id))+"\n";
+        std::string tmp_code = SnippetDB::Instance()->GetCode(id);
+        if (code_set.count(tmp_code) == 0) {
+          code_set.insert(tmp_code);
+          code_func += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+          code_func += tmp_code + "\n";
+          code_func_decl += get_function_decl(SnippetDB::Instance()->GetCode(id))+"\n";
+        }
       } else {
         // assert(false);
         // add only function decls
@@ -575,12 +582,20 @@ std::string Context::getSupport() {
       // for variable, put it AFTER function decl
       // this is because the variable may be a function pointer decl, and it may use the a funciton.
       // But of course it should be before the function definition itself, because it is
-      code_variable += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
-      code_variable += SnippetDB::Instance()->GetCode(id) + '\n';
+      std::string tmp_code = SnippetDB::Instance()->GetCode(id);
+      if (code_set.count(tmp_code) == 0) {
+        code_set.insert(tmp_code);
+        code_variable += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+        code_variable += tmp_code + '\n';
+      }
     } else {
       // every other support code(structures) first
-      code += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
-      code += SnippetDB::Instance()->GetCode(id) + '\n';
+      std::string tmp_code = SnippetDB::Instance()->GetCode(id);
+      if (code_set.count(tmp_code) == 0) {
+        code_set.insert(tmp_code);
+        code += "/* ID: " + std::to_string(id) + " " + meta.filename + ":" + std::to_string(meta.linum) + "*/\n";
+        code += tmp_code + '\n';
+      }
     }
   }
 

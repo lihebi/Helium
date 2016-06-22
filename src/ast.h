@@ -294,7 +294,7 @@ namespace ast {
    */
   Node find_callsite(pugi::xml_document &doc, std::string func);
   Node find_callsite(pugi::xml_node node, std::string func);
-  
+  NodeList find_callsites(pugi::xml_node node, std::string func);
   
 
   std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name);

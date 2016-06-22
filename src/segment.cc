@@ -329,8 +329,12 @@ void Segment::TestNextContext() {
         m_asts.push_back(newast);
         m_func_to_ast_m[newast->GetFunctionName()] = newast;
       }
-      ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
-      if (callsite && callsite->GetAST()) {
+      // FIXME the same function might have many callsite to the same function.
+      // Each one should try! But I don't think we can take care of the order
+      // ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
+      std::set<ASTNode*> callsites = newast->GetCallSites(ast->GetFunctionName());
+      for (ASTNode *callsite : callsites) {
+      // if (callsite && callsite->GetAST()) {
         Context *new_ctx = new Context(*ctx);
         new_ctx->SetFirstNode(callsite);
         // I can remove the recursive calls here

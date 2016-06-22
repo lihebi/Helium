@@ -201,6 +201,7 @@ namespace ast {
      * The first callsite (or random one because I have a set)
      */
     ASTNode* GetCallSite(std::string func_name);
+    std::set<ASTNode*> GetCallSites(std::string func_name);
 
     void SetSlice();
     void ClearSlice();

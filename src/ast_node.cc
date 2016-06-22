@@ -560,6 +560,19 @@ ASTNode* AST::GetCallSite(std::string func_name) {
   return GetEnclosingNodeByXMLNode(callsite);
 }
 
+std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
+  assert(m_root);
+  XMLNodeList callsites = ast::find_callsites(m_root->GetXMLNode(), func_name);
+  std::set<ASTNode*> ret;
+  for (XMLNode node : callsites) {
+    ASTNode *n = GetEnclosingNodeByXMLNode(node);
+    if (n) {
+      ret.insert(n);
+    }
+  }
+  return ret;
+}
+
 
 void ast::dfs(ASTNode *node, std::vector<ASTNode*> &visited) {
   visited.push_back(node);

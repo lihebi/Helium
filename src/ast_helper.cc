@@ -602,6 +602,18 @@ int a[3][8];
     return Node();
   }
 
+  NodeList find_callsites(pugi::xml_node node, std::string func) {
+    NodeList ret;
+    NodeList call_nodes = find_nodes(node, NK_Call);
+    for (Node call_node : call_nodes) {
+      std::string callee = call_get_name(call_node);
+      if (callee == func) {
+        ret.push_back(call_node);
+      }
+    }
+    return ret;
+  }
+
   /*******************************
    ** build doc from scratch
    *******************************/
