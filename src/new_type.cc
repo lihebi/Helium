@@ -786,7 +786,16 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
   // according to spec, generate the raw
   std::vector<std::string> components;
   std::string argv_spec;
-  components.push_back("helium_program");
+  // FIXME this should also be a random one!
+  // and I should also treat it special because the name of the command should not be always arbitrary as its parameter
+
+  int argv0_length = utils::rand_int(1, Config::Instance()->GetInt("max-argv0-length"));
+  std::string str = utils::rand_str(utils::rand_int(1, argv0_length));
+  components.push_back(str);
+  argv_spec += "Id_strlen(argv:r0) = " + std::to_string(str.length()) + "\n";
+  
+  // components.push_back("helium_program");
+  
   for (char c : m_bool_opt) {
     if (utils::rand_bool()) {
       components.push_back("-" + std::string(1, c));
@@ -812,7 +821,8 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
     int size = utils::rand_int(1, Config::Instance()->GetInt("max-strlen"));
     std::string str = utils::rand_str(utils::rand_int(1, size));
     components.push_back(str);
-    argv_spec += "Id_strlen(argv:r" + std::to_string(i) + ") = " + std::to_string(str.length()) + "\n";
+    // i+1 because argv[0] is special as argv:r0
+    argv_spec += "Id_strlen(argv:r" + std::to_string(i+1) + ") = " + std::to_string(str.length()) + "\n";
   }
   std::string raw;
   raw += std::to_string(components.size()) + " ";

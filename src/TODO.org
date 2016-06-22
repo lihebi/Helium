@@ -5,6 +5,15 @@
  - else if {}
 
 
+For gzip, We should not stop when we have optind, we need to have the getopt or getopt_long included so that we can make it.
+The multiple callsite should be implemented, and it cause a funny inconsistance: in the "bugsig" version, I removed the getopt.c file because it has a main function.
+However, there's a optind=0 in that file, which is there in cpped version.
+The bugsig version always has optind=1!
+And what's still funny to get this is I have a bug that set argv[0] always to helium_program!
+
+Also, wait, I didn't recognize optind as an input variable. How was that decision made?
+
+
 * Write up for Friday meeting 2016-05-27 Fri 09:44:03 PM
 
 Today's idea focuses on how to use invariants, preconditions, and transfer functions.
