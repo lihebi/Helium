@@ -24,7 +24,7 @@ cp -r $1/*.h cpped/
 cd cpped
 for fname in *.c; do
     echo $fname
-    cc -E $fname > $fname.new
+    cc -E -nostdinc $fname > $fname.new
     mv $fname.new $fname
     helium-process-cpped.py $fname > $fname.new
     mv $fname.new $fname
@@ -32,7 +32,7 @@ done
 
 for fname in *.h; do
     echo $fname
-    cc -E $fname > $fname.new
+    cc -E -nostdinc $fname > $fname.new
     mv $fname.new $fname
     helium-process-cpped.py $fname > $fname.new
     mv $fname.new $fname
