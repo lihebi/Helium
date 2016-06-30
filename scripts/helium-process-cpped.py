@@ -20,7 +20,7 @@ def remove_extra(filename):
         # line = "# 1 \"builtin\" 3"
         # line = "# 1 \"gzip.c\" 2"
         pattern = (r"^#\s*\d+\s+"
-                   r"\"([\w\.-<>]+)\"" # first capturing group, the file name
+                   r"\"([\w\.\-\_<>]+)\"" # first capturing group, the file name
                    r"\s+(\d+)")
         match = re.search(pattern, line)
         if output:
