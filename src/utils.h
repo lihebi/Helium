@@ -146,6 +146,7 @@ namespace utils {
   /*******************************
    ** thread
    *******************************/
+  // The timeout is SECONDs!
   // std::string exec(const char* cmd, int *status=NULL, int timeout=0);
   std::string exec(const char* cmd, int *status=NULL, double timeout=0);
   // with input

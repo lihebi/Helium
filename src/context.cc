@@ -518,6 +518,15 @@ std::string Context::getSupport() {
   // head
   code += get_head();
   code += SystemResolver::Instance()->GetHeaders();
+
+  code += ""
+    // setbit is DEFINE-d by Mac ...
+    // <sys/param.h>
+    // FIXME remove this header?
+    "#ifdef setbit\n"
+    "#undef setbit\n"
+    "#endif\n";
+
   code += "\n/****** codes *****/\n";
   // snippets
   std::string code_func_decl;
@@ -665,8 +674,12 @@ void Context::Test() {
     /**
      * Testing!
      */
+    print_trace("preparing inputs ...");
     AST *first_ast = m_first->GetAST();
-    InputMetrics metrics = m_inputs[first_ast];
+    // FIXME decls or inputs?
+    // InputMetrics metrics = m_inputs[first_ast];
+    InputMetrics metrics = m_decls[first_ast];
+    
     // std::vector<std::string> test_suites(TEST_NUMBER);
     // for (auto metric : metrics) {
     //   std::string var = metric.first;
@@ -758,7 +771,7 @@ void Context::Test() {
     // The used method is ToString()
     NewTestResult test_result(test_suite);
 
-
+    print_trace("testing...");
     // std::string test_dir = utils::create_tmp_dir();
     utils::create_folder(builder.GetDir() + "/input");
     for (int i=0;i<test_number;i++) {
@@ -784,7 +797,9 @@ void Context::Test() {
       // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
       // I'm also going to write the input file in the executable directory
       utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt", input);
-      std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 10);
+      // FIXME this timeout should be configurable?
+      // FIXME how to safely and consistently identify timeout or not?
+      std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
       if (status == 0) {
         if (PrintOption::Instance()->Has(POK_TestInfo)) {
           utils::print("test success\n", utils::CK_Green);

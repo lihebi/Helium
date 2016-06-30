@@ -127,7 +127,12 @@ void NewTestResult::PrepareData() {
         m_i_headers.insert(mm.first);
       } else {
         // HELIUM_POI
-        assert(mm.first == "HELIUM_POI");
+        // assert(mm.first == "HELIUM_POI");
+        if (mm.first != "HELIUM_POI") {
+          // std::cerr << "Wrong header of CSV file: " << mm.first << "\n";
+          // assert(false);
+          continue;
+        }
         im[mm.first] = mm.second;
         om[mm.first] = mm.second;
         m_i_headers.insert(mm.first);
@@ -136,6 +141,7 @@ void NewTestResult::PrepareData() {
       }
       // m_o_headers.insert("O_" + mm.first);
     }
+
     // input
     std::string input;
     for (TestInput *in : m_test_suite[i]) {

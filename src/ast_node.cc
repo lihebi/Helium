@@ -457,9 +457,39 @@ std::set<ASTNode*> AST::CompleteGeneToRoot(std::set<ASTNode*> gene) {
   return ret;
 }
 
+/**
+ * If the nodes contains continue, break, add the parent
+ * - for, while, do
+ * - switch
+ */
+std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
+  std::set<ASTNode*> ret (nodes.begin(), nodes.end());
+  for (ASTNode *n : nodes) {
+    if (n->Kind() == ANK_Stmt) {
+      if (kind(n->GetXMLNode()) == NK_Break
+          || kind(n->GetXMLNode()) == NK_Continue
+          ) {
+        ASTNode *p = n->GetParent();
+        while (p && p->Kind() != ANK_For
+               && p->Kind() != ANK_While
+               && p->Kind() != ANK_Do
+               && p->Kind() != ANK_Switch
+               ) {
+          p = p->GetParent();
+        }
+        assert(p);
+        ret.insert(p);
+      }
+    }
+  }
+  return ret;
+}
+
 std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
   print_trace("AST::CompleteGene(std::set<ASTNode*> gene)");
   std::set<ASTNode*> ret;
+  // FIXME before compute lca, need to patch: continue, break
+  gene = patch_syntax(gene);
   ASTNode* lca = ComputeLCA(gene);
   // std::string dot = VisualizeN({lca}, gene);
   // utils::visualize_dot_graph(dot);
@@ -479,6 +509,8 @@ std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
   // the nodes representing gene growing
   std::set<ASTNode*> nodes = original_nodes;
   std::set<ASTNode*> ret;
+  // FIXME before compute lca, need to patch: continue, break
+  nodes = patch_syntax(nodes);
   ASTNode *lca = ComputeLCA(nodes);
   for (ASTNode *node : nodes) {
     std::vector<ASTNode*> path = getPath(node, lca);
@@ -562,6 +594,11 @@ ASTNode* AST::GetCallSite(std::string func_name) {
 
 std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
   assert(m_root);
+  // DEBUG
+  // XMLNode node = m_root->GetXMLNode();
+  // // node.print(std::cout);
+  // std::cout << get_text(node) << "\n";
+  // std::cout << "finding : " << func_name  << "\n";
   XMLNodeList callsites = ast::find_callsites(m_root->GetXMLNode(), func_name);
   std::set<ASTNode*> ret;
   for (XMLNode node : callsites) {

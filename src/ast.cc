@@ -507,6 +507,11 @@ std::string ast::decl_get_type(Node node) {
     // void foo(int a, ...) {}
     return "";
   }
+  // const
+  std::string specifier = ast::get_text(node.child("type").child("specifier"));
+  if (!specifier.empty() && specifier != "register") { // FIXME register variable cannot take address
+    type = specifier + " " + type;
+  }
   for (Node n : node.child("type").children("modifier")) {
     if (strcmp(n.child_value(), "*") == 0) {
       type += '*';

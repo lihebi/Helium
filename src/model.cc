@@ -145,6 +145,7 @@ Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
     m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
   }
   // m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
+  // FIXME return static specifier
   m_ret_ty = function_get_return_type(xmlnode);
   m_name = xmlnode.child_value("name"); // function_get_name(xmlnode);
   XMLNodeList params = function_get_param_decls(xmlnode);
@@ -714,6 +715,7 @@ void Do::GetCode(std::set<ASTNode*> nodes,
     for (ASTNode *child : m_children) {
       child->GetCode(nodes, ret, all);
     }
+    ret += "} ";
     ret += "while (";
     ret += get_text(m_cond);
     ret += ");";

@@ -654,12 +654,35 @@ bool utils::rand_bool() {
  * Random character, a-Z, A-Z
  */
 char utils::rand_char() {
+#if true
+  bool x = rand_bool();
+  if (x) {
+    // alphebet
+    int a = utils::rand_int(0, 51);
+    if (a < 26) {
+      return 'a'+a;
+    } else {
+      return 'A'+a-26;
+    }
+  } else {
+    // symbols
+    // '!' 41
+    // "\"" 42
+    // '@' 100
+    int a = utils::rand_int(41, 100);
+    if (a == 42) {
+      a = 41;
+    }
+    return '!' + a - 41;
+  }
+#else
   int a = utils::rand_int(0, 51);
   if (a < 26) {
     return 'a'+a;
   } else {
     return 'A'+a-26;
   }
+#endif
 }
 std::string utils::rand_str(int size) {
   std::string ret;

@@ -224,7 +224,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual std::string GetTestInput() override;
-  // virtual TestInput* GetTestInputSpec(std::string var) override;
+  virtual TestInput* GetTestInputSpec(std::string var) override;
 };
 /**
  * float, double
@@ -303,6 +303,15 @@ protected:
   std::string m_var;
   // the raw data is used as the input to the executable under test
   std::string m_raw;
+};
+
+class IntTestInput : public TestInput {
+public:
+  IntTestInput(NewType *type, std::string var) : TestInput(type, var) {}
+  // TODO
+  // virtual std::string dump();
+  // virtual std::string ToString();
+private:
 };
 
 class CharTestInput : public TestInput {

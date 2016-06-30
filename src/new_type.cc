@@ -458,6 +458,28 @@ std::string Int::GetTestInput() {
   return ret;
 }
 
+TestInput* Int::GetTestInputSpec(std::string var) {
+  std::string raw;
+  if (m_pointer == 0) {
+    int a = utils::rand_int(0, 100);
+    raw += std::to_string(a);
+  } else if (m_pointer == 1) {
+    int size = utils::rand_int(0, 5);
+    raw += std::to_string(size);
+    for (int i=0;i<size;i++) {
+      int a = utils::rand_int(0,100);
+      raw += " " + std::to_string(a);
+    }
+  } else {
+    assert(false);
+  }
+  IntTestInput *ret = new IntTestInput(this, var);
+  ret->SetRaw(raw);
+  // TODO Set the value of string
+  // TODO the dump method of IntTestInput
+  return ret;
+}
+
 
 std::string Char::GetDeclCode(std::string var) {
   std::string ret;

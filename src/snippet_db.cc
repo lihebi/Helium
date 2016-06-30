@@ -328,6 +328,7 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
   tagEntry *entry = (tagEntry*)malloc(sizeof(tagEntry));
   tagResult res = tagsFirst(tag, entry);
   int snippet_id = 0;
+  std::vector<Snippet*> all_snippets;
   while (res == TagSuccess) {
     /**
      * Inserting database
@@ -348,13 +349,49 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
         std::string code_file = output_folder + "/code/" + std::to_string(snippet_id) + ".txt";
         utils::write_file(code_file, snippet->GetCode());
       }
-      delete snippet;
+      all_snippets.push_back(snippet);
+      // delete snippet;
     }
     // std::cout  << "\n";
     res = tagsNext(tag, entry);
   }
   std::cout  << "\n";
   std::cout << "total snippet: " << snippet_id + 1  << "\n";
+  int define_ct = 0;
+  int func_ct = 0;
+  int struct_ct = 0;
+  int enum_ct = 0;
+  int enum_mem_ct = 0;
+  int typedef_ct = 0;
+  int var_ct = 0;
+  int other_ct = 0;
+  for (Snippet *s : all_snippets) {
+    SnippetKind k = s->MainKind();
+    switch (k) {
+    case SK_Define: define_ct++; break;
+    case SK_Function: func_ct++; break;
+    case SK_Structure: struct_ct++; break;
+    case SK_Enum: enum_ct++; break;
+    case SK_EnumMember: enum_mem_ct++; break;
+    case SK_Typedef: typedef_ct++; break;
+    case SK_Variable: var_ct++; break;
+    default:
+      // std::cout << k  << "\n";
+      other_ct++; break;
+    }
+  }
+  std::cout << "define snippet: " << define_ct  << "\n";
+  std::cout << "function snippet: " << func_ct  << "\n";
+  std::cout << "struct snippet: " << struct_ct  << "\n";
+  std::cout << "enum snippet: " << enum_ct  << "\n";
+  std::cout << "enum member snippet: " << enum_mem_ct  << "\n";
+  std::cout << "typedef snippet: " << typedef_ct  << "\n";
+  std::cout << "variable snippet: " << var_ct  << "\n";
+  std::cout << "other snippet: " << other_ct  << "\n";
+  for (Snippet *s : all_snippets) {
+    delete s;
+  }
+  // TODO print out snippet details, like how many functions, defines, structures, etc.
   createDep();
   createCG();
   sqlite3_close_v2(m_db);

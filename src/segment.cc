@@ -27,7 +27,9 @@ get_head() {
   return
     "#ifndef __SUPPORT_H__\n"
     "#define __SUPPORT_H__\n"
-    "typedef int bool;\n"
+
+    // suppress the warning
+    // "typedef int bool;\n"
     "#define true 1\n"
     "#define false 0\n"
     // some code will config to have this variable.
@@ -319,6 +321,8 @@ void Segment::TestNextContext() {
       std::string new_func_name = function_get_name(func_node);
       AST *newast;
       if (m_func_to_ast_m.count(new_func_name) == 1) {
+        // FIXME callers with the same name, e.g. main function?
+        print_warning("Same function, maybe recursive call, or two function with same name");
         newast = m_func_to_ast_m[new_func_name];
       } else {
         newast = new AST(func_node);
@@ -333,6 +337,7 @@ void Segment::TestNextContext() {
       // Each one should try! But I don't think we can take care of the order
       // ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
       std::set<ASTNode*> callsites = newast->GetCallSites(ast->GetFunctionName());
+      print_trace("found " + std::to_string(callsites.size()) + "call sites");
       for (ASTNode *callsite : callsites) {
       // if (callsite && callsite->GetAST()) {
         Context *new_ctx = new Context(*ctx);
