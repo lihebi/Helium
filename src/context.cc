@@ -184,6 +184,7 @@ void Context::Resolve() {
  * HEBI this must be called after completion
  * HEBI Need to disable the first ast decl resolving
  * @return m_decls
+ * DEPRECATED Dead code
  */
 void Context::getUndefinedVariables(AST *ast) {
   print_trace("Context::getUndefinedVariables(AST *ast)");
@@ -193,19 +194,24 @@ void Context::getUndefinedVariables(AST *ast) {
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
+      std::cout << id  << "\n";
       SymbolTable *tbl = node->GetSymbolTable();
       assert(tbl);
       SymbolTableValue *decl = tbl->LookUp(id);
-      if (!decl) continue;
-      ASTNode *decl_node = decl->GetNode();
-      if (decl_node) {
-        if (sel.count(decl_node) == 1) continue;
-        else {
-          m_decls[ast][id] = decl->GetType();
+      if (decl) {
+        ASTNode *decl_node = decl->GetNode();
+        if (decl_node) {
+          if (sel.count(decl_node) == 1) continue;
+          else {
+            m_decls[ast][id] = decl->GetType();
+          }
         }
       } else {
+        // cannot found in symbol table
+        std::cout << "..."  << "\n";
         NewType* type = GlobalVariableRegistry::Instance()->LookUp(id);
         if (type) {
+          std::cout << "found global variable: " << id  << "\n";
           m_decls[ast][id] = type;
         }
       }
@@ -253,22 +259,33 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       SymbolTableValue *decl = tbl->LookUp(id);
       ASTNode *def = node->LookUpDefinition(id);
       // FIXME I didn't use my new function resolve_type, which takes care of global variable and special variables like optarg
-      if (!decl) continue;
-      if (def) {
-        // utils::print("found def: " + id + "\n", utils::CK_Cyan);
-        // need this def, but not necessary to be a new node
-        // and also possibly need the decl
-        ret.insert(def);
-        worklist.insert(def);
-        // ast->VisualizeN({def}, {});
-        // getchar();
-        std::set<ASTNode*> morenodes = ast->CompleteGene(ret);
-        ret.insert(morenodes.begin(), morenodes.end());
-        worklist.insert(morenodes.begin(), morenodes.end());
-        decl_m[decl->GetNode()].insert(id);
+      // if (!decl) continue;
+      if (decl) {
+        if (def) {
+          // utils::print("found def: " + id + "\n", utils::CK_Cyan);
+          // need this def, but not necessary to be a new node
+          // and also possibly need the decl
+          ret.insert(def);
+          worklist.insert(def);
+          // ast->VisualizeN({def}, {});
+          // getchar();
+          std::set<ASTNode*> morenodes = ast->CompleteGene(ret);
+          ret.insert(morenodes.begin(), morenodes.end());
+          worklist.insert(morenodes.begin(), morenodes.end());
+          decl_m[decl->GetNode()].insert(id);
+        } else {
+          // may need decl, and need input
+          decl_input_m[decl->GetNode()].insert(id);
+        }
       } else {
-        // may need decl, and need input
-        decl_input_m[decl->GetNode()].insert(id);
+        // cannot get decl from symbol table, might be a globle variable
+        NewType* type = GlobalVariableRegistry::Instance()->LookUp(id);
+        if (type) {
+          // add global variable
+          if (m_globals.count(id) == 0) {
+            m_globals[id] = type;
+          }
+        }
       }
     }
   }
@@ -436,20 +453,34 @@ std::string Context::getMain() {
         // FIXME didn't not use def use analysis result!
         main_func += t->GetInputCode(var);
       }
-      if (PrintOption::Instance()->Has(POK_IOSpec)) {
-        utils::print("Input Metrics:\n", utils::CK_Blue);
-        for (auto m :m_decls[ast]) {
+
+      if (Config::Instance()->GetBool("test-global-variable")) {
+        for (auto m : m_globals) {
           std::string var = m.first;
           NewType *t = m.second;
-          utils::print(t->ToString() + "\n", utils::CK_Blue);
-          utils::print(t->GetInputCode(var) + "\n", utils::CK_Purple);
-          utils::print("-------\n", utils::CK_Blue);
-          TestInput *input = t->GetTestInputSpec(var);
-          // utils::print(t->GetTestInput() + "\n", utils::CK_Purple);
-          utils::print(input->GetRaw() + "\n", utils::CK_Purple);
-          delete input;
+          // global only need input code
+          // FIXME check the name collision for decls and globals
+          // FIXME the order of input generation
+          // main_func += t->GetDeclCode(var);
+          main_func += t->GetInputCode(var);
         }
       }
+      // FIXME add globals spec
+      // if (PrintOption::Instance()->Has(POK_IOSpec)) {
+      //   utils::print("Input Metrics:\n", utils::CK_Blue);
+      //   for (auto m :m_decls[ast]) {
+      //     std::string var = m.first;
+      //     NewType *t = m.second;
+      //     utils::print(t->ToString() + "\n", utils::CK_Blue);
+      //     utils::print(t->GetInputCode(var) + "\n", utils::CK_Purple);
+      //     utils::print("-------\n", utils::CK_Blue);
+      //     TestInput *input = t->GetTestInputSpec(var);
+      //     // utils::print(t->GetTestInput() + "\n", utils::CK_Purple);
+      //     utils::print(input->GetRaw() + "\n", utils::CK_Purple);
+      //     delete input;
+      //   }
+      // }
+      
       // for (auto m : m_inputs[ast]) {
       //   std::string var = m.first;
       //   NewType *t = m.second;
@@ -618,11 +649,31 @@ std::string Context::getSupport() {
   code += get_foot();
   return code;
 }
+
+
+/**
+ * How to create ~/github/helium-lib
+ * - create the folder
+ * - create a dummy project
+ * - gnulib-tool -s --import [module names]
+ * - modify Makefile.am and configure.ac
+ * - aclocal && autoconf && automake --add-missing && ./configure && make
+ * libgnu.a will be in lib/ folder
+
+ * The modules to import [update when needed]:
+ * - exclude
+ * - progname
+ */
+
 std::string Context::getMakefile() {
   std::string makefile;
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
-    + "\tcc -g -std=c11 main.c " + SystemResolver::Instance()->GetLibs() + "\n"
+    + "\tcc -g -std=c11 main.c "
+    + "-I$(HOME)/github/gnulib/lib " // gnulib headers
+    + "-I$(HOME)/github/helium-lib " // config.h
+    + "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
+    + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
     + "\trm -rf *.out\n"
     + "test:\n"
@@ -643,6 +694,7 @@ TEST(SegmentTestCase, ExecTest) {
 
 void Context::Test() {
   std::cout << "============= Context::Test() ================="  << "\n";
+  std::cout << "The size of this context: " << m_nodes.size()  << "\n";
   Builder builder;
   std::string code_main = getMain();
   std::string code_sup = getSupport();
@@ -670,6 +722,10 @@ void Context::Test() {
 
     // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
 
+    // FIXME this function is too long
+    if (Config::Instance()->GetBool("run-test") == false) {
+      return;
+    }
     int test_number = Config::Instance()->GetInt("test-number");
     /**
      * Testing!
@@ -679,6 +735,7 @@ void Context::Test() {
     // FIXME decls or inputs?
     // InputMetrics metrics = m_inputs[first_ast];
     InputMetrics metrics = m_decls[first_ast];
+    // metrics.insert(m_global.begin(), m_global.end());
     
     // std::vector<std::string> test_suites(TEST_NUMBER);
     // for (auto metric : metrics) {
@@ -753,6 +810,20 @@ void Context::Test() {
       }
     }
 
+    if (Config::Instance()->GetBool("test-global-variable")) {
+      // global inputs
+      for (auto metric : m_globals) {
+        std::string var = metric.first;
+        NewType *type = metric.second;
+        std::vector<TestInput*> inputs;
+        inputs = type->GetTestInputSpec(var, test_number);
+        assert((int)inputs.size() == test_number);
+        for (int i=0;i<(int)inputs.size();i++) {
+          test_suite[i].push_back(inputs[i]);
+        }
+      }
+    }
+
     // free when not used, to avoid memory leak
     if (!argc_used) {
       for (auto p : argcv_inputs) {
@@ -774,6 +845,7 @@ void Context::Test() {
     print_trace("testing...");
     // std::string test_dir = utils::create_tmp_dir();
     utils::create_folder(builder.GetDir() + "/input");
+    // do the test
     for (int i=0;i<test_number;i++) {
       // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
       // utils::write_file(test_file, test_suite[i]);
@@ -784,16 +856,22 @@ void Context::Test() {
       // FIXME some command cannot be controled by time out!
       // std::string output = utils::exec(cmd.c_str(), &status, 1);
       std::string input;
+      std::string spec;
       for (TestInput *in : test_suite[i]) {
-        input += in->GetRaw() + " ";
+        input += in->GetRaw() + "\n";
+        spec += in->dump() + "\n";
       }
 
       if (PrintOption::Instance()->Has(POK_IOSpec)) {
         utils::print("TestinputMetrics:\n", CK_Blue);
         for (TestInput *in : test_suite[i]) {
           utils::print(in->dump() + "\n", CK_Purple);
+          // utils::print(in->GetRaw() + "\n", CK_Cyan);
         }
       }
+      // write IO spec file
+      utils::write_file(builder.GetDir() + "/input/spec-" + std::to_string(i) + ".txt", spec);
+      
       // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
       // I'm also going to write the input file in the executable directory
       utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt", input);

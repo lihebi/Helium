@@ -325,26 +325,28 @@ Analyzer::Analyzer(std::string csv_file) {
     std::string line;
     getline(is, line);
     m_header = utils::split(line, ',');
-    assert(m_header.size() >= 2);
+    assert(m_header.size() >= 3);
     assert(m_header[0] == "HELIUM_POI");
-    assert(m_header[1] == "HELIUM_TEST_SUCCESS");
+    assert(m_header[1] == "HELIUM_POI_OUT_END");
+    assert(m_header[2] == "HELIUM_TEST_SUCCESS");
     while (getline(is, line)) {
       // I need to remove some invalid rows
       // the rows I want is:
       // HELIUM_POI: true
+      // TODO HELIUM_POI_OUT_END: true
       // HELIUM_TEST_SUCCESS: false or true
       std::vector<std::string> row = utils::split(line, ',');
       total++;
       if (row[0] == "true") {
         // reach POI
-        if (row[1] == "true") {
+        if (row[2] == "true") {
           reach_poi_test_success++;
         } else {
           m_raw_data.push_back(row);
           reach_poi_test_failure++;
         }
       } else {
-        if (row[1] == "true") {
+        if (row[2] == "true") {
           no_reach_poi_test_success++;
         } else {
           no_reach_poi_test_failure++;
@@ -365,6 +367,7 @@ Analyzer::Analyzer(std::string csv_file) {
     std::cout << "| no reach POI, return non-zero: " << no_reach_poi_test_failure  << "\n";
     std::cout << "-------------------------"  << "\n";
   }
+  std::cout << "Valid tests: " << reach_poi_test_failure  << "\n";
   // std::cout << "raw data:"  << "\n";
   // std::cout << m_raw_data.size()  << "\n";
   // for (auto &v : m_raw_data) {
@@ -404,6 +407,7 @@ Analyzer::Analyzer(std::string csv_file) {
  * 2. relations, e.g. a < b
  */
 std::vector<std::string> Analyzer::GetInvariants() {
+  print_trace("Analyzer::GetInvariants()");
   std::vector<std::string> ret;
   // invariants cares about the Out variables
   for (int i=0;i<(int)m_o_header.size();++i) {
@@ -432,6 +436,7 @@ std::vector<std::string> Analyzer::GetInvariants() {
  * Transfer functions capture the relation from Input to Output
  */
 std::vector<std::string> Analyzer::GetTransferFunctions() {
+  print_trace("Analyzer::GetTransferFunctions()");
   std::vector<std::string> ret;
   for (int i=0;i<(int)m_i_header.size();i++) {
     for (int o=0;o<(int)m_o_header.size();o++) {
@@ -448,6 +453,7 @@ std::vector<std::string> Analyzer::GetTransferFunctions() {
  * Pre conditions are invariants for Input variables
  */
 std::vector<std::string> Analyzer::GetPreConditions() {
+  print_trace("Analyzer::GetPreConditions()");
   std::vector<std::string> ret;
   // invariants cares about the Out variables
   for (int i=0;i<(int)m_i_header.size();++i) {

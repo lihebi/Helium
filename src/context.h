@@ -106,6 +106,10 @@ private:
   // the following two can overlap, i.e. need both declaration and input
   std::map<ast::AST*, InputMetrics> m_decls; // only need declaraion
   std::map<ast::AST*, InputMetrics> m_inputs; // only need input
+
+  // global variables used
+  // would be added into the input code for the first AST
+  InputMetrics m_globals;
   
   std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
   

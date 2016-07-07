@@ -86,17 +86,21 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
     //   }
     // }
 
-    std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
-    if (vars.size() > 0) {
-      ret += "printf(\"HELIUM_POI = true\\n\");\n";
-      ret += "fflush(stdout);\n";
-      for (NewVariable var : vars) {
-        ret += var.GetType()->GetOutputCode(var.GetName());
-      }
-    }
+    // std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+    // if (vars.size() > 0) {
+    //   ret += "printf(\"HELIUM_POI = true\\n\");\n";
+    //   ret += "fflush(stdout);\n";
+    //   for (NewVariable var : vars) {
+    //     ret += var.GetType()->GetOutputCode(var.GetName());
+    //   }
+    // }
+    // FIXME not only this, but also other model such as while, branch, because they can be the POI too
+    // current ones: stmt, for, while, if
+    ret += POIOutputCode();
     ret += get_text(m_xmlnode);
     // utils::print(get_text(m_xmlnode), utils::CK_Red);
     ret += "\n";
+    ret += POIAfterCode();
   } else {
     std::set<std::string> decls = m_ast->GetRequiredDecl(this);
     std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
@@ -338,6 +342,7 @@ void If::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
+    ret += POIOutputCode();
     ret += "if (";
     ret += get_text(m_cond);
     ret += ")";
@@ -349,6 +354,8 @@ void If::GetCode(std::set<ASTNode*> nodes,
     if (m_else) {
       m_else->GetCode(nodes, ret, all);
     }
+    // FIXME the "after" point of a "branch POI" should be only surround condition?
+    ret += POIAfterCode();
   }
 }
 
@@ -661,6 +668,7 @@ void While::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
+    ret += POIOutputCode();
     ret += "while (";
     ret += get_text(m_cond);
     ret += ")";
@@ -669,6 +677,7 @@ void While::GetCode(std::set<ASTNode*> nodes,
       child->GetCode(nodes, ret, all);
     }
     ret += "}";
+    ret += POIAfterCode();
   }
 }
 
@@ -780,6 +789,7 @@ void For::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
+    ret += POIOutputCode();
     ret += "for (";
     // init
     if (!m_inits.empty()) {
@@ -796,6 +806,7 @@ void For::GetCode(std::set<ASTNode*> nodes,
       child->GetCode(nodes, ret, all);
     }
     ret += "}";
+    ret += POIAfterCode();
   } else {
     std::set<std::string> decls = m_ast->GetRequiredDecl(this);
     std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);

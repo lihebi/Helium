@@ -549,6 +549,8 @@ namespace ast {
       return get_node_last_line(m_xmlnode);
     }
   protected:
+    std::string POIOutputCode();
+    std::string POIAfterCode();
     XMLNode m_xmlnode;
     ASTNode *m_parent = NULL;
     std::vector<ASTNode*> m_children;

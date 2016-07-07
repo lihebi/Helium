@@ -203,6 +203,9 @@ Segment::Segment(ast::XMLNode xmlnode) {
   //   }
   // }
   // ast->SetDecoOutput(m_deco);
+
+  // FIXME I currently make sure there's only one poi node
+  assert(m_output_vars.size() == 1);
   ast->SetOutput(m_output_vars);
 
   /**
@@ -273,7 +276,7 @@ void Segment::TestNextContext() {
   if (m_context_worklist.empty()) {
     return;
   }
-  // utils::print(std::to_string(m_context_worklist.size()), utils::CK_Purple);
+  utils::print(std::to_string(m_context_worklist.size()), utils::CK_Purple);
   Context *ctx = m_context_worklist.front();
   m_context_worklist.pop_front();
   // Testing
@@ -281,9 +284,12 @@ void Segment::TestNextContext() {
   ASTNode *first_node = ctx->GetFirstNode();
   assert(first_node);
   assert(first_node->GetAST());
+  // TODO output multiple if multiple step context search
   utils::print(first_node->dump() + "\n", utils::CK_Purple);
-  ctx->Resolve();
-  ctx->Test();
+  if (Config::Instance()->GetBool("context-search-only") == false) {
+    ctx->Resolve();
+    ctx->Test();
+  }
   if (ctx->IsResolved()) {
     m_resolved = true;
     // output?
@@ -292,16 +298,34 @@ void Segment::TestNextContext() {
     return;
   }
   // Context Searching
+
+  int ctx_step = Config::Instance()->GetInt("context-search-step");
+  assert(ctx_step > 0);
+  
   ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
   if (leaf) {
+#if 0
     Context *new_ctx = new Context(*ctx);
     // found leaf node
-    std::string code;
     new_ctx->SetFirstNode(leaf);
     // here do not need to check validity.
     // only check when inter-procedure, this is to remove some recursive calls
     new_ctx->AddNode(leaf);
     m_context_worklist.push_back(new_ctx);
+#else
+    // std::cout << "multiple step context searching"  << "\n";
+    Context *new_ctx = new Context(*ctx);
+    // linear increase context by step
+    // FIXME when compile error, should roll back and try smaller step?
+    while (ctx_step > 0 && leaf) {
+      new_ctx->AddNode(leaf);
+      new_ctx->SetFirstNode(leaf);
+      ctx_step--;
+      leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(leaf);
+    }
+    // std::cout << "adding"  << "\n";
+    m_context_worklist.push_back(new_ctx);
+#endif
   } else {
     // inter procedure
     AST *ast = first_node->GetAST();
@@ -346,8 +370,16 @@ void Segment::TestNextContext() {
         // When adding node, we check if
         // 2. the newly added node is already in the selection. (this only works if we use linear context search)
         if (new_ctx->AddNode(callsite)) {
-          m_context_worklist.push_back(new_ctx); // add all the contexts
+          // FIXME NOW std::cout << "adding new context into the worklist"  << "\n";
+          if ((int)m_context_worklist.size() >= Config::Instance()->GetInt("context-worklist-limit")) {
+            // FIXME side effect? e.g. new AST, modify AST
+            std::cerr << "deleting context due to worklist size limit"  << "\n";
+            delete new_ctx;
+          } else {
+            m_context_worklist.push_back(new_ctx); // add all the contexts
+          }
         } else {
+          std::cerr << "deleting context due to recursive call"  << "\n";
           delete new_ctx;
         }
       }

@@ -145,6 +145,7 @@ static struct type_specifier get_type_specifier(std::string raw) {
 
 NewType* NewTypeFactory::CreateType(std::string raw, std::vector<std::string> dims) {
   // print_trace("NewTypeFactory::CreateType: " +  raw);
+  if (raw.empty()) return NULL;
   std::string id = get_id(raw);
   if (id.empty()) {
     struct type_specifier ts = get_type_specifier(raw);
@@ -156,8 +157,15 @@ NewType* NewTypeFactory::CreateType(std::string raw, std::vector<std::string> di
       return new Float(raw, dims);
     } else if (ts.is_bool) {
       return new Bool(raw, dims);
-    } else {
+    } else if (ts.is_short || ts.is_long || ts.is_int || ts.is_signed || ts.is_unsigned) {
       return new Int(raw, dims);
+    } else {
+      std::cout << raw  << "\n";
+      std::cout << "Debug pause: enter to continue"  << "\n";
+      getchar();
+      return NULL;
+      // assert(false);
+      // FIXME might be enum!
     }
   } else if (SystemResolver::Instance()->Has(id)) {
     // TODO replace this also with a database?
@@ -321,21 +329,23 @@ static std::string get_strlen_output(std::string var) {
   return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
 }
 static std::string get_addr_output(std::string var) {
-  if (Config::Instance()->GetString("use-address") == "true") {
-    return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  } else {
-    return "";
-  }
+  return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
+  // if (Config::Instance()->GetString("use-address") == "true") {
+  //   return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
+  // } else {
+  //   return "";
+  // }
 }
 static std::string get_addr_input(std::string var) {
-  if (Config::Instance()->GetString("use-address") == "true") {
-    return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  } else {
-    return "";
-  }
+  return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
+  // if (Config::Instance()->GetString("use-address") == "true") {
+  //   return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
+  // } else {
+  //   return "";
+  // }
 }
 static std::string get_check_null_if(std::string var) {
-  return "if (" + var + " != NULL) {\n";
+  return "if (" + var + " == NULL) {\n";
 }
 static std::string get_check_null_else() {
   return "} else {\n";
@@ -343,16 +353,25 @@ static std::string get_check_null_else() {
 static std::string get_check_null_fi() {
   return "}\n";
 }
+
+/**
+ * print it is equal to null, even based on the parameters, not the runtime value.
+ */
 static std::string get_null_output(std::string var, bool is_null) {
-  if (Config::Instance()->GetString("null-output") == "true") {
-    if (is_null) {
-      return "printf(\"On_" + var + " == NULL\\n\");\n" + flush_output;
-    } else {
-      return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
-    }
+  if (is_null) {
+    return "printf(\"On_" + var + " = NULL\\n\");\n" + flush_output;
   } else {
-    return "";
+    return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
   }
+  // if (Config::Instance()->GetString("null-output") == "true") {
+  //   if (is_null) {
+  //     return "printf(\"On_" + var + " == NULL\\n\");\n" + flush_output;
+  //   } else {
+  //     return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
+  //   }
+  // } else {
+  //   return "";
+  // }
 }
 
 /**
@@ -419,12 +438,43 @@ std::string Int::GetDeclCode(std::string var) {
   return ret;
 }
 
+/**
+ * Count the occurence of pattern in orig
+ */
+int count_substr(std::string orig, std::string pattern) {
+  int ret = 0;
+  size_t pos = 0;
+  while (
+         (pos = orig.find(pattern, pos))
+         != std::string::npos) {
+    pos++;
+    ret++;
+  }
+  return ret;
+}
+
+TEST(TmpCase, count_substr) {
+  EXPECT_EQ(count_substr("helloworld", "wor"), 1);
+  EXPECT_EQ(count_substr("foofoo", "foo"), 2);
+  EXPECT_EQ(count_substr("helloworld", "foo"), 0);
+}
+
 std::string Int::GetInputCode(std::string var) {
   std::string ret;
   ret += "// Int::GetInputCode\n";
+  int long_ct = count_substr(m_raw, "long");
+  std::string formatter;
+  
+  if (long_ct == 0) formatter = "%d";
+  else if (long_ct == 1) formatter = "%ld";
+  else if (long_ct == 2) formatter = "%lld";
+  else assert(false);
+  
   if (m_pointer == 0) {
-    ret += get_scanf_code("%d", "&"+var);
+    // ret += get_scanf_code("%d", "&"+var);
+    ret += get_scanf_code(formatter, "&"+var);
   } else if (m_pointer == 1) {
+    // FIXME this shold also consider long long
     ret += get_malloc_code(var, "int", "helium_size");
   } else {
     assert(false && "More than int**?");
@@ -435,8 +485,20 @@ std::string Int::GetInputCode(std::string var) {
 std::string Int::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Int::GetOutputCode\n";
+  int long_ct = count_substr(m_raw, "long");
+  std::string formatter;
+  
+  if (long_ct == 0) formatter = "%d";
+  else if (long_ct == 1) formatter = "%ld";
+  else if (long_ct == 2) formatter = "%lld";
+  else assert(false);
+  
   // TODO extract this into a helper function
-  ret += "printf(\"Od_" + var + " = %d\\n\", " + var + ");\n" + flush_output;
+  ret += "printf(\"Od_" + var
+    // + " = %d\\n\", "
+    + " = " + formatter + "\\n\", "
+    + var + ");\n"
+    + flush_output;
   return ret;
 }
 
@@ -459,15 +521,22 @@ std::string Int::GetTestInput() {
 }
 
 TestInput* Int::GetTestInputSpec(std::string var) {
+  static int int_min = Config::Instance()->GetInt("int-min");
+  static int int_max = Config::Instance()->GetInt("int-max");
+  static int max_array_size = Config::Instance()->GetInt("max-array-size");
+  assert(max_array_size > 0);
+
+  int value = 0;
   std::string raw;
   if (m_pointer == 0) {
-    int a = utils::rand_int(0, 100);
+    int a = utils::rand_int(int_min, int_max);
+    value = a;
     raw += std::to_string(a);
   } else if (m_pointer == 1) {
-    int size = utils::rand_int(0, 5);
+    int size = utils::rand_int(0, max_array_size);
     raw += std::to_string(size);
     for (int i=0;i<size;i++) {
-      int a = utils::rand_int(0,100);
+      int a = utils::rand_int(int_min, int_max);
       raw += " " + std::to_string(a);
     }
   } else {
@@ -475,6 +544,8 @@ TestInput* Int::GetTestInputSpec(std::string var) {
   }
   IntTestInput *ret = new IntTestInput(this, var);
   ret->SetRaw(raw);
+  ret->SetPointer(m_pointer);
+  ret->SetValue(value);
   // TODO Set the value of string
   // TODO the dump method of IntTestInput
   return ret;
@@ -509,14 +580,18 @@ std::string Char::GetInputCode(std::string var) {
     // ret += get_scanf_code("%d", "&helium_size");
     // ret += get_malloc_code(var, "char", "helium_size");
     ret += get_str_input_code(var);
-    ret += get_addr_input(var);
+    if (Config::Instance()->GetBool("instrument-address")) {
+      ret += get_addr_input(var);
+    }
     // FIXME this should be less than helium_size? Or just let the oracle do the trick
     // ret += get_scanf_code("%s", var);
   } else if (m_pointer == 2) {
     assert(m_dimension == 0 && "do not support array of pointer for now.");
     ret += get_scanf_code("%d", "&helium_size");
     ret += get_malloc_code(var, "char*", "helium_size");
-    ret += get_addr_input(var);
+    if (Config::Instance()->GetBool("instrument-address")) {
+      ret += get_addr_input(var);
+    }
     ret += get_helium_size_loop("int helium_size;\n" + get_str_input_code(var + "[i]"));
   } else {
     assert(false && "char ***");
@@ -573,6 +648,7 @@ std::string Char::GetTestInput() {
 TestInput* Char::GetTestInputSpec(std::string var) {
   std::string raw;
   std::vector<int> strlens;
+  std::vector<int> bufsizs;
   if (m_pointer == 0) {
     if (m_dimension == 0) {
       raw += utils::rand_char();
@@ -593,6 +669,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
       raw += str;
       len = str.length();
     }
+    bufsizs.push_back(size);
     strlens.push_back(len);
     // for (int i=0;i<size;i++) {
     //   raw += " " + utils::rand_str(utils::rand_int(0, size));
@@ -613,6 +690,7 @@ TestInput* Char::GetTestInputSpec(std::string var) {
         raw += str;
         len = str.length();
       }
+      bufsizs.push_back(size2);
       strlens.push_back(len);
     }
   } else {
@@ -621,6 +699,85 @@ TestInput* Char::GetTestInputSpec(std::string var) {
   CharTestInput *ret = new CharTestInput(this, var);
   ret->SetRaw(raw);
   ret->SetStrlen(strlens);
+  ret->SetBufSize(bufsizs);
+  return ret;
+}
+
+std::string Char::getOutputCode_Zero(std::string var) {
+  std::string ret;
+  if (m_dimension == 0) {
+    ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
+  } else if (m_dimension == 1) {
+    // TODO
+    ret += get_sizeof_output(var);
+    // FIXME for a char[], only output the sizeof the buffer.
+    // this is because I got too many not important invariants
+    // ret += get_strlen_output(var);
+    ret += get_addr_output(var);
+  } else if (m_dimension == 2) {
+    // TODO
+    ret += "// HELIUM_TODO char[][]\n";
+  } else {
+    assert(false && "char [][][]");
+  }
+  return ret;
+}
+
+std::string Char::getOutputCode_One(std::string var) {
+  std::string ret;
+  assert(m_dimension == 0 && "do not support array of pointer for now.");
+  // FIXME For a char pointer, do not output the size.
+  // FIXME why do not output?
+  // ret += get_sizeof_output(var);
+  if (Config::Instance()->GetBool("instrument-strlen")) {
+    ret += get_strlen_output(var);
+  }
+  if (Config::Instance()->GetBool("instrument-address")) {
+    ret += get_addr_output(var);
+  }
+  if (Config::Instance()->GetBool("instrument-null")) {
+    ret += get_check_null(var,
+                          get_null_output(var, true),
+                          get_null_output(var, false)
+                          );
+  }
+  return ret;
+}
+
+std::string Char::getOutputCode_Two(std::string var) {
+  std::string ret;
+  assert(m_dimension == 0 && "do not support array of pointer for now.");
+  // TODO the size of the buffer?
+
+  // FIXME check configuration
+  // ret += get_check_null_if(var);
+  // ret += get_null_output(var, true);
+  // ret += get_addr_output(var);
+
+  // // second layer, inner check
+  // ret += get_check_null_if("*" + var);
+  // ret += get_null_output("*" + var, true);
+  // ret += get_check_null_else();
+  // ret += get_null_output("*" + var, false);
+  // ret += get_check_null_fi();
+
+  // // bad to first layer
+  // ret += get_check_null_else();
+  // ret += get_null_output(var, false);
+  // ret += get_check_null_fi();
+
+  
+  ret += get_check_null(var,
+                        get_null_output(var, true)
+                        + get_addr_output(var)
+                        + get_check_null("*"+var,
+                                         get_null_output("*"+var, true)
+                                         + get_strlen_output("*"+var)
+                                         + get_addr_output("*"+var),
+                                         get_null_output("*"+var, false)
+                                         ),
+                        get_null_output(var, false)
+                        );
   return ret;
 }
 
@@ -632,41 +789,11 @@ std::string Char::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// Char::GetOutputCode\n";
   if (m_pointer == 0) {
-    if (m_dimension == 0) {
-      ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
-    } else if (m_dimension == 1) {
-      // TODO
-      ret += get_sizeof_output(var);
-      // FIXME for a char[], only output the sizeof the buffer.
-      // this is because I got too many not important invariants
-      // ret += get_strlen_output(var);
-      ret += get_addr_output(var);
-    } else if (m_dimension == 2) {
-      // TODO
-      ret += "// HELIUM_TODO char[][]\n";
-    } else {
-      assert(false && "char [][][]");
-    }
+    ret += getOutputCode_Zero(var);
   } else if (m_pointer == 1) {
-    assert(m_dimension == 0 && "do not support array of pointer for now.");
-    // FIXME For a char pointer, do not output the size.
-    // ret += get_sizeof_output(var);
-    ret += get_strlen_output(var);
-    ret += get_addr_output(var);
+    ret += getOutputCode_One(var);
   } else if (m_pointer == 2) {
-    assert(m_dimension == 0 && "do not support array of pointer for now.");
-    // TODO the size of the buffer?
-    ret += get_check_null(var,
-                          get_null_output(var, false)
-                          + get_addr_output(var)
-                          + get_check_null("*"+var,
-                                           get_null_output("*"+var, false)
-                                           + get_strlen_output("*"+var)
-                                           + get_addr_output("*"+var),
-                                           get_null_output("*"+var, true)
-                                           ),
-                          get_null_output(var, true)
-                          );
+    ret += getOutputCode_Two(var);
   }
   return ret;
 }
@@ -765,6 +892,37 @@ std::string Bool::GetTestInput() {
  * TestInputSpec
  *******************************/
 
+std::string TestInput::dump() {
+  std::string ret;
+  ret += "Default TestInput\n";
+  assert(m_type);
+  ret += m_type->ToString() + " " + m_var + "\n";
+  return ret;
+}
+
+std::string TestInput::ToString() {
+  std::string ret;
+  ret += + "Ix_" + m_var + " = Default\n";
+  return ret;
+}
+
+
+
+// for human read
+std::string IntTestInput::dump() {
+  std::string ret;
+  ret += m_type->ToString() + " " + m_var + "\n";
+  return ret;
+}
+
+std::string IntTestInput::ToString() {
+  std::string ret;
+  if (m_pointer == 0) {
+    ret += "Id_" + m_var + " = " + std::to_string(m_value) + "\n";
+  }
+  return ret;
+}
+
 std::string CharTestInput::dump() {
   std::string ret;
   ret += m_type->ToString() + " " + m_var + "\n";
@@ -772,6 +930,10 @@ std::string CharTestInput::dump() {
   ret += "strlens:";
   for (int len : m_strlens) {
     ret += " " + std::to_string(len);
+  }
+  ret += ", bufsizs:";
+  for (int size : m_bufsizs) {
+    ret += " " + std::to_string(size);
   }
   return ret;
 }
@@ -786,6 +948,7 @@ std::string CharTestInput::ToString() {
   ret += "Id_" + m_var + ".size() = " + std::to_string(size) + "\n";
   for (int i=0;i<size;++i) {
     ret += "Id_strlen(" + m_var + "[" + std::to_string(i) + "]) = " + std::to_string(m_strlens[i]) + "\n";
+    ret += "Id_bufsiz(" + m_var + "[" + std::to_string(i) + "]) = " + std::to_string(m_bufsizs[i]) + "\n";
   }
   return ret;
 }
@@ -804,6 +967,7 @@ std::vector<std::pair<TestInput*, TestInput*> > ArgCV::GetTestInputSpec(int numb
 }
 
 std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
+  print_trace("ArgCV::GetTestInputSpec()");
   ArgVTestInput *argv_input = new ArgVTestInput(NULL, "argv");
   // according to spec, generate the raw
   std::vector<std::string> components;
@@ -817,7 +981,6 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
   argv_spec += "Id_strlen(argv:r0) = " + std::to_string(str.length()) + "\n";
   
   // components.push_back("helium_program");
-  
   for (char c : m_bool_opt) {
     if (utils::rand_bool()) {
       components.push_back("-" + std::string(1, c));
@@ -876,4 +1039,13 @@ TEST(NewTypeTestCase, DISABLED_ArgCVTest) {
   std::cout << inputs.first->GetRaw() << "\n";
   std::cout << inputs.second->ToString() << "\n";
   std::cout << inputs.second->GetRaw() << "\n";
+}
+
+std::string ArgVTestInput::dump() {
+  return "This is argcv!";
+}
+
+std::string ArgVTestInput::ToString() {
+  // remember to set spec!
+  return m_spec;
 }

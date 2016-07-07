@@ -76,9 +76,23 @@ std::string Config::ToString() {
 std::string Config::GetString(std::string name) {
   if (m_map.find(name) == m_map.end()) {
     std::cerr << "warning: cannot find key: " << name << " in config file.\n";
-     return "";
+    return "";
   }
   return m_map[name];
+}
+
+bool Config::GetBool(std::string name) {
+  if (m_map.find(name) == m_map.end()) {
+    std::cerr << "error: cannot find key: " << name << " in config file.\n";
+    assert(false);
+  }
+  std::string res = m_map[name];
+  if (res == "true") return true;
+  else if (res == "false") return false;
+  else {
+    std::cout << "error: " << name << " is not a boolean value in config file."  << "\n";
+    assert(false);
+  }
 }
 
 /**
@@ -93,9 +107,10 @@ int Config::GetInt(std::string name) {
   // std::invalid_argument
   // std::out_of_range
   std::string s = m_map[name];
-  for (char c : s) {
-    if (!isdigit(c)) return -1;
-  }
+  // FIXME how to detect if config is not a number?
+  // for (char c : s) {
+  //   if (!isdigit(c)) return -1;
+  // }
   // But no, may not! I have checked every char is digit!
   return std::stoi(m_map[name]);
 }

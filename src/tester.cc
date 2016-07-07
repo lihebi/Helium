@@ -116,6 +116,7 @@ void NewTestResult::PrepareData() {
     std::map<std::string, std::string> om; // added prefix "O_"
     std::map<std::string, std::string> im;
     bool poi = false;
+    bool poi_end = false;
     // add prefix "O_"
     for (auto mm : m) {
       // om["O_" + mm.first] = mm.second;
@@ -128,16 +129,24 @@ void NewTestResult::PrepareData() {
       } else {
         // HELIUM_POI
         // assert(mm.first == "HELIUM_POI");
-        if (mm.first != "HELIUM_POI") {
+        if (mm.first == "HELIUM_POI") {
           // std::cerr << "Wrong header of CSV file: " << mm.first << "\n";
           // assert(false);
-          continue;
+          assert(mm.second == "true");
+          im[mm.first] = mm.second;
+          om[mm.first] = mm.second;
+          m_i_headers.insert(mm.first);
+          m_o_headers.insert(mm.first);
+          if (mm.second == "true") poi = true;
+        } else if (mm.first == "HELIUM_POI_OUT_END") {
+          // whether the instrument ends
+          assert(mm.second == "true");
+          im[mm.first] = mm.second;
+          om[mm.first] = mm.second;
+          m_i_headers.insert(mm.first);
+          m_o_headers.insert(mm.first);
+          if (mm.second == "ture") poi_end = true;
         }
-        im[mm.first] = mm.second;
-        om[mm.first] = mm.second;
-        m_i_headers.insert(mm.first);
-        m_o_headers.insert(mm.second);
-        if (mm.second == "true") poi = true;
       }
       // m_o_headers.insert("O_" + mm.first);
     }
@@ -160,12 +169,23 @@ void NewTestResult::PrepareData() {
     m.clear();
     m.insert(im.begin(), im.end());
     m.insert(om.begin(), om.end());
+
+    // TEST_SUCCESS
     m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
     m_i_headers.insert("HELIUM_TEST_SUCCESS");
     m_o_headers.insert("HELIUM_TEST_SUCCESS");
+
+    // POI
     m["HELIUM_POI"] = poi ? "true" : "false";
     m_i_headers.insert("HELIUM_POI");
     m_o_headers.insert("HELIUM_POI");
+
+    // POI_OUT_END
+    m["HELIUM_POI_OUT_END"] = poi_end ? "true" : "false";
+    m_i_headers.insert("HELIUM_POI_OUT_END");
+    m_o_headers.insert("HELIUM_POI_OUT_END");
+
+    
     m_headers.insert(m_i_headers.begin(), m_i_headers.end());
     m_headers.insert(m_o_headers.begin(), m_o_headers.end());
     m_header_value_maps.push_back(m);
@@ -328,7 +348,10 @@ std::set<std::string> BinaryFormula::GetVars() {
 
 std::string BinaryFormula::getVar(std::string s) {
   // remove prefix
-  assert(s.size() > 3);
+  std::cout << s  << "\n";
+  // assert(s.size() > 3);
+  // FIXME constant, say, 50
+  if (s.size() < 3) return "";
   // assert(s[2] == '_');
   if (s[2] != '_') return "";
   s = s.substr(3);

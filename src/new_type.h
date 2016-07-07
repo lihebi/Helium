@@ -210,6 +210,9 @@ public:
   virtual std::string GetTestInput() override;
   virtual TestInput* GetTestInputSpec(std::string var) override;
 private:
+  std::string getOutputCode_Zero(std::string var); // zero pointer
+  std::string getOutputCode_One(std::string var); // 1 dimensional pointer
+  std::string getOutputCode_Two(std::string var); // 2 dimensional pointer
 };
 
 /**
@@ -284,20 +287,14 @@ public:
   std::string GetVar() {return m_var;}
   NewType *GetType() {return m_type;}
   void SetRaw(std::string raw) {m_raw = raw;}
-  virtual std::string dump() {
-    std::string ret;
-    ret += "Default TestInput\n";
-    ret += m_type->ToString() + " " + m_var + "\n";
-    return ret;
-  }
+  /**
+   * For human read only.
+   */
+  virtual std::string dump();
   /**
    * Must be of xxx=yyy format, in each line
    */
-  virtual std::string ToString() {
-    std::string ret;
-    ret += + "Ix_" + m_var + " = Default\n";
-    return ret;
-  }
+  virtual std::string ToString();
 protected:
   NewType *m_type;
   std::string m_var;
@@ -308,16 +305,22 @@ protected:
 class IntTestInput : public TestInput {
 public:
   IntTestInput(NewType *type, std::string var) : TestInput(type, var) {}
-  // TODO
-  // virtual std::string dump();
-  // virtual std::string ToString();
+  virtual std::string dump();
+  virtual std::string ToString();
+  // TODO for pointer, just ignore the value
+  // FIXME should make sure these setters are called for each IntTestInput instance
+  void SetPointer(int p) {m_pointer = p;}
+  void SetValue(int v) {m_value = v;}
 private:
+  int m_pointer = 0;
+  int m_value = -1;
 };
 
 class CharTestInput : public TestInput {
 public:
   CharTestInput(NewType *type, std::string var) : TestInput(type, var) {}
   void SetStrlen(std::vector<int> strlens) {m_strlens = strlens;}
+  void SetBufSize(std::vector<int> bufsizs) {m_bufsizs = bufsizs;}
   virtual std::string dump();
   virtual std::string ToString();
 private:
@@ -329,16 +332,15 @@ private:
    * Thus the strlens only need one dimension
    */
   std::vector<int> m_strlens;
+  std::vector<int> m_bufsizs;
 };
 
 class ArgVTestInput : public TestInput {
 public:
   ArgVTestInput(NewType *type, std::string var) : TestInput(type, var) {}
-  virtual std::string ToString() {
-    // remember to set spec!
-    return m_spec;
-  }
   void SetSpec(std::string spec) {m_spec = spec;}
+  virtual std::string dump();
+  virtual std::string ToString();
 private:
   std::string m_spec;
 };

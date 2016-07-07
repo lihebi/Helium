@@ -896,3 +896,32 @@ std::set<ASTNode*> AST::RemoveRoot(std::set<ASTNode*> nodes) {
   }
   return nodes;
 }
+
+
+
+std::string ASTNode::POIOutputCode() {
+  std::string ret;
+  std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+  if (vars.size() > 0) {
+    ret += "printf(\"HELIUM_POI = true\\n\");\n";
+    ret += "fflush(stdout);\n";
+    for (NewVariable var : vars) {
+      ret += var.GetType()->GetOutputCode(var.GetName());
+    }
+    ret += "printf(\"HELIUM_POI_OUT_END = true\\n\");\n";
+    ret += "// @HeliumSegmentBegin\n";
+  }
+  return ret;
+}
+
+/**
+ * Code to instrument after the POI node
+ */
+std::string ASTNode::POIAfterCode() {
+  std::string ret;
+  std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+  if (vars.size() > 0) {
+    ret += "// @HeliumSegmentEnd\n";
+  }
+  return ret;
+}

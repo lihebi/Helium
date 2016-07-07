@@ -23,6 +23,7 @@ public:
   /* querying */
   std::string GetString(std::string name);
   int GetInt(std::string name);
+  bool GetBool(std::string name);
   /* outputing */
   std::string ToString();
   
