@@ -63,6 +63,8 @@ CFLAGS := -g -Wall --std=c++11
 # C_TEST_LIB += -lgtest # google test framework
 # C_TEST_LIB += -lboost_unit_test_framework # boost test framework
 
+C_INCLUDE := -Isrc
+
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
 C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
 C_LIB += -lgtest -lsqlite3
@@ -91,7 +93,7 @@ client: $(TARGET) # $(TEST_TARGET)
 # This is a common trick on linux, and mac can do with both
 $(TARGET): $(MAIN) $(OBJECTS)
 	@mkdir -p $(dir $@)
-	$(CC) -o $@ $(MAIN) $(OBJECTS)  $(C_LIB)
+	$(CC) $(CFLAGS) $(C_INCLUDE) -o $@ $(MAIN) $(OBJECTS)  $(C_LIB)
 
 LIB_HELIUM := bin/libhelium.a
 lib: $(LIB_HELIUM)
@@ -145,7 +147,7 @@ $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
 # compile it into the target
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+	$(CC) $(C_INCLUDE) $(CFLAGS) -MMD -c -o $@ $<
 
 
 # %.d: %.cc ${SOURCES}

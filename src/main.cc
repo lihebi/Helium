@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "helium.h"
-#include "config.h"
+#include "workflow/helium.h"
+#include "config/config.h"
 
 int main(int argc, char* argv[]) {
   utils::seed_rand();
