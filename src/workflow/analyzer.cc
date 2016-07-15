@@ -255,6 +255,9 @@ RelKind check_relation_d(std::vector<std::string> d1, std::vector<std::string> d
   else return RK_NA;
 }
 
+/**
+ * Check Relationship between two pointer addresses
+ */
 RelKind check_relation_p(std::vector<std::string> d1, std::vector<std::string> d2) {
   validate(d1, d2);
   assert(d1.size() == d2.size());

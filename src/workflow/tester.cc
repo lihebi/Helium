@@ -102,150 +102,36 @@ void NewTestResult::GetPreconditions() {
 void NewTestResult::GetTransferFunctions() {
 }
 
-
-#if 0
 /**
- * I want the output, the precondition, to be in the same CVS file.
- * I need a data structure to hold the data.
+ * Get the freed list, except the last, because it might be the address that cause the error.
+ *
+ * UPDATE Actaully I got a better idea:
+ * 1. return the double freed address : for double free problem
+ * 2. return the whole freed list : for use-after free problem
+ * @return
+ *   .first: the set of freed list
+ *   .second: the addr string that is double freed.
  */
-void NewTestResult::PrepareData() {
-  std::set<std::string> output_headers;
-  for (int i=0;i<(int)m_test_suite.size();i++) {
-    // output
-    std::string output = m_poi_output[i].first;
-    bool success = m_poi_output[i].second;
-    std::map<std::string, std::string> m = get_header_value_map(output);
-    std::map<std::string, std::string> om; // added prefix "O_"
-    std::map<std::string, std::string> im;
-    bool poi = false;
-    bool poi_end = false;
-    // add prefix "O_"
-    for (auto mm : m) {
-      // om["O_" + mm.first] = mm.second;
-      if (mm.first[0] == 'O') {
-        om[mm.first] = mm.second;
-        m_o_headers.insert(mm.first);
-      } else if (mm.first[0] == 'I') {
-        im[mm.first] = mm.second;
-        m_i_headers.insert(mm.first);
+std::pair<std::set<std::string>, std::string> get_freed_list(std::string output) {
+  std::set<std::string> freedlist;
+  std::string double_freed;
+  std::vector<std::string> lines = utils::split(output, '\n');
+  for (std::string line : lines) {
+    if (line.find("freedlist:") == 0) {
+      std::string addr = line.substr(strlen("freedlist:"));
+      assert(!addr.empty());
+      utils::trim(addr);
+      if (freedlist.count(addr) == 1) {
+        double_freed = addr;
+        // TODO assert this must be the last one, because the program already crashes
       } else {
-        // HELIUM_POI
-        // assert(mm.first == "HELIUM_POI");
-        if (mm.first == "HELIUM_POI") {
-          // std::cerr << "Wrong header of CSV file: " << mm.first << "\n";
-          // assert(false);
-          assert(mm.second == "true");
-          im[mm.first] = mm.second;
-          om[mm.first] = mm.second;
-          m_i_headers.insert(mm.first);
-          m_o_headers.insert(mm.first);
-          if (mm.second == "true") poi = true;
-        } else if (mm.first == "HELIUM_POI_OUT_END") {
-          // whether the instrument ends
-          assert(mm.second == "true");
-          im[mm.first] = mm.second;
-          om[mm.first] = mm.second;
-          m_i_headers.insert(mm.first);
-          m_o_headers.insert(mm.first);
-          if (mm.second == "ture") poi_end = true;
-        }
-      }
-      // m_o_headers.insert("O_" + mm.first);
-    }
-
-    // input
-    std::string input;
-    for (TestInput *in : m_test_suite[i]) {
-      input += in->ToString();
-    }
-    // std::cout << input  << "\n";
-    m = get_header_value_map(input);
-    for (auto mm : m) {
-      assert(mm.first[0] == 'I');
-      im[mm.first] = mm.second;
-      m_i_headers.insert(mm.first);
-      // im["I_" + mm.first] = mm.second;
-      // m_i_headers.insert("I_" + mm.first);
-    }
-    // merge IO together
-    m.clear();
-    m.insert(im.begin(), im.end());
-    m.insert(om.begin(), om.end());
-
-    // TEST_SUCCESS
-    m["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
-    m_i_headers.insert("HELIUM_TEST_SUCCESS");
-    m_o_headers.insert("HELIUM_TEST_SUCCESS");
-
-    // POI
-    m["HELIUM_POI"] = poi ? "true" : "false";
-    m_i_headers.insert("HELIUM_POI");
-    m_o_headers.insert("HELIUM_POI");
-
-    // POI_OUT_END
-    m["HELIUM_POI_OUT_END"] = poi_end ? "true" : "false";
-    m_i_headers.insert("HELIUM_POI_OUT_END");
-    m_o_headers.insert("HELIUM_POI_OUT_END");
-
-    
-    m_headers.insert(m_i_headers.begin(), m_i_headers.end());
-    m_headers.insert(m_o_headers.begin(), m_o_headers.end());
-    m_header_value_maps.push_back(m);
-  }
-}
-/**
- * Must be called after PrepareData
- * @param [in] io_type "I" "O" "IO"
- * @param [in] sf_type "S" "F" "SF"
- */
-std::string NewTestResult::GenerateCSV(std::string io_type, std::string sf_type) {
-  std::string ret;
-  std::set<std::string> headers;
-  assert(m_headers.size() > 0);
-  assert(m_i_headers.size() > 0);
-  assert(m_o_headers.size() > 0);
-  // std::cout << m_headers.size()  << "\n";
-  // std::cout << m_i_headers.size()  << "\n";
-  // std::cout << m_o_headers.size()  << "\n";
-  // different types
-  if (io_type == "I") {
-    // only input, preconditions
-    headers = m_i_headers;
-  } else if (io_type == "O") {
-    // only output
-    headers = m_o_headers;
-  } else if (io_type == "IO") {
-    headers = m_headers;
-  } else {
-    assert(false);
-  }
-  // header
-  for (const std::string &header : headers) {
-    ret += header;
-    ret += ",";
-  }
-  ret.pop_back();
-  ret += "\n";
-  // data
-  assert(sf_type == "S" || sf_type == "F" || sf_type == "SF");
-  for (auto m : m_header_value_maps) {
-    assert(m.count("HELIUM_TEST_SUCCESS") == 1);
-    if (sf_type == "S" && m["HELIUM_TEST_SUCCESS"] == "false") continue;
-    if (sf_type == "F" && m["HELIUM_TEST_SUCCESS"] == "true") continue;
-    for (const std::string &header : headers) {
-      if (m.count(header) == 1) {
-        ret += m[header] + ",";
-      } else {
-        // if the record does not contains the record, give is NA
-        ret += "NA,";
+        freedlist.insert(addr);
       }
     }
-    ret.pop_back();
-    ret += "\n";
   }
-  return ret;
+  return {freedlist, double_freed};
 }
-#else
+
 
 /**
  * I'm using a new implementation of PrepareData and GenerateCSV
@@ -260,8 +146,17 @@ void NewTestResult::PrepareData() {
   for (int i=0;i<(int)m_test_suite.size();i++) {
     std::map<std::string,std::string> test_suite_map;
     // output
+    // This is called m_poi_output, actaully is not precise
+    // It is the output of the whole program
     std::string output = m_poi_output[i].first;
     bool success = m_poi_output[i].second;
+
+
+    // Freed-list
+    // freedlist: 0x7fa56c000600
+    std::pair<std::set<std::string>, std::string> p = get_freed_list(output);
+    std::set<std::string> freedlist = p.first;
+    std::string double_freed = p.second;
 
 
     std::map<std::string, std::string> m = get_header_value_map(output);
@@ -275,6 +170,13 @@ void NewTestResult::PrepareData() {
     test_suite_map.insert(m.begin(), m.end());
 
     test_suite_map["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
+    if (!double_freed.empty()) {
+      // TODO I use this name so that I don't need to change the analyzer
+      // test_suite_map["HELIUM_DOUBLE_FREE"] = double_freed;
+      test_suite_map["Op_helium_double_free"] = double_freed;
+    }
+
+    // TODO NOW check if the addresses are in freed list
 
     // use for the consistent behavior of all test_suites
     // The unavailable ones are marked as NA
@@ -311,10 +213,6 @@ std::string NewTestResult::GenerateCSV() {
   }
   return ret;
 }
-
-#endif
-
-
 
 /********************************
  * Resolving Query

@@ -195,7 +195,7 @@ ast::AST::AST(ast::XMLNode node) {
       XMLNode argument_node = call_node.child("argument_list").child("argument");
       std::string arg = get_text(argument_node);
       assert(!arg.empty());
-      ASTNode *astnode = GetNodeByXMLNode(call_node);
+      ASTNode *astnode = GetEnclosingNodeByXMLNode(call_node);
       assert(astnode);
       m_freed_node[astnode].push_back(arg);
     }

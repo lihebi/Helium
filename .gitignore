@@ -6,6 +6,7 @@ bin/*
 
 # Ignore Mac specific files
 .DS_Store
+*.dSYM
 tags
 *.tags
 TAGS

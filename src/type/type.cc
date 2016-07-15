@@ -150,8 +150,10 @@ Type* TypeFactory::CreateType(ast::XMLNode decl_node, int token) {
 std::string TestInput::dump() {
   std::string ret;
   ret += "Default TestInput: ";
-  assert(m_type);
-  ret += m_type->ToString() + " " + m_var + "\n";
+  // assert(m_type); // ArgVTestInput's m_type is NULL
+  if (m_type) {
+    ret += m_type->ToString() + " " + m_var + "\n";
+  }
   return ret;
 }
 
