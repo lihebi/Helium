@@ -131,98 +131,21 @@ Type* resolve_type(std::string var, ASTNode *node) {
 /********************************
  * The Segment Class
  ********************************/
-
-Segment::Segment(ast::XMLNode xmlnode) {
+Segment::Segment(ast::XMLNode xmlnode, SegmentKind segkind)
+  : m_xmlnode(xmlnode), m_segkind(segkind) {
   print_trace("Segment::Segment()");
-  XMLNode function_node = get_function_node(xmlnode);
-  assert(function_node);
-  std::string func_name = function_get_name(function_node);
-  // AST *ast = getAST(function_node);
-  AST *ast = new AST(function_node);
-  if (SimpleSlice::Instance()->IsValid()) {
-    ast->SetSlice();
-    // DEBUG
-    // ast->VisualizeSlice();
-    // getchar();
-  }
-
-  // dumping the ast
-  // ast->Visualize();
-
-  m_func_to_ast_m[func_name] = ast;
-  m_asts.push_back(ast);
-  // POI
-  // FIXME Not sure if I should use GetEnclosingNodeByXMLNode
-  ASTNode *astnode = ast->GetNodeByXMLNode(xmlnode);
-  m_nodes.insert(astnode);
-
-
-  // POI output statement decoration to AST
-  m_poi_ast = ast;
-
-  assert(m_nodes.size() > 0);
-  std::set<std::string> ids;
-  for (ASTNode *poi_node : m_nodes) {
-    std::set<std::string> _ids = poi_node->GetVarIds();
-    ids.insert(_ids.begin(),_ids.end());
-  }
-  ASTNode *poi_node = *m_nodes.begin();
-  for (std::string id : ids) {
-    // std::cout << id  << "\n";
-    if (id.empty()) continue;
-    if (is_c_keyword(id)) continue;
-    Type *type = resolve_type(id, *m_nodes.begin());
-    if (type) {
-      m_output_vars[poi_node].push_back({type, id});
-    }
-  }
-  
-  // std::cout << "getting POI output vars"  << "\n";
-  // for (ASTNode *poi_node : m_nodes) {
-  //   std::set<std::string> ids = poi_node->GetVarIds();
-  //   for (std::string id : ids) {
-  //     // std::cout << id  << "\n";
-  //     if (id.empty()) continue;
-  //     if (is_c_keyword(id)) continue;
-  //     SymbolTable *tbl = poi_node->GetSymbolTable();
-  //     SymbolTableValue *decl = tbl->LookUp(id);
-  //     if (decl) {
-  //       m_deco[poi_node].insert(id);
-  //     } else {
-  //       // will need to query global variables
-  //       // will need to query system types, like optarg
-  //     }
-  //   }
-  // }
-  // FIXME
-  // assert(!m_deco.empty());
-  // std::cout << "deco output:"  << "\n";
-  // for (auto m : m_deco) {
-  //   for (std::string s : m.second) {
-  //     std::cout << s  << "\n";
-  //   }
-  // }
-  // ast->SetDecoOutput(m_deco);
-
-  // FIXME I currently make sure there's only one poi node
-  assert(m_output_vars.size() == 1);
-  ast->SetOutput(m_output_vars);
-
+  m_segkind = segkind;
   /**
-   * Debugging: print out output variables
+   * Get Some meta data
    */
-  // std::cout << "output variables:"  << "\n";
-  if (PrintOption::Instance()->Has(POK_IOSpec)) {
-    utils::print("Output Variables:\n", CK_Blue);
-    for (auto m : m_output_vars) {
-      for (NewVariable var : m.second) {
-        // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
-        utils::print(var.GetType()->ToString() + "\n", CK_Blue);
-        // utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
-      }
-    }
+  getMetaData();
+  createAST();
+  createPOI();
+  createOutputVars();
+  if (m_segkind == SegKind_Loop) {
+    // extract loop jump-out conditions
+    extractJumpOutCondition();
   }
-  
   // Initial context
   // m_ctxs.push_back(new Context(this));
   m_context_worklist.push_back(new Context(this));
@@ -236,6 +159,156 @@ Segment::~Segment() {
   }
   for (Context *ctx : m_ctxs) {
     delete ctx;
+  }
+}
+
+
+void Segment::getMetaData() {
+  m_function_node = get_function_node(m_xmlnode);
+  assert(m_function_node);
+  m_func_name = function_get_name(m_function_node);
+}
+
+void Segment::createAST() {
+  // AST *ast = getAST(function_node);
+  AST *ast = new AST(m_function_node);
+  if (SimpleSlice::Instance()->IsValid()) {
+    ast->SetSlice();
+    // DEBUG
+    // ast->VisualizeSlice();
+    // getchar();
+  }
+  // dumping the ast
+  // ast->Visualize();
+  m_func_to_ast_m[m_func_name] = ast;
+  m_asts.push_back(ast);
+  m_poi_ast = ast;
+}
+
+/**
+ * Constructing initial segment nodes, and POI
+ * This is according to m_segkind
+ * If the segment is just a single statement, use it as segment and POI
+ * If the segment is a Loop, use the whole loop as the segment, and the first node in loop body as the POI
+ */
+void Segment::createPOI() {
+  ASTNode *astnode = m_poi_ast->GetNodeByXMLNode(m_xmlnode);
+  if (m_segkind == SegKind_Stmt) {
+    // FIXME Not sure if I should use GetEnclosingNodeByXMLNode
+    m_poi = astnode;
+    /**
+     * TODO m_nodes actually only used in this constructor,
+     * and this constructor is too long!
+     * Consider refactor it
+     */
+    m_nodes.insert(astnode);
+  } else if (m_segkind == SegKind_Loop) {
+    // 1. use the whole loop as segment
+    m_nodes.insert(astnode);
+    // all the sub nodes
+    std::vector<ASTNode*> all_children = astnode->AllChildren();
+    m_nodes.insert(all_children.begin(), all_children.end());
+    // 2. use the first node in body as POI
+    m_poi = *all_children.begin();
+  } else {
+    assert(false);
+  }
+  // POI output statement decoration to AST
+  assert(m_nodes.size() > 0);
+}
+
+void Segment::createOutputVars() {
+  /**
+   * Get all the ids that is used in initial segment statements
+   */
+  std::set<std::string> ids;
+  for (ASTNode *seg_node : m_nodes) {
+    std::set<std::string> _ids = seg_node->GetVarIds();
+    ids.insert(_ids.begin(),_ids.end());
+  }
+  // resolve them and add them to output variables
+  // ASTNode *poi_node = *m_nodes.begin();
+  for (std::string id : ids) {
+    // std::cout << id  << "\n";
+    if (id.empty()) continue;
+    if (is_c_keyword(id)) continue;
+    Type *type = resolve_type(id, m_poi);
+    if (type) {
+      m_output_vars[m_poi].push_back({type, id});
+    }
+  }
+  // FIXME I currently make sure there's only one poi node
+  assert(m_output_vars.size() == 1);
+  m_poi_ast->SetOutput(m_output_vars);
+
+  /**
+   * Debugging: print out output variables
+   */
+  // std::cout << "output variables:"  << "\n";
+  if (PrintOption::Instance()->Has(POK_IOSpec)) {
+    utils::print("Output Variables:\n", CK_Blue);
+    for (auto m : m_output_vars) {
+      for (Variable var : m.second) {
+        // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
+        utils::print(var.GetType()->ToString() + "\n", CK_Blue);
+        // utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
+      }
+    }
+  }
+}
+
+/**
+ * Will fill in the m_jump_out_cond vector;
+ */
+void Segment::extractJumpOutCondition() {
+  ASTNode *loop_node = *m_nodes.begin();
+  assert(loop_node);
+  AST *ast = loop_node->GetAST();
+  assert(ast);
+  // find the break and returns
+  // XMLNode xmlnode = m_xmlnode;
+  // pugi::xpath_node_set breaks = xmlnode.select_nodes(".//break");
+  // pugi::xpath_node_set returns = xmlnode.select_ndoes(".//return");
+  // std::set<ASTNode*> jump_out_nodes;
+  // for (pugi::xpath_node break_node : breaks) {
+  //   ASTNode *n = ast->GetNodeByXMLNode(break_node.node());
+  //   assert(n);
+  //   jump_out_nodes.insert(n);
+  // }
+  // for (pugi::xpath_node return_node : returns) {
+  //   ASTNode *n = ast->GetNodeByXMLNode(return_node.node());
+  //   assert(n);
+  //   jum_out_nodes.insert(n);
+  // }
+
+  
+  // get the conditions to reach
+  // FIXME the conditions might be a recursive one
+  // But since I'm using them as a reference to generate invariants, I just don't care about their relationship.
+  // whatever I can generate dynamically is the good one ^_^
+  // Wait, what if I just gather all the conditions?
+  // Well, that might be so huge.
+  // But that should be more precise, well, I mean preservative.
+
+  // Gather all the conditions inside this for loop
+  // actually it is as simple as for all the segment node, get condition if possible.
+  for (ASTNode *node : m_nodes) {
+    switch (node->Kind()) {
+    case ANK_Do:
+    case ANK_ElseIf:
+    case ANK_For:
+    case ANK_If:
+    case ANK_While: {
+      // this should be something like an expr
+      XMLNode cond_node = node->GetCondition();
+      // I'm going to record this into m_jump_out_cond
+      // the type: pair<XMLNode, string>
+      // Or, i'm using pure string here for simplicity
+      m_jump_out_cond.insert(get_text(cond_node));
+      break;
+    }
+    default: break;
+    }
   }
 }
 
@@ -308,6 +381,7 @@ void Segment::TestNextContext() {
     Context *new_ctx = new Context(*ctx);
     // found leaf node
     new_ctx->SetFirstNode(leaf);
+    new_ctx->SetLast(ctx);
     // here do not need to check validity.
     // only check when inter-procedure, this is to remove some recursive calls
     new_ctx->AddNode(leaf);
@@ -315,6 +389,7 @@ void Segment::TestNextContext() {
 #else
     // std::cout << "multiple step context searching"  << "\n";
     Context *new_ctx = new Context(*ctx);
+    new_ctx->SetLast(ctx);
     // linear increase context by step
     // FIXME when compile error, should roll back and try smaller step?
     while (ctx_step > 0 && leaf) {
@@ -366,6 +441,7 @@ void Segment::TestNextContext() {
       // if (callsite && callsite->GetAST()) {
         Context *new_ctx = new Context(*ctx);
         new_ctx->SetFirstNode(callsite);
+        new_ctx->SetLast(ctx);
         // I can remove the recursive calls here
         // When adding node, we check if
         // 2. the newly added node is already in the selection. (this only works if we use linear context search)
@@ -424,6 +500,7 @@ bool Segment::NextContext() {
   }
   Context *last = m_ctxs.back();
   ctx = new Context(*last);
+  ctx->SetLast(last);
   m_ctxs.push_back(ctx);
   ASTNode *first_node = ctx->GetFirstNode();
   assert(first_node);

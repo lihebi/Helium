@@ -945,7 +945,12 @@ void Context::Test() {
     test_result.GetPreconditions();
     test_result.GetTransferFunctions();
 
-    Analyzer analyzer(csv_file);
+    Analyzer analyzer(csv_file, m_seg->GetConditions());
+    TestSummary summary = analyzer.GetSummary();
+    if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
+      // hard to trigger, go to simplify approach
+      simplify();
+    }
     std::vector<std::string> invs = analyzer.GetInvariants();
     std::vector<std::string> pres = analyzer.GetPreConditions();
     std::vector<std::string> trans = analyzer.GetTransferFunctions();
@@ -1003,6 +1008,65 @@ void Context::Test() {
   // TODO return good or not, to decide whether to keep the newly added statements
 }
 
+
+/**
+ * Simplify out branches.
+ * 1. examine if the latest context is a branch, loop condition.
+ * 2. use symbolic execution to determine the input space to trigger that condition
+ * 3. construct two contexts, with and without (needs to move the statement out of that branch)
+ * 4. test the pre-condition for failure runs
+ * 5. compare pre-conditions
+ */
+void Context::simplify() {
+  // compare the different nodes of this context and last context
+  // FIXME this is not very good, ideally we should only select nodes that dominates POI
+  std::set<ASTNode*> last_nodes = m_last->GetNodes();
+  std::set<ASTNode*> difference;
+  for (ASTNode *node : m_nodes) {
+    if (last_nodes.count(node) == 0) {
+      difference.insert(node);
+    }
+  }
+  // check the difference nodes
+  ASTNode *problem_node;
+  for (ASTNode *node : difference) {
+    switch (node->Kind()) {
+    case ANK_If:
+    case ANK_ElseIf: {
+    // case ANK_Do:
+    // case ANK_For:
+    // case ANK_While: {
+      // XMLNode cond_node = node->GetCondition();
+      // std::string cond = get_text(cond_node);
+      problem_node = node;
+      break;
+    }
+    default: ;
+    }
+    if (problem_node) break;
+  }
+  if (!problem_node) return;
+
+  /**
+   * Symbolic Execution
+   */
+  XMLNode cond_node = problem_node->GetCondition();
+  std::string cond = get_text(cond_node);
+  Formula *formula = FormulaFactory::CreateFormula(cond);
+  // TODO
+  // formula->GetInputSpec();
+  /**
+   * Creating two contexts
+   * Actually I don't really need to create two new context.
+   * What I need to do is, get use "this" and "last" context to test.
+   * For "this", use the input space got from symbolic execution.
+   * For "last", no need special care.
+   */
+  // TODO Test them
+  // Compare pre-conditions
+  // decide whether to discard this branch condition
+  // DONE!
+}
 
 void free_binary_formula(std::vector<BinaryFormula*> bfs) {
   for (BinaryFormula *bf : bfs) {

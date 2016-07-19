@@ -17,6 +17,7 @@
  */
 
 #include "common.h"
+#include "formula.h"
 
 /**
  * Data of CSV file.
@@ -32,6 +33,18 @@ typedef enum _RelKind {
   RK_LargerEqual,
   RK_NA
 } RelKind;
+
+class TestSummary {
+public:
+  // some statistics about the CSV file
+  int total_test = 0;
+  int reach_poi_test_success = 0;
+  int reach_poi_test_failure = 0;
+  int no_reach_poi_test_success = 0;
+  int no_reach_poi_test_failure = 0;
+};
+
+
 
 /**
  * Takes CSV files as input.
@@ -50,21 +63,34 @@ typedef enum _RelKind {
  */
 class Analyzer {
 public:
-  Analyzer(std::string csv_file);
-  ~Analyzer() {}
+  Analyzer(std::string csv_file, std::set<std::string> conditions);
+  ~Analyzer();
   std::vector<std::string> GetInvariants();
   std::vector<std::string> GetTransferFunctions();
   std::vector<std::string> GetPreConditions();
+
+  TestSummary GetSummary() {return m_summary;}
 private:
   // relationship checking
   // > < = <= >=
   std::string checkRelation(std::string h1, std::string h2);
   std::string checkConstant(std::string header);
   std::string checkTransfer(std::string h1, std::string h2);
+  std::string checkTemplate(Formula *f);
+
   std::vector<std::string> checkDiscoveredConstants(std::string header);
+  // conditions
+  void processCSVFile(std::string csv_file);
+  void processConditions(std::set<std::string> conditions);
+  void createSimplifiedHeader();
+
+  TestSummary m_summary;
+  
   // data
   std::vector<std::string> m_header; // first row in the csv file
+  std::map<std::string, std::string> m_simplified_header_m;
   std::vector<std::vector<std::string> > m_raw_data; // this is rows of data in csv
+  int m_data_dim = 0; // dimension of valid data, a.k.a. how many valid tests
   // processed data
   std::vector<std::string> m_i_header;
   std::vector<std::string> m_o_header;
@@ -72,6 +98,10 @@ private:
   // result
   // discovered constant
   std::set<int> m_discovered_constants;
+
+  // std::set<std::string> m_conditions;
+  std::set<Formula*> m_templates;
 };
+
 
 #endif /* ANALYZER_H */

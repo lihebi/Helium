@@ -1,0 +1,58 @@
+#+TITLE: Point Of Interest design document
+
+POI can be a single statement, a bunch of (un-continuous) statements, or a structure like a loop.
+
+* A single statement
+Variable of interest: variables used in this statement.
+
+* A bunch of continuous statements
+Variable of interest: variables used in these statements
+* A bunch of un-continuous statements
+Variable of interest: variables used in these statements
+* Loop
+Segment: loop
+
+
+* Overview
+
+| type                     | segment             | POI                                          | Variable of interest          |
+|--------------------------+---------------------+----------------------------------------------+-------------------------------|
+| single statement         | This stmt           | Right before this stmt                       | Variables used in this stmt   |
+| continuous statements    | These stmts         | right before the first stmt                  | Variables used in these stmts |
+| un-continuous statements | These stmts         | right before the first stmt                  | Variables used in these stmts |
+| loop                     | the whole loop body | right before the first stmt in the loop body | Variables used in the loop    |
+
+* Implementation Details
+
+Reader::GetLoopSegments() {
+// return vector<Segment*>
+}
+
+class Segment {
+
+private:
+ASTNode *POI; // POI is before this node
+set<ASTNode*> m_nodes; // the selection of the segment
+set<Variable*> m_var;
+};
+
+class Variable {
+
+
+
+};
+
+* TODOs
+
+# - implement multi segment options: single stmt, loop
+# - implement extract loop jump out conditions
+- compare the jump out condition as invariants
+- Implement the Formula class
+  - get operands
+  - get type
+
+So that I can check out the right headers data to verify the formula.
+
+- oracle
+
+

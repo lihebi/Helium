@@ -36,3 +36,8 @@ In the analyze of =analyzer.cc=, the output, collect all the =freed-addr=,
 into a =freed-list=.
 
 Construct a field as whether the corresponding address is in =freed-list=.
+
+* Used configuration
+#+BEGIN_EXAMPLE
+helium -s snippets/ --print="ci,ce,col,io,ana,t" double-free/ --conf="instrument-address=true"
+#+END_EXAMPLE

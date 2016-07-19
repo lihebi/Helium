@@ -921,11 +921,11 @@ std::set<ASTNode*> AST::RemoveRoot(std::set<ASTNode*> nodes) {
 
 std::string ASTNode::POIOutputCode() {
   std::string ret;
-  std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+  std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
   if (vars.size() > 0) {
     ret += "printf(\"HELIUM_POI = true\\n\");\n";
     ret += "fflush(stdout);\n";
-    for (NewVariable var : vars) {
+    for (Variable var : vars) {
       ret += var.GetType()->GetOutputCode(var.GetName());
     }
     ret += "printf(\"HELIUM_POI_OUT_END = true\\n\");\n";
@@ -940,7 +940,7 @@ std::string ASTNode::POIOutputCode() {
  */
 std::string ASTNode::POIAfterCode() {
   std::string ret;
-  std::vector<NewVariable> vars = m_ast->GetRequiredOutputVariables(this);
+  std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
   if (vars.size() > 0) {
     ret += "// @HeliumSegmentEnd\n";
   }

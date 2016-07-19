@@ -22,6 +22,7 @@ std::string rel_to_string(std::string h1, std::string h2, RelKind k) {
     return h1 + ">=" + h2;
   case RK_NA:
     assert(false);
+  default: assert(false);
   }
   assert(false);
 }
@@ -308,13 +309,13 @@ RelKind check_relation_p(std::vector<std::string> d1, std::vector<std::string> d
  * The Analyzer Class
  *******************************/
 
-
 /**
- * Special headers:
- * - HELIUM_TEST_SUCCESS: the return code
- * - HELIUM_POI: whether the POI right before POI is printed
+ * 1. identify valid csv, and output summary information
+ * 2. write to file
+ * 3. construct m_header
+ * 4. construct data into m_raw_data
  */
-Analyzer::Analyzer(std::string csv_file) {
+void Analyzer::processCSVFile(std::string csv_file) {
   std::ifstream is;
   is.open(csv_file);
   assert(is.is_open());
@@ -332,6 +333,9 @@ Analyzer::Analyzer(std::string csv_file) {
     std::string line;
     getline(is, line);
     valid_csv += line + "\n";
+    // constructing m_headers
+    // this is a vector, meaning the duplication is not removed
+    // so it should be desired to make sure no duplication envolved in the output csv file
     m_header = utils::split(line, ',');
 
     int poi_idx = -1;
@@ -391,6 +395,17 @@ Analyzer::Analyzer(std::string csv_file) {
     std::cout << "-------------------------"  << "\n";
   }
   std::cout << "Valid tests: " << reach_poi_test_failure  << "\n";
+
+  m_summary.total_test = total;
+  m_summary.reach_poi_test_success = reach_poi_test_success;
+  m_summary.reach_poi_test_failure = reach_poi_test_failure;
+  m_summary.no_reach_poi_test_success = no_reach_poi_test_success;
+  m_summary.no_reach_poi_test_failure = no_reach_poi_test_failure;
+
+  // the dimension of data, aka how many valid test
+  // this is used to construct a data column when the item to compare is constant
+  // FIXME only "valid" data?
+  m_data_dim = m_raw_data.size();
   // std::cout << "raw data:"  << "\n";
   // std::cout << m_raw_data.size()  << "\n";
   // for (auto &v : m_raw_data) {
@@ -402,6 +417,15 @@ Analyzer::Analyzer(std::string csv_file) {
   // std::cout << "header size: "  << "\n";
   // std::cout << m_header.size()  << "\n";
   
+}
+
+/**
+ * Special headers:
+ * - HELIUM_TEST_SUCCESS: the return code
+ * - HELIUM_POI: whether the POI right before POI is printed
+ */
+Analyzer::Analyzer(std::string csv_file, std::set<std::string> conditions) {
+  processCSVFile(csv_file);
   // process the raw data
   for (int i=0;i<(int)m_header.size();++i) {
     std::string header = m_header[i];
@@ -421,7 +445,64 @@ Analyzer::Analyzer(std::string csv_file) {
       // No code here. It might be HELIUM_TEST_SUCCESS
     }
   }
+
+  // OK, I'm going to process the conditions, and possibly associate the variables used in conditons with the m_header
+  createSimplifiedHeader();
+  processConditions(conditions);
 }
+
+Analyzer::~Analyzer() {
+  for (Formula *f : m_templates) {
+    if (f) delete f;
+  }
+}
+
+void Analyzer::createSimplifiedHeader() {
+  // std::map<std::string, std::string> simplified_header;
+  for (std::string h : m_header) {
+    if (h.size() > 3) {
+      if (h[2] == '_') {
+        std::string simp;
+        simp = h.substr(3);
+        if (simp.find('[') != std::string::npos) {
+          // if has surfix, simply discard
+          continue;
+          simp = simp.substr(0, simp.find('['));
+        }
+        m_simplified_header_m[simp] = h;
+      }
+    }
+  }
+}
+
+/**
+ * Process conditions.
+ * These conditions are the template for generate invariants
+ * 1. filter only the simple ones
+ * 1. associate the variable names with the headers found. Discard those that cannot be fully resolved in this way.
+ * @return a set of string template to check
+ */
+void Analyzer::processConditions(std::set<std::string> conditions) {
+  // std::set<std::string> ret;
+  for (std::string condition : conditions) {
+    // FIXME formula needs to be free-d
+    Formula *formula = FormulaFactory::CreateFormula(condition);
+    if (!formula) {
+      continue;
+    }
+    // replace with header variables
+    formula->Replace(m_simplified_header_m);
+    if (!formula->Valid()) {
+      delete formula;
+      continue;
+    }
+    m_templates.insert(formula);
+    // TODO I might want some additional processing, such as:
+    // 1. negate the condition
+    // 2. increase a constant amount to one side
+  }
+}
+
 
 
 /**
@@ -450,6 +531,16 @@ std::vector<std::string> Analyzer::GetInvariants() {
       //   std::string s = rel_to_string(m_o_header[i], m_o_header[j], kind);
       //   ret.push_back(s);
       // }
+    }
+  }
+  /**
+   * For the templates (bulit from the conditions from the loop, currently)
+   * Check if it is satisfied
+   */
+  for (Formula *f : m_templates) {
+    std::string res = checkTemplate(f);
+    if (!res.empty()) {
+      ret.push_back(res);
     }
   }
   return ret;
@@ -537,6 +628,47 @@ RelKind check_against_constant(std::vector<std::string> data, int a) {
   std::vector<std::string> aa(data.size(), std::to_string(a));
   RelKind kind = check_relation_d(data, aa);
   return kind;
+}
+
+std::string Analyzer::checkTemplate(Formula *formula) {
+  // 1. get the associated header columns
+  // 2. validate those columns
+  // 3. fit the formula to see if it matches
+  // 4. optionally adjust the formula so that I have more flexibility
+  //    - negate operator (need implement not)
+  //    - add constant to each side
+  assert(formula);
+  std::string lhs = formula->GetLHS();
+  std::vector<std::string> rhs = formula->GetRHS();
+  std::vector<std::string> lhs_data;
+  formula->ClearData();
+  // LHS data
+  if (m_data_m.count(lhs) == 1) {
+    lhs_data = m_data_m[lhs];
+  } else {
+    // is constant
+    assert(Formula::is_constant(lhs));
+    // lhs is the data itself!
+    lhs_data = std::vector<std::string>(m_data_dim, lhs);
+  }
+  formula->SetLHSData(lhs_data);
+  // RHS data
+  assert(rhs.size() <= 2);
+  for (std::string r : rhs) {
+    std::vector<std::string> r_data;
+    if (m_data_m.count(r) == 1) {
+      r_data = m_data_m[r];
+    } else {
+      assert(Formula::is_constant(r));
+      r_data = std::vector<std::string>(m_data_dim, r);
+    }
+    formula->AddRHSData(r_data);
+  }
+  // validate the formula
+  if (formula->Validate()) {
+    return formula->ToString();
+  }
+  return "";
 }
 
 /**
@@ -627,7 +759,7 @@ std::string Analyzer::checkTransfer(std::string h1, std::string h2) {
  * Disabled because has a path
  */
 TEST(AnalyzerTestCase, DISABLED_CSVTest) {
-  Analyzer analyzer("/Users/hebi/tmp/b.csv");
+  Analyzer analyzer("/Users/hebi/tmp/b.csv", {});
   std::vector<std::string> invs = analyzer.GetInvariants();
   std::vector<std::string> pres = analyzer.GetPreConditions();
   std::vector<std::string> trans = analyzer.GetTransferFunctions();

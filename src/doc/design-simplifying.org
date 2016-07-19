@@ -1,0 +1,23 @@
+#+TITLE: Simplifying Code design document
+
+TODOs about the simplification of code
+
+- Whenever the POI is hard to trigger, enter this approach.
+
+So the hard to trigger problem should be two categories:
+1. program crashes before POI
+2. condition cannot be satisfied.
+
+We take care of the second problem here, for now!
+
+- We examine the first condition.
+- Generate input space to trigger the POI
+
+
+* Implementation details
+- Whenever we encounter a coverage problem (the POI reach rate lower than a threshold), examine if the latest context is a branch, loop condition. If yes, continue;
+- use symbolic execution to determine the input space to trigger that condition
+- construct two contexts, with and without
+  - needs to move the statement out of that branch
+- test the pre-condition for failure runs
+- If they matches, remove that branch safely

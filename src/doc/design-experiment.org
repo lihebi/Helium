@@ -1,0 +1,18 @@
+#+TITLE: Experiment Design Document
+
+This document talks about the up-coming experiment for the Framework.
+
+Now we have multi-bug-type support:
+- buffer overflow
+- access violation
+- null pointer dereference
+- infinite loop
+- double free
+- free after use
+
+- First, finish the fully automatic oracle.
+- get some easy to work benchmark, preferably with apache benchmark
+- run and analysis!
+
+Also we implemented the simplification approach, test it to see if the symbolic input generation works for the POI triggering problem.
+It should work!

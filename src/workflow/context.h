@@ -20,6 +20,9 @@ public:
     return m_first;
   }
   void SetFirstNode(ast::ASTNode* node);
+  void SetLast(Context *ctx) {
+    m_last = ctx;
+  }
   // not valid if:
   // 2. newly added node already selected
   // So, set when AddNode
@@ -82,7 +85,15 @@ private:
   std::string getMain();
   std::string getSupport();
   std::string getMakefile();
+
+
+  void simplify();
+
+
+
+  
   Segment *m_seg = NULL;
+  Context *m_last = NULL; // last context
   /**
    * Storage
    */

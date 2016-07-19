@@ -235,7 +235,13 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   // utils::file2xml(filename, m_doc);
   m_doc = XMLDocReader::Instance()->ReadFile(filename);
   std::string method = Config::Instance()->GetString("code-selection");
-  if (method == "loop") {
+  if (method == "annot-loop") {
+    Segment *seg = getAnnotLoop();
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
+  } else if (method == "loop") {
     // getLoopSegments();
     assert(false);
   } else if (method == "annotation") {
@@ -262,6 +268,40 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
   // this is for the old segment system, not for the new one.
   // Read();
   // assert(false);
+}
+/**
+ * For now, only the first statment marked by @HeliumStmt
+ */
+Segment* Reader::getAnnotSeg() {
+  print_trace("Reader::getAnnotSeg");
+  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
+  if (comment_nodes.size() != 1) {
+    // std::cerr << "Error: Currently only support ONE single statement.";
+    // std::cerr << "But Found: " << comment_nodes.size() << "\n";
+    return NULL;
+  }
+  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
+  assert(node);
+  // FIXME seg should be free-d outside
+  Segment *seg = new Segment(node);
+  return seg;
+}
+
+/**
+ * Get annotationed loop.
+ * The loop is marked by comment // @HeliumLoop right before the loop start
+ * This is the pre-condition, otherwise undefined behavior will happen. FIXME
+ */
+Segment* Reader::getAnnotLoop() {
+  print_trace("Reader::getAnnotLoop");
+  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumLoop");
+  if (comment_nodes.size() != 1) {
+    return NULL;
+  }
+  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
+  assert(node);
+  Segment *seg = new Segment(node, SegKind_Loop);
+  return seg;
 }
 
 /**
@@ -462,23 +502,6 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
 //   }
 // }
 
-/**
- * For now, only the first statment marked by @HeliumStmt
- */
-Segment* Reader::getAnnotSeg() {
-  print_trace("Reader::getAnnotSeg");
-  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
-  if (comment_nodes.size() != 1) {
-    // std::cerr << "Error: Currently only support ONE single statement.";
-    // std::cerr << "But Found: " << comment_nodes.size() << "\n";
-    return NULL;
-  }
-  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
-  assert(node);
-  // FIXME seg should be free-d outside
-  Segment *seg = new Segment(node);
-  return seg;
-}
 
 /**
  * Get segments of the callsite of func_name.

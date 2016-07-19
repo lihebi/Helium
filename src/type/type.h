@@ -309,16 +309,6 @@ public:
   virtual TestInput* GetTestInputSpec(std::string var) override;
 };
 
-class NewVariable {
-public:
-  NewVariable(Type *type, std::string var) : m_type(type), m_var(var) {}
-  Type *GetType() {return m_type;}
-  std::string GetName() {return m_var;}
-private:
-  Type *m_type;
-  std::string m_var;
-};
-
 /**
  * Test input class.
  * Test input should not just be a string.

@@ -33,6 +33,7 @@ private:
   // void getLoopSegments();
   void getAnnotationSegments();
   Segment* getAnnotSeg();
+  Segment* getAnnotLoop();
   // void getDivideSegments();
   // void getDivideRecursive(ast::NodeList nodes);
   void getFuncCallSegments(std::string func_name);

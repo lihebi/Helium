@@ -56,16 +56,17 @@ char *get_tag(char *tag, int tagbuf_len)
 
   --tagbuf_len;
 
-  do {
-    c = nondet_char();
-  } while (ap_isspace(c));
+  /* do { */
+  /*   c = nondet_char(); */
+  /* } while (ap_isspace(c)); */
 
-  if (c != '"' && c != '\'') {
-    return NULL;
-  }
+  /* if (c != '"' && c != '\'') { */
+  /*   return NULL; */
+  /* } */
 
   term = c;
   // precondition: buf[tagbuf_len = '\']
+  // @HeliumLoop
   while (1) {
     // loop invariant: t != tag + tagbuf_len
     c = nondet_char();
@@ -99,12 +100,12 @@ char *get_tag(char *tag, int tagbuf_len)
 
 int main ()
 {
-  char tag[BUFSIZ];
+  char tag[10];
   // precondition: None
   // Invariants: t != tag + tagbuf_len
   // transfer function: O_tagbuf_len = I_BUFSIZ
   /* The caller always passes in (tag, sizeof(tag)) */
-  get_tag (tag, BUFSIZ);
+  get_tag (tag, 10);
 
   return 0;
 }

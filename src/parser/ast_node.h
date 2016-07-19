@@ -4,6 +4,7 @@
 #include "common.h"
 #include "parser/ast.h"
 #include "type/type.h"
+#include "type/variable.h"
 #include "resolver/resolver.h"
 #include "parser/slice_reader.h"
 
@@ -230,7 +231,7 @@ namespace ast {
     /**
      * Use the new type system.
      */
-    void SetOutput(std::map<ASTNode*, std::vector<NewVariable> > output_m) {
+    void SetOutput(std::map<ASTNode*, std::vector<Variable> > output_m) {
       m_output_m = output_m;
     }
     void ClearOutput() {
@@ -253,7 +254,7 @@ namespace ast {
       if (m_deco_output_m.count(node) == 1) return m_deco_output_m[node];
       else return {};
     }
-    std::vector<NewVariable> GetRequiredOutputVariables(ASTNode *node) {
+    std::vector<Variable> GetRequiredOutputVariables(ASTNode *node) {
       if (m_output_m.count(node) == 1) return m_output_m[node];
       else return {};
     }
@@ -408,7 +409,7 @@ namespace ast {
     // do not need input
     std::map<ASTNode*, std::set<std::string> > m_decl_m;
     std::map<ASTNode*, std::set<std::string> > m_deco_output_m; // deprecated
-    std::map<ASTNode*, std::vector<NewVariable> > m_output_m;
+    std::map<ASTNode*, std::vector<Variable> > m_output_m;
 
     // slicing
     std::set<ASTNode*> m_slice; // nodes in the set of slice
@@ -478,6 +479,9 @@ namespace ast {
     // virtual void GetDeclWithInput(std::set<std::string> names, std::string &ret) {
     //   GetDecl(names, ret);
     // }
+    
+    // default  GetCondition return an empty node
+    virtual ast::XMLNode GetCondition() {return ast::XMLNode();}
     virtual std::set<std::string> GetVarIds() {return {};}
     virtual std::set<std::string> GetIdToResolve() {return {};}
     /**
@@ -509,6 +513,23 @@ namespace ast {
     ASTNode *Child(int idx) {
       if (idx <0 || idx >= (int)m_children.size()) return NULL;
       return m_children[idx];
+    }
+    /**
+     * All the children recursively
+     */
+    std::vector<ASTNode*> AllChildren() {
+      std::vector<ASTNode*> ret;
+      std::vector<ASTNode*> worklist;
+      worklist.push_back(this);
+      while (!worklist.empty()) {
+        ASTNode *node = worklist.back();
+        ret.push_back(node);
+        worklist.pop_back();
+        for (ASTNode *ch : node->Children()) {
+          worklist.push_back(ch);
+        }
+      }
+      return ret;
     }
     std::vector<ASTNode*> GetChildren() {return m_children;}
     int GetLevel() const {
@@ -695,7 +716,7 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_If;}
     If(XMLNode xmlnode, ASTNode* parent, AST *ast);
     ~If() {}
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     Then* GetThen() {return m_then;}
     std::vector<ElseIf*> GetElseIfs() {return m_elseifs;}
     Else* GetElse() {return m_else;}
@@ -732,7 +753,7 @@ namespace ast {
   public:
     ASTNodeKind Kind() override {return ANK_ElseIf;}
     ElseIf(XMLNode, ASTNode* parent, AST *ast);
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
@@ -768,7 +789,7 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_Switch;}
     Switch(XMLNode, ASTNode* parent, AST *ast);
     ~Switch() {}
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     std::vector<Case*> GetCases() {return m_cases;}
     Default* GetDefault() {return m_default;}
     virtual void GetCode(std::set<ASTNode*> nodes,
@@ -810,7 +831,7 @@ namespace ast {
     For(XMLNode, ASTNode* parent, AST *ast);
     ~For();
     XMLNodeList GetInits() {return m_inits;}
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     XMLNode GetIncr() {return m_incr;}
     // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
@@ -831,7 +852,7 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_While;}
     While(XMLNode, ASTNode* parent, AST *ast);
     ~While() {}
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
@@ -851,7 +872,7 @@ namespace ast {
     ASTNodeKind Kind() override {return ANK_Do;}
     Do(XMLNode, ASTNode* parent, AST *ast);
     ~Do() {}
-    XMLNode GetCondition() {return m_cond;}
+    XMLNode GetCondition() override {return m_cond;}
     // Block* GetBlock() {return m_blk;}
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;

@@ -133,6 +133,7 @@ namespace utils {
   bool starts_with(const std::string &s, const std::string &pattern);
   std::vector<std::string>& split(const std::string &s, char delim, std::vector<std::string> &elems);
   std::vector<std::string> split(const std::string &s, char delim);
+  std::vector<std::string> split(std::string s, std::string delim);
 
   /*
    * This is the split function that use any white space as delimiter
@@ -140,6 +141,7 @@ namespace utils {
    */
   std::vector<std::string> split(const std::string &s);
   void remove(std::string& s, const std::string& pattern);
+  void replace(std::string &s, std::string pattern, std::string replacement);
 
   bool is_number(const std::string& s);
 

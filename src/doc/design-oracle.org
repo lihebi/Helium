@@ -1,0 +1,20 @@
+#+TITLE: Oracle Design Document
+
+* The oracle design difficulty and handling  for NULL pointer dereference.
+
+The transfer function is hard to guess: the transfer function is:
+the pointer p=q. actually we should mean the address.
+But since the address is simply NULL, it is hard to believe from the single data to derive into p=q.
+
+It can, by using some "order heuristic": the first context statement that cause the problem should right just introduce the new invariant.
+
+We can have a better approach: using the success path that follows the same path as the failing path.
+In this case, we can easily get the address match, so that we are confident that it is this particular equation that causes the problem.
+
+** Implementation details
+for null pointer dereference
+- when logging down data, do not just log the pure data, but also the path to get that data
+  - the path is the trace on the Control Flow Graphs. Thus every time entering a branch condition or a loop, log the name(UUID) down.
+- when computing the transfer function, do not just use "valid" data. Use also the data that follows the same path as the failure one.
+
+* TODO fully automatic

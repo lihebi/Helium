@@ -119,6 +119,25 @@ utils::split(const std::string &s, char delim) {
   return elems;
 }
 
+/**
+ * Delim by ANY characters in delim string
+ */
+std::vector<std::string>
+utils::split(std::string s, std::string delim) {
+  std::size_t prev = 0, pos;
+  std::vector<std::string> ret;
+  while ((pos = s.find_first_of(delim, prev)) != std::string::npos)
+    {
+      if (pos > prev)
+        ret.push_back(s.substr(prev, pos-prev));
+      prev = pos+1;
+    }
+  if (prev < s.length()) {
+    ret.push_back(s.substr(prev, std::string::npos));
+  }
+  return ret;
+}
+
 
 /**
  * If string s ends with string pattern.
@@ -147,6 +166,15 @@ bool utils::starts_with(const std::string &s, const std::string &pattern) {
 void utils::remove(std::string& s, const std::string& pattern) {
   while (s.find(pattern) != std::string::npos) {
     s.erase(s.find(pattern), pattern.length());
+  }
+}
+
+/**
+ * Replace all occurrence of pattern with replacement, in the input/output string s.
+ */
+void utils::replace(std::string &s, std::string pattern, std::string replacement) {
+  while (s.find(pattern) != std::string::npos) {
+    s.replace(s.find(pattern), pattern.length(), replacement);
   }
 }
 
