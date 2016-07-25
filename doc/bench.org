@@ -1,0 +1,20 @@
+#+TITLE: Current Benchmarks
+
+
+
+| name             | from             | bug type         |
+|------------------+------------------+------------------|
+| gzip-1.2.4       | bugbench         | buffer overflow  |
+| ncompress-4.2    | bugbench         | buffer overflow  |
+| polymorphy-0.4.0 | bugbench         | buffer overflow  |
+| cvs-1.11.4       | bugbench         | double free      |
+|                  | PSE paper        | NULL dereference |
+| CVE-2004-0940    | apache benchmark | infinite loop    |
+
+
+| Direction | Input                                                            | step                                                | Difficulty          |
+|-----------+------------------------------------------------------------------+-----------------------------------------------------+---------------------|
+|         1 | above worked benchmarks; official patch                          | use official patch to fix the bug signature         |                     |
+|         2 | bugs reported, fixed, but not in benchmark suite; official patch | use official patch to fix the bug signature         | debug the benchmark |
+|         3 | manually built benchmark and original code                       | compare bug signature with manual benchmark         | benchmark selection |
+|         4 | reported but not fixed bugs                                      | manually patch bug signature, then fix original bug | find bugs           |
