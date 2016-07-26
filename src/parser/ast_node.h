@@ -241,6 +241,14 @@ namespace ast {
       m_decl_input_m.clear();
       m_decl_m.clear();
     }
+    void HideOutput() {
+      m_output_back_m = m_output_m;
+      m_output_m.clear();
+    }
+    void RestoreOutput() {
+      m_output_m = m_output_back_m;
+      m_output_back_m.clear();
+    }
 
     std::set<std::string> GetRequiredDecl(ASTNode *node) {
       if (m_decl_m.count(node) == 1) return m_decl_m[node];
@@ -410,6 +418,7 @@ namespace ast {
     std::map<ASTNode*, std::set<std::string> > m_decl_m;
     std::map<ASTNode*, std::set<std::string> > m_deco_output_m; // deprecated
     std::map<ASTNode*, std::vector<Variable> > m_output_m;
+    std::map<ASTNode*, std::vector<Variable> > m_output_back_m;
 
     // slicing
     std::set<ASTNode*> m_slice; // nodes in the set of slice

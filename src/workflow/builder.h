@@ -15,6 +15,8 @@ public:
   void SetMakefile(std::string makefile) {
     m_makefile = makefile;
   }
+
+  
   void AddScript(std::pair<std::string, std::string> script) {
     m_scripts.push_back(script);
   }

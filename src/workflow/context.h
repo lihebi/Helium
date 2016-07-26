@@ -84,7 +84,10 @@ private:
    */
   std::string getMain();
   std::string getSupport();
+  std::string getSupportBody();
   std::string getMakefile();
+
+  std::string getSigMain();
 
 
   void simplify();
@@ -125,6 +128,7 @@ private:
   std::set<int> m_snippet_ids; // only need one copy of snippet ids, for all the ASTs
   
   bool m_query_resolved = false;
+  int m_search_time;
 };
 
 

@@ -41,6 +41,8 @@ Context::Context(Segment *seg) : m_seg(seg) {
   for (ASTNode* node : m_nodes) {
     m_ast_to_node_m[node->GetAST()].insert(node);
   }
+
+  m_search_time = 0;
 }
 // copy constructor
 /**
@@ -53,6 +55,8 @@ Context::Context(const Context &rhs) {
   m_nodes = rhs.m_nodes;
   m_first = rhs.m_first;
   m_ast_to_node_m = rhs.m_ast_to_node_m;
+
+  m_search_time = rhs.m_search_time;
 }
 
 /********************************
@@ -72,6 +76,8 @@ bool Context::AddNode(ASTNode* node) {
   if (m_nodes.count(node) == 1) return false;
   m_nodes.insert(node);
   m_ast_to_node_m[node->GetAST()].insert(node);
+  // record context search time here
+  m_search_time ++;
   return true;
 }
 
@@ -546,8 +552,59 @@ std::string Context::getMain() {
   ret += main_func;
   return ret;
 }
+
+
+/**
+ * FIXME dangerous! will clear the output decoration for all ASTs
+ */
+std::string Context::getSigMain() {
+  print_trace("Context::getSigMain()");
+  std::string ret;
+  ret += get_header();
+  std::string main_func;
+  std::string other_func;
+  /**
+   * Go through all the ASTs
+   * The first AST should be placed in main function.
+   * Other ASTs should just output.
+   */
+  AST *first_ast = m_first->GetAST();
+  for (auto m : m_ast_to_node_m) {
+    AST *ast = m.first;
+    std::set<ASTNode*> nodes = m.second;
+    if (ast == first_ast) {
+      main_func += "int main() {\n";
+      ast->HideOutput();
+      std::string code = ast->GetCode(nodes);
+      ast->RestoreOutput();
+      // modify the code, specifically change all return statement to return 35;
+      code = replace_return_to_35(code);
+      main_func += code;
+      main_func += "return 0;";
+      main_func += "};\n";
+    } else {
+      // other functions
+      // ast->SetDecl(m_ast_to_deco_m[ast].second, m_ast_to_deco_m[ast].first);
+      decl_deco merge;
+      // decl_deco first = m_ast_to_deco_m[ast].first;
+      // decl_deco second = m_ast_to_deco_m[ast].second;
+      // merge.insert(first.begin(), first.end());
+      // merge.insert(second.begin(), second.end());
+      // ast->SetDecoDecl(merge);
+      ast->HideOutput();
+      std::string code = ast->GetCode(nodes);
+      ast->RestoreOutput();
+      other_func += code;
+      other_func += "\n";
+    }
+  }
+  // FIXME delaration of other functions should be included in suport.
+  ret += other_func;
+  ret += main_func;
+  return ret;
+}
+
 std::string Context::getSupport() {
-  std::vector<int> sorted_snippet_ids = SnippetDB::Instance()->SortSnippets(m_snippet_ids);
   std::string code = "";
   // head
   code += get_head();
@@ -561,6 +618,15 @@ std::string Context::getSupport() {
     "#undef setbit\n"
     "#endif\n";
 
+  code += getSupportBody();
+  // foot
+  code += get_foot();
+  return code;
+}
+
+std::string Context::getSupportBody() {
+  std::string code;
+  std::vector<int> sorted_snippet_ids = SnippetDB::Instance()->SortSnippets(m_snippet_ids);
   code += "\n/****** codes *****/\n";
   // snippets
   std::string code_func_decl;
@@ -648,8 +714,6 @@ std::string Context::getSupport() {
   code += code_variable;
   code += "\n// functions\n";
   code += code_func;
-  // foot
-  code += get_foot();
   return code;
 }
 
@@ -706,9 +770,26 @@ void Context::Test() {
   std::string code_main = getMain();
   std::string code_sup = getSupport();
   std::string code_make = getMakefile();
+
+  /**
+   * Signature Output
+   */
+  std::string code_sig_main = getSigMain();
+  std::string code_sig_support = getSupportBody();
+  
   builder.SetMain(code_main);
   builder.SetSupport(code_sup);
   builder.SetMakefile(code_make);
+
+  std::string sig_dir = builder.GetDir();
+  sig_dir += "/sig";
+  utils::create_folder(sig_dir);
+  utils::write_file(sig_dir + "/sig_main.c", code_sig_main);
+  utils::write_file(sig_dir + "/sig_support.h", code_sig_support);
+  // to get the size of bug signature, just use =cloc xxx/sig=
+
+
+  
   builder.Write();
   if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
     std::cout << "Code output to "  << builder.GetDir() << "\n";
@@ -982,6 +1063,11 @@ void Context::Test() {
 
     std::cout << "---- resolveQuery -----"  << "\n";
     m_query_resolved = resolveQuery(invs, pres, trans);
+    if (m_query_resolved) {
+      // output some information to use in paper
+      std::cout << "sig dir: " << sig_dir  << "\n";
+      std::cout << "search time: " << m_search_time  << "\n";
+    }
     std::cout << "------ end of query resolving -----"  << "\n";
     
     /**
