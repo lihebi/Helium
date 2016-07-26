@@ -107,7 +107,7 @@ int Config::GetInt(std::string name) {
   // std::invalid_argument
   // std::out_of_range
   std::string s = m_map[name];
-  std::cout << s  << "\n";
+  // std::cout << s  << "\n";
   int ret = -1;
   if (is_number(s)) {
     ret = std::stoi(m_map[name]); 
