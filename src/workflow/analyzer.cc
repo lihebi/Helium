@@ -359,7 +359,7 @@ void Analyzer::processCSVFile(std::string csv_file) {
       // HELIUM_TEST_SUCCESS: false or true
       std::vector<std::string> row = utils::split(line, ',');
       total++;
-      if (poi_idx != -1 && row[poi_out_idx] == "true" // POI
+      if (poi_idx != -1 && row[poi_idx] == "true" // POI
           && poi_out_idx != -1 && row[poi_out_idx] == "true" // POI_OUT
           ) {
         // reach POI
