@@ -155,35 +155,18 @@ std::string Char::getOutputCode_Two(std::string var) {
   std::string ret;
   assert(m_dimension == 0 && "do not support array of pointer for now.");
   // TODO the size of the buffer?
-
-  // FIXME check configuration
-  // ret += get_check_null_if(var);
-  // ret += get_null_output(var, true);
-  // ret += get_addr_output(var);
-
-  // // second layer, inner check
-  // ret += get_check_null_if("*" + var);
-  // ret += get_null_output("*" + var, true);
-  // ret += get_check_null_else();
-  // ret += get_null_output("*" + var, false);
-  // ret += get_check_null_fi();
-
-  // // bad to first layer
-  // ret += get_check_null_else();
-  // ret += get_null_output(var, false);
-  // ret += get_check_null_fi();
-
-  
   ret += get_check_null(var,
-                        get_null_output(var, true)
-                        + get_addr_output(var)
+                        (Config::Instance()->GetBool("instrument-null") ? get_null_output(var, false) : "")
+                        ,
+                        (Config::Instance()->GetBool("instrument-null") ? get_null_output(var, true) : "")
+                        + (Config::Instance()->GetBool("instrument-address") ? get_addr_output(var) : "")
                         + get_check_null("*"+var,
-                                         get_null_output("*"+var, true)
-                                         + get_strlen_output("*"+var)
-                                         + get_addr_output("*"+var),
-                                         get_null_output("*"+var, false)
-                                         ),
-                        get_null_output(var, false)
+                                         (Config::Instance()->GetBool("instrument-null") ? get_null_output("*"+var, false) : "")
+                                         ,
+                                         (Config::Instance()->GetBool("instrument-null") ? get_null_output("*"+var, true) : "")
+                                         + (Config::Instance()->GetBool("instrument-strlen") ? get_strlen_output("*"+var) : "")
+                                         + (Config::Instance()->GetBool("instrument-address") ? get_addr_output("*"+var) : "")
+                                         )
                         );
   return ret;
 }
@@ -194,7 +177,7 @@ std::string Char::getOutputCode_Two(std::string var) {
  */
 std::string Char::GetOutputCode(std::string var) {
   std::string ret;
-  ret += "// Char::GetOutputCode\n";
+  ret += "// Char::GetOutputCode " + var + " Dimension: " + std::to_string(m_pointer) + "\n";
   if (m_pointer == 0) {
     ret += getOutputCode_Zero(var);
   } else if (m_pointer == 1) {

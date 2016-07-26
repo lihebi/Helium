@@ -54,7 +54,10 @@ static void validate(std::vector<std::string> &d) {
 
 static bool validate_number(std::vector<std::string> &d) {
   for (std::string s : d) {
-    if (!utils::is_number(s)) return false;
+    if (!utils::is_number(s)) {
+      std::cout << s  << "\n";
+      return false;
+    }
   }
   return true;
 }

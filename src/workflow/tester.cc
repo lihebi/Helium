@@ -370,7 +370,10 @@ BinaryFormula* get_key_inv(std::vector<BinaryFormula*> invs) {
       ret = bf;
     }
   }
-  assert(ret);
+  if (!ret) {
+    // FIXME warning?
+    return *invs.begin();
+  }
   for (BinaryFormula *bf : cons) {
     if (bf->GetLHS() == ret->GetRHS()) {
       ret->UpdateRHS(bf->GetRHS());

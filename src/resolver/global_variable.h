@@ -9,15 +9,15 @@
 
 class GlobalVariable {
 public:
-  Type* GetType() {return m_type;}
-  std::string GetName() {return m_var;}
-  int GetSnippetID() {return m_snippet_id;}
   GlobalVariable(Type *type, std::string var, int snippet_id)
     : m_type(type), m_var(var), m_snippet_id(snippet_id) {}
   ~GlobalVariable() {
     // this actually will never be called
     delete m_type;
   }
+  Type* GetType() {return m_type;}
+  std::string GetName() {return m_var;}
+  int GetSnippetID() {return m_snippet_id;}
 private:
   Type *m_type;
   std::string m_var;

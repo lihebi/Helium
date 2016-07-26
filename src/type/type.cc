@@ -127,6 +127,31 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
       if (meta.HasKind(SK_Enum)) {
         return new LocalEnumType(snippet_id, raw, dims);
       }
+      if (meta.HasKind(SK_Typedef)) {
+        // FIXME right now just get the typedefine-d string
+        // REMOVE the star!
+        // and retain the dims
+        std::string code = SnippetDB::Instance()->GetCode(snippet_id);
+        // FIXME removing the '*'
+        utils::trim(raw);
+        while (raw.back() == '*') {
+          raw.pop_back();
+          utils::trim(raw);
+        }
+        // std::cout << raw  << "\n";
+        assert(code.find("typedef") != std::string::npos);
+        assert(code.find(raw) != std::string::npos);
+        code = code.substr(code.find("typedef") + strlen("typedef"));
+
+        
+        code = code.substr(0, code.find(raw));
+        utils::trim(code);
+        while (code.back() == '*') {
+          code.pop_back();
+          utils::trim(code);
+        }
+        return TypeFactory::CreateType(code, dims, token);
+      }
     }
   }
   // should not reach here

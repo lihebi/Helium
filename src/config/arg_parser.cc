@@ -125,7 +125,7 @@ void ArgParser::PrintHelp() {
     std::cout << ""  << "\n";
     std::cout << "Examples:"  << "\n";
     std::cout << "Buffer Overflow bugs:"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ --print='ci,ce,col' buffer-overflow/"  << "\n";
+    std::cout << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true"  << "\n";
     std::cout << "Double free bugs:"  << "\n";
     std::cout << "\t" << "helium -s snippets/ --print='ci,ce,col,io,ana,t' double-free/ --conf='instrument-address=true'"  << "\n";
     std::cout << "Null Dereference bugs:"  << "\n";
