@@ -66,8 +66,10 @@ CFLAGS := -g -Wall --std=c++11
 C_INCLUDE := -Isrc
 
 C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
-C_LIB += -lpugi -lctags # 3rd party library, shipped with source code
-C_LIB += -lgtest -lsqlite3
+C_LIB += -lpugixml
+C_LIB += -lctags # 3rd party library, shipped with source code
+C_LIB += -lgtest
+C_LIB += -lsqlite3
 C_LIB += -pthread
 
 ##############################
@@ -137,7 +139,7 @@ dotest: test
 #	$(CC) -o $@ $(TEST_MAIN) $(OBJECTS)  $(C_LIB)
 #	$(CC) -o $@ $^  $(C_LIB)
 $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
-	$(CC) -o $@ $^ $(CFLAGS) $(C_LIB)
+	$(CC) $(C_INCLUDE) -o $@ $^ $(CFLAGS) $(C_LIB)
 
 ##############################
 ## General compile rule

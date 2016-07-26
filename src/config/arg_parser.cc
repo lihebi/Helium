@@ -122,6 +122,14 @@ void ArgParser::PrintHelp() {
   } else {
     std::cout<< "Usage: helium [options] <folder>" <<std::endl;
     std::cout<< m_help_options << std::endl;
+    std::cout << ""  << "\n";
+    std::cout << "Examples:"  << "\n";
+    std::cout << "Buffer Overflow bugs:"  << "\n";
+    std::cout << "\t" << "helium -s snippets/ --print='ci,ce,col' buffer-overflow/"  << "\n";
+    std::cout << "Double free bugs:"  << "\n";
+    std::cout << "\t" << "helium -s snippets/ --print='ci,ce,col,io,ana,t' double-free/ --conf='instrument-address=true'"  << "\n";
+    std::cout << "Null Dereference bugs:"  << "\n";
+    std::cout << "\t" << "helium -s snippets/ null-deref --print='ci,ce,col,io,ana' --conf='test-number=100,test-global-variable=true,instrument-address=true'"  << "\n";
   }
 }
 

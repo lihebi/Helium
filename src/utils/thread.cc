@@ -16,6 +16,7 @@
 /**
  * Is there a way to pass arbitrary commands? I don't think so, the redirect is handled by shel. So some shell library shall be used, e.g. bash, readline.
  * Another alternative: boost thread library.
+ * @param [out] argv NULL terminated array
  */
 
 static int split_cmd(const char *scon, char** &argv) {
@@ -69,6 +70,8 @@ std::string utils::exec(const char* cmd, int *status, double timeout_d) {
       char **argv = NULL;
       // the argv is malloc-ed, but anyway the process will exit, it will be released
       split_cmd(cmd, argv);
+      // DEBUG
+      // std::cerr << cmd  << "\n";
       execvp(argv[0], argv);
       perror("execvp");
       exit(1);

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "utils.h"
+#include "utils/utils.h"
 
 int main(int argc, char** argv) {
   utils::seed_rand();

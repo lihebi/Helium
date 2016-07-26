@@ -117,6 +117,7 @@ Helium::Helium(int argc, char* argv[]) {
     std::string tmpdir = utils::create_tmp_dir();
     create_tagfile(m_folder, tmpdir+"/tags");
     tagfile = tmpdir+"/tags";
+    std::cout << "created tagfile: " << tagfile  << "\n";
     SnippetDB::Instance()->Create(tagfile, output_folder);
     exit(0);
   }

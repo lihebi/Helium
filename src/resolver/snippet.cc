@@ -4,6 +4,7 @@
 #include "utils/utils.h"
 
 #include "parser/ast.h"
+#include "config/options.h"
 
 using namespace utils;
 
@@ -15,11 +16,23 @@ using namespace utils;
  *******************************/
 
 CtagsEntry::CtagsEntry(const tagEntry* const entry) {
+  print_trace("CtagsEntry::CtagsEntry");
   m_name = entry->name;
   m_file = entry->file;
   m_line = entry->address.lineNumber;
   m_pattern = entry->address.pattern;
-  m_type = *(entry->kind);
+  if (entry->kind) {
+    m_type = *(entry->kind);
+  } else {
+    print_warning("Warning: CtagsEntry::CtagsEntry: entry->kind == NULL");
+    std::cout << "warning:"  << "\n";
+    std::cout << m_name  << "\n";
+    std::cout << m_file  << "\n";
+    std::cout << m_line  << "\n";
+    std::cout << m_pattern  << "\n";
+    m_type = 'x';
+    assert(false);
+  }
   if (m_file.find("/") != std::string::npos) {
     m_simple_filename = m_file.substr(m_file.rfind("/")+1);
   }
@@ -160,6 +173,7 @@ std::vector<std::string> query_code(const std::string& code, const std::string& 
 }
 
 Snippet::Snippet(const CtagsEntry& entry) {
+  print_trace("Snippet::Snippet");
   /**
    * 1. get code
    * 2. get signature

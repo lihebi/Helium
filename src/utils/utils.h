@@ -2,6 +2,7 @@
 #define __UTIL_H__
 
 #include "common.h"
+
 #include <pugixml.hpp>
 #include <stdlib.h>
 #include <sys/types.h>

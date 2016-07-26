@@ -316,6 +316,7 @@ RelKind check_relation_p(std::vector<std::string> d1, std::vector<std::string> d
  * 4. construct data into m_raw_data
  */
 void Analyzer::processCSVFile(std::string csv_file) {
+  print_trace("Analyzer::processCSVFile");
   std::ifstream is;
   is.open(csv_file);
   assert(is.is_open());
@@ -425,6 +426,7 @@ void Analyzer::processCSVFile(std::string csv_file) {
  * - HELIUM_POI: whether the POI right before POI is printed
  */
 Analyzer::Analyzer(std::string csv_file, std::set<std::string> conditions) {
+  print_trace("Analyzer::Analyzer");
   processCSVFile(csv_file);
   // process the raw data
   for (int i=0;i<(int)m_header.size();++i) {
@@ -458,6 +460,7 @@ Analyzer::~Analyzer() {
 }
 
 void Analyzer::createSimplifiedHeader() {
+  print_trace("Analyzer::createSimplifiedHeader");
   // std::map<std::string, std::string> simplified_header;
   for (std::string h : m_header) {
     if (h.size() > 3) {
@@ -483,6 +486,7 @@ void Analyzer::createSimplifiedHeader() {
  * @return a set of string template to check
  */
 void Analyzer::processConditions(std::set<std::string> conditions) {
+  print_trace("Analyzer::processConditions");
   // std::set<std::string> ret;
   for (std::string condition : conditions) {
     // FIXME formula needs to be free-d

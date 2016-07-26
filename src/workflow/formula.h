@@ -30,6 +30,7 @@ class Formula {
 public:
   static bool is_constant(std::string);
   Formula(std::string lhs, std::string op, std::string rhs);
+  virtual ~Formula() {};
   FormulaKind GetKind() {
     return m_kind;
   }

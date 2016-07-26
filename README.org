@@ -30,7 +30,7 @@ brew install ctags
 
 This will overwrite the =readtags.h= header file.
 
-*** google test (optional, required for running built-in unit tests)
+*** google test
 Follow instructions on [[https://github.com/google/googletest][Google Test]].
 Basically
 
@@ -41,11 +41,37 @@ cmake ..
 make
 make install # will install libgtest.a to standard location
 #+END_SRC
+
+On debian, you can actually grab gtest from apt:
+#+BEGIN_EXAMPLE
+apt-get install libgtest-dev
+#+END_EXAMPLE
+
+This only install the header and the source files, not the static library.
+To build the static library:
+#+BEGIN_EXAMPLE
+cd /tmp
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RELEASE /usr/src/gtest
+make
+sudo mv libg* /usr/lib/
+#+END_EXAMPLE
+
 *** sqlite3
 Install the sqlite3 develop package.
 *** SrcML
 http://www.srcml.org/
 
+*** autoconf
+*** gnulib && helium-lib
+#+BEGIN_EXAMPLE
+git clone https://github.com/lihebi/helium-lib
+apt-get install gnulib
+cd helium-lib
+# follow instruction to bulid config.h and libgnu.a
+# FIXME make sure this config.h is used, a.k.a. in the beginning of C_INCLUDE_PATH
+#+END_EXAMPLE
 
 ** compile
 

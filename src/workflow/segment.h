@@ -2,7 +2,7 @@
 #define SEGMENT_H
 
 #include "parser/ast_node.h"
-#include "type/Variable.h"
+#include "type/variable.h"
 
 std::string get_head();
 std::string get_foot();

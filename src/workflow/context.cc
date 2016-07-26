@@ -673,8 +673,12 @@ std::string Context::getMakefile() {
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
     + "\tcc -g -std=c11 main.c "
-    + "-I$(HOME)/github/gnulib/lib " // gnulib headers
+    // gnulib should not be used:
+    // 1. Debian can install it in the system header, so no longer need to clone
+    // 2. helium-lib already has those needed headers, if installed correctly by instruction
+    // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     + "-I$(HOME)/github/helium-lib " // config.h
+    + "-I$(HOME)/github/helium-lib/lib " // gnulib headers
     + "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
     + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
@@ -1052,7 +1056,7 @@ void Context::simplify() {
    */
   XMLNode cond_node = problem_node->GetCondition();
   std::string cond = get_text(cond_node);
-  Formula *formula = FormulaFactory::CreateFormula(cond);
+  // Formula *formula = FormulaFactory::CreateFormula(cond);
   // TODO
   // formula->GetInputSpec();
   /**
