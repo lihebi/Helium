@@ -950,11 +950,12 @@ void Context::Test() {
     test_result.GetTransferFunctions();
 
     Analyzer analyzer(csv_file, m_seg->GetConditions());
-    TestSummary summary = analyzer.GetSummary();
-    if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
-      // hard to trigger, go to simplify approach
-      simplify();
-    }
+    // TODO NOW
+    // TestSummary summary = analyzer.GetSummary();
+    // if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
+    //   // hard to trigger, go to simplify approach
+    //   simplify();
+    // }
     std::vector<std::string> invs = analyzer.GetInvariants();
     std::vector<std::string> pres = analyzer.GetPreConditions();
     std::vector<std::string> trans = analyzer.GetTransferFunctions();
