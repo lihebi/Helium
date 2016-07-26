@@ -2,7 +2,10 @@
 #include "utils/utils.h"
 #include <gtest/gtest.h>
 
-TEST(snippet_test_case, registry_test) {
+/**
+ * Very old code, DEPRECATED
+ */
+TEST(snippet_test_case, DISABLED_registry_test) {
   ctags_load("test/benchmark/snippet.tag");
   SnippetRegistry::Instance()->Resolve("domain_ctx");
 }
@@ -18,7 +21,10 @@ enum context { domain_ctx, owner_ctx, mailname_ctx, hostname_ctx };
   ASSERT_EQ(result.size(), 4);
 }
 
-TEST(snippet_test_case, snippet_test) {
+/**
+ * DEPRECATED
+ */
+TEST(snippet_test_case, DISABLED_snippet_test) {
   ctags_load("test/benchmark/snippet.tag");
   std::vector<CtagsEntry> entries = ctags_parse("domain_ctx");
   ASSERT_EQ(entries.size(), 1);

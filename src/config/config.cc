@@ -107,12 +107,17 @@ int Config::GetInt(std::string name) {
   // std::invalid_argument
   // std::out_of_range
   std::string s = m_map[name];
+  std::cout << s  << "\n";
+  int ret = -1;
+  if (is_number(s)) {
+    ret = std::stoi(m_map[name]); 
+  }
   // FIXME how to detect if config is not a number?
   // for (char c : s) {
   //   if (!isdigit(c)) return -1;
   // }
   // But no, may not! I have checked every char is digit!
-  return std::stoi(m_map[name]);
+  return ret;
 }
 
 /**
@@ -160,9 +165,12 @@ ccc-ddd  =  1200 # another comment
 
 )raw_prefix";
   Config::Instance()->ParseString(std::string(raw));
+  std::cout << "1"  << "\n";
   EXPECT_EQ(Config::Instance()->GetString("aaa"), "hello");
   EXPECT_EQ(Config::Instance()->GetString("bbb"), "world");
   EXPECT_EQ(Config::Instance()->GetString("ccc-ddd"), "1200");
+  std::cout << "2"  << "\n";
   EXPECT_EQ(Config::Instance()->GetInt("ccc-ddd"), 1200);
   EXPECT_EQ(Config::Instance()->GetInt("bbb"), -1);
+  std::cout << "3"  << "\n";
 }
