@@ -15,6 +15,8 @@ static bool header_exists(const std::string header) {
   if (fs::exists(p)) return true;
   p = "/usr/local/include/" + header;
   if (fs::exists(p)) return true;
+  p = "/usr/include/x86_64-linux-gnu/" + header;
+  if (fs::exists(p)) return true;
   return false;
 }
 

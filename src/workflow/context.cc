@@ -744,6 +744,7 @@ std::string Context::getMakefile() {
     + "-I$(HOME)/github/helium-lib " // config.h
     + "-I$(HOME)/github/helium-lib/lib " // gnulib headers
     + "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
+    + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
     + "\trm -rf *.out\n"

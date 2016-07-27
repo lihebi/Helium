@@ -120,7 +120,9 @@ std::string Char::getOutputCode_Zero(std::string var) {
     // FIXME for a char[], only output the sizeof the buffer.
     // this is because I got too many not important invariants
     // ret += get_strlen_output(var);
-    ret += get_addr_output(var);
+    if (Config::Instance()->GetBool("instrument-address")) {
+      ret += get_addr_output(var);
+    }
   } else if (m_dimension == 2) {
     // TODO
     ret += "// HELIUM_TODO char[][]\n";
@@ -177,7 +179,7 @@ std::string Char::getOutputCode_Two(std::string var) {
  */
 std::string Char::GetOutputCode(std::string var) {
   std::string ret;
-  ret += "// Char::GetOutputCode " + var + " Dimension: " + std::to_string(m_pointer) + "\n";
+  ret += "// Char::GetOutputCode " + var + " pointer: " + std::to_string(m_pointer) + "\n";
   if (m_pointer == 0) {
     ret += getOutputCode_Zero(var);
   } else if (m_pointer == 1) {

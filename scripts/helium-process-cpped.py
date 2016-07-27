@@ -21,7 +21,7 @@ def remove_extra(filename):
         # line = "# 1 \"gzip.c\" 2"
         pattern = (r"^#\s*\d+\s+"
                    r"\"([\w\.\-\_<>]+)\"" # first capturing group, the file name
-                   r"\s+(\d+)")
+                   r"\s+(\d*)") # optional flags
         match = re.search(pattern, line)
         if output:
             if not line.startswith('#') and len(line) != 1:
@@ -34,10 +34,19 @@ def remove_extra(filename):
             # print(filename + ":" + flag)
             # print("0: " + g0)
             # print("1: " + g1)
-            if flag == '2' and _filename == filename:
+            # if flag == '2' and _filename == filename:
+            #     output = True
+            # if flag == '1':
+            #     output = False
+            # do not use flag. Everytime the line marker is the same as file name, turn on output
+            # otherwise turn off it
+            # CAUTION the filename should be the same, otherwise will output empty
+            # e.g. gzip.h > gzip.cpp.h, need to mv back to original filename
+            if _filename == filename:
                 output = True
-            if flag == '1':
+            else:
                 output = False
+                
 
 
 if __name__ == "__main__":
