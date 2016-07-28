@@ -98,10 +98,9 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
       return new Int(raw, dims);
     } else {
       std::cout << raw  << "\n";
-      std::cout << "Debug pause: enter to continue"  << "\n";
-      getchar();
+      // std::cout << "Debug pause: enter to continue"  << "\n";
+      // getchar();
       return NULL;
-      // assert(false);
       // FIXME might be enum!
     }
   } else if (SystemResolver::Instance()->Has(id)) {
@@ -158,7 +157,8 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
   // FIXME TODO handle the case where the type is not created correctly (NULL)
   // It should be in model.cc, in Decl class
   std::cout << raw  << "\n";
-  assert(false);
+  // DEBUG
+  // assert(false);
   return NULL;
 }
 Type* TypeFactory::CreateType(ast::XMLNode decl_node, int token) {

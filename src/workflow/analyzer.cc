@@ -400,6 +400,12 @@ void Analyzer::processCSVFile(std::string csv_file) {
     std::cout << "| no reach POI, return non-zero: " << no_reach_poi_test_failure  << "\n";
     std::cout << "-------------------------"  << "\n";
   }
+
+  if (reach_poi_test_success + reach_poi_test_failure >0) {
+    log("reach_poi\n");
+  } else {
+    log("no_poi\n");
+  }
   std::cout << "Valid tests: " << reach_poi_test_failure  << "\n";
 
   m_summary.total_test = total;

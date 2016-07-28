@@ -16,7 +16,7 @@ std::string Void::GetInputCode(std::string var) {
   var = "No use";
   assert(m_pointer > 0 && "A void should be a pointer");
   // what to be generate here?
-  assert(false && "I'm not clear whether to generate input for a void*");
+  // assert(false && "I'm not clear whether to generate input for a void*");
   return ret;
 }
 std::string Void::GetOutputCode(std::string var) {

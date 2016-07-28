@@ -801,6 +801,7 @@ void Context::Test() {
   builder.Compile();
   if (builder.Success()) {
     g_compile_success_no++;
+    log("compile success\n");
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
       utils::print("compile success\n", utils::CK_Green);
     }
@@ -1085,6 +1086,7 @@ void Context::Test() {
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
       utils::print("compile error\n", utils::CK_Red);
     }
+    log("compile error\n");
     if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
       utils::print(".", utils::CK_Red);
       std::cout << std::flush;

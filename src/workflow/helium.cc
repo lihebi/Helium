@@ -175,9 +175,13 @@ Helium::Helium(int argc, char* argv[]) {
     // ctags_load(m_folder + "/tags");
     // create tagfile
     // std::cout << "creating tag file ..."  << "\n";
-    create_tagfile(m_folder, "/tmp/helium.tags");
+    std::string tmpdir = utils::create_tmp_dir();
+    create_tagfile(m_folder, tmpdir+"/tags");
+    tagfile = tmpdir+"/tags";
+    // create_tagfile(m_folder, "/tmp/helium.tags");
     // std::cout << "done"  << "\n";
-    ctags_load("/tmp/helium.tags");
+    // ctags_load("/tmp/helium.tags");
+    ctags_load(tagfile);
   } else {
     ctags_load(tagfile);
   }

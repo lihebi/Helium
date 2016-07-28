@@ -208,8 +208,12 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
  */
 void ProcessSeg(Segment *seg) {
   print_trace("ProcessSeg()");
+  int count = 0;
+  int limit = Config::Instance()->GetInt("context-search-limit");
   while(seg->ContinueNextContext()) {
     seg->TestNextContext();
+    count++;
+    if (count > limit) return;
     // build
     // Builder builder;
     // builder.SetMain(seg->GetMain());

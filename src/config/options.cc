@@ -90,6 +90,10 @@ void print_warning(const std::string &s) {
   }
 }
 
+void log(std::string s) {
+  utils::append_file("helium_log.txt", s);
+}
+
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;
 }

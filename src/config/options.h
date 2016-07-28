@@ -5,6 +5,7 @@
 
 void print_trace(const std::string &s);
 void print_warning(const std::string &s);
+void log(std::string s);
 
 typedef enum {
   POK_CompileError // print compile error

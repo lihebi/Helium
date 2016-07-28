@@ -28,7 +28,8 @@ std::string Char::GetInputCode(std::string var) {
       assert(false && "char [][][]");
     }
   } else if (m_pointer == 1) {
-    assert(m_dimension == 0 && "do not support array of pointer for now.");
+    // DEBUG
+    // assert(m_dimension == 0 && "do not support array of pointer for now.");
     // ret += get_scanf_code("%d", "&helium_size");
     // ret += get_malloc_code(var, "char", "helium_size");
     ret += get_str_input_code(var);
