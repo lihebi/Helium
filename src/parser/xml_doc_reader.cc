@@ -2,6 +2,8 @@
 #include "utils/utils.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
+
+#include "resolver/snippet_db.h"
 namespace fs = boost::filesystem;
 XMLDocReader *XMLDocReader::m_instance = NULL;
 
@@ -36,6 +38,17 @@ ast::XMLDoc* XMLDocReader::ReadString(const std::string &code) {
   pugi::xml_document *doc = new pugi::xml_document();
   doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
   m_string_docs.push_back(doc);
+  return doc;
+}
+
+/**
+ * Create the XMLDoc for a snippet in database.
+ */
+ast::XMLDoc* XMLDocReader::ReadSnippet(int id) {
+  if (m_snippet_docs.count(id) == 1) return m_snippet_docs[id];
+  std::string code = SnippetDB::Instance()->GetCode(id);
+  ast::XMLDoc *doc = CreateDocFromString(code);
+  m_snippet_docs[id] = doc;
   return doc;
 }
 

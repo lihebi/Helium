@@ -316,6 +316,8 @@ void Segment::extractJumpOutCondition() {
 /**
  * Query all the caller of the func, and get all the <function> nodes
  * The XML doc will be stored in XMLDocReader, no need to free
+ * TODO this function use the absolute file name. Disable this behavior.
+ * Instead, record a "offset" field in meta data.
  */
 XMLNodeList get_caller_nodes(std::string func) {
   std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
@@ -323,8 +325,12 @@ XMLNodeList get_caller_nodes(std::string func) {
   for (std::string caller : caller_funcs) {
     std::set<int> ids = SnippetDB::Instance()->LookUp(caller, {SK_Function});
     for (int id : ids) {
-      std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
-      XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
+      // FIXME use this file name, VERY BUGGY
+      // Going to let XMLDocReader maintain a separate storage for Doc in SnippetDB.
+      // TODO FIXME NOW the slice will be completely wrong unless I use a "offset" for snippet
+      XMLDoc *doc = XMLDocReader::Instance()->ReadSnippet(id);
+      // std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
+      // XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
       XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
       for (XMLNode func : funcs) {
         if (function_get_name(func) == caller) {

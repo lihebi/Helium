@@ -31,6 +31,10 @@ public:
   }
   ast::XMLDoc* ReadFile(std::string filename);
   ast::XMLDoc* ReadString(const std::string &code);
+
+  ast::XMLDoc* ReadSnippet(int snippet_id);
+
+  
   static std::vector<std::string> QueryCode(const std::string &code, std::string query);
   static std::string QueryCodeFirst(const std::string &code, std::string query);
   /**
@@ -46,6 +50,7 @@ private:
   static XMLDocReader *m_instance;
   std::map<std::string, ast::XMLDoc*> m_docs;
   std::vector<ast::XMLDoc*> m_string_docs;
+  std::map<int, ast::XMLDoc*> m_snippet_docs;
 };
 
 #endif /* XML_DOC_READER_H */
