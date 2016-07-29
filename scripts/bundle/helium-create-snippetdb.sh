@@ -29,13 +29,16 @@ for bench in $1/*; do
         simple_name=${bench##*/}
         cp -r $bench $simple_name
     elif [[ $bench == *.tar.gz ]]; then
-        tar zxvf $bench > /dev/null
+        echo "uncompressing .."
+        tar zxvf $bench > /dev/null 2>&1
         bench=${bench%.tar.gz}
     elif [[ $bench == *.zip ]]; then
-        unzip $bench > /dev/null
+        echo "uncompressing .."
+        unzip $bench > /dev/null 2>&1
         bench=${bench%.zip}
     elif [[ $bench == *.tgz ]]; then
-        tar xvf $bench > /dev/null
+        echo "uncompressing .."
+        tar xvf $bench > /dev/null 2>&1
         bench=${bench%.tgz}
     else
         continue

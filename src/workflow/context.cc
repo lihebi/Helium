@@ -334,17 +334,21 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
     for (std::string id : m.second) {
       SymbolTableValue *decl = m.first->GetSymbolTable()->LookUp(id);
       Type *t = decl->GetType();
-      assert(t);
-      m_decls[ast][id] = t;
+      // assert(t);
+      if (t) {
+        m_decls[ast][id] = t;
+      }
     }
   }
   for (auto m : decl_input_m) {
     for (std::string id : m.second) {
       SymbolTableValue *decl = m.first->GetSymbolTable()->LookUp(id);
       Type *t = decl->GetType();
-      assert(t);
-      m_decls[ast][id] = t;
-      m_inputs[ast][id] = t;
+      // assert(t);
+      if (t) {
+        m_decls[ast][id] = t;
+        m_inputs[ast][id] = t;
+      }
     }
   }
   // remove duplication of m_decls and m_inputs

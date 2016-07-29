@@ -237,7 +237,7 @@ int get_true_linum(std::string filename, int linum) {
   print_trace("get_true_linum");
   std::string content = utils::read_file(filename);
   std::vector<std::string> sp = utils::split(content, '\n');
-  int ret = 0;
+  int ret = linum;
   for (int idx=0;idx<(int)sp.size();idx++) {
     std::string line = sp[idx];
     if (line.length() > 0 && line[0] == '#') {
@@ -246,17 +246,17 @@ int get_true_linum(std::string filename, int linum) {
         std::string linum_str = line_marker[1];
         assert(utils::is_number(linum_str));
         int marker_linum = std::stoi(linum_str);
-        if (marker_linum < linum) {
+        if (marker_linum <= linum) {
           // update ret
-          ret = idx + linum - marker_linum;
-          // std::cout << "marker: " << marker_linum << " linum: " << linum << " current: " << idx  << "\n";
+          ret = idx + linum - marker_linum + 2;
+          std::cout << "marker: " << marker_linum << " linum: " << linum << " current: " << idx  << "\n";
         } else {
-          return ret+2;
+          return ret;
         }
       }
     }
   }
-  return linum;
+  return ret;
 }
 
 /**

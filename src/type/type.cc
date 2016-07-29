@@ -138,8 +138,11 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
           utils::trim(raw);
         }
         // std::cout << raw  << "\n";
-        assert(code.find("typedef") != std::string::npos);
-        assert(code.find(raw) != std::string::npos);
+        // assert(code.find("typedef") != std::string::npos);
+        // assert(code.find(raw) != std::string::npos);
+        if (code.find("typedef") == std::string::npos || code.find(raw) == std::string::npos) {
+          return NULL;
+        }
         code = code.substr(code.find("typedef") + strlen("typedef"));
 
         

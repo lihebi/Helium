@@ -122,7 +122,8 @@ Type* resolve_type(std::string var, ASTNode *node) {
     else {
       // special
       std::cerr << var  << "\n";
-      assert(false);
+      return NULL;
+      // assert(false);
     }
   }
 }

@@ -135,7 +135,8 @@ std::string Char::getOutputCode_Zero(std::string var) {
 
 std::string Char::getOutputCode_One(std::string var) {
   std::string ret;
-  assert(m_dimension == 0 && "do not support array of pointer for now.");
+  if (m_dimension != 0) return "";
+  // assert(m_dimension == 0 && "do not support array of pointer for now.");
   // FIXME For a char pointer, do not output the size.
   // FIXME why do not output?
   // ret += get_sizeof_output(var);
