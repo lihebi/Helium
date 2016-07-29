@@ -734,7 +734,7 @@ std::string Context::getSupportBody() {
 
 std::string Context::getMakefile() {
   std::string makefile;
-  std::strin cc = Config::Instance()->GetString("cc");
+  std::string cc = Config::Instance()->GetString("cc");
   makefile += "CC:=" + cc;
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
