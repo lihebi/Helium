@@ -210,9 +210,10 @@ Helium::Helium(int argc, char* argv[]) {
 
   /* load system tag file */
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
-  // DEPRECATED
-  HeaderSorter::Instance()->Load(m_folder);
-
+  // HeaderSorter::Instance()->Load(m_folder);
+  std::string src_folder = args.GetString("src-folder");
+  assert(!src_folder.empty());
+  HeaderSorter::Instance()->Load(src_folder);
   
   // std::string output_folder = Config::Instance()->GetString("output-folder");
   // assert(!output_folder.empty() && "output-folder is not set");
@@ -365,12 +366,12 @@ Helium::Run() {
    */
   std::cerr << "***** Helium Benchmark Meta *****"  << "\n";
   std::cerr << "** total file: " << m_files.size()  << "\n";
-  int func_count = countFunction();
-  std::cerr << "** totla function: " << func_count  << "\n";
+  // int func_count = countFunction();
+  // std::cerr << "** totla function: " << func_count  << "\n";
   std::cerr << "*********************************" << "\n";
-  ExpASTDump::Instance()->file_count = m_files.size();
-  ExpASTDump::Instance()->func_count = func_count;
-  ExpASTDump::Instance()->benchmark = m_folder;
+  // ExpASTDump::Instance()->file_count = m_files.size();
+  // ExpASTDump::Instance()->func_count = func_count;
+  // ExpASTDump::Instance()->benchmark = m_folder;
   // double t1 = utils::get_time();
   /**
    * Code selection method is given as a file, so this is a config file, contains the <file:line> format

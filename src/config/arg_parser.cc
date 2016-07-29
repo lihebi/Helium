@@ -20,6 +20,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("poi", po::value<std::string>(), "poi file")
     ("tagfile,t", po::value<std::string>(), "tag file")
     ("snippet-db-folder,s", po::value<std::string>(), "snippet database folder")
+    ("src-folder,c", po::value<std::string>(), "source file folder (not orig)")
     ("verbose,v", "verbose output")
     ("output,o", po::value<std::string>(), "output location")
     ("conf", po::value<std::string>(), "key=value pair of configure to owerwrite items in helium.conf")
@@ -123,6 +124,9 @@ void ArgParser::PrintHelp() {
   } else {
     std::cout<< "Usage: helium [options] <folder>" <<std::endl;
     std::cout<< m_help_options << std::endl;
+    std::cout << ""  << "\n";
+    std::cout << "Important options:"  << "\n";
+    std::cout << "\t" << "-c src"  << "\n";
     std::cout << ""  << "\n";
     std::cout << "Examples:"  << "\n";
     std::cout << "Buffer Overflow bugs:"  << "\n";

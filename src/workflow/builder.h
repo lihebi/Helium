@@ -26,6 +26,7 @@ public:
   std::string GetExecutable();
   std::string GetDir() {return m_dir;}
 private:
+  void preProcess();
   void postProcess();
   // void writeMain();
   // void writeSupport();

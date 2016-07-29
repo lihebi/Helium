@@ -195,6 +195,26 @@ assert(helium_stack_guard_1==1);
   std::cout <<result  << "\n";
 }
 
+static std::string remove_line_marker(std::string s) {
+  std::string ret;
+  std::vector<std::string> sp = utils::split(s, '\n');
+  for (std::string line : sp) {
+    if (!line.empty() && line[0] == '#') {
+      if (line.find("include") == std::string::npos) {
+        continue;
+      }
+    }
+    ret += line + "\n";
+  }
+  return ret;
+}
+
+void Builder::preProcess() {
+  // main and support, remove line markers
+  m_main = remove_line_marker(m_main);
+  m_support = remove_line_marker(m_support);
+}
+
 void
 Builder::Write() {
   /*******************************
@@ -208,6 +228,8 @@ Builder::Write() {
   if (Config::Instance()->GetString("helium-guard") == "true") {
     m_main = add_helium_guard(m_main);
   }
+
+  preProcess();
 
 
   utils::write_file(m_dir+"/main.c", m_main);

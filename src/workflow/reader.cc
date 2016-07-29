@@ -210,7 +210,9 @@ void ProcessSeg(Segment *seg) {
   print_trace("ProcessSeg()");
   int count = 0;
   int limit = Config::Instance()->GetInt("context-search-limit");
+  // int skip_to_seg = Config::Instance()->GetInt("skip-to-seg");
   while(seg->ContinueNextContext()) {
+    // if (skip_to_seg < count) continue;
     seg->TestNextContext();
     count++;
     if (count > limit) return;
