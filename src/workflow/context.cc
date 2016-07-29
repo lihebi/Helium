@@ -734,9 +734,11 @@ std::string Context::getSupportBody() {
 
 std::string Context::getMakefile() {
   std::string makefile;
+  std::strin cc = Config::Instance()->GetString("cc");
+  makefile += "CC:=" + cc;
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
-    + "\tcc -g -std=c11 main.c "
+    + "\t$(CC) -g -std=c11 main.c "
     // gnulib should not be used:
     // 1. Debian can install it in the system header, so no longer need to clone
     // 2. helium-lib already has those needed headers, if installed correctly by instruction

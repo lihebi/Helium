@@ -66,11 +66,15 @@ def remove_extra2(filename):
                 continue
             _file = _file[1:-1]
             if _file == filename:
+                # print out the line marker, for 
+                print(line, end='')
                 output = True
             else:
                 output = False
         else:
-            if output and len(line) != 1:
+            # if output and len(line) != 1:
+            if output:
+                # output even empty line, because I want to keep the line number precise
                 print(line, end='')
 
 if __name__ == "__main__":

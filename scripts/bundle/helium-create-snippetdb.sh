@@ -1,5 +1,6 @@
 #!/bin/bash
 
+CC=${CC=cc}
 # create snippet db for all the benchmarks in argument
 
 if [[ $# -eq 0 || $1 == '-h' ]]; then
@@ -59,7 +60,7 @@ for bench in $1/*; do
         # so we'd better process it from original location
         # cpp will terminate for unfound local header files
         # Maybe just leave it, because the error I found for apache is just the file is missing, not loation problem
-        cc -E -nostdinc "$simple_name" > "../tmp/$simple_name" 2>/dev/null
+        $CC -E -nostdinc "$simple_name" > "../tmp/$simple_name" 2>/dev/null
         cd ../tmp
         # 5. use helium-process-cpped.py to remove extra line marker staffs, rename back
         helium-process-cpped.py "$simple_name" > "../cpped/$simple_name"
