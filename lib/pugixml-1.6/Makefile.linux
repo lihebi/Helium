@@ -1,8 +1,8 @@
 SRC=pugixml.cpp
 OBJ=pugixml.o
 HEADERS=pugixml.hpp pugiconfig.hpp
-REAL_NAME=libpugi.so.1
-SO_NAME=libpugi.so
+REAL_NAME=libpugixml.so.1
+SO_NAME=libpugixml.so
 CC=g++
 all: $(REAL_NAME)
 
