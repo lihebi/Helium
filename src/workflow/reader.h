@@ -5,9 +5,17 @@
 #include "parser/ast.h"
 #include "utils/utils.h"
 
+class POISpec {
+public:
+  std::string filename;
+  int linum = 0;
+  std::string type;
+};
+
 class Reader {
 public:
   Reader(const std::string &filename);
+  Reader(std::string filename, POISpec poi);
   // Reader(const std::string &filename, std::vector<int> line_numbers);
   virtual ~Reader() {}
   void Read();

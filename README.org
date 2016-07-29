@@ -144,3 +144,10 @@ Use ~helium --conf "key=value,key2=value2"~ to change each single config.
 #+begin_src shell
 helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
 #+end_src
+
+* Trouble Shooting
+** What to look at when compile failure everywhere
+- check if all required package installed
+- check if compiler set correctly and available
+  - CC=clang helium-create-snippet.sh /folder
+  - helium --conf="cc=clang"

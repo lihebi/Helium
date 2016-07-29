@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+
 class Helium {
 public:
   Helium(int argc, char** argv);
@@ -12,6 +13,7 @@ private:
   int countFunction();
   std::string m_folder;
   std::vector<std::string> m_files;
+  std::string m_poi_file;
 };
 
 #endif

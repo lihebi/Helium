@@ -17,6 +17,7 @@ ArgParser::ArgParser(int argc, char* argv[])
   options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("config,f", po::value<std::string>(), "config file")
+    ("poi", po::value<std::string>(), "poi file")
     ("tagfile,t", po::value<std::string>(), "tag file")
     ("snippet-db-folder,s", po::value<std::string>(), "snippet database folder")
     ("verbose,v", "verbose output")
@@ -127,6 +128,7 @@ void ArgParser::PrintHelp() {
     std::cout << "Buffer Overflow bugs:"  << "\n";
     std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true'"  << "\n";
     std::cout << "\t" << "--conf='cc=clang'"  << "\n";
+    std::cout << "\t" << "--poi=../../ncompress-poi.txt"  << "\n";
     std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col,csvsum,ana' --conf='instrument-strlen=true, test-number=100'"  << "\n";
     std::cout << "Double free bugs:"  << "\n";
     std::cout << "\t" << "helium -s snippets/ --print='ci,ce,col,io,ana,t' double-free/ --conf='instrument-address=true'"  << "\n";

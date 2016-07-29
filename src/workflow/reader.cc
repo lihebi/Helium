@@ -230,6 +230,83 @@ void ProcessSeg(Segment *seg) {
   }
 }
 
+/**
+ * Get true linum in consideration of line marker
+ */
+int get_true_linum(std::string filename, int linum) {
+  print_trace("get_true_linum");
+  std::string content = utils::read_file(filename);
+  std::vector<std::string> sp = utils::split(content, '\n');
+  int ret = 0;
+  for (int idx=0;idx<(int)sp.size();idx++) {
+    std::string line = sp[idx];
+    if (line.length() > 0 && line[0] == '#') {
+      std::vector<std::string> line_marker = utils::split(line);
+      if (line_marker.size() > 2) {
+        std::string linum_str = line_marker[1];
+        assert(utils::is_number(linum_str));
+        int marker_linum = std::stoi(linum_str);
+        if (marker_linum < linum) {
+          // update ret
+          ret = idx + linum - marker_linum;
+          // std::cout << "marker: " << marker_linum << " linum: " << linum << " current: " << idx  << "\n";
+        } else {
+          return ret+2;
+        }
+      }
+    }
+  }
+  return linum;
+}
+
+/**
+ * 
+  , {NK_Stmt, ANK_Stmt}
+  , {NK_ExprStmt, ANK_Stmt}
+  , {NK_DeclStmt, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
+  , {NK_Break, ANK_Stmt}
+  , {NK_Continue, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
+ */
+Reader::Reader(std::string filename, POISpec poi) {
+  print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
+  // poi contains linum
+  // read the file, use line marker to get the true linum
+  m_doc = XMLDocReader::Instance()->ReadFile(filename);
+  int linum = get_true_linum(filename, poi.linum);
+  std::cout << "true line number: " <<  linum  << "\n";
+  if (poi.type == "stmt") {
+    // get the single statement
+    XMLNode node = ast::find_node_on_line(m_doc->document_element(),
+                                          {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
+                                          linum);
+    assert(node);
+    Segment *seg = new Segment(node);
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
+  } else if (poi.type == "loop") {
+    // get the whole loop
+    /**
+     *   , {NK_While, ANK_While}
+     , {NK_For, ANK_For}
+     , {NK_Do, ANK_Do}
+
+     */
+    XMLNode node = ast::find_node_on_line(m_doc->document_element(),
+                                          {NK_While, NK_For, NK_Do},
+                                          linum
+                                          );
+    assert(node);
+    Segment *seg = new Segment(node, SegKind_Loop);
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
+  }
+}
 
 /**
  * Constructor of Reader should read the filename, and select segments.

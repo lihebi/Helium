@@ -1,6 +1,9 @@
 #!/bin/bash
 
 CC=${CC=cc}
+
+type $CC >/dev/null 2>&1 || { echo >&2 "I require $CC but it's not installed.  Aborting."; exit 1; }
+
 # create snippet db for all the benchmarks in argument
 
 if [[ $# -eq 0 || $1 == '-h' ]]; then

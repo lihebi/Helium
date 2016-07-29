@@ -651,7 +651,15 @@ std::string Context::getSupportBody() {
   // decl the avoid func here
   for (std::string s : avoid_funcs) {
     std::set<int> ids = SnippetDB::Instance()->LookUp(s, {SK_Function});
-    assert(ids.size() == 1);
+    // std::cout << ids.size()  << "\n";
+    // std::cout << s  << "\n";
+    // assert(ids.size() == 1);
+    if (ids.size() == 0) {
+      log_warning("Function " + s + " lookup size: 0");
+      continue;
+    } else if (ids.size() > 1) {
+      log_warning("Function " + s + " lookup size: " + std::to_string(ids.size()));
+    }
     int id = *ids.begin();
     std::string code = SnippetDB::Instance()->GetCode(id);
     std::string decl_code = ast::get_function_decl(code);
@@ -735,7 +743,9 @@ std::string Context::getSupportBody() {
 std::string Context::getMakefile() {
   std::string makefile;
   std::string cc = Config::Instance()->GetString("cc");
-  makefile += "CC:=" + cc;
+  makefile += "CC:=" + cc + "\n";
+  // TODO test if $CC is set correctly
+  // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
     + "\t$(CC) -g -std=c11 main.c "

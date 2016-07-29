@@ -266,6 +266,10 @@ Helium::Helium(int argc, char* argv[]) {
     std::string slice_file = args.GetString("slice-file");
     SimpleSlice::Instance()->SetSliceFile(slice_file);
   }
+
+  if (args.Has("poi")) {
+    m_poi_file = args.GetString("poi");
+  }
 }
 Helium::~Helium() {}
 
@@ -337,8 +341,25 @@ int Helium::countFunction() {
   return ret;
 }
 
+POISpec parse_poi_file(std::string file) {
+  print_trace("parse_poi_file");
+  POISpec ret;
+  // read the first line
+  // split into three parts
+  // simple filename, line number, type
+  std::string content = utils::read_file(file);
+  std::vector<std::string> sp = utils::split(content);
+  assert(sp.size() > 2);
+  ret.filename = sp[0];
+  ret.linum = std::stoi(sp[1]);
+  ret.type = sp[2];
+  assert(ret.type == "loop" || ret.type == "stmt");
+  return ret;
+}
+
 void
 Helium::Run() {
+  print_trace("Helium::Run");
   /**
    * Print some meta data for the benchmark project.
    */
@@ -354,7 +375,7 @@ Helium::Run() {
   /**
    * Code selection method is given as a file, so this is a config file, contains the <file:line> format
    */
-  if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
+  // if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
     // code selection method is a config file, we only need to check those files in the config.
     // std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));
     // for (auto c : conf) {
@@ -366,11 +387,25 @@ Helium::Run() {
     //     // reader.Read();
     //   }
     // }
-  } else {
+  // } else {
+  // }
+  if (m_poi_file.empty()) {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
       // reader.Read();
     }
+  } else {
+    assert(utils::file_exists(m_poi_file));
+    // filename, line number, typ
+    POISpec poi = parse_poi_file(m_poi_file);
+    // find this file
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      std::string filename = *it;
+      if (filename.find(poi.filename) != std::string::npos) {
+        Reader reader(filename, poi);
+      }
+    }
+    // find this line in "cpped" file, by line marker
   }
   // double t2 = utils::get_time();
   std::cerr << "********** End of Helium **********"  << "\n";
