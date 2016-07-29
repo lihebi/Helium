@@ -60,6 +60,7 @@ sudo mv libg* /usr/lib/
 
 *** sqlite3
 Install the sqlite3 develop package.
+*** python3
 *** SrcML
 http://www.srcml.org/
 

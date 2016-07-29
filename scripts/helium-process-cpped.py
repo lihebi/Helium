@@ -21,7 +21,8 @@ def remove_extra(filename):
         # line = "# 1 \"gzip.c\" 2"
         pattern = (r"^#\s*\d+\s+"
                    r"\"([\w\.\-\_<>]+)\"" # first capturing group, the file name
-                   r"\s+(\d*)") # optional flags
+                   # r"\s*(\d*)"  # optional flags
+        )
         match = re.search(pattern, line)
         if output:
             if not line.startswith('#') and len(line) != 1:
@@ -30,7 +31,9 @@ def remove_extra(filename):
             # print(line)
             count += 1
             _filename = match.group(1) # file name in line marker in the pre-processed c file
-            flag = match.group(2) # the flag associated with above line
+            # if filename == "gzip.c":
+            #     print(_filename, file=sys.stderr)
+            # flag = match.group(2) # the flag associated with above line
             # print(filename + ":" + flag)
             # print("0: " + g0)
             # print("1: " + g1)
@@ -48,6 +51,27 @@ def remove_extra(filename):
                 output = False
                 
 
+def remove_extra2(filename):
+    output=False
+    for line in open(filename):
+        if line.startswith('#'):
+            line_marker = line.split()
+            if len(line_marker) < 3:
+                # assert False
+                continue
+            _file = line_marker[2]
+            if _file[0] != '"' or _file[-1] != '"':
+                # print(_file)
+                # assert False
+                continue
+            _file = _file[1:-1]
+            if _file == filename:
+                output = True
+            else:
+                output = False
+        else:
+            if output and len(line) != 1:
+                print(line, end='')
 
 if __name__ == "__main__":
     """
@@ -65,4 +89,5 @@ if __name__ == "__main__":
     #         Popen("cc -E -nostdinc " + f + " > " + f + ".tmp")
     #         Popen("mv " + f + ".tmp " + f)
     # remove_extra(f)
-    remove_extra(sys.argv[1])
+    # remove_extra(sys.argv[1])
+    remove_extra2(sys.argv[1])

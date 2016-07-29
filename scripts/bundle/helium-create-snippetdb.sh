@@ -17,13 +17,26 @@ mkdir helium
 
 # 1. put all benchmarks into a folder
 #    this script runs against that folder
-for bench in $1/*.tar.gz; do
+for bench in $1/*; do
     # 2. for each benchmark, create a dummy project: XXX-cpped/cpped/
     echo "== processing " $bench " ..."
     # this bench is the relative path to .tar.gz
-    tar zxvf $bench > /dev/null
+    if [[ -d $bench ]]; then
+        simple_name=${bench##*/}
+        cp -r $bench $simple_name
+    elif [[ $bench == *.tar.gz ]]; then
+        tar zxvf $bench > /dev/null
+        bench=${bench%.tar.gz}
+    elif [[ $bench == *.zip ]]; then
+        unzip $bench > /dev/null
+        bench=${bench%.zip}
+    elif [[ $bench == *.tgz ]]; then
+        tar xvf $bench > /dev/null
+        bench=${bench%.tgz}
+    else
+        continue
+    fi
     bench=${bench##*/}
-    bench=${bench%.tar.gz}
     # this is simply the name itself
     mkdir helium/$bench
     mkdir helium/$bench/orig
