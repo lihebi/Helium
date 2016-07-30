@@ -151,6 +151,8 @@ void ArgParser::PrintHelp() {
     std::cout << ""  << "\n";
     std::cout << "Preprocessing:"  << "\n";
     std::cout << "\t" << "CC=gcc-6 helium-create-snippetdb.sh /path/to/folder"  << "\n";
+    std::cout << "\t" << "ps -ef | grep 'helium -s' | awk '{print $2}' | xargs kill"  << "\n";
+    std::cout << "\t" << "helium-run-parrel . 100"  << "\n";
   }
 }
 

@@ -15,10 +15,15 @@ function observe_data {
     done
 }
 
+
 if [ $# != 2 ]; then
     echo "Usage: this.sh /path/to/folder 100"
     exit 1
 fi
+
+ps -ef | grep "helium -s"
+ps -ef | grep "helium -s" | awk '{print $2}' | xargs kill
+
 
 background_jobs=""
 
@@ -41,7 +46,7 @@ done
 echo "peirodically observe the data .."
 for (( i=0; i<$2; i++)); do
     sleep 1
-    echo $i
+    echo $i/$2
     observe_data $1
 done
 
