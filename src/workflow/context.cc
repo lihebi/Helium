@@ -753,14 +753,17 @@ std::string Context::getMakefile() {
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
     + "\t$(CC) -g -std=c11 main.c "
-    + "-fsanitize=address "
+    + (Config::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
     // gnulib should not be used:
     // 1. Debian can install it in the system header, so no longer need to clone
     // 2. helium-lib already has those needed headers, if installed correctly by instruction
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
-    + "-I$(HOME)/github/helium-lib " // config.h
-    + "-I$(HOME)/github/helium-lib/lib " // gnulib headers
-    + "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
+    +
+    (Config::Instance()->GetBool("gnulib") ?
+     "-I$(HOME)/github/helium-lib " // config.h
+     "-I$(HOME)/github/helium-lib/lib " // gnulib headers
+     "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
+     : "")
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"

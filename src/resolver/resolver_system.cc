@@ -3,6 +3,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
+#include "config/config.h"
 #include "type/type_helper.h"
 
 namespace fs = boost::filesystem;
@@ -122,12 +123,15 @@ std::string
 SystemResolver::GetHeaders() const {
   std::string code;
   // gnulib related
-  code += "#include <config.h>\n" // FIXME <> or "" ?
-    "#include <exclude.h>\n"
-    "#include <progname.h>\n"
-    "#include <gettext.h>\n"
-    "#include <error.h>\n"
-    "#include <dirname.h>\n"
+  code +=
+    (Config::Instance()->GetBool("gnulib") ?
+     "#include <config.h>\n" // FIXME <> or "" ?
+     "#include <exclude.h>\n"
+     "#include <progname.h>\n"
+     "#include <gettext.h>\n"
+     "#include <error.h>\n"
+     "#include <dirname.h>\n"
+     : "")
     // isdir does not need to include
     ;
   // other system files
