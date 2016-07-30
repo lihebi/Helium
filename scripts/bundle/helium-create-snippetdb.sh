@@ -56,6 +56,7 @@ for bench in $1/*; do
     #    FIXME might have many main function ...
     find "helium/$bench/orig" -name "*.[c|h]" -exec cp "{}" helium/$bench/src/ \;
     cd helium/$bench
+    echo "== Compiler Preprocessing .."
     for file in src/*; do
         # 4. use cc -E -nostdinc to process, rename back to the same name
         simple_name=${file##*/}

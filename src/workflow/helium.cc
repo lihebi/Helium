@@ -121,22 +121,6 @@ Helium::Helium(int argc, char* argv[]) {
     SnippetDB::Instance()->Create(tagfile, output_folder);
     exit(0);
   }
-
-  // if (args.Has("create-srcml")) {
-  //   ast::Doc doc;
-  //   utils::file2xml(m_folder, doc);
-  //   if (args.Has("output")) {
-  //     std::string output_file = args.GetString("output");
-  //     if (output_file.empty()) {
-  //       // FIXME not working
-  //       doc.print(std::cout);
-  //     } else {
-  //       doc.save_file(output_file.c_str());
-  //     }
-  //   }
-  //   exit(0);
-  // }
-
   if (args.Has("print-header-deps")) {
     HeaderSorter::Instance()->Load(m_folder);
     HeaderSorter::Instance()->Dump();

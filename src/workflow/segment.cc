@@ -48,6 +48,10 @@ get_head() {
     "typedef unsigned char u_char;\n"
     "typedef unsigned int u_int;\n"
 
+    // FIXME why I need these?
+    "typedef unsigned char uchar;\n"
+    "typedef unsigned int uint;\n"
+
     "#define HELIUM_ASSERT(cond) if (!(cond)) exit(1)\n"
     ;
 }

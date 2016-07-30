@@ -7,7 +7,7 @@ using namespace utils;
 
 HeaderSorter* HeaderSorter::m_instance = 0;
 
-static boost::regex include_reg("#\\s*include\\s*\"(\\w+\\.h)\"");
+static boost::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
 
 // load all the header files inside the folder recursively,
 // scan the #inlcude "" statement, and get dependence relations between them
@@ -19,14 +19,19 @@ HeaderSorter::Load(const std::string& folder) {
     std::string filename = *it;
     // get only the last component(i.e. filename) in the file path
     filename = filename.substr(filename.rfind("/")+1);
+    // std::cout << "====== opening:: " << filename  << "\n";
     std::ifstream is(*it);
     if (is.is_open()) {
       std::string line;
       while(std::getline(is, line)) {
+        // if (!line.empty() && line.find("#include") != std::string::npos) {
+        //   std::cout << line  << "\n";
+        // }
         // process line
         boost::smatch match;
         if (boost::regex_search(line, match, include_reg)) {
           std::string new_file = match[1];
+          // std::cout << new_file  << "\n";
           // the filename part of including
           if (new_file.find("/") != std::string::npos) {
             new_file = new_file.substr(new_file.rfind("/")+1);
