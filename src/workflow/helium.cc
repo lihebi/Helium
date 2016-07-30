@@ -73,6 +73,14 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  if (args.Has("print-headers")) {
+    std::string header = SystemResolver::Instance()->GetHeaders();
+    // segment::get_head()
+    std::cout << header  << "\n";
+    exit(0);
+  }
+
+
   /*******************************
    ** BEGIN need folder argument
    *******************************/

@@ -48,6 +48,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print-header-deps", "print header dependencies") // DEPRECATED
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
+    ("print-headers", "print header")
     ;
     
 
