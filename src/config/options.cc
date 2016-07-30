@@ -90,13 +90,7 @@ void print_warning(const std::string &s) {
   }
 }
 
-void log(std::string s) {
-  utils::append_file("helium_log.txt", s);
-}
 
-void log_warning(std::string s) {
-  utils::append_file("helium_log.txt", "WW: " + s + "\n");
-}
 
 bool PrintOption::Has(PrintOptionKind kind) {
   return m_kinds.count(kind) == 1;

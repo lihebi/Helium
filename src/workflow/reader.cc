@@ -215,7 +215,7 @@ void ProcessSeg(Segment *seg) {
     // if (skip_to_seg < count) continue;
     seg->TestNextContext();
     count++;
-    if (count > limit) return;
+    if (limit >= 0 && count > limit) return;
     // build
     // Builder builder;
     // builder.SetMain(seg->GetMain());

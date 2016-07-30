@@ -55,6 +55,12 @@ public:
    * For each of the AST!
    */
   void Resolve();
+  /**
+   * Procedure count, aka AST count
+   */
+  int GetProcedureNum() {
+    return m_ast_to_node_m.size();
+  }
   
 private:
   /**

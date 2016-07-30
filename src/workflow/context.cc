@@ -15,7 +15,7 @@
 
 #include "config/options.h"
 #include "config/config.h"
-
+#include "utils/log.h"
 #include <gtest/gtest.h>
 
 using namespace ast;
@@ -659,10 +659,10 @@ std::string Context::getSupportBody() {
     // std::cout << s  << "\n";
     // assert(ids.size() == 1);
     if (ids.size() == 0) {
-      log_warning("Function " + s + " lookup size: 0");
+      helium_log_warning("Function " + s + " lookup size: 0");
       continue;
     } else if (ids.size() > 1) {
-      log_warning("Function " + s + " lookup size: " + std::to_string(ids.size()));
+      helium_log_warning("Function " + s + " lookup size: " + std::to_string(ids.size()));
     }
     int id = *ids.begin();
     std::string code = SnippetDB::Instance()->GetCode(id);
@@ -821,7 +821,7 @@ void Context::Test() {
   builder.Compile();
   if (builder.Success()) {
     g_compile_success_no++;
-    log("compile success\n");
+    helium_dump("compile success\n");
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
       utils::print("compile success\n", utils::CK_Green);
     }
@@ -1106,7 +1106,7 @@ void Context::Test() {
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
       utils::print("compile error\n", utils::CK_Red);
     }
-    log("compile error\n");
+    helium_dump("compile error\n");
     if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
       utils::print(".", utils::CK_Red);
       std::cout << std::flush;

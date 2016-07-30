@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include "context.h"
+#include "utils/log.h"
 
 using namespace ast;
 using namespace utils;
@@ -359,6 +360,13 @@ void Segment::TestNextContext() {
   utils::print(std::to_string(m_context_worklist.size()), utils::CK_Purple);
   Context *ctx = m_context_worklist.front();
   m_context_worklist.pop_front();
+
+  // Procedure Limit
+  int procedure_limit = Config::Instance()->GetInt("procedure-limit");
+  if (procedure_limit >= 0 && ctx->GetProcedureNum() > procedure_limit) {
+    helium_log_trace("procedure limit reached, discard context");
+    return;
+  }
   // Testing
   std::cout << "testing context with new code:";
   ASTNode *first_node = ctx->GetFirstNode();
@@ -371,6 +379,7 @@ void Segment::TestNextContext() {
     ctx->Test();
   }
   if (ctx->IsResolved()) {
+    // this is the output of this method!
     m_resolved = true;
     // output?
     ctx->dump();

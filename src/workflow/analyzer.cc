@@ -2,6 +2,7 @@
 #include "utils/utils.h"
 
 #include "gtest/gtest.h"
+#include "utils/log.h"
 #include "config/options.h"
 
 /********************************
@@ -402,9 +403,9 @@ void Analyzer::processCSVFile(std::string csv_file) {
   }
 
   if (reach_poi_test_success + reach_poi_test_failure >0) {
-    log("reach_poi\n");
+    helium_dump("reach_poi\n");
   } else {
-    log("no_poi\n");
+    helium_dump("no_poi\n");
   }
   std::cout << "Valid tests: " << reach_poi_test_failure  << "\n";
 
