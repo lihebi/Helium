@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
+#include <fcntl.h>
+
 #include <gtest/gtest.h>
 
 #define TIMEOUT_RET_CODE 1234
@@ -141,6 +143,8 @@ std::string utils::exec_in(const char* cmd, const char* input, int *status, doub
       perror("dup error");
       exit(1);
     }
+    int null_fd = open("/dev/null", O_RDONLY);
+    dup2(null_fd, 2);
     close(pipein[0]);
     close(pipein[1]);
     close(pipeout[0]);
