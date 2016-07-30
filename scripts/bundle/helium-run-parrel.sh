@@ -48,6 +48,11 @@ for (( i=0; i<$2; i++)); do
     sleep 1
     echo $i/$2
     observe_data $1
+    # also, I want to check how many procedure left.
+    ps -ef | grep 'helium -s'
+    left_procedure=`ps -ef | grep 'helium -s' | wc -l`
+    left_procedure=`expr $left_procedure - 1`
+    echo "left procedure: $left_procedure"
 done
 
 ps -ef | grep "helium -s"
