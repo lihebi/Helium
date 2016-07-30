@@ -38,7 +38,7 @@ for bench in $1/*; do
 
     # processing
     cd $bench
-    rm -f helium_log.txt helium_dump.txt
+    rm -f helium_log.txt helium_dump.txt helium_dump_compile_error.txt
     helium -s snippets/ cpped/ --print='ci,ce,col' -c src --poi=$poi_file >/dev/null 2>&1 &
     cd ..
 done

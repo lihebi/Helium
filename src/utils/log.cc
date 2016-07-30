@@ -18,3 +18,7 @@ void helium_log_warning(std::string s) {
 void helium_log_trace(std::string s) {
   utils::append_file("helium_log.txt", "TT: " + s + "\n");
 }
+
+void helium_dump_compile_error(std::string s) {
+  utils::append_file("helium_dump_compile_error.txt", s + "\n");
+}

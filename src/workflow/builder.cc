@@ -4,6 +4,7 @@
 #include "config/config.h"
 #include "config/options.h"
 
+#include "utils/log.h"
 #include <gtest/gtest.h>
 
 using namespace ast;
@@ -291,6 +292,8 @@ Builder::Compile() {
     m_success = true;
   } else {
     m_success = false;
+    helium_dump_compile_error("error: " + m_dir);
+    helium_dump_compile_error(simplify_error_msg(error_msg));
     if (PrintOption::Instance()->Has(POK_CompileError)) {
       utils::print(simplify_error_msg(error_msg), utils::CK_Yellow);
     }
