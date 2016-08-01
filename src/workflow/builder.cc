@@ -5,6 +5,7 @@
 #include "config/options.h"
 
 #include "utils/log.h"
+#include "parser/xml_doc_reader.h"
 #include <gtest/gtest.h>
 
 using namespace ast;
@@ -259,6 +260,24 @@ Builder::Write() {
 //   delete doc;
 // }
 
+void global_add_static(XMLDoc *doc) {
+  XMLNode root = doc->document_element();
+  for (pugi::xpath_node p_node : root.select_nodes("/unit/decl_stmt")) {
+    XMLNode decl_stmt_node = p_node.node();
+    // <decl_stmt><decl><specifier>static</specifier>
+    std::string specifier = decl_stmt_node.child("decl").child("specifier").child_value();
+    if (specifier != "static") {
+      // add static!
+      XMLNode new_specifier = decl_stmt_node.prepend_child("helium_specifier");
+      new_specifier.append_child(pugi::node_pcdata).set_value("static ");
+    }
+  }
+}
+
+// TEST(BuilderTestCase, global_add_static_test) {
+//   XMLDoc *doc = XMLDocReader::CreateDocFromFile("/tmp/helium-test-tmp.SX2ZoL/support.h");
+// }
+
 /**
  * I would like do the free-d list instumentation here
  */
@@ -268,6 +287,19 @@ void Builder::postProcess() {
   // process m_dir+"/support.h"
   // instrument_free(m_dir+"/support.h");
   // process m_dir+"/Makefile"
+
+  // For main.c and support.h, get all global variables, and turns them to be static if they are not.
+  XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_dir + "/main.c");
+  global_add_static(doc);
+  std::string code = get_text(doc->document_element());
+  utils::write_file(m_dir + "/main.c", code);
+  delete doc;
+  // support.h
+  doc = XMLDocReader::CreateDocFromFile(m_dir + "/support.h");
+  global_add_static(doc);
+  code = get_text(doc->document_element());
+  utils::write_file(m_dir + "/support.h", code);
+  delete doc;
 }
 
 std::string simplify_error_msg(std::string error_msg) {

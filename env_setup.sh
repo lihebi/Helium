@@ -6,6 +6,18 @@
 echo "Make sure you are doing this in the Helium root directory."
 echo "Setting environment .."
 
+##############################
+## Clear old settings
+##############################
+echo "clearning old config file ..."
+if [ -f ~/.bashrc.local ]; then
+    cat ~/.bashrc.local | awk '!/HELIUM|ASAN_OPTIONS/ {print}' > ~/.bashrc.local
+fi
+
+
+##############################
+## Setting
+##############################
 # First, set HELIUM_HOME to current environment
 echo "export HELIUM_HOME=$(pwd)" >> ~/.bashrc.local
 # export HELIUM_HOME=`pwd`
@@ -13,5 +25,9 @@ echo "export HELIUM_HOME=$(pwd)" >> ~/.bashrc.local
 # add $HELIUM_HOME/bin to the begginning of $PATH, so that, no need to install, `heluim` command will automatically redirect to the correct path.
 # export PATH=$HELIUM_HOME/bin:$PATH
 echo "export PATH=\$HELIUM_HOME/bin:\$PATH" >> ~/.bashrc.local
+echo "export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0" >> ~/.bashrc.local
 
+##############################
+## Ending
+##############################
 echo "Insert configuration into ~/.bashrc.local"

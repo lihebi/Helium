@@ -1,0 +1,75 @@
+#+TITLE: Address Sanitizer Design guide
+* Usage
+Option: =-fsanitize=address=
+* Problem
+Use the above will not only crash on address problem.
+It also detects =LeakSanitizer=
+
+There seems no option for disable that, and possibly there're much more.
+So solution:
+
+Output two version of program: with and without =-fsanitize=address=.
+Run both version at the same time for each input.
+If one failed with =AddresssSanitizer=, use it.
+Otherwise use the other.
+
+Wait, according to =AddressSanitizer= wiki, it detects:
+- use after free: =heap-use-after-free=
+- heap buffer overflow: =heap-buffer-overflow=
+- stack buffer overflow: =stack-buffer-overflow=
+- global buffer overflow: =global-buffer-overflow=
+- use after return (NEW TYPE OF BUG): =stack-use-after-return=: not turned on by default
+- use after scope: =stack-use-after-scope=, can be disabled by ~ASAN_OPTIONS=detect_stack_use_after_scope=0~
+- initialization order bugs: ~ASAN_OPTIONS=check_initialization_order=true~
+- memory leak: this use a DIFFERENT sanitizer!
+
+memory leak is detected by =LeakSanitizer= and it is built-in to =AddressSanitizer=, and turned on by default.
+To disable it:
+#+BEGIN_EXAMPLE
+ASAN_OPTIONS=detect_leaks=0
+#+END_EXAMPLE
+
+It can also be called in stand-alone mode, by =-fsanitize=leak=.
+
+
+** Options:
+*** setting
+Single:
+#+BEGIN_EXAMPLE
+ASAN_OPTIONS=detect_leaks=0 ./a.out
+#+END_EXAMPLE
+
+multiple:
+#+BEGIN_EXAMPLE
+ASAN_OPTIONS=verbosity=1:malloc_context_size=20 ./a.out
+#+END_EXAMPLE
+*** listing
+| option                        | default | desired | description |
+|-------------------------------+---------+---------+-------------|
+| detect_leaks                  | true    | false   |             |
+| check_initialization_order    | false   |         |             |
+| detect_stack_use_after_return | false   |         |             |
+| detect_stack_use_after_scope  | true    | false   |             |
+| check_printf                  | true    | NA      |             |
+|-------------------------------+---------+---------+-------------|
+| detect_invalid_pointer_pairs  | 0       |         |             |
+| detect_container_overflow     | true    |         |             |
+| detect_odr_violation          | 2       |         |             |
+| detect_deaklocks              | false   |         |             |
+
+
+
+So in a word, use:
+#+BEGIN_EXAMPLE
+ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0 ./a.out
+#+END_EXAMPLE
+
+
+** Static global variable
+The global buffer overflow can not be detected by =AddressSanitizer= unless it is initialized.
+If the global variable is declared as a =static= one, it can be detected.
+The optimization level does not make any difference.
+
+I guess it is the memory location issue.
+So I'm not going to research why this is the case, I'm just going to turn all globals to be static.
+This is implemented as a post process in builder.

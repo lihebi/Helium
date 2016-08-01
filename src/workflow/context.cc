@@ -783,6 +783,14 @@ TEST(SegmentTestCase, ExecTest) {
   std::cout << output  << "\n";
 }
 
+std::string run_script_filename = "run.sh";
+std::string run_script =R"prefix(
+#!/bin/bash
+for input in input/*.txt; do
+  echo \"===== $input =====\"
+  ./a.out <$input
+done
+)prefix";
 
 void Context::Test() {
   std::cout << "============= Context::Test() ================="  << "\n";
@@ -801,6 +809,7 @@ void Context::Test() {
   builder.SetMain(code_main);
   builder.SetSupport(code_sup);
   builder.SetMakefile(code_make);
+  builder.AddScript(run_script_filename, run_script);
 
   std::string sig_dir = builder.GetDir();
   sig_dir += "/sig";
@@ -989,7 +998,7 @@ void Context::Test() {
       // std::cout << spec  << "\n";
 
       // write IO spec file
-      utils::write_file(builder.GetDir() + "/input/spec-" + std::to_string(i) + ".txt", spec);
+      utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
       
       // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
       // I'm also going to write the input file in the executable directory

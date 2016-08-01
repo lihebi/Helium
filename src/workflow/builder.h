@@ -20,6 +20,9 @@ public:
   void AddScript(std::pair<std::string, std::string> script) {
     m_scripts.push_back(script);
   }
+  void AddScript(std::string filename, std::string content) {
+    m_scripts.push_back({filename, content});
+  }
   void Write();
   void Compile();
   bool Success() {return m_success;}
