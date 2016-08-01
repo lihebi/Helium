@@ -151,11 +151,9 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
 }
 
 std::set<std::string> Stmt::GetIdToResolve() {
-  std::cout << "Stmt::GetIdToResolve"  << "\n";
   std::string code;
   GetCode({}, code, true);
   std::set<std::string> ret = extract_id_to_resolve(code);
-  std::cout << "end"  << "\n";
   return ret;
 }
 

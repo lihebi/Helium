@@ -886,6 +886,7 @@ bool Context::compile() {
  * @side m_test_suite get freed and cleared; filled with new test cases
  */
 void Context::createTestCases() {
+  print_trace("Context::createTestCases");
   // FIXME this function is too long
   if (Config::Instance()->GetBool("run-test") == false) {
     return;
@@ -997,6 +998,7 @@ void Context::createTestCases() {
 }
 
 TestResult* Context::test() {
+  print_trace("Context::test");
   // this is the other use place of test suite other than the execution of the executable itself
   // create the test result!
   // This will supply the input spec for the precondition and transfer function generation
@@ -1027,9 +1029,11 @@ TestResult* Context::test() {
     std::string input;
     std::string spec;
     for (TestInput *in : m_test_suite[i]) {
-      input += in->GetRaw() + "\n";
-      spec += in->dump() + "\n";
-      spec += in->ToString() + "\n\n";
+      if (in) {
+        input += in->GetRaw() + "\n";
+        spec += in->dump() + "\n";
+        spec += in->ToString() + "\n\n";
+      }
     }
 
     // DEBUG
@@ -1073,6 +1077,7 @@ TestResult* Context::test() {
 }
 
 void Context::analyze(TestResult *test_result) {
+  print_trace("Context::analyze");
   test_result->PrepareData();
   // HEBI Generating CSV file
   std::string csv = test_result->GenerateCSV();
@@ -1084,7 +1089,7 @@ void Context::analyze(TestResult *test_result) {
   test_result->GetInvariants();
   test_result->GetPreconditions();
   test_result->GetTransferFunctions();
-
+  
   Analyzer analyzer(csv_file, m_seg->GetConditions());
   // TODO NOW
   // TestSummary summary = analyzer.GetSummary();
@@ -1129,7 +1134,9 @@ void Context::analyze(TestResult *test_result) {
 void Context::freeTestSuite() {
   for (std::vector<TestInput*> &v : m_test_suite) {
     for (TestInput *in : v) {
-      delete in;
+      if (in) {
+        delete in;
+      }
     }
   }
   m_test_suite.clear();

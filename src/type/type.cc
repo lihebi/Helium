@@ -81,8 +81,12 @@ static struct type_specifier get_type_specifier(std::string raw) {
 // }
 
 Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, int token) {
+  // TODO log trace verbose
   // print_trace("TypeFactory::CreateType: " +  raw);
-  if (raw.empty()) return NULL;
+  if (raw.empty()) {
+    // std::cerr << "NULL Type, raw empty" << "\n";
+    return NULL;
+  }
   std::string id = get_id(raw);
   if (id.empty()) {
     struct type_specifier ts = get_type_specifier(raw);
@@ -98,6 +102,8 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
       return new Int(raw, dims);
     } else {
       std::cerr << "WW: type not created" << '\n';
+      std::cerr << raw  << "\n";
+      assert(false);
       // std::cout << raw  << "\n";
       // std::cout << "Debug pause: enter to continue"  << "\n";
       // getchar();
@@ -139,32 +145,7 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
         return new LocalEnumType(snippet_id, raw, dims);
       }
       if (meta.HasKind(SK_Typedef)) {
-        // FIXME right now just get the typedefine-d string
-        // REMOVE the star!
-        // and retain the dims
-        std::string code = SnippetDB::Instance()->GetCode(snippet_id);
-        // FIXME removing the '*'
-        utils::trim(raw);
-        while (raw.back() == '*') {
-          raw.pop_back();
-          utils::trim(raw);
-        }
-        // std::cout << raw  << "\n";
-        // assert(code.find("typedef") != std::string::npos);
-        // assert(code.find(raw) != std::string::npos);
-        if (code.find("typedef") == std::string::npos || code.find(raw) == std::string::npos) {
-          return NULL;
-        }
-        code = code.substr(code.find("typedef") + strlen("typedef"));
-
-        
-        code = code.substr(0, code.find(raw));
-        utils::trim(code);
-        // while (code.back() == '*') {
-        //   code.pop_back();
-        //   utils::trim(code);
-        // }
-        return TypeFactory::CreateType(code, dims, token);
+        return new LocalTypedefType(snippet_id, raw, dims, token);
       }
     }
   }

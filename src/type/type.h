@@ -20,6 +20,7 @@ typedef enum _TypeKind {
   // TK_Union
   NTK_Local,
   NTK_LocalStructure,
+  NTK_LocalTypedef,
   NTK_LocalEnum
 } TypeKind;
 
@@ -166,6 +167,32 @@ public:
   }
 private:
   int m_snippet_id = -1;
+};
+
+class LocalTypedefType : public Type {
+public:
+  LocalTypedefType(int snippet_id, std::string raw, std::vector<std::string> dims = {}, int token = 0);
+  ~LocalTypedefType();
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual TestInput* GetTestInputSpec(std::string var) override;
+  virtual TypeKind Kind() const override {
+    return NTK_LocalTypedef;
+  }
+  virtual std::string ToString() const override {
+    std::string ret;
+    ret += "LocalTypedefType: " + m_raw;
+    for (std::string dim : m_dims) {
+      ret += "[" + dim = "]";
+    }
+    return ret;
+  }
+private:
+  Type *m_next;
+  int m_snippet_id = -1;
+  int m_token = 0;
+  std::string m_code;
 };
 
 class LocalStructureType : public Type {
