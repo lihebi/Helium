@@ -3,6 +3,8 @@
 #undef DEBUG_AST_NODE_TRACE
 #include <iostream>
 #include "utils/utils.h"
+#include "config/options.h"
+#include "utils/log.h"
 #include <regex>
 
 using namespace ast;
@@ -10,18 +12,33 @@ using namespace ast;
 /**
  * This is NOT a ASTNode! Just itself.
  */
-Decl::Decl(XMLNode xmlnode) {
-  m_xmlnode = xmlnode;
-  // m_type
-  std::string type = decl_get_type(xmlnode);
-  std::vector<std::string> dims = decl_get_dimension(xmlnode);
-  m_type = TypeFactory::CreateType(type, dims);
-  m_name = decl_get_name(xmlnode);
-}
+// Decl::Decl(XMLNode xmlnode) {
+//   m_xmlnode = xmlnode;
+//   // m_type
+//   std::string type = decl_get_type(xmlnode);
+//   std::vector<std::string> dims = decl_get_dimension(xmlnode);
+//   m_type = TypeFactory::CreateType(type, dims);
+//   m_name = decl_get_name(xmlnode);
+// }
 
 Decl::~Decl() {
   if (m_type) {
     delete m_type;
+  }
+}
+
+Decl* DeclFactory::CreateDecl(XMLNode decl_node) {
+  // m_type
+  std::string type = decl_get_type(decl_node);
+  std::vector<std::string> dims = decl_get_dimension(decl_node);
+  std::string name = decl_get_name(decl_node);
+  // Will be free-d in ~Decl
+  Type *t = TypeFactory::CreateType(type, dims);
+  if (t) {
+    return new Decl(t, name, decl_node);
+  } else {
+    helium_log_warning("Decl create failed because of Type create failure");
+    return NULL;
   }
 }
 
@@ -53,9 +70,11 @@ Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   if (kind(xmlnode) == NK_DeclStmt) {
     XMLNodeList decl_nodes = ast::decl_stmt_get_decls(xmlnode);
     for (XMLNode decl_node : decl_nodes) {
-      Decl *decl = new Decl(decl_node);
-      m_decls.push_back(decl);
-      m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      Decl *decl = DeclFactory::CreateDecl(decl_node);
+      if (decl) {
+        m_decls.push_back(decl);
+        m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      }
       // std::string declname = decl_get_name(decl);
       // std::string type = decl_get_type(decl);
       // m_sym_tbl->AddSymbol(declname, type, this);
@@ -131,6 +150,16 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
   // ret += "\n";
 }
 
+std::set<std::string> Stmt::GetIdToResolve() {
+  std::cout << "Stmt::GetIdToResolve"  << "\n";
+  std::string code;
+  GetCode({}, code, true);
+  std::set<std::string> ret = extract_id_to_resolve(code);
+  std::cout << "end"  << "\n";
+  return ret;
+}
+
+
 
 
 /******************************
@@ -156,8 +185,13 @@ Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
   m_name = xmlnode.child_value("name"); // function_get_name(xmlnode);
   XMLNodeList params = function_get_param_decls(xmlnode);
   for (XMLNode param : params) {
-    // needs to be delete'd
-    m_params.push_back(new Decl(param));
+    Decl *decl = DeclFactory::CreateDecl(param);
+    if (decl) {
+      // needs to be delete'd
+      m_params.push_back(decl);
+    } else {
+      helium_log_warning("Function::Function param is NULL");
+    }
   }
   // constructnig children
   XMLNode blk_n = xmlnode.child("block"); // function_get_block(xmlnode);
@@ -238,7 +272,16 @@ std::string Function::GetLabel() {
   ret += m_name + "(";
   if (!m_params.empty()) {
     for (Decl *param : m_params) {
-      ret += param->GetType()->Raw();
+      if (!param) {
+        helium_log_warning("Function param is NULL");
+        continue;
+      }
+      Type *type = param->GetType();
+      if (!type) {
+        helium_log_warning("Function param type is NULL");
+        continue;
+      }
+      ret += type->Raw();
       ret += " ";
       ret += param->GetName();
       ret += ",";
@@ -769,9 +812,11 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
    */
   for (XMLNode init : m_inits) {
     if (kind(init) == NK_Decl) {
-      Decl *decl = new Decl(init);
-      m_decls.push_back(decl);
-      m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      Decl *decl = DeclFactory::CreateDecl(init);
+      if (decl) {
+        m_decls.push_back(decl);
+        m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
+      }
       // std::string name = decl_get_name(init);
       // std::string type = decl_get_type(init);
       // m_sym_tbl->AddSymbol(name, type, this);

@@ -49,7 +49,7 @@ DEP = $(OBJECTS:%.o=%.d)
 ## Compile flags
 ##############################
 
-CFLAGS := -g -Wall --std=c++11
+CFLAGS := -g -Wall --std=c++11 # -fsanitize=address
 
 # DYLIB_FLAG :=
 # ifeq ($(UNAME_S), Darwin)

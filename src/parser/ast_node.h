@@ -632,18 +632,19 @@ namespace ast {
    */
   class Decl {
   public:
-    Decl(XMLNode n);
+    // Decl(XMLNode n);
+    Decl(Type *t, std::string name, XMLNode node) : m_type(t), m_name(name), m_xmlnode(node) {}
     ~Decl();
     Type *GetType() const {return m_type;}
     std::string GetName() const {return m_name;}
     // std::vector<std::string> GetDims() const {return m_dims;}
     // int GetDim() const {return m_dims.size();}
   private:
-    XMLNode m_xmlnode;
     // std::string m_type;
     // TODO NOW use type in Decl, and others
     Type *m_type = NULL;
     std::string m_name;
+    XMLNode m_xmlnode;
     // TODO m_dimension
     // this is dimensions
     // if the code is char buf[5][4], the result is a vector of string "5" "4"
@@ -652,6 +653,11 @@ namespace ast {
     // A design decision:
     // whether to use a fixed length of buffer (of the stack), or use a variable length of buffer (on the heap)
     // std::vector<std::string> m_dims;
+  };
+
+  class DeclFactory {
+  public:
+    static Decl* CreateDecl(XMLNode node);
   };
 
   // function
@@ -709,11 +715,7 @@ namespace ast {
       GetCode(nodes, ret, true);
       return ret;
     }
-    virtual std::set<std::string> GetIdToResolve() override {
-      std::string code;
-      GetCode({}, code, true);
-      return extract_id_to_resolve(code);
-    }
+    virtual std::set<std::string> GetIdToResolve() override;
     virtual ASTNode* LookUpDefinition(std::string id) override;
   private:
     std::vector<Decl*> m_decls;

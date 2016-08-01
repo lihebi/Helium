@@ -2,6 +2,7 @@
 #include <boost/regex.hpp>
 #include "utils/utils.h"
 #include "parser/xml_doc_reader.h"
+#include "config/options.h"
 #include <gtest/gtest.h>
 /**
  * Extract id which is not c keyword
@@ -13,9 +14,12 @@
  */
 std::set<std::string>
 extract_id_to_resolve(std::string code) {
+  // TODO move to trace --verbose
+  // print_trace("extract_id_to_resolve");
 
   // Before doing the pattern matching, I want to first remove comments
   ast::XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  assert(doc);
   code = get_text_except(doc->document_element(), ast::NK_Comment);
   delete doc;
   

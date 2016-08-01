@@ -141,6 +141,7 @@ void Context::dump() {
  * TODO
  */
 void Context::Resolve() {
+  print_trace("Context::Resolve");
   // gather ASTs UPDATE already a member field: m_ast_to_node_m
   // resolve for each AST
   AST *first_ast = m_first->GetAST();
@@ -305,6 +306,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       }
     }
   }
+  print_trace("Context::resolveDecl empty worklist");
   if (first_ast_p) {
     // FIXME Remove root for the outmost AST!
     ret = ast->RemoveRoot(ret);
@@ -358,6 +360,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       }
     }
   }
+  print_trace("Context::resolveDecl end");
   // remove duplication of m_decls and m_inputs
   // the duplication is introduced, by the different DEFINITION in the code.
   // So, m_inputs should prominate it.
@@ -368,6 +371,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
  * TODO
  */
 void Context::resolveSnippet(AST *ast) {
+  print_trace("Context::resolveSnippet");
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
   // Since I changed the decl mechanism to m_decls, I need to change here
@@ -403,10 +407,10 @@ void Context::resolveSnippet(AST *ast) {
     ids = extract_id_to_resolve(dim);
     all_ids.insert(ids.begin(), ids.end());
   }
-  
   // resolve the nodes selected by gene
   std::set<ASTNode*> nodes = m_ast_to_node_m[ast];
   for (ASTNode *n : nodes) {
+    assert(n);
     std::set<std::string> ids = n->GetIdToResolve();
     all_ids.insert(ids.begin(), ids.end());
   }
@@ -417,6 +421,7 @@ void Context::resolveSnippet(AST *ast) {
   // even if I filter it out when adding to support.h, I still have all its dependencies in support.h!
   for (auto m : m_ast_to_node_m) {
     AST *ast = m.first;
+    assert(ast);
     std::string func = ast->GetFunctionName();
     all_ids.erase(func);
   }
@@ -437,6 +442,7 @@ void Context::resolveSnippet(AST *ast) {
   std::set<int> all_snippet_ids = SnippetDB::Instance()->GetAllDep(snippet_ids);
   all_snippet_ids = SnippetDB::Instance()->RemoveDup(all_snippet_ids);
   m_snippet_ids.insert(all_snippet_ids.begin(), all_snippet_ids.end());
+  print_trace("Context::resolveSnippet end");
 }
 
 /********************************
@@ -1137,6 +1143,7 @@ void Context::freeTestSuite() {
  * 4. generate dynamic properties
  */
 void Context::Test() {
+  print_trace("Context::Test");
   std::cout << "============= Context::Test() ================="  << "\n";
   std::cout << "The size of this context: " << m_nodes.size()  << "\n";
   if (compile()) {

@@ -398,16 +398,6 @@ void Segment::TestNextContext() {
   
   ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
   if (leaf) {
-#if 0
-    Context *new_ctx = new Context(*ctx);
-    // found leaf node
-    new_ctx->SetFirstNode(leaf);
-    new_ctx->SetLast(ctx);
-    // here do not need to check validity.
-    // only check when inter-procedure, this is to remove some recursive calls
-    new_ctx->AddNode(leaf);
-    m_context_worklist.push_back(new_ctx);
-#else
     // std::cout << "multiple step context searching"  << "\n";
     Context *new_ctx = new Context(*ctx);
     new_ctx->SetLast(ctx);
@@ -421,7 +411,6 @@ void Segment::TestNextContext() {
     }
     // std::cout << "adding"  << "\n";
     m_context_worklist.push_back(new_ctx);
-#endif
   } else {
     // inter procedure
     AST *ast = first_node->GetAST();
@@ -483,6 +472,7 @@ void Segment::TestNextContext() {
     }
   }
   delete ctx;
+  print_trace("void Segment::TestNextContext end");
 }
 
 /**
