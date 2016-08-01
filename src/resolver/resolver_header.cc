@@ -47,11 +47,11 @@ HeaderSorter::Load(const std::string& folder) {
           m_hard_deps_map[filename].insert(new_file);
 
           // Include "used" only in <>
-          boost::regex_search(line, match, include_angle_reg);
-          new_file = match[1];
-          if (new_file.find("/") != std::string::npos) {
-            new_file = new_file.substr(new_file.rfind("/")+1);
-          }
+          // boost::regex_search(line, match, include_angle_reg);
+          // new_file = match[1];
+          // if (new_file.find("/") != std::string::npos) {
+          //   new_file = new_file.substr(new_file.rfind("/")+1);
+          // }
           m_headers.insert(new_file);
         }
       }
@@ -67,7 +67,7 @@ HeaderSorter::Load(const std::string& folder) {
 
 HeaderSorter::HeaderSorter() {
   // some headers that must be installed
-  m_headers.insert("ctype.h");
+  // m_headers.insert("ctype.h");
   m_headers.insert("stdio.h");
   m_headers.insert("stdlib.h");
 }

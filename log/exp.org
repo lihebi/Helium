@@ -45,3 +45,22 @@ left procedure: 5
 34 41 23 11 ==== ./wu-ftpd-2.4.2-beta-18-vr8
 15 6 15 0 ==== ./wu-ftpd-2.5.0
 #+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+hebi     17680 17671  1 13:20 pts/3    00:00:02 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/cabextract-1.2.poi.txt
+hebi     17696 17671 18 13:20 pts/3    00:00:26 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/optipng-0.6.4.poi.txt
+hebi     17701 17671  2 13:20 pts/3    00:00:03 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/wu-ftpd-2.4.2-beta-18-vr8.poi.t
+xt
+left procedure: 3
+99/100
+======== observing data ==========
+47 0 1 46 ==== ./cabextract-1.2
+5 4 1 4 ==== ./jasper-1.900.1
+29 0 2 27 ==== ./libgd-GD_2_0_33
+1 16 0 1 ==== ./libpng-1.2.5
+65 9 1 64 ==== ./logsurfer-1.5b
+0 11 0 0 ==== ./nstx-1.1-beta3
+1 0 1 0 ==== ./optipng-0.6.4
+36 57 23 13 ==== ./wu-ftpd-2.4.2-beta-18-vr8
+15 6 15 0 ==== ./wu-ftpd-2.5.0
+#+END_EXAMPLE
