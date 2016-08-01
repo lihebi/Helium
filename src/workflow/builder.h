@@ -16,6 +16,17 @@ public:
     m_makefile = makefile;
   }
 
+
+  std::string GetMain() {
+    return m_main;
+  }
+  std::string GetSupport() {
+    return m_support;
+  }
+  std::string GetMakefile() {
+    return m_makefile;
+  }
+
   
   void AddScript(std::pair<std::string, std::string> script) {
     m_scripts.push_back(script);

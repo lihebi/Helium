@@ -59,6 +59,13 @@ Context::Context(const Context &rhs) {
   m_search_time = rhs.m_search_time;
 }
 
+Context::~Context() {
+  if (m_builder) {
+    delete m_builder;
+  }
+  freeTestSuite();
+}
+
 /********************************
  * Modifying
  *******************************/
@@ -792,10 +799,18 @@ for input in input/*.txt; do
 done
 )prefix";
 
-void Context::Test() {
-  std::cout << "============= Context::Test() ================="  << "\n";
-  std::cout << "The size of this context: " << m_nodes.size()  << "\n";
-  Builder builder;
+
+/**
+ * Create builder and Compile
+ * @return compile success or not
+ * @side delete m_builder if it has value, fill in m_builder
+ */
+bool Context::compile() {
+  if (m_builder) {
+    delete m_builder;
+    m_builder = NULL;
+  }
+  m_builder = new Builder();
   std::string code_main = getMain();
   std::string code_sup = getSupport();
   std::string code_make = getMakefile();
@@ -806,29 +821,28 @@ void Context::Test() {
   std::string code_sig_main = getSigMain();
   std::string code_sig_support = getSupportBody();
   
-  builder.SetMain(code_main);
-  builder.SetSupport(code_sup);
-  builder.SetMakefile(code_make);
-  builder.AddScript(run_script_filename, run_script);
+  m_builder->SetMain(code_main);
+  m_builder->SetSupport(code_sup);
+  m_builder->SetMakefile(code_make);
+  m_builder->AddScript(run_script_filename, run_script);
 
-  std::string sig_dir = builder.GetDir();
-  sig_dir += "/sig";
-  utils::create_folder(sig_dir);
-  utils::write_file(sig_dir + "/sig_main.c", code_sig_main);
-  utils::write_file(sig_dir + "/sig_support.h", code_sig_support);
+  m_sig_dir = m_builder->GetDir() + "/sig";
+  utils::create_folder(m_sig_dir);
+  utils::write_file(m_sig_dir + "/sig_main.c", code_sig_main);
+  utils::write_file(m_sig_dir + "/sig_support.h", code_sig_support);
   // to get the size of bug signature, just use =cloc xxx/sig=
 
 
   
-  builder.Write();
+  m_builder->Write();
   if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
-    std::cout << "Code output to "  << builder.GetDir() << "\n";
+    std::cout << "Code output to "  << m_builder->GetDir() << "\n";
   }
   if (PrintOption::Instance()->Has(POK_Main)) {
     std::cout << code_main  << "\n";
   }
-  builder.Compile();
-  if (builder.Success()) {
+  m_builder->Compile();
+  if (m_builder->Success()) {
     g_compile_success_no++;
     helium_dump("compile success\n");
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
@@ -838,278 +852,7 @@ void Context::Test() {
       utils::print(".", utils::CK_Green);
       std::cout << std::flush;
     }
-
-    // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
-
-    // FIXME this function is too long
-    if (Config::Instance()->GetBool("run-test") == false) {
-      return;
-    }
-    int test_number = Config::Instance()->GetInt("test-number");
-    /**
-     * Testing!
-     */
-    print_trace("preparing inputs ...");
-    AST *first_ast = m_first->GetAST();
-    // FIXME decls or inputs?
-    // InputMetrics metrics = m_inputs[first_ast];
-    InputMetrics metrics = m_decls[first_ast];
-    // metrics.insert(m_global.begin(), m_global.end());
-    
-    // std::vector<std::string> test_suites(TEST_NUMBER);
-    // for (auto metric : metrics) {
-    //   std::string var = metric.first;
-    //   Type *type = metric.second;
-    //   std::vector<std::string> inputs = type->GetTestInput(TEST_NUMBER);
-    //   assert(inputs.size() == TEST_NUMBER);
-    //   for (int i=0;i<TEST_NUMBER;i++) {
-    //     test_suites[i] += " " + inputs[i];
-    //   }
-    // }
-
-    /**
-     * Using TestInput
-     */
-
-    // when generating inputs, I need to monitor if the main file has the getopt staff
-    // 	while( ( o = getopt( argc, argv, "achtvf:" ) ) != -1 ){
-    // if yes, I need to get the spec
-    // then when generating argc and argv, I need to be careful to cover each case
-    // also, I need to mark the inputs as: argv_a, argv_c, argv_h
-    // argv_a is binary
-    // argv_f is a string!
-    ArgCV argcv;
-    if (code_main.find("getopt") != std::string::npos) {
-      std::string opt = code_main.substr(code_main.find("getopt"));
-      std::vector<std::string> lines = utils::split(opt, '\n');
-      assert(lines.size() > 0);
-      opt = lines[0];
-      assert(opt.find("\"") != std::string::npos);
-      opt = opt.substr(opt.find("\"")+1);
-      assert(opt.find("\"") != std::string::npos);
-      opt = opt.substr(0, opt.find("\""));
-      assert(opt.find("\"") == std::string::npos);
-      // print out the opt
-      utils::print(opt, utils::CK_Cyan);
-      // set the opt
-      argcv.SetOpt(opt);
-    }
-
-    // I should also capture the argc and argv variable used, but I can currently assume these variables here
-    // Also, for regular argc and argv, I need also care about them, e.g. sizeof(argv) = argc, to avoid crashes.
-    
-    // I'm going to pre-generate argc and argv.
-    // so that if later the metrics have that, I don't need to implement the match, just query
-    std::vector<std::pair<TestInput*, TestInput*> > argcv_inputs = argcv.GetTestInputSpec(test_number);
-    // used for freeing these inputs
-    bool argc_used = false;
-    bool argv_used = false;
-    
-    std::vector<std::vector<TestInput*> > test_suite(test_number);
-    for (auto metric : metrics) {
-      std::string var = metric.first;
-      Type *type = metric.second;
-      std::vector<TestInput*> inputs;
-      if (var == "argc") {
-        argc_used = true;
-        for (auto p : argcv_inputs) {
-          inputs.push_back(p.first);
-        }
-      } else if (var == "argv") {
-        argv_used = true;
-        for (auto p : argcv_inputs) {
-          inputs.push_back(p.second);
-        }
-      } else {
-        inputs = type->GetTestInputSpec(var, test_number);
-      }
-      assert((int)inputs.size() == test_number);
-      for (int i=0;i<(int)inputs.size();i++) {
-        test_suite[i].push_back(inputs[i]);
-      }
-    }
-
-    if (Config::Instance()->GetBool("test-global-variable")) {
-      // global inputs
-      for (auto metric : m_globals) {
-        std::string var = metric.first;
-        Type *type = metric.second;
-        std::vector<TestInput*> inputs;
-        inputs = type->GetTestInputSpec(var, test_number);
-        assert((int)inputs.size() == test_number);
-        for (int i=0;i<(int)inputs.size();i++) {
-          test_suite[i].push_back(inputs[i]);
-        }
-      }
-    }
-
-    // free when not used, to avoid memory leak
-    if (!argc_used) {
-      for (auto p : argcv_inputs) {
-        delete p.first;
-      }
-    }
-    if (!argv_used) {
-      for (auto p : argcv_inputs) {
-        delete p.second;
-      }
-    }
-
-    // this is the other use place of test suite other than the execution of the executable itself
-    // create the test result!
-    // This will supply the input spec for the precondition and transfer function generation
-    // The used method is ToString()
-    NewTestResult test_result(test_suite);
-
-    print_trace("testing...");
-    // std::string test_dir = utils::create_tmp_dir();
-    utils::create_folder(builder.GetDir() + "/input");
-    if (test_suite.size() > 0 && PrintOption::Instance()->Has(POK_IOSpec)) {
-      utils::print("TestinputMetrics:\n", CK_Blue);
-      for (TestInput *in : test_suite[0]) {
-        assert(in);
-        utils::print(in->dump(), CK_Purple);
-        // utils::print(in->GetRaw() + "\n", CK_Cyan);
-      }
-    }
-    // do the test
-    for (int i=0;i<test_number;i++) {
-      // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
-      // utils::write_file(test_file, test_suite[i]);
-      // std::string cmd = builder.GetExecutable() + "< " + test_file + " 2>/dev/null";
-      // std::cout << cmd  << "\n";
-      std::string cmd = builder.GetExecutable();
-      int status;
-      // FIXME some command cannot be controled by time out!
-      // std::string output = utils::exec(cmd.c_str(), &status, 1);
-      std::string input;
-      std::string spec;
-      for (TestInput *in : test_suite[i]) {
-        input += in->GetRaw() + "\n";
-        spec += in->dump() + "\n";
-        spec += in->ToString() + "\n\n";
-      }
-
-      // DEBUG
-      // std::cout << "============== Test Input ================"  << "\n";
-      // std::cout << "------------------------------" << "\n";
-      // std::cout << input  << "\n";
-      // std::cout << "------------------------------"  << "\n";
-      // std::cout << spec  << "\n";
-
-      // write IO spec file
-      utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
-      
-      // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
-      // I'm also going to write the input file in the executable directory
-      utils::write_file(builder.GetDir() + "/input/" + std::to_string(i) + ".txt", input);
-      // FIXME this timeout should be configurable?
-      // FIXME how to safely and consistently identify timeout or not?
-      std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
-      if (status == 0) {
-        if (PrintOption::Instance()->Has(POK_TestInfo)) {
-          utils::print("test success\n", utils::CK_Green);
-        }
-        if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
-          utils::print(".", utils::CK_Green);
-        }
-        test_result.AddOutput(output, true);
-      } else {
-        if (PrintOption::Instance()->Has(POK_TestInfo)) {
-          utils::print("test failure\n", utils::CK_Red);
-        }
-        if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
-          utils::print(".", utils::CK_Red);
-        }
-        test_result.AddOutput(output, false);
-      }
-      
-      // std::cout << "output:"  << "\n";
-      // std::cout << output  << "\n";
-    }
-    if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
-      std::cout << "\n";
-    }
-
-    test_result.PrepareData();
-    // std::string i_csv = test_result.GenerateCSV("I", "S");
-    // std::string o_csv = test_result.GenerateCSV("O", "S");
-    // HEBI Generating CSV file
-    // std::string csv = test_result.GenerateCSV("IO", "SF");
-    std::string csv = test_result.GenerateCSV();
-    // std::cout << "icsv"  << "\n";
-    // std::cout << i_csv  << "\n";
-    // std::cout << "ocsv"  << "\n";
-    // std::cout << o_csv  << "\n";
-    // std::cout << "csv"  << "\n";
-    // std::cout << csv  << "\n";
-    /**
-     * Save to file, and output file name.
-     */
-    // std::string tmp_dir = utils::create_tmp_dir();
-    // utils::write_file(tmp_dir + "/i.csv", i_csv);
-    // utils::write_file(tmp_dir + "/o.csv", o_csv);
-    // std::string csv_file = tmp_dir + "/io.csv";
-
-    
-    // This is The whole IO file
-    // I also want to write the valid IO file
-    std::string csv_file = builder.GetDir() + "/io.csv";
-    utils::write_file(csv_file, csv);
-    std::cout << "Output to: " << csv_file   << "\n";
-    test_result.GetInvariants();
-    test_result.GetPreconditions();
-    test_result.GetTransferFunctions();
-
-    Analyzer analyzer(csv_file, m_seg->GetConditions());
-    // TODO NOW
-    // TestSummary summary = analyzer.GetSummary();
-    // if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
-    //   // hard to trigger, go to simplify approach
-    //   simplify();
-    // }
-    std::vector<std::string> invs = analyzer.GetInvariants();
-    std::vector<std::string> pres = analyzer.GetPreConditions();
-    std::vector<std::string> trans = analyzer.GetTransferFunctions();
-    if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
-      std::cout << "------ invariants ------"  << "\n";
-      for (auto &s : invs) {
-        std::cout << "| " << s  << "\n";
-      }
-      std::cout << "------ pre condtions ------"  << "\n";
-      for (auto &s : pres) {
-        std::cout << "| " << s  << "\n";
-      }
-      std::cout << "------ transfer functions ------"  << "\n";
-      for (auto &s : trans) {
-        std::cout << "| " << s  << "\n";
-      }
-      std::cout << "------------------------------"  << "\n";
-
-      // std::string cmd = "compare.py -f " + csv_file;
-      // std::string inv = utils::exec(cmd.c_str());
-      // std::cout << inv  << "\n";
-    }
-
-
-    std::cout << "---- resolveQuery -----"  << "\n";
-    m_query_resolved = resolveQuery(invs, pres, trans);
-    if (m_query_resolved) {
-      // output some information to use in paper
-      std::cout << "sig dir: " << sig_dir  << "\n";
-      std::cout << "search time: " << m_search_time  << "\n";
-    }
-    std::cout << "------ end of query resolving -----"  << "\n";
-    
-    /**
-     * FIXME Free the space of TestInput*
-     */
-    for (std::vector<TestInput*> &v : test_suite) {
-      for (TestInput* in : v) {
-        delete in;
-      }
-    }
-
+    return true;
   } else {
     g_compile_error_no++;
     if (PrintOption::Instance()->Has(POK_CompileInfo)) {
@@ -1127,8 +870,281 @@ void Context::Test() {
 
     // remove this first node
     RemoveNode(m_first);
+    return false;
   }
   // TODO return good or not, to decide whether to keep the newly added statements
+}
+
+/**
+ * Create test cases for Test.
+ * @side m_test_suite get freed and cleared; filled with new test cases
+ */
+void Context::createTestCases() {
+  // FIXME this function is too long
+  if (Config::Instance()->GetBool("run-test") == false) {
+    return;
+  }
+  int test_number = Config::Instance()->GetInt("test-number");
+  // std::vector<std::vector<TestInput*> > test_suite(test_number);
+  m_test_suite.clear();
+  freeTestSuite();
+  m_test_suite.resize(test_number);
+  // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
+
+  /**
+   * Testing!
+   */
+  print_trace("preparing inputs ...");
+  AST *first_ast = m_first->GetAST();
+  // FIXME decls or inputs?
+  // InputMetrics metrics = m_inputs[first_ast];
+  InputMetrics metrics = m_decls[first_ast];
+  // metrics.insert(m_global.begin(), m_global.end());
+    
+  /**
+   * Using TestInput
+   */
+
+  // when generating inputs, I need to monitor if the main file has the getopt staff
+  // 	while( ( o = getopt( argc, argv, "achtvf:" ) ) != -1 ){
+  // if yes, I need to get the spec
+  // then when generating argc and argv, I need to be careful to cover each case
+  // also, I need to mark the inputs as: argv_a, argv_c, argv_h
+  // argv_a is binary
+  // argv_f is a string!
+  ArgCV argcv;
+  std::string code_main = m_builder->GetMain();
+  if (code_main.find("getopt") != std::string::npos) {
+    std::string opt = code_main.substr(code_main.find("getopt"));
+    std::vector<std::string> lines = utils::split(opt, '\n');
+    assert(lines.size() > 0);
+    opt = lines[0];
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(opt.find("\"")+1);
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(0, opt.find("\""));
+    assert(opt.find("\"") == std::string::npos);
+    // print out the opt
+    utils::print(opt, utils::CK_Cyan);
+    // set the opt
+    argcv.SetOpt(opt);
+  }
+
+  // I should also capture the argc and argv variable used, but I can currently assume these variables here
+  // Also, for regular argc and argv, I need also care about them, e.g. sizeof(argv) = argc, to avoid crashes.
+    
+  // I'm going to pre-generate argc and argv.
+  // so that if later the metrics have that, I don't need to implement the match, just query
+  std::vector<std::pair<TestInput*, TestInput*> > argcv_inputs = argcv.GetTestInputSpec(test_number);
+  // used for freeing these inputs
+  bool argc_used = false;
+  bool argv_used = false;
+    
+  for (auto metric : metrics) {
+    std::string var = metric.first;
+    Type *type = metric.second;
+    std::vector<TestInput*> inputs;
+    if (var == "argc") {
+      argc_used = true;
+      for (auto p : argcv_inputs) {
+        inputs.push_back(p.first);
+      }
+    } else if (var == "argv") {
+      argv_used = true;
+      for (auto p : argcv_inputs) {
+        inputs.push_back(p.second);
+      }
+    } else {
+      inputs = type->GetTestInputSpec(var, test_number);
+    }
+    assert((int)inputs.size() == test_number);
+    for (int i=0;i<(int)inputs.size();i++) {
+      m_test_suite[i].push_back(inputs[i]);
+    }
+  }
+
+  if (Config::Instance()->GetBool("test-global-variable")) {
+    // global inputs
+    for (auto metric : m_globals) {
+      std::string var = metric.first;
+      Type *type = metric.second;
+      std::vector<TestInput*> inputs;
+      inputs = type->GetTestInputSpec(var, test_number);
+      assert((int)inputs.size() == test_number);
+      for (int i=0;i<(int)inputs.size();i++) {
+        m_test_suite[i].push_back(inputs[i]);
+      }
+    }
+  }
+
+  // free when not used, to avoid memory leak
+  if (!argc_used) {
+    for (auto p : argcv_inputs) {
+      delete p.first;
+    }
+  }
+  if (!argv_used) {
+    for (auto p : argcv_inputs) {
+      delete p.second;
+    }
+  }
+}
+
+TestResult* Context::test() {
+  // this is the other use place of test suite other than the execution of the executable itself
+  // create the test result!
+  // This will supply the input spec for the precondition and transfer function generation
+  // The used method is ToString()
+  TestResult *ret = new TestResult(m_test_suite);
+
+  print_trace("testing...");
+  // std::string test_dir = utils::create_tmp_dir();
+  utils::create_folder(m_builder->GetDir() + "/input");
+  if (m_test_suite.size() > 0 && PrintOption::Instance()->Has(POK_IOSpec)) {
+    utils::print("TestinputMetrics:\n", CK_Blue);
+    for (TestInput *in : m_test_suite[0]) {
+      assert(in);
+      utils::print(in->dump(), CK_Purple);
+      // utils::print(in->GetRaw() + "\n", CK_Cyan);
+    }
+  }
+  // do the test
+  for (int i=0;i<(int)m_test_suite.size();i++) {
+    // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
+    // utils::write_file(test_file, m_test_suite[i]);
+    // std::string cmd = m_builder->GetExecutable() + "< " + test_file + " 2>/dev/null";
+    // std::cout << cmd  << "\n";
+    std::string cmd = m_builder->GetExecutable();
+    int status;
+    // FIXME some command cannot be controled by time out!
+    // std::string output = utils::exec(cmd.c_str(), &status, 1);
+    std::string input;
+    std::string spec;
+    for (TestInput *in : m_test_suite[i]) {
+      input += in->GetRaw() + "\n";
+      spec += in->dump() + "\n";
+      spec += in->ToString() + "\n\n";
+    }
+
+    // DEBUG
+    // std::cout << "============== Test Input ================"  << "\n";
+    // std::cout << "------------------------------" << "\n";
+    // std::cout << input  << "\n";
+    // std::cout << "------------------------------"  << "\n";
+    // std::cout << spec  << "\n";
+
+    // write IO spec file
+    utils::write_file(m_builder->GetDir() + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
+      
+    // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
+    // I'm also going to write the input file in the executable directory
+    utils::write_file(m_builder->GetDir() + "/input/" + std::to_string(i) + ".txt", input);
+    // FIXME this timeout should be configurable?
+    // FIXME how to safely and consistently identify timeout or not?
+    std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+    if (status == 0) {
+      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+        utils::print("test success\n", utils::CK_Green);
+      }
+      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+        utils::print(".", utils::CK_Green);
+      }
+      ret->AddOutput(output, true);
+    } else {
+      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+        utils::print("test failure\n", utils::CK_Red);
+      }
+      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+        utils::print(".", utils::CK_Red);
+      }
+      ret->AddOutput(output, false);
+    }
+  }
+  if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+    std::cout << "\n";
+  }
+  return ret;
+}
+
+void Context::analyze(TestResult *test_result) {
+  test_result->PrepareData();
+  // HEBI Generating CSV file
+  std::string csv = test_result->GenerateCSV();
+  // This is The whole IO file
+  // I also want to write the valid IO file
+  std::string csv_file = m_builder->GetDir() + "/io.csv";
+  utils::write_file(csv_file, csv);
+  std::cout << "Output to: " << csv_file   << "\n";
+  test_result->GetInvariants();
+  test_result->GetPreconditions();
+  test_result->GetTransferFunctions();
+
+  Analyzer analyzer(csv_file, m_seg->GetConditions());
+  // TODO NOW
+  // TestSummary summary = analyzer.GetSummary();
+  // if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
+  //   // hard to trigger, go to simplify approach
+  //   simplify();
+  // }
+  std::vector<std::string> invs = analyzer.GetInvariants();
+  std::vector<std::string> pres = analyzer.GetPreConditions();
+  std::vector<std::string> trans = analyzer.GetTransferFunctions();
+  if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+    std::cout << "------ invariants ------"  << "\n";
+    for (auto &s : invs) {
+      std::cout << "| " << s  << "\n";
+    }
+    std::cout << "------ pre condtions ------"  << "\n";
+    for (auto &s : pres) {
+      std::cout << "| " << s  << "\n";
+    }
+    std::cout << "------ transfer functions ------"  << "\n";
+    for (auto &s : trans) {
+      std::cout << "| " << s  << "\n";
+    }
+    std::cout << "------------------------------"  << "\n";
+
+    // std::string cmd = "compare.py -f " + csv_file;
+    // std::string inv = utils::exec(cmd.c_str());
+    // std::cout << inv  << "\n";
+  }
+
+
+  std::cout << "---- resolveQuery -----"  << "\n";
+  m_query_resolved = resolveQuery(invs, pres, trans);
+  if (m_query_resolved) {
+    // output some information to use in paper
+    std::cout << "== sig dir: " << m_sig_dir  << "\n";
+    std::cout << "== search time: " << m_search_time  << "\n";
+  }
+  std::cout << "------ end of query resolving -----"  << "\n";
+}
+
+void Context::freeTestSuite() {
+  for (std::vector<TestInput*> &v : m_test_suite) {
+    for (TestInput *in : v) {
+      delete in;
+    }
+  }
+  m_test_suite.clear();
+}
+
+/**
+ * Test this context.
+ * 1. get code and create builder. Write and compile.
+ * 2. create test cases
+ * 3. test and collect test result
+ * 4. generate dynamic properties
+ */
+void Context::Test() {
+  std::cout << "============= Context::Test() ================="  << "\n";
+  std::cout << "The size of this context: " << m_nodes.size()  << "\n";
+  if (compile()) {
+    createTestCases();
+    TestResult *test_result = test();
+    analyze(test_result);
+    delete test_result;
+  }
 }
 
 

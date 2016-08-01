@@ -95,7 +95,7 @@ Helium::Helium(int argc, char* argv[]) {
     while (m_folder.back() == '/') m_folder.pop_back();
   } else if (utils::is_file(m_folder)) {
   } else {
-    std::cerr<<"no such folder" << m_folder<<'\n';
+    std::cerr<<"target folder: " << m_folder << " does not exists." <<'\n';
     assert(false);
   }
 

@@ -10,7 +10,9 @@ for bench in $1/*; do
     fi
 
     # processing
+    pwd
     cd $bench
+    pwd
     rm -f helium_log.txt helium_dump.txt
     helium -s snippets/ cpped/ --print='ci,ce,col' -c src --poi=$poi_file
     if [ $? == 0 ]; then

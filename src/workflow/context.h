@@ -2,6 +2,9 @@
 #define CONTEXT_H
 
 #include "segment.h"
+#include "builder.h"
+#include "tester.h"
+
 /**
  * The Context class.
  * This class must be associated with a Segment.
@@ -9,7 +12,7 @@
  */
 class Context {
 public:
-  ~Context() {}
+  ~Context();
   Context(Segment *seg);
   // copy constructor
   Context(const Context &rhs);
@@ -98,11 +101,22 @@ private:
 
   void simplify();
 
+  bool compile();
+  void createTestCases();
+  TestResult* test();
+  void analyze(TestResult *result);
+
+  void freeTestSuite();
+
 
 
   
   Segment *m_seg = NULL;
   Context *m_last = NULL; // last context
+
+  Builder *m_builder = NULL;
+  std::vector<std::vector<TestInput*> > m_test_suite;
+  std::string m_sig_dir;
   /**
    * Storage
    */

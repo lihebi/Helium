@@ -9,9 +9,9 @@
  * Output is added later. You can add arbitrary number of output.
  * This class is able to generate the CSV file for analyze.
  */
-class NewTestResult {
+class TestResult {
 public:
-  NewTestResult(std::vector<std::vector<TestInput*> > test_suite) : m_test_suite(test_suite) {}
+  TestResult(std::vector<std::vector<TestInput*> > test_suite) : m_test_suite(test_suite) {}
   void GetInvariants();
   void GetPreconditions();
   void GetTransferFunctions();

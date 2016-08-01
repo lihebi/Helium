@@ -46,7 +46,7 @@ std::map<std::string, std::string> get_header_value_map(std::string output) {
  *
  * Also, the output should be separate to test success and failure
  */
-// void NewTestResult::GetInvariants() {
+// void TestResult::GetInvariants() {
 //   // 1. separate success and failure output
 //   // std::vector<std::string> outputs = m_poi_output_success;
 //   // 2. get all the headers (xxx)
@@ -93,13 +93,13 @@ std::map<std::string, std::string> get_header_value_map(std::string output) {
 //   std::cout << csv  << "\n";
 // }
 
-void NewTestResult::GetInvariants() {
+void TestResult::GetInvariants() {
 }
 
-void NewTestResult::GetPreconditions() {
+void TestResult::GetPreconditions() {
 }
 
-void NewTestResult::GetTransferFunctions() {
+void TestResult::GetTransferFunctions() {
 }
 
 /**
@@ -139,7 +139,7 @@ std::pair<std::set<std::string>, std::string> get_freed_list(std::string output)
  * 1. NO i_header and o_header
  * 2. NO HELIUM_POI checks
  */
-void NewTestResult::PrepareData() {
+void TestResult::PrepareData() {
   std::set<std::string> output_headers;
   // The final output will be written into m_header_value_maps, one test_suite per line.
   assert(m_poi_output.size() == m_test_suite.size());
@@ -189,7 +189,7 @@ void NewTestResult::PrepareData() {
   }
 }
 
-std::string NewTestResult::GenerateCSV() {
+std::string TestResult::GenerateCSV() {
   std::string ret;
   for (const std::string &header : m_headers) {
     ret += header;
