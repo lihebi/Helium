@@ -131,6 +131,8 @@ void Reader::GA() {
  * If the benchmark_folder does not contain the file in the slice, assertion failure will be thrown
  */
 void Reader::slice(std::string file, std::string benchmark_folder) {
+  assert(false);
+#if 0
   std::vector<SliceFile> slices;
   // 
   if (fs::is_directory(file)) {
@@ -202,6 +204,7 @@ void Reader::slice(std::string file, std::string benchmark_folder) {
     }
   }
   std::cerr << "\n";
+#endif
 }
 /**
  * Process the segment

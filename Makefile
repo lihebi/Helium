@@ -2,7 +2,8 @@
 # TODO: Move `libmongoclient.a` to /usr/local/lib so this can work on production servers
 #
 
-CC := g++
+# CC := g++
+CC := clang++
 # CC := clang --analyze # and comment out the linker last line for sanity
 
 ##############################
