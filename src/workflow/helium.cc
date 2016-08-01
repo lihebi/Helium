@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 
-
 #include "reader.h"
 #include "helium_utils.h"
 
@@ -263,6 +262,12 @@ Helium::Helium(int argc, char* argv[]) {
   if (args.Has("poi")) {
     m_poi_file = args.GetString("poi");
   }
+  if (args.Has("whole-poi")) {
+    m_whole_poi = args.GetString("whole-poi");
+  }
+  if (args.Has("benchmark")) {
+    m_benchmark = args.GetString("benchmark");
+  }
 }
 Helium::~Helium() {}
 
@@ -344,10 +349,71 @@ POISpec parse_poi_file(std::string file) {
   std::vector<std::string> sp = utils::split(content);
   assert(sp.size() > 2);
   ret.filename = sp[0];
-  ret.linum = std::stoi(sp[1]);
+  try {
+    ret.linum = std::stoi(sp[1]);
+  } catch (std::invalid_argument e) {
+    std::cerr << "error parsing poi file line number"  << "\n";
+    exit(1);
+  }
   ret.type = sp[2];
   assert(ret.type == "loop" || ret.type == "stmt");
+  std::cout << "POI: " << ret.filename << ":" << ret.linum << " " << ret.type  << "\n";
   return ret;
+}
+
+/**
+ * Parse whole poi file.
+ * TODO use a format table parser
+ | benchmark                 | file               | line | type | bug-type |
+ |---------------------------+--------------------+------+------+----------|
+ | cabextract-1.2            | mszipd.c           |  353 | loop |          |
+ */
+POISpec parse_whole_poi_file(std::string file, std::string benchmark) {
+  POISpec ret;
+  std::string content = utils::read_file(file);
+  std::vector<std::string> lines = utils::split(content, '\n');
+  for (std::string line : lines) {
+    std::vector<std::string> components = utils::split(line, '|');
+    // FIXME the first is empty?
+    // FIXME what is there's one empty in the middle?
+    // FIXME in the end?
+    if (components.size() < 6) {
+      continue;
+    }
+    std::string bench = components[1];
+    std::string file = components[2];
+    std::string linum = components[3];
+    std::string type = components[4];
+    std::string bug_type = components[5];
+    utils::trim(bench);
+    utils::trim(file);
+    utils::trim(linum);
+    utils::trim(type);
+    utils::trim(bug_type);
+    // std::cout << bench << ":" << file << ":" << linum  << "\n";
+    if (benchmark == bench) {
+      std::cout << "found POI: " << file << ":" << linum << " " << type  << "\n";
+      ret.filename = file;
+      try {
+        ret.linum = std::stoi(linum);
+      } catch (std::invalid_argument e) {
+        std::cout << "Error parsing poi file " << file << ": linum is not a number"  << "\n";
+        exit(1);
+      }
+      ret.type = type;
+      return ret;
+    }
+  }
+  return ret;
+}
+
+TEST(HeliumTestCase, WholePOITest) {
+  std::string s = "| xfd | fds | | xxfd | |";
+  // the test shows: the first is empty, the last empty is omitted (in this case only one last empty string)
+  std::vector<std::string> v = utils::split(s, '|');
+  for (std::string s : v) {
+    std::cout << "COMP: " << s  << "\n";
+  }
 }
 
 void
@@ -382,15 +448,12 @@ Helium::Run() {
     // }
   // } else {
   // }
-  if (m_poi_file.empty()) {
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      Reader reader(*it);
-      // reader.Read();
-    }
-  } else {
+
+  if (!m_poi_file.empty()) {
     assert(utils::file_exists(m_poi_file));
     // filename, line number, typ
     POISpec poi = parse_poi_file(m_poi_file);
+    if (poi.filename.empty()) return;
     // find this file
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       std::string filename = *it;
@@ -399,6 +462,25 @@ Helium::Run() {
       }
     }
     // find this line in "cpped" file, by line marker
+  } else if (!m_whole_poi.empty()) {
+    if (m_benchmark.empty()) {
+      std::cerr << "EE: benchmark name must be set (--benchmark, -b) in order to use whole poi" << "\n";
+      return;
+    }
+    POISpec poi = parse_whole_poi_file(m_whole_poi, m_benchmark);
+    if (poi.filename.empty()) return;
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      std::string filename = *it;
+      if (filename.find(poi.filename) != std::string::npos) {
+        Reader reader(filename, poi);
+      }
+    }
+    // process whole poi to match current benchmark
+  } else {
+    for (auto it=m_files.begin();it!=m_files.end();it++) {
+      Reader reader(*it);
+      // reader.Read();
+    }
   }
   // double t2 = utils::get_time();
   std::cerr << "********** End of Helium **********"  << "\n";

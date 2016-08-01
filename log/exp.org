@@ -1,0 +1,23 @@
+#+TITLE: Experiment Log
+
+2016-08-01 Mon 06:24:49 AM
+Rig Debian
+
+#+BEGIN_EXAMPLE
+hebi      5908  5899  1 06:21 pts/3    00:00:02 helium -s snippets/ cpped/ --print=ci,ce,col -c src --poi=/tmp/poi/cabextract-1.2.poi.txt
+hebi      5914  5899  2 06:21 pts/3    00:00:03 helium -s snippets/ cpped/ --print=ci,ce,col -c src --poi=/tmp/poi/libgd-GD_2_0_33.poi.txt
+hebi      5928  5899 16 06:21 pts/3    00:00:22 helium -s snippets/ cpped/ --print=ci,ce,col -c src --poi=/tmp/poi/optipng-0.6.4.poi.txt
+hebi      5931  5899  5 06:21 pts/3    00:00:08 helium -s snippets/ cpped/ --print=ci,ce,col -c src --poi=/tmp/poi/tcpdump-3.9.1.poi.txt
+hebi     30865  5899  0 06:23 pts/3    00:00:00 grep helium -s
+left procedure: 4
+99/100
+======== observing data ==========
+40 0 0 40 ==== ./cabextract-1.2
+0 46 0 0 ==== ./jasper-1.900.1
+27 0 10 17 ==== ./libgd-GD_2_0_33
+1 16 0 1 ==== ./libpng-1.2.5
+22 52 1 21 ==== ./logsurfer-1.5b
+0 11 0 0 ==== ./nstx-1.1-beta3
+1 0 1 0 ==== ./optipng-0.6.4
+0 1 0 0 ==== ./tcpdump-3.9.1
+#+END_EXAMPLE

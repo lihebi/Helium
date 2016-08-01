@@ -240,6 +240,7 @@ void ProcessSeg(Segment *seg) {
  */
 int get_true_linum(std::string filename, int linum) {
   print_trace("get_true_linum");
+  // std::cout << filename << ':' << linum  << "\n";
   std::string content = utils::read_file(filename);
   std::vector<std::string> sp = utils::split(content, '\n');
   int ret = linum;

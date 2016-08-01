@@ -18,6 +18,9 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("help,h", "produce help message") // --help, -h
     ("config,f", po::value<std::string>(), "config file")
     ("poi", po::value<std::string>(), "poi file")
+    // The following two must be together
+    ("whole-poi", po::value<std::string>(), "whole poi")
+    ("benchmark,b", po::value<std::string>(), "benchmark name (including version, e.g. gzip-1.2.4, libgd_3_0_33)")
     ("tagfile,t", po::value<std::string>(), "tag file")
     ("snippet-db-folder,s", po::value<std::string>(), "snippet database folder")
     ("src-folder,c", po::value<std::string>(), "source file folder (not orig)")
@@ -141,6 +144,7 @@ void ArgParser::PrintHelp() {
     
     std::cout << ""  << "\n";
     std::cout << "Examples:"  << "\n";
+    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true' -c src --whole-poi=/tmp/poi/poi.org -b gzip-1.2.4"  << "\n";
     std::cout << "Buffer Overflow bugs:"  << "\n";
     std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true'"  << "\n";
     std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true,test-number=30' -c src --poi=../gzip-poi.txt"  << "\n";
