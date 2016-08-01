@@ -16,7 +16,7 @@ using namespace utils;
  *******************************/
 
 CtagsEntry::CtagsEntry(const tagEntry* const entry) {
-  print_trace("CtagsEntry::CtagsEntry");
+  // print_trace("CtagsEntry::CtagsEntry");
   m_name = entry->name;
   m_file = entry->file;
   m_line = entry->address.lineNumber;

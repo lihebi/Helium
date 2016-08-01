@@ -52,7 +52,10 @@ std::map<std::string, std::string> parse_header_conf(std::string file) {
 void SystemResolver::parseHeaderConf(std::string file) {
   std::map<std::string, std::string> headers = parse_header_conf(file);
   for (auto m : headers) {
-    if (header_exists(m.first)) {
+    if (header_exists(m.first)
+        // FIXME ensure HeaderSorter is loaded before SystemResolver
+        && HeaderSorter::Instance()->IsIncluded(m.first)
+        ) {
       m_headers.insert(m.first);
       if (!m.second.empty()) {
         m_libs.insert(m.second);

@@ -199,12 +199,12 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
-  /* load system tag file */
-  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   // HeaderSorter::Instance()->Load(m_folder);
   std::string src_folder = args.GetString("src-folder");
-  assert(!src_folder.empty());
   HeaderSorter::Instance()->Load(src_folder);
+  /* load system tag file */
+  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
+  assert(!src_folder.empty());
   
   // std::string output_folder = Config::Instance()->GetString("output-folder");
   // assert(!output_folder.empty() && "output-folder is not set");
@@ -467,8 +467,14 @@ Helium::Run() {
       std::cerr << "EE: benchmark name must be set (--benchmark, -b) in order to use whole poi" << "\n";
       return;
     }
+    // TODO support multiple POIs (multiple bugs for the same benchmark version)
     POISpec poi = parse_whole_poi_file(m_whole_poi, m_benchmark);
-    if (poi.filename.empty()) return;
+    if (poi.filename.empty()
+        || poi.linum == 0
+        || poi.type.empty()
+        ) {
+      return;
+    }
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       std::string filename = *it;
       if (filename.find(poi.filename) != std::string::npos) {

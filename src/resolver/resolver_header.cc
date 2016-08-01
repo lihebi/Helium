@@ -2,17 +2,21 @@
 #include "utils/utils.h"
 #include <cassert>
 #include <iostream>
+#include "config/options.h"
 
 using namespace utils;
 
 HeaderSorter* HeaderSorter::m_instance = 0;
 
 static boost::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
+static boost::regex include_quote_reg("#\\s*include\\s*\"([\\w/]+\\.h)\"");
+static boost::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
 
 // load all the header files inside the folder recursively,
 // scan the #inlcude "" statement, and get dependence relations between them
 void
 HeaderSorter::Load(const std::string& folder) {
+  print_trace("HeaderSorter::Load");
   std::vector<std::string> headers;
   get_files_by_extension(folder, headers, "h");
   for (auto it=headers.begin();it!=headers.end();it++) {
@@ -41,6 +45,14 @@ HeaderSorter::Load(const std::string& folder) {
           // The dependence may change.
           // addDependence(filename, new_file);
           m_hard_deps_map[filename].insert(new_file);
+
+          // Include "used" only in <>
+          boost::regex_search(line, match, include_angle_reg);
+          new_file = match[1];
+          if (new_file.find("/") != std::string::npos) {
+            new_file = new_file.substr(new_file.rfind("/")+1);
+          }
+          m_headers.insert(new_file);
         }
       }
       is.close();
@@ -49,7 +61,18 @@ HeaderSorter::Load(const std::string& folder) {
   // TODO soft deps
   // implicit(folder);
   // completeDeps();
+  std::cout << "== Loaded HeaderSorter:"  << "\n";
+  Dump();
 }
+
+HeaderSorter::HeaderSorter() {
+  // some headers that must be installed
+  m_headers.insert("ctype.h");
+  m_headers.insert("stdio.h");
+  m_headers.insert("stdlib.h");
+}
+HeaderSorter::~HeaderSorter() {}
+
 
 /**
  * The header relationship sometimes does not explictly said in header includes.
@@ -200,5 +223,9 @@ void HeaderSorter::Dump() {
     for (const std::string &s : v.second) {
       std::cout << "\t" << s << "\n";
     }
+  }
+  std::cout << "===== Headers used in this benchmark:"  << "\n";
+  for (std::string s : m_headers) {
+    std::cout << s  << "\n";
   }
 }

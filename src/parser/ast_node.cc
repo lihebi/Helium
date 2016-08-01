@@ -330,6 +330,7 @@ ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *a
 }
 
 std::string AST::GetFunctionName() {
+  print_trace("GetFunctionName");
   if (m_nodes.size() == 0) return "";
   ASTNode *func_node = m_nodes[0];
   if (func_node->Kind() != ANK_Function) return "";
@@ -505,6 +506,7 @@ std::set<ASTNode*> AST::CompleteGeneToRoot(std::set<ASTNode*> gene) {
  * If the nodes contains continue, break, add the parent
  * - for, while, do
  * - switch
+ * If node contains case, add parent switch
  */
 std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
   std::set<ASTNode*> ret (nodes.begin(), nodes.end());
@@ -524,6 +526,12 @@ std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
         assert(p);
         ret.insert(p);
       }
+    } else if (n->Kind() == ANK_Case) {
+      ASTNode *p = n->GetParent();
+      // std::cout << p->Kind()  << "\n";
+      // std::cout << ANK_Switch  << "\n";
+      assert(p && p->Kind() == ANK_Switch);
+      ret.insert(p);
     }
   }
   return ret;
@@ -607,12 +615,14 @@ void AST::ClearSlice() {
 }
 
 ASTNode* AST::GetCallSite(std::string func_name) {
+  print_trace("AST::GetCallSite");
   assert(m_root);
   XMLNode callsite = ast::find_callsite(m_root->GetXMLNode(), func_name);
   return GetEnclosingNodeByXMLNode(callsite);
 }
 
 std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
+  print_trace("AST::GetCallSites");
   assert(m_root);
   // DEBUG
   // XMLNode node = m_root->GetXMLNode();

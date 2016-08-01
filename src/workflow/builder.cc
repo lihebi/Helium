@@ -278,6 +278,17 @@ void global_add_static(XMLDoc *doc) {
 //   XMLDoc *doc = XMLDocReader::CreateDocFromFile("/tmp/helium-test-tmp.SX2ZoL/support.h");
 // }
 
+void remove_typedef(XMLNode node) {
+  for (pugi::xpath_node typedef_n : node.select_nodes("//typedef")) {
+    XMLNode typedef_node = typedef_n.node();
+    std::string name = typedef_node.child("name").child_value();
+    std::string sys = SystemResolver::Instance()->ResolveType(name);
+    if (!sys.empty()) {
+      typedef_node.parent().remove_child(typedef_node);
+    }
+  }
+}
+
 /**
  * I would like do the free-d list instumentation here
  */
@@ -300,6 +311,15 @@ void Builder::postProcess() {
   code = get_text(doc->document_element());
   utils::write_file(m_dir + "/support.h", code);
   delete doc;
+
+  // remove typedef if system already de
+  // FIXME this might remove some that is needed by the header is not included
+  // FIXME For IO type, the insturmented declaration will be the resolved name
+  // TODO output many versions, every one success counts
+  // doc = XMLDocReader::CreateDocFromFile(m_dir + "/support.h");
+  // remove_typedef(doc->document_element());
+  // code = get_text(doc->document_element());
+  // utils::write_file(m_dir + "/support.h", code);
 }
 
 std::string simplify_error_msg(std::string error_msg) {

@@ -21,3 +21,27 @@ left procedure: 4
 1 0 1 0 ==== ./optipng-0.6.4
 0 1 0 0 ==== ./tcpdump-3.9.1
 #+END_EXAMPLE
+
+2016-08-01 Mon 12:19:59 PM
+
+#+BEGIN_EXAMPLE
+hebi      6265 20655  0 12:11 pts/3    00:00:00 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/cabextract-1.2.poi.txt
+hebi     20655 20646  1 12:09 pts/3    00:00:02 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/cabextract-1.2.poi.txt
+hebi     20663 20646  2 12:09 pts/3    00:00:03 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/libgd-GD_2_0_33.poi.txt
+hebi     20673 20646 12 12:09 pts/3    00:00:19 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/optipng-0.6.4.poi.txt
+hebi     20677 20646  3 12:09 pts/3    00:00:05 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/tcpdump-3.9.1.poi.txt
+hebi     20682 20646  1 12:09 pts/3    00:00:02 helium -s snippets/ cpped/ --print=ci,ce,col --conf=test-number=1 -c src --poi=/tmp/poi/wu-ftpd-2.4.2-beta-18-vr8.poi.t
+xt
+left procedure: 5
+99/100
+======== observing data ==========
+39 0 0 39 ==== ./cabextract-1.2
+0 46 0 0 ==== ./jasper-1.900.1
+24 0 3 21 ==== ./libgd-GD_2_0_33
+1 16 0 1 ==== ./libpng-1.2.5
+60 9 1 59 ==== ./logsurfer-1.5b
+0 11 0 0 ==== ./nstx-1.1-beta3
+1 0 1 0 ==== ./optipng-0.6.4
+34 41 23 11 ==== ./wu-ftpd-2.4.2-beta-18-vr8
+15 6 15 0 ==== ./wu-ftpd-2.5.0
+#+END_EXAMPLE

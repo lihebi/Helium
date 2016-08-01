@@ -39,7 +39,10 @@ for bench in $1/*; do
     # processing
     cd $bench
     rm -f helium_log.txt helium_dump.txt helium_dump_compile_error.txt
-    helium -s snippets/ cpped/ --print='ci,ce,col' -c src --poi=$poi_file >/dev/null 2>&1 &
+    # CONFIG
+    # when testing build rate, use test-number=1
+    # do NOT use run-test=false, that is buggy
+    helium -s snippets/ cpped/ --print='ci,ce,col' --conf="test-number=1" -c src --poi=$poi_file >/dev/null 2>&1 &
     cd ..
 done
 

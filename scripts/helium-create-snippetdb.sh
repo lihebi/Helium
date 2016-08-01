@@ -68,7 +68,7 @@ for bench in $1/*; do
         # cpp will terminate for unfound local header files
         # Maybe just leave it, because the error I found for apache is just the file is missing, not loation problem
         # $CC -E -nostdinc "$simple_name" > "../tmp/$simple_name" 2>/dev/null
-        $CC -E "$simple_name" > "../tmp/$simple_name" 2>/dev/null
+        $CC -E -include $HELIUM_HOME/lib/config/config.h "$simple_name" > "../tmp/$simple_name" 2>/dev/null
         cd ../tmp
         # 5. use helium-process-cpped.py to remove extra line marker staffs, rename back
         helium-process-cpped.py "$simple_name" > "../cpped/$simple_name"

@@ -103,6 +103,20 @@ is also because the cache is not updated.
 So the solution is =sudo ldconfig=
 
 * Run
+IMPORTANT: before pre-processing, make the $HELIUM_HOME available, and make the lib/config/config.h by
+#+BEGIN_EXAMPLE
+aclocal
+autoconf
+./configure
+#+END_EXAMPLE
+** A quick test
+git clone https://github.com/lihebi/poi
+cd poi && ./setup.sh
+git clone https://github.com/lihebi/bugbench
+cd bugbench
+helium-create-snippetdb folder
+cd helium
+heilum-run.sh .
 
 ** third party libraries
 Helium relies on ~headers.conf~ for the headers to include.

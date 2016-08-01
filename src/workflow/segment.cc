@@ -325,6 +325,7 @@ void Segment::extractJumpOutCondition() {
  * Instead, record a "offset" field in meta data.
  */
 XMLNodeList get_caller_nodes(std::string func) {
+  print_trace("get_caller_nodes");
   std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
   XMLNodeList ret;
   for (std::string caller : caller_funcs) {

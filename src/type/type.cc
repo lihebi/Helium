@@ -97,13 +97,35 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
     } else if (ts.is_short || ts.is_long || ts.is_int || ts.is_signed || ts.is_unsigned) {
       return new Int(raw, dims);
     } else {
-      std::cout << raw  << "\n";
+      std::cerr << "WW: type not created" << '\n';
+      // std::cout << raw  << "\n";
       // std::cout << "Debug pause: enter to continue"  << "\n";
       // getchar();
       return NULL;
       // FIXME might be enum!
     }
   } else {
+    // FIXME should do local resolving first, but since I have redefine problem, use this temporarily
+    /********************************
+     * System Resolving
+     *******************************/
+    // at this point, if the previous solution can resolve, it is already resolved
+    if (SystemResolver::Instance()->Has(id)) {
+      // TODO replace this also with a database?
+      std::string new_type = SystemResolver::Instance()->ResolveType(id);
+      if (!new_type.empty()) {
+        std::string tmp = raw;
+        tmp.replace(tmp.find(id), id.length(), new_type);
+        return TypeFactory::CreateType(tmp, dims);
+      } else {
+        return new SystemType(raw, dims);
+      }
+    }
+
+    /********************************
+     * Local Resolving
+     *******************************/
+
     /**
      * Querying the snippet db database
      */
@@ -145,25 +167,13 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
         return TypeFactory::CreateType(code, dims, token);
       }
     }
-    // at this point, if the previous solution can resolve, it is already resolved
-    if (SystemResolver::Instance()->Has(id)) {
-      // TODO replace this also with a database?
-      std::string new_type = SystemResolver::Instance()->ResolveType(id);
-      if (!new_type.empty()) {
-        std::string tmp = raw;
-        tmp.replace(tmp.find(id), id.length(), new_type);
-        return TypeFactory::CreateType(tmp, dims);
-      } else {
-        return new SystemType(raw, dims);
-      }
-    }
-
   }
 
   // should not reach here
   // FIXME TODO handle the case where the type is not created correctly (NULL)
   // It should be in model.cc, in Decl class
-  std::cout << raw  << "\n";
+  std::cout << "WW: should not reach here: TypeFactory::CreateType"  << "\n";
+  // std::cout << raw  << "\n";
   // DEBUG
   // assert(false);
   return NULL;
