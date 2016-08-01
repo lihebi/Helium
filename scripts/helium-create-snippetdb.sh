@@ -78,7 +78,7 @@ for bench in $1/*; do
     # helium --create-snippet-db helium/$bench/src
     # mv snippets helium/$bench/
     echo "== Creating snippet db ..."
-    time helium --create-snippet-db cpped # > /dev/null
+    time helium --create-snippet-db cpped > /dev/null 2>&1
     cd ../..
 done    
 
