@@ -91,4 +91,6 @@ helium-run-parrel . 100
 ** cloc summary of C source and header files
 #+BEGIN_EXAMPLE
 cloc --include-lang="C,C/C++ Header" jasper-1.900.1.zip  | grep SUM | awk '{print $5}'
+# to use clocc.sh
+for fname in *; do echo $fname; clocc.sh $fname; done
 #+END_EXAMPLE

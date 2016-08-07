@@ -125,6 +125,8 @@ helium-run-parrel . 100
 .RS
 .nf
 cloc --include-lang="C,C/C++ Header" jasper-1.900.1.zip  | grep SUM | awk '{print $5}'
+# to use clocc.sh
+for fname in *; do echo $fname; clocc.sh $fname; done
 
 .fi
 .RE
