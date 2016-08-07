@@ -543,7 +543,7 @@ std::string Context::getMain() {
       // modify the code, specifically change all return statement to return 35;
       code = replace_return_to_35(code);
       main_func += code;
-      main_func += "return 0;";
+      main_func += "return 0;\n";
       main_func += "};\n";
     } else {
       // other functions
