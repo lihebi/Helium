@@ -1,0 +1,94 @@
+#+TITLE: Helium Manpage
+* Usage
+#+BEGIN_EXAMPLE
+helium [options] <folder>
+#+END_EXAMPLE
+
+
+* Arguments
+#+BEGIN_EXAMPLE
+-h [ --help ]                  produce help message
+-f [ --config ] arg            config file
+--poi arg                      poi file
+--whole-poi arg                whole poi
+-b [ --benchmark ] arg         benchmark name (including version, e.g. gzip-1.2.4, libgd_3_0_33)
+-t [ --tagfile ] arg           tag file
+-s [ --snippet-db-folder ] arg snippet database folder
+-c [ --src-folder ] arg        source file folder (not orig)
+-v [ --verbose ]               verbose output
+-o [ --output ] arg            output location
+--conf arg                     key=value pair of configure to owerwrite items in helium.conf
+-p [ --print ] arg             what to be print
+-d [ --debug ] arg             debugging pause point
+--slice arg                    slice to use, as the code selection. THIS WILL SET THE CODE SELECTION METHOD TO SLICE
+--slice-file arg               the slice file, this will be used as a mask on the AST
+#+END_EXAMPLE
+
+* Utils
+#+BEGIN_EXAMPLE
+--create-tagfile       create tag file
+--create-snippet-db    create snippet database
+--create-header-dep    create header dependence table
+
+--print-header-dep     the new dep printing: from the database
+--print-callgraph      print callgraph
+--print-config         print current config
+--print-segments       print segments and exit
+--print-segment-info   print segment count, segment size LOC in total, for every file
+--print-header-deps    print header dependencies
+--check-headers        check if the headers in headers.conf exists on this machine
+--create-function-ast  create ast for all the functions in the target benchmarks
+--print-headers        print header
+#+END_EXAMPLE
+
+
+* Important options
+#+BEGIN_EXAMPLE
+-c src
+--conf='cc=clang'
+--poi=../../ncompress-poi.txt
+#+END_EXAMPLE
+** Important instrument options: (--conf)
+#+BEGIN_EXAMPLE
+test-number=100
+test-global-variable=true
+instrument-address=true
+instrument-strlen=true
+instrument-null=true
+#+END_EXAMPLE
+** Important print options: (--print)
+#+BEGIN_EXAMPLE
+--print='csvsum,ana'
+#+END_EXAMPLE
+
+* Examples:
+#+BEGIN_EXAMPLE
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true' -c src --whole-poi=/tmp/poi/poi.org -b gzip-1.2.4
+#+END_EXAMPLE
+** Buffer Overflow bugs:
+#+BEGIN_EXAMPLE
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true'
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true,test-number=30' -c src --poi=../gzip-poi.txt
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true, test-number=100'
+#+END_EXAMPLE
+** Double free bugs:
+#+BEGIN_EXAMPLE
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true'
+#+END_EXAMPLE
+** Null Dereference bugs:
+#+BEGIN_EXAMPLE
+helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true, instrument-null=true'
+#+END_EXAMPLE
+
+** Preprocessing:
+#+BEGIN_EXAMPLE
+CC=gcc-6 helium-create-snippetdb.sh /path/to/folder
+ps -ef | grep 'helium -s' | awk '{print $2}' | xargs kill
+helium-run-parrel . 100
+#+END_EXAMPLE
+
+* Related Scripts
+** cloc summary of C source and header files
+#+BEGIN_EXAMPLE
+cloc --include-lang="C,C/C++ Header" jasper-1.900.1.zip  | grep SUM | awk '{print $5}'
+#+END_EXAMPLE
