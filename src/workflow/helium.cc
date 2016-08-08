@@ -18,7 +18,6 @@
 #include "resolver/snippet.h"
 #include "resolver/resolver.h"
 #include "resolver/snippet_db.h"
-#include "resolver/header_dep.h"
 
 #include <gtest/gtest.h>
 
@@ -56,34 +55,14 @@ Helium::Helium(int argc, char* argv[]) {
   /* parse arguments */
   ArgParser args(argc, argv);
 
-
-
   /* load config */
   Config::Instance()->ParseFile(helium_home+"/helium.conf");
   Config::Instance()->Overwrite(args);
-
   if (args.Has("print-config")) {
     std::cout << Config::Instance()->ToString() << "\n";
     exit(0);
   }
 
-  if (args.Has("check-headers")) {
-    SystemResolver::check_headers();
-    exit(0);
-  }
-
-  if (args.Has("print-headers")) {
-    std::string header = SystemResolver::Instance()->GetHeaders();
-    // segment::get_head()
-    std::cout << header  << "\n";
-    exit(0);
-  }
-
-
-  /*******************************
-   ** BEGIN need folder argument
-   *******************************/
-  
   // target folder
   m_folder = args.GetString("folder");
   if (m_folder.empty()) {
@@ -97,9 +76,6 @@ Helium::Helium(int argc, char* argv[]) {
     std::cerr<<"target folder: " << m_folder << " does not exists." <<'\n';
     assert(false);
   }
-
-
-
 
   /*******************************
    ** utilities
@@ -128,11 +104,11 @@ Helium::Helium(int argc, char* argv[]) {
     SnippetDB::Instance()->Create(tagfile, output_folder);
     exit(0);
   }
-  if (args.Has("print-header-deps")) {
-    HeaderSorter::Instance()->Load(m_folder);
-    HeaderSorter::Instance()->Dump();
-    exit(0);
-  }
+  // if (args.Has("print-header-deps")) {
+  //   HeaderSorter::Instance()->Load(m_folder);
+  //   HeaderSorter::Instance()->Dump();
+  //   exit(0);
+  // }
 
   if (args.Has("create-function-ast")) {
     // this only works for a single file
@@ -152,13 +128,6 @@ Helium::Helium(int argc, char* argv[]) {
       exit(1);
     }
   }
-
-
-
-  /*******************************
-   ** Helium start
-   *******************************/
-
   
   /* load tag file */
   std::string tagfile = args.GetString("tagfile");
@@ -184,15 +153,6 @@ Helium::Helium(int argc, char* argv[]) {
   }
   SnippetDB::Instance()->Load(snippet_db_folder);
 
-  if (args.Has("create-header-dep")) {
-    HeaderDep::Create(m_folder);
-    exit(0);
-  }
-  HeaderDep::Instance()->LoadFromDB();
-  if (args.Has("print-header-dep")) {
-    HeaderDep::Instance()->Dump();
-    exit(0);
-  }
 
   if (args.Has("print-callgraph")) {
     SnippetDB::Instance()->PrintCG();
@@ -205,12 +165,48 @@ Helium::Helium(int argc, char* argv[]) {
   /* load system tag file */
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   assert(!src_folder.empty());
-  
-  // std::string output_folder = Config::Instance()->GetString("output-folder");
-  // assert(!output_folder.empty() && "output-folder is not set");
-  // /* prepare folder */
-  // remove_folder(output_folder);
-  // create_folder(output_folder);
+
+
+  /**
+   * Print src meta.
+   * 0. check headers
+   * 1. headers used
+   * 2. header dependence
+   */
+  if (args.Has("print-meta")) {
+    std::cout << "== Helium Meta Data Printer =="  << "\n";
+    std::cout << "== Headers"  << "\n";
+    // 0
+    SystemResolver::check_headers();
+    // 1
+    // std::string header = SystemResolver::Instance()->GetHeaders();
+    // std::cout << header  << "\n";
+    // std::cout << "== Headers available on the machine"  << "\n";
+    std::set<std::string> avail_headers = SystemResolver::Instance()->GetAvailableHeaders();
+    // for (std::string s : avail_headers) {
+    //   std::cout << s  << "\n";
+    // }
+    std::cout << "== Headers used in project"  << "\n";
+    std::cout  << "\t";
+    std::set<std::string> used_headers = HeaderSorter::Instance()->GetUsedHeaders();
+    for (std::string s : used_headers) {
+      std::cout << s  << " ";
+    }
+    std::cout  << "\n";
+    // 2
+    std::cout << "== Header Dependence"  << "\n";
+    // HeaderDep::Instance()->Dump();
+    HeaderSorter::Instance()->DumpDeps();
+    std::cout << "== Final headers included:"  << "\n";
+    std::cout << "\t";
+    for (std::string s : avail_headers) {
+      if (used_headers.count(s) == 1) {
+        std::cout << s  << " ";
+      }
+    }
+    std::cout  << "\n";
+    exit(0);
+  }
 
   /* get files in target folder */
   if (utils::is_dir(m_folder)) {

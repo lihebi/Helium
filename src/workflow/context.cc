@@ -625,7 +625,14 @@ std::string Context::getSupport() {
   std::string code = "";
   // head
   code += get_head();
-  code += SystemResolver::Instance()->GetHeaders();
+  std::set<std::string> avail_headers = SystemResolver::Instance()->GetAvailableHeaders();
+  std::set<std::string> used_headers = HeaderSorter::Instance()->GetUsedHeaders();
+  for (std::string header : avail_headers) {
+    if (used_headers.count(header) == 1) {
+      code += "#include <" + header + ">\n";
+    }
+  }
+  // code += SystemResolver::Instance()->GetHeaders();
 
   code += ""
     // setbit is DEFINE-d by Mac ...
@@ -765,7 +772,10 @@ std::string Context::getMakefile() {
   // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
-    + "\t$(CC) -g -std=c11 main.c "
+    + "\t$(CC) -g "
+    // comment out because <unistd.h> will not include <optarg.h>
+    // + "-std=c11 "
+    + "main.c "
     + (Config::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
     // gnulib should not be used:
     // 1. Debian can install it in the system header, so no longer need to clone

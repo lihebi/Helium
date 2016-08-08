@@ -1,4 +1,4 @@
-#include "resolver.h"
+#include "header_sorter.h"
 #include "utils/utils.h"
 #include <cassert>
 #include <iostream>
@@ -18,7 +18,7 @@ void
 HeaderSorter::Load(const std::string& folder) {
   print_trace("HeaderSorter::Load");
   std::vector<std::string> headers;
-  get_files_by_extension(folder, headers, "h");
+  utils::get_files_by_extension(folder, headers, std::vector<std::string>({"h", "c"}));
   for (auto it=headers.begin();it!=headers.end();it++) {
     std::string filename = *it;
     // get only the last component(i.e. filename) in the file path
@@ -37,6 +37,7 @@ HeaderSorter::Load(const std::string& folder) {
           std::string new_file = match[1];
           // std::cout << new_file  << "\n";
           // the filename part of including
+          m_headers.insert(new_file);
           if (new_file.find("/") != std::string::npos) {
             new_file = new_file.substr(new_file.rfind("/")+1);
           }
@@ -52,7 +53,6 @@ HeaderSorter::Load(const std::string& folder) {
           // if (new_file.find("/") != std::string::npos) {
           //   new_file = new_file.substr(new_file.rfind("/")+1);
           // }
-          m_headers.insert(new_file);
         }
       }
       is.close();
@@ -61,15 +61,15 @@ HeaderSorter::Load(const std::string& folder) {
   // TODO soft deps
   // implicit(folder);
   // completeDeps();
-  std::cout << "== Loaded HeaderSorter:"  << "\n";
-  Dump();
+  // std::cout << "== Loaded HeaderSorter:"  << "\n";
+  // Dump();
 }
 
 HeaderSorter::HeaderSorter() {
   // some headers that must be installed
   // m_headers.insert("ctype.h");
-  m_headers.insert("stdio.h");
-  m_headers.insert("stdlib.h");
+  // m_headers.insert("stdio.h");
+  // m_headers.insert("stdlib.h");
 }
 HeaderSorter::~HeaderSorter() {}
 
@@ -218,14 +218,26 @@ HeaderSorter::Sort(std::set<std::string> headers) {
 }
 
 void HeaderSorter::Dump() {
+  std::cout << "-- Header deps:"  << "\n";
   for (auto &v : m_hard_deps_map) {
     std::cout << v.first  << " => \n";
     for (const std::string &s : v.second) {
       std::cout << "\t" << s << "\n";
     }
   }
-  std::cout << "===== Headers used in this benchmark:"  << "\n";
+  std::cout << "-- Headers used in this benchmark:"  << "\n";
   for (std::string s : m_headers) {
     std::cout << s  << "\n";
+  }
+}
+
+void HeaderSorter::DumpDeps() {
+  for (auto &v : m_hard_deps_map) {
+    std::cout  << "\t";
+    std::cout << v.first  << " => ";
+    for (const std::string &s : v.second) {
+      std::cout << " " << s << "";
+    }
+    std::cout  << "\n";
   }
 }

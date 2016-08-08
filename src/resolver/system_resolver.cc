@@ -54,7 +54,7 @@ void SystemResolver::parseHeaderConf(std::string file) {
   for (auto m : headers) {
     if (header_exists(m.first)
         // FIXME ensure HeaderSorter is loaded before SystemResolver
-        && HeaderSorter::Instance()->IsIncluded(m.first)
+        // && HeaderSorter::Instance()->IsIncluded(m.first)
         ) {
       m_headers.insert(m.first);
       if (!m.second.empty()) {
@@ -122,6 +122,9 @@ void SystemResolver::check_headers() {
   std::cout  << "\n";
 }
 
+/**
+ * DEPRECATED
+ */
 std::string
 SystemResolver::GetHeaders() const {
   std::string code;

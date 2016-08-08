@@ -52,6 +52,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("print-headers", "print header")
+    ("print-meta", "print meta data")
     ;
     
 
@@ -128,36 +129,37 @@ void ArgParser::PrintHelp() {
   } else {
     std::cout<< "Usage: helium [options] <folder>" <<std::endl;
     std::cout<< m_help_options << std::endl;
-    std::cout << ""  << "\n";
-    std::cout << "Important options:"  << "\n";
-    std::cout << "\t" << "-c src"  << "\n";
-    std::cout << "\t" << "--conf='cc=clang'"  << "\n";
-    std::cout << "\t" << "--poi=../../ncompress-poi.txt"  << "\n";
-    std::cout << "Important instrument options: (--conf)"  << "\n";
-    std::cout << "\t" << "test-number=100"  << "\n";
-    std::cout << "\t" << "test-global-variable=true"  << "\n";
-    std::cout << "\t" << "instrument-address=true"  << "\n";
-    std::cout << "\t" << "instrument-strlen=true"  << "\n";
-    std::cout << "\t" << "instrument-null=true"  << "\n";
-    std::cout << "Important print options: (--print)"  << "\n";
-    std::cout << "\t" << "--print='csvsum,ana'"  << "\n";
+    std::cout << "Refer to manpage of helium(1) for details."  << "\n";
+    // std::cout << ""  << "\n";
+    // std::cout << "Important options:"  << "\n";
+    // std::cout << "\t" << "-c src"  << "\n";
+    // std::cout << "\t" << "--conf='cc=clang'"  << "\n";
+    // std::cout << "\t" << "--poi=../../ncompress-poi.txt"  << "\n";
+    // std::cout << "Important instrument options: (--conf)"  << "\n";
+    // std::cout << "\t" << "test-number=100"  << "\n";
+    // std::cout << "\t" << "test-global-variable=true"  << "\n";
+    // std::cout << "\t" << "instrument-address=true"  << "\n";
+    // std::cout << "\t" << "instrument-strlen=true"  << "\n";
+    // std::cout << "\t" << "instrument-null=true"  << "\n";
+    // std::cout << "Important print options: (--print)"  << "\n";
+    // std::cout << "\t" << "--print='csvsum,ana'"  << "\n";
     
-    std::cout << ""  << "\n";
-    std::cout << "Examples:"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true' -c src --whole-poi=/tmp/poi/poi.org -b gzip-1.2.4"  << "\n";
-    std::cout << "Buffer Overflow bugs:"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true'"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true,test-number=30' -c src --poi=../gzip-poi.txt"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true, test-number=100'"  << "\n";
-    std::cout << "Double free bugs:"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true'"  << "\n";
-    std::cout << "Null Dereference bugs:"  << "\n";
-    std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true, instrument-null=true'"  << "\n";
-    std::cout << ""  << "\n";
-    std::cout << "Preprocessing:"  << "\n";
-    std::cout << "\t" << "CC=gcc-6 helium-create-snippetdb.sh /path/to/folder"  << "\n";
-    std::cout << "\t" << "ps -ef | grep 'helium -s' | awk '{print $2}' | xargs kill"  << "\n";
-    std::cout << "\t" << "helium-run-parrel . 100"  << "\n";
+    // std::cout << ""  << "\n";
+    // std::cout << "Examples:"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true' -c src --whole-poi=/tmp/poi/poi.org -b gzip-1.2.4"  << "\n";
+    // std::cout << "Buffer Overflow bugs:"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true'"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true,test-number=30' -c src --poi=../gzip-poi.txt"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true, test-number=100'"  << "\n";
+    // std::cout << "Double free bugs:"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true'"  << "\n";
+    // std::cout << "Null Dereference bugs:"  << "\n";
+    // std::cout << "\t" << "helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-address=true, instrument-null=true'"  << "\n";
+    // std::cout << ""  << "\n";
+    // std::cout << "Preprocessing:"  << "\n";
+    // std::cout << "\t" << "CC=gcc-6 helium-create-snippetdb.sh /path/to/folder"  << "\n";
+    // std::cout << "\t" << "ps -ef | grep 'helium -s' | awk '{print $2}' | xargs kill"  << "\n";
+    // std::cout << "\t" << "helium-run-parrel . 100"  << "\n";
   }
 }
 
