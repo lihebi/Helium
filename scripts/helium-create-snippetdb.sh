@@ -14,7 +14,35 @@ if [[ $# -eq 0 || $1 == '-h' ]]; then
 fi
 
 rm -rf helium
-mkdir helium
+
+# $1: a path
+function get_simple_name() {
+    name=${1##*/}
+    if [[ $name == *.tar.gz ]]; then
+        name=${name%.tar.gz}
+    elif [[ $name == *.zip ]]; then
+        name=${name%.zip}
+    elif [[ $name == *.tgz ]]; then
+        name=${name%.tgz}
+    fi
+    echo $name
+}
+
+# $1: name of archive
+# $2: name of destination folder
+function uncompress() {
+    if [[ -d $1 ]]; then
+        cp -r $1 $2
+    elif [[ $1 == *.tar.gz ]]; then
+        tar zxvf $1 -C $2 > /dev/null 2>&1
+    elif [[ $1 == *.zip ]]; then
+        unzip $1 -d $2 > /dev/null 2>&1
+    elif [[ $1 == *.tgz ]]; then
+        tar xvf $1 -C $2 > /dev/null 2>&1
+    else
+        continue
+    fi
+}
 
 # 0. gather all benchmarks and their meta data
 # 0.1 uncompress benchmarks
@@ -25,37 +53,22 @@ for bench in $1/*; do
     # 2. for each benchmark, create a dummy project: XXX-cpped/cpped/
     echo "== processing " $bench " ..."
     # this bench is the relative path to .tar.gz
-    if [[ -d $bench ]]; then
-        simple_name=${bench##*/}
-        cp -r $bench $simple_name
-    elif [[ $bench == *.tar.gz ]]; then
-        echo "uncompressing .."
-        tar zxvf $bench > /dev/null 2>&1
-        bench=${bench%.tar.gz}
-    elif [[ $bench == *.zip ]]; then
-        echo "uncompressing .."
-        unzip $bench > /dev/null 2>&1
-        bench=${bench%.zip}
-    elif [[ $bench == *.tgz ]]; then
-        echo "uncompressing .."
-        tar xvf $bench > /dev/null 2>&1
-        bench=${bench%.tgz}
-    else
-        continue
-    fi
-    bench=${bench##*/}
-    # this is simply the name itself
-    mkdir helium/$bench
-    mkdir helium/$bench/orig
-    mkdir helium/$bench/src
-    mkdir helium/$bench/tmp
-    mkdir helium/$bench/cpped
-    mv $bench helium/$bench/orig
+    name=`get_simple_name $bench`
+    target_dir="helium/$name"
+    mkdir -p $target_dir
+    mkdir $target_dir/orig
+    mkdir $target_dir/src
+    mkdir $target_dir/tmp
+    mkdir $target_dir/cpped
+
+    uncompress $bench $target_dir/orig
+    
     # 3. find all .c and .h files into that folder
     #    FIXME do not consider same name for now
     #    FIXME might have many main function ...
-    find "helium/$bench/orig" -name "*.[c|h]" -exec cp "{}" helium/$bench/src/ \;
-    cd helium/$bench
+    find "$target_dir/orig" -name "*.[c|h]" -exec cp "{}" $target_dir/src/ \;
+    dir_back=$(pwd)
+    cd $target_dir
     echo "== Compiler Preprocessing .."
     for file in src/*; do
         # 4. use cc -E -nostdinc to process, rename back to the same name
@@ -79,7 +92,7 @@ for bench in $1/*; do
     # mv snippets helium/$bench/
     echo "== Creating snippet db ..."
     time helium --create-snippet-db cpped > /dev/null 2>&1
-    cd ../..
+    cd $dir_back
 done    
 
 # build rate & search efficiency
