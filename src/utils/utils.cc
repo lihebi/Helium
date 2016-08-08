@@ -471,7 +471,9 @@ std::string utils::visualize_dot_graph(const std::string& dot, std::string filen
   //   utils::write_file(dir + "/" + filename, dot);
   //   std::cout << "wrote to file: " + dir + "/" + filename  << "\n";
   // }
+  std::string png_filename = dir + "/" + filename + ".png";
   filename =  dir + "/" + filename + ".dot";
+  std::string png_convert_cmd = "dot -Tpng -o " + png_filename + " " + filename;
   utils::write_file(filename, dot);
   // std::cout << "wrote to file: " + filename << "\n";
   // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
@@ -479,7 +481,8 @@ std::string utils::visualize_dot_graph(const std::string& dot, std::string filen
 #ifdef __MACH__
   std::string display_cmd = "open " + filename;
 #else
-  std::string display_cmd = "display "+dir+"/out.png";
+  utils::exec(png_convert_cmd.c_str());
+  std::string display_cmd = "feh "+ png_filename;
 #endif
   utils::exec(display_cmd.c_str());
   return filename;

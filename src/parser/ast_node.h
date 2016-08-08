@@ -31,6 +31,7 @@ namespace ast {
     ANK_Other
   } ASTNodeKind;
 
+
   class AST;
   class ASTNode;
   class Function;
@@ -161,13 +162,19 @@ namespace ast {
      * Use the first function node available.
      * Return NULL if no <function> node found.
      */
-    static AST* CreateASTFromDoc(ast::XMLDoc *doc);
+    // static AST* CreateASTFromDoc(ast::XMLDoc *doc);
   };
 
   /**
    * This class represent the AST associated with an XML node.
    * The instance of this class will hold the memory for all the actually nodes(ASTNode*)
    * The deconstructor will deallocate all the ASTNode*
+
+   * I'm going to get a light weight AST
+   * The AST should, by default, only construct the structure
+   * It then provide options for:
+   * - Create Symbol Table
+   * - Decoration of input and output
    */
   class AST {
   public:
@@ -177,6 +184,14 @@ namespace ast {
     ~AST();
     size_t size() {return m_nodes.size();}
     size_t leaf_size();
+
+
+    /**
+     * Create symbol table for the whole AST
+     * The constructor will NOT create symbol table by default.
+     */
+    void CreateSymbolTable();
+    
     /**
      * Visualization
      */
@@ -408,6 +423,7 @@ namespace ast {
     size_t dist(ASTNode* low, ASTNode* high);
     int computeLvl(ASTNode* node);
     ASTNode* m_root = NULL;
+    XMLNode m_xmlnode; // the original xmlnode parsing in
     std::vector<ASTNode*> m_nodes;
     std::map<ASTNode*, int> m_idx_m;
     std::map<XMLNode, ASTNode*> m_xmlnode_m;
@@ -443,6 +459,17 @@ namespace ast {
     virtual ~ASTNode() {}
     virtual ASTNodeKind Kind() = 0;
     /**
+     * Default behavior: create under parent symbol table
+     */
+    virtual void CreateSymbolTable() {
+      if (m_parent == NULL) {
+        // this is root, create the default symbol table.
+        m_sym_tbl = m_ast->CreateSymTbl(NULL);
+      } else {
+        m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
+      }
+    }
+    /**
      * Label is the string appear on the visualization dot graph.
      * E.g. for 'while', 'if', it is the name; for a single statement, it is the statement itself.
      */
@@ -462,32 +489,6 @@ namespace ast {
       GetCode({}, code, true);
       return code;
     }
-    // void GetCode(std::set<ASTNode*> nodes,
-    //              std::string &ret, bool all,
-    //              std::map<ASTNode*, std::set<std::string> > &decl_input_m,
-    //              std::map<ASTNode*, std::set<std::string> > &decl_m) {
-    //   // FIXME assert this node can only be in either nodes, decl_input_m, or decl_m
-    //   if (decl_input_m.count(this) == 1) {
-    //     GetDeclWithInput(decl_input_m[this], ret);
-    //   }
-    //   if (decl_m.count(this) == 1) {
-    //     GetDecl(decl_m[this], ret);
-    //   }
-    //   GetCode(nodes, ret, all, decl_input_m, decl_m);
-    // }
-    /**
-     * At this node, construct the decl statement for the variables in "names"
-     * Can just look up symbol table, but need to make sure the variables defined in this node?
-     */
-    // virtual void GetDecl(std::set<std::string> names, std::string &ret) {
-    //   ret += "/* default decl (empty) */\n";
-    // }
-    // /**
-    //  * Not only the decl statement, but also give it input.
-    //  */
-    // virtual void GetDeclWithInput(std::set<std::string> names, std::string &ret) {
-    //   GetDecl(names, ret);
-    // }
     
     // default  GetCondition return an empty node
     virtual ast::XMLNode GetCondition() {return ast::XMLNode();}
@@ -672,14 +673,7 @@ namespace ast {
     void GetParams() {}
     virtual void GetCode(std::set<ASTNode*> nodes, std::string &ret, bool all) override;
     virtual std::set<std::string> GetIdToResolve() override;
-    // virtual void GetDecl(std::set<std::string> names, std::string &ret) override {
-    //   for (Decl *param : m_params) {
-    //     std::string name =param->GetName();
-    //     if (names.count(name) == 1) {
-    //       ret += param->GetType() + " " + param->GetName() + ";\n";
-    //     }
-    //   }
-    // }
+    virtual void CreateSymbolTable() override;
   private:
     std::string m_ret_ty;
     std::string m_name;
@@ -717,6 +711,7 @@ namespace ast {
     }
     virtual std::set<std::string> GetIdToResolve() override;
     virtual ASTNode* LookUpDefinition(std::string id) override;
+    virtual void CreateSymbolTable() override;
   private:
     std::vector<Decl*> m_decls;
   };
@@ -822,6 +817,7 @@ namespace ast {
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
     virtual std::string GetLabel() override;
+    virtual void CreateSymbolTable() override;
   private:
     XMLNode m_cond;
   };
@@ -832,6 +828,7 @@ namespace ast {
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Default";}
+    virtual void CreateSymbolTable() override;
   private:
   };
 
@@ -851,6 +848,7 @@ namespace ast {
     virtual std::set<std::string> GetVarIds() override;
     virtual std::set<std::string> GetIdToResolve() override;
     virtual ASTNode* LookUpDefinition(std::string id) override;
+    virtual void CreateSymbolTable() override;
   private:
     XMLNode m_cond;
     XMLNodeList m_inits;
@@ -906,6 +904,7 @@ namespace ast {
     virtual void GetCode(std::set<ASTNode*> nodes,
                          std::string &ret, bool all) override;
     virtual std::string GetLabel() override {return "Other";}
+    virtual void CreateSymbolTable() override;
   private:
   };
 

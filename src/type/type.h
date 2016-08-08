@@ -336,6 +336,23 @@ public:
   virtual TestInput* GetTestInputSpec(std::string var) override;
 };
 
+
+class UnknownType : public Type {
+public:
+  UnknownType(std::string raw, std::vector<std::string> dims = {}) : Type(raw, dims) {}
+  ~UnknownType() {}
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual TypeKind Kind() const override {
+    return NTK_Unknown;
+  }
+  virtual std::string ToString() const override {
+    return "Unknown type: " + m_raw;
+  }
+private:
+};
+
 /**
  * Test input class.
  * Test input should not just be a string.

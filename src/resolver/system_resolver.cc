@@ -52,10 +52,7 @@ std::map<std::string, std::string> parse_header_conf(std::string file) {
 void SystemResolver::parseHeaderConf(std::string file) {
   std::map<std::string, std::string> headers = parse_header_conf(file);
   for (auto m : headers) {
-    if (header_exists(m.first)
-        // FIXME ensure HeaderSorter is loaded before SystemResolver
-        // && HeaderSorter::Instance()->IsIncluded(m.first)
-        ) {
+    if (header_exists(m.first)) {
       m_headers.insert(m.first);
       if (!m.second.empty()) {
         m_libs.insert(m.second);
@@ -125,27 +122,27 @@ void SystemResolver::check_headers() {
 /**
  * DEPRECATED
  */
-std::string
-SystemResolver::GetHeaders() const {
-  std::string code;
-  // gnulib related
-  code +=
-    (Config::Instance()->GetBool("gnulib") ?
-     "#include <config.h>\n" // FIXME <> or "" ?
-     "#include <exclude.h>\n"
-     "#include <progname.h>\n"
-     "#include <gettext.h>\n"
-     "#include <error.h>\n"
-     "#include <dirname.h>\n"
-     : "")
-    // isdir does not need to include
-    ;
-  // other system files
-  for (auto it=m_headers.begin();it!=m_headers.end();it++) {
-    code += "#include <" + *it + ">\n";
-  }
-  return code;
-}
+// std::string
+// SystemResolver::GetHeaders() const {
+//   std::string code;
+//   // gnulib related
+//   code +=
+//     (Config::Instance()->GetBool("gnulib") ?
+//      "#include <config.h>\n" // FIXME <> or "" ?
+//      "#include <exclude.h>\n"
+//      "#include <progname.h>\n"
+//      "#include <gettext.h>\n"
+//      "#include <error.h>\n"
+//      "#include <dirname.h>\n"
+//      : "")
+//     // isdir does not need to include
+//     ;
+//   // other system files
+//   for (auto it=m_headers.begin();it!=m_headers.end();it++) {
+//     code += "#include <" + *it + ">\n";
+//   }
+//   return code;
+// }
 
 std::string
 SystemResolver::GetLibs() const {
@@ -231,7 +228,12 @@ SystemResolver::Parse(const std::string& name) {
 std::vector<CtagsEntry>
 SystemResolver::Parse(const std::string& name, const std::string& type) {
   std::vector<CtagsEntry> vc;
-  assert(m_tagfile != NULL);
+  if (m_tagfile == NULL) {
+    std::cerr << "SystemResolver::Parse m_tagfile is NULL. Load it first!"  << "\n";
+    assert(false);
+    return vc;
+  }
+  // assert(m_tagfile != NULL);
   tagResult result = tagsFind(m_tagfile, m_entry, name.c_str(), TAG_FULLMATCH);
   while (result == TagSuccess) {
     if (m_entry->kind && type.find(*(m_entry->kind)) != std::string::npos) {

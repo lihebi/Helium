@@ -178,6 +178,7 @@ void Segment::getMetaData() {
 void Segment::createAST() {
   // AST *ast = getAST(function_node);
   AST *ast = new AST(m_function_node);
+  ast->CreateSymbolTable();
   if (SimpleSlice::Instance()->IsValid()) {
     ast->SetSlice();
     // DEBUG
@@ -435,6 +436,7 @@ void Segment::TestNextContext() {
         newast = m_func_to_ast_m[new_func_name];
       } else {
         newast = new AST(func_node);
+        newast->CreateSymbolTable();
         if (SimpleSlice::Instance()->IsValid()) {
           newast->SetSlice();
         }
@@ -540,7 +542,6 @@ bool Segment::NextContext() {
       utils::print("reach beginning of main. Stop.\n", utils::CK_Green);
       return false;
     }
-    // FIXME wait, where did I free the doc?
     // XMLDoc *doc = createCallerDoc(ast);
     // // reach the function def
     // // query the callgraph, find call-sites, try one callsite.
@@ -548,6 +549,7 @@ bool Segment::NextContext() {
     // AST *newast = ASTFactory::CreateASTFromDoc(doc);
     XMLNode func_node = getCallerNode(ast);
     AST *newast = new AST(func_node);
+    newast->CreateSymbolTable();
     if (SimpleSlice::Instance()->IsValid()) {
       newast->SetSlice();
       // DEBUG
@@ -642,22 +644,3 @@ ast::XMLNode Segment::getCallerNode(AST *ast) {
   }
   assert(false);
 }
-
-
-/**
- * Create AST based on function node
- */
-// AST* Segment::getAST(XMLNode function_node) {
-//   assert(function_node && kind(function_node) == NK_Function);
-//   if (m_asts_m.count(function_node) == 0) {
-//     m_asts_m[function_node] = new AST(function_node);
-//   }
-//   return m_asts_m[function_node];
-// }
-
-
-
-
-
-
-

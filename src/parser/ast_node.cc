@@ -152,12 +152,15 @@ size_t Gene::leaf_size() {
  * AST
  *******************************/
 
-AST* ASTFactory::CreateASTFromDoc(ast::XMLDoc *doc) {
-  NodeList func_nodes = find_nodes(*doc, NK_Function);
-  if (func_nodes.empty()) return NULL;
-  Node func_node = func_nodes[0];
-  return new AST(func_node);
-}
+// AST* ASTFactory::CreateASTFromDoc(ast::XMLDoc *doc) {
+//   NodeList func_nodes = find_nodes(*doc, NK_Function);
+//   if (func_nodes.empty()) return NULL;
+//   Node func_node = func_nodes[0];
+//   AST *ast = new AST(func_node);
+//   // TODO Create symbol table here?
+//   ast->CreateSymbolTable();
+//   return ast;
+// }
 
 
 /**
@@ -166,6 +169,7 @@ AST* ASTFactory::CreateASTFromDoc(ast::XMLDoc *doc) {
  */
 ast::AST::AST(ast::XMLNode node) {
   print_trace("AST::AST(ast::XMLNode node)");
+  m_xmlnode = node;
   // create root, and the root will create everything else
   m_root = ASTNodeFactory::CreateASTNode(node, NULL, this);
   m_filename = ast::unit_get_filename(node);
@@ -199,6 +203,22 @@ ast::AST::AST(ast::XMLNode node) {
       assert(astnode);
       m_freed_node[astnode].push_back(arg);
     }
+  }
+}
+
+
+/**
+ * Make sure the order is top down
+ */
+void AST::CreateSymbolTable() {
+  std::deque<ASTNode*> worklist;
+  worklist.push_back(m_root);
+  while (!worklist.empty()) {
+    ASTNode *node = worklist.front();
+    worklist.pop_front();
+    node->CreateSymbolTable();
+    std::vector<ASTNode*> children = node->GetChildren();
+    worklist.insert(worklist.end(), children.begin(), children.end());
   }
 }
 

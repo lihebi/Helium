@@ -4,6 +4,9 @@
 #include "common.h"
 #include "snippet.h"
 
+/**
+ * FIXME This System Resolver Seems to be broken!
+ */
 class SystemResolver {
 public:
   static SystemResolver* Instance() {
@@ -19,7 +22,7 @@ public:
   std::vector<CtagsEntry> Parse(const std::string& name) ;
   std::vector<CtagsEntry> Parse(const std::string& name, const std::string& type);
   bool Has(const std::string& name);
-  std::string GetHeaders() const;
+  // std::string GetHeaders() const;
   std::string GetLibs() const;
   static void check_headers();
 

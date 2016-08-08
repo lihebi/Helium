@@ -240,6 +240,8 @@ void Context::getUndefinedVariables(AST *ast) {
 
 std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
   print_trace("Context::resolveDecl");
+
+  // ast->Visualize();
   std::set<ASTNode*> ret = m_ast_to_node_m[ast];
   // FIXME do I need to complete again after I recursively add the dependencies
   if (first_ast_p) {
@@ -269,8 +271,9 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
+      // DEBUG
       // std::cout <<id << " YYY at " << m_idx_m[node] << "\n";
-      // std::cout << id  << "\n";
+      // std::cout << "resolving: " << id  << "\n";
       SymbolTable *tbl = node->GetSymbolTable();
       // tbl->dump();
       SymbolTableValue *decl = tbl->LookUp(id);
@@ -278,6 +281,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       // FIXME I didn't use my new function resolve_type, which takes care of global variable and special variables like optarg
       // if (!decl) continue;
       if (decl) {
+        // std::cout << "decl found for variable; " << id  << "\n";
         if (def) {
           // utils::print("found def: " + id + "\n", utils::CK_Cyan);
           // need this def, but not necessary to be a new node

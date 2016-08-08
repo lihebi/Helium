@@ -63,6 +63,16 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
+
+  if (args.Has("resolve-system-type")) {
+    std::string type = args.GetString("resolve-system-type");
+    std::string output = SystemResolver::Instance()->ResolveType(type);
+    std::cout << output  << "\n";
+    exit(0);
+  }
+
+
   // target folder
   m_folder = args.GetString("folder");
   if (m_folder.empty()) {
@@ -159,11 +169,12 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
+  
+
   // HeaderSorter::Instance()->Load(m_folder);
   std::string src_folder = args.GetString("src-folder");
   HeaderSorter::Instance()->Load(src_folder);
   /* load system tag file */
-  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
   assert(!src_folder.empty());
 
 

@@ -75,7 +75,7 @@ std::string utils::exec(const char* cmd, int *status, double timeout_d) {
       // DEBUG
       // std::cerr << cmd  << "\n";
       execvp(argv[0], argv);
-      perror("execvp");
+      perror(cmd);
       exit(1);
     }
     default: {
@@ -154,7 +154,7 @@ std::string utils::exec_in(const char* cmd, const char* input, int *status, doub
     // the argv is malloc-ed, but anyway the process will exit, it will be released
     split_cmd(cmd, argv);
     execvp(argv[0], argv);
-    perror("execvp");
+    perror(cmd);
     exit(1);
   }
   // parent

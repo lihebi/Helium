@@ -45,7 +45,7 @@ private:
   // void getDivideSegments();
   // void getDivideRecursive(ast::NodeList nodes);
   void getFuncCallSegments(std::string func_name);
-  void GA();
+  // void GA();
   // SegmentList m_segments;
   ast::Doc *m_doc;
   std::string m_filename;

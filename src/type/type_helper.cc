@@ -39,7 +39,10 @@ namespace type {
     specifier.is_double   = search_and_remove(name, boost::regex("\\bdouble\\b"))   ? 1 : 0;
     specifier.is_signed   = search_and_remove(name, boost::regex("\\bsigned\\b"))   ? 1 : 0;
     specifier.is_unsigned = search_and_remove(name, boost::regex("\\bunsigned\\b")) ? 1 : 0;
-    specifier.is_bool     = search_and_remove(name, boost::regex("\\bbool\\b"))     ? 1 : 0;
+    // TODO Hotfix for bool _Bool
+    bool b1 = search_and_remove(name, boost::regex("\\bbool\\b")) ? 1 : 0;
+    bool b2 = search_and_remove(name, boost::regex("\\b_Bool\\b")) ? 1 : 0;
+    specifier.is_bool = (b1 == 1 || b2 == 1);
   }
   void fill_type_qualifier(std::string& name, struct type_qualifier& qualifier) {
     qualifier.is_const    = search_and_remove(name, boost::regex("\\bconst\\b"))    ? 1 : 0;

@@ -53,6 +53,7 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("print-headers", "print header")
     ("print-meta", "print meta data")
+    ("resolve-system-type", "Resolve a system type and print out result")
     ;
     
 
