@@ -87,6 +87,7 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
     // std::cerr << "NULL Type, raw empty" << "\n";
     return NULL;
   }
+  // std::cout << raw  << "\n";
   std::string id = get_id(raw);
   if (id.empty()) {
     struct type_specifier ts = get_type_specifier(raw);
@@ -103,7 +104,7 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
     } else {
       std::cerr << "WW: type not created" << '\n';
       std::cerr << raw  << "\n";
-      assert(false);
+      // assert(false);
       // std::cout << raw  << "\n";
       // std::cout << "Debug pause: enter to continue"  << "\n";
       // getchar();
