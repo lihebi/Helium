@@ -115,8 +115,8 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
   // if (args.Has("print-header-deps")) {
-  //   HeaderSorter::Instance()->Load(m_folder);
-  //   HeaderSorter::Instance()->Dump();
+  //   HeaderResolver::Instance()->Load(m_folder);
+  //   HeaderResolver::Instance()->Dump();
   //   exit(0);
   // }
 
@@ -171,9 +171,9 @@ Helium::Helium(int argc, char* argv[]) {
 
   
 
-  // HeaderSorter::Instance()->Load(m_folder);
+  // HeaderResolver::Instance()->Load(m_folder);
   std::string src_folder = args.GetString("src-folder");
-  HeaderSorter::Instance()->Load(src_folder);
+  HeaderResolver::Instance()->Load(src_folder);
   /* load system tag file */
   assert(!src_folder.empty());
 
@@ -199,7 +199,7 @@ Helium::Helium(int argc, char* argv[]) {
     // }
     std::cout << "== Headers used in project"  << "\n";
     std::cout  << "\t";
-    std::set<std::string> used_headers = HeaderSorter::Instance()->GetUsedHeaders();
+    std::set<std::string> used_headers = HeaderResolver::Instance()->GetUsedHeaders();
     for (std::string s : used_headers) {
       std::cout << s  << " ";
     }
@@ -207,7 +207,7 @@ Helium::Helium(int argc, char* argv[]) {
     // 2
     std::cout << "== Header Dependence"  << "\n";
     // HeaderDep::Instance()->Dump();
-    HeaderSorter::Instance()->DumpDeps();
+    HeaderResolver::Instance()->DumpDeps();
     std::cout << "== Final headers included:"  << "\n";
     std::cout << "\t";
     for (std::string s : avail_headers) {

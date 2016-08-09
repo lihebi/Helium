@@ -609,7 +609,7 @@ std::string Context::getSupport() {
   // head
   code += get_head();
   std::set<std::string> avail_headers = SystemResolver::Instance()->GetAvailableHeaders();
-  std::set<std::string> used_headers = HeaderSorter::Instance()->GetUsedHeaders();
+  std::set<std::string> used_headers = HeaderResolver::Instance()->GetUsedHeaders();
   for (std::string header : avail_headers) {
     if (used_headers.count(header) == 1) {
       code += "#include <" + header + ">\n";

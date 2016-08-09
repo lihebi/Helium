@@ -1,13 +1,13 @@
-#ifndef HEADER_SORTER_H
-#define HEADER_SORTER_H
+#ifndef HEADER_RESOLVER_H
+#define HEADER_RESOLVER_H
 
 #include "common.h"
 
-class HeaderSorter {
+class HeaderResolver {
 public:
-  static HeaderSorter* Instance() {
+  static HeaderResolver* Instance() {
     if (m_instance == 0) {
-      m_instance = new HeaderSorter();
+      m_instance = new HeaderResolver();
     }
     return m_instance;
   }
@@ -37,11 +37,10 @@ private:
   bool sortOneRound(std::vector<std::string> &sorted);
   bool isDependOn(std::string lhs, std::string rhs);
   // void addDependence(const std::string& lhs, const std::string& rhs);
-  void implicit(std::string folder);
-  void completeDeps();
-  HeaderSorter();
-  ~HeaderSorter();
-  static HeaderSorter* m_instance;
+  // void implicit(std::string folder);
+  HeaderResolver();
+  ~HeaderResolver();
+  static HeaderResolver* m_instance;
 
   // std::vector<std::string> m_headers;
   std::map<std::string, std::set<std::string> > m_hard_deps_map;
@@ -52,4 +51,5 @@ private:
 };
 
 
-#endif /* HEADER_SORTER_H */
+
+#endif /* HEADER_RESOLVER_H */

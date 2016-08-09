@@ -7,7 +7,7 @@
 #include "parser/xmlnode.h"
 
 #include "system_resolver.h"
-#include "header_sorter.h"
+#include "header_resolver.h"
 
 std::set<std::string>
 extract_id_to_resolve(std::string code);

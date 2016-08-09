@@ -911,7 +911,7 @@ std::vector<int> SnippetDB::SortSnippets(std::set<int> snippets) {
       sources.insert(filename);
     }
   }
-  std::vector<std::string> sorted_headers = HeaderSorter::Instance()->Sort(headers);
+  std::vector<std::string> sorted_headers = HeaderResolver::Instance()->Sort(headers);
   for (std::string header : sorted_headers) {
     ret.insert(ret.end(),
                file_to_snippet_id_map[header].begin(),
