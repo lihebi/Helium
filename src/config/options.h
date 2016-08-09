@@ -28,6 +28,7 @@ typedef enum {
   , POK_TestInfoDot // test infor as dot, green for success, red for error
   , POK_AnalysisResult
   , POK_CSVSummary
+  , POK_CSV
 } PrintOptionKind;
 class PrintOption {
 public:

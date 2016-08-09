@@ -465,8 +465,26 @@ class ArgVTestInput : public TestInput {
 public:
   ArgVTestInput(Type *type, std::string var) : TestInput(type, var) {}
   void SetSpec(std::string spec) {m_spec = spec;}
-  virtual std::string dump();
-  virtual std::string ToString();
+  virtual std::string dump() {
+    return "this is argV test input";
+  }
+  virtual std::string ToString() {
+    return m_spec;
+  }
+private:
+  std::string m_spec;
+};
+
+class ArgCTestInput : public TestInput {
+public:
+  ArgCTestInput() : TestInput(NULL, "argc") {}
+  void SetSpec(std::string spec) {m_spec = spec;}
+  virtual std::string dump() {
+    return "ARG C input";
+  }
+  virtual std::string ToString() {
+    return m_spec;
+  }
 private:
   std::string m_spec;
 };

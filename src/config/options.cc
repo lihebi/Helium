@@ -31,6 +31,7 @@ static const std::map<std::string, PrintOptionKind> POK_MAP {
   , {"io", POK_IOSpec}
   , {"ana", POK_AnalysisResult}
   , {"csvsum", POK_CSVSummary}
+  , {"csv", POK_CSV}
 };
 
 /**
@@ -58,6 +59,7 @@ void PrintOption::Help() {
   std::cout << "\t io: IO specifications during testing"  << "\n";
   std::cout << "\t ana: analysis result"  << "\n";
   std::cout << "\t csvsum: csv summary"  << "\n";
+  std::cout << "\t csv: print csv file"  << "\n";
 }
 
 

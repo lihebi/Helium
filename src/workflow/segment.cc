@@ -252,16 +252,16 @@ void Segment::createOutputVars() {
    * Debugging: print out output variables
    */
   // std::cout << "output variables:"  << "\n";
-  if (PrintOption::Instance()->Has(POK_IOSpec)) {
-    utils::print("Output Variables:\n", CK_Blue);
-    for (auto m : m_output_vars) {
-      for (Variable var : m.second) {
-        // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
-        utils::print(var.GetType()->ToString() + "\n", CK_Blue);
-        // utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
-      }
-    }
-  }
+  // if (PrintOption::Instance()->Has(POK_IOSpec)) {
+  //   utils::print("Output Variables:\n", CK_Blue);
+  //   for (auto m : m_output_vars) {
+  //     for (Variable var : m.second) {
+  //       // std::cout << var.GetType()->ToString()  << " " << var.GetName() << "\n";
+  //       utils::print(var.GetType()->ToString() + "\n", CK_Blue);
+  //       // utils::print(var.GetType()->GetOutputCode(var.GetName()) + "\n", CK_Purple);
+  //     }
+  //   }
+  // }
 }
 
 /**
@@ -382,6 +382,37 @@ void Segment::TestNextContext() {
   utils::print(first_node->dump() + "\n", utils::CK_Purple);
   if (Config::Instance()->GetBool("context-search-only") == false) {
     ctx->Resolve();
+
+    // print out IO variables
+    if (PrintOption::Instance()->Has(POK_IOSpec)) {
+      std::cout << "== Input Variables:"  << "\n";
+      std::map<std::string, Type*> vars = ctx->GetInputVariables();
+      for (auto m : vars) {
+        std::cout << "\t";
+        if (m.second) {
+          std::cout << m.second->ToString() << " ";
+        }
+        std::cout << m.first  << "\n";
+      }
+      std::cout << "== Output Variables:"  << "\n";
+      for (auto m : m_output_vars) {
+        std::vector<Variable> vars = m.second;
+        for (Variable v : vars) {
+          std::cout <<"\t";
+          Type *t = v.GetType();
+          std::string name = v.GetName();
+          if (t) {
+            std::cout << t->ToString() << " ";
+          }
+          std::cout << name  << "\n";
+        }
+      }
+    }
+
+    
+
+
+    
     ctx->Test();
   }
   if (ctx->IsResolved()) {

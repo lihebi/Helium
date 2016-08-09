@@ -81,6 +81,11 @@ for bench in $1/*; do
         # cpp will terminate for unfound local header files
         # Maybe just leave it, because the error I found for apache is just the file is missing, not loation problem
         # $CC -E -nostdinc "$simple_name" > "../tmp/$simple_name" 2>/dev/null
+
+        # the reason not to use -nostdinc:
+        # the stardard include file might define some flags
+        # if the program checks the flag for conditional compilation, and if we nostdinc, the program will end up contains extra definition in cpped, thus in snippet-db
+        # FIXME some issue that it replace common things, e.g. bool to _Bool
         $CC -E -include $HELIUM_HOME/lib/config/config.h "$simple_name" > "../tmp/$simple_name" 2>/dev/null
         cd ../tmp
         # 5. use helium-process-cpped.py to remove extra line marker staffs, rename back

@@ -238,6 +238,12 @@ void Context::getUndefinedVariables(AST *ast) {
 }
 
 
+/**
+ * Resolve the declaration, resolve input variables
+ * @return set of new selection
+ * @return m_decl: this seems to be the only one used when generating main.c
+ * @return m_input
+ */
 std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
   print_trace("Context::resolveDecl");
 
@@ -453,6 +459,15 @@ void Context::resolveSnippet(AST *ast) {
  * Getting code
  *******************************/
 
+/**
+ * Get input variables used in this context.
+ */
+std::map<std::string, Type*> Context::GetInputVariables() {
+  AST *first = m_first->GetAST();
+  std::map<std::string, Type*> decls = m_decls[first];
+  return decls;
+}
+
 std::string Context::getMain() {
   print_trace("Context::getMain()");
   std::string ret;
@@ -476,6 +491,9 @@ std::string Context::getMain() {
       // ast->SetDecoDeclInput(m_ast_to_deco_m[ast].second);
 
 
+      // Adding decls
+      // This also adds input code!
+      // m_inputs is not considered
       for (auto m :m_decls[ast]) {
         std::string var = m.first;
         Type *t = m.second;
@@ -495,45 +513,7 @@ std::string Context::getMain() {
           main_func += t->GetInputCode(var);
         }
       }
-      // FIXME add globals spec
-      // if (PrintOption::Instance()->Has(POK_IOSpec)) {
-      //   utils::print("Input Metrics:\n", utils::CK_Blue);
-      //   for (auto m :m_decls[ast]) {
-      //     std::string var = m.first;
-      //     Type *t = m.second;
-      //     utils::print(t->ToString() + "\n", utils::CK_Blue);
-      //     utils::print(t->GetInputCode(var) + "\n", utils::CK_Purple);
-      //     utils::print("-------\n", utils::CK_Blue);
-      //     TestInput *input = t->GetTestInputSpec(var);
-      //     // utils::print(t->GetTestInput() + "\n", utils::CK_Purple);
-      //     utils::print(input->GetRaw() + "\n", utils::CK_Purple);
-      //     delete input;
-      //   }
-      // }
       
-      // for (auto m : m_inputs[ast]) {
-      //   std::string var = m.first;
-      //   Type *t = m.second;
-      //   main_func += t->GetInputCode(var);
-      //   std::cout << t->ToString()  << "\n";
-      // }
-
-      // print out the deco, to see if the same variable appear in both "first" and "second"
-      // decl_deco deco = m_ast_to_deco_m[ast].first;
-      // std::cout << "first"  << "\n";
-      // for (auto m : deco) {
-      //   for (std::string s : m.second) {
-      //     std::cout << s  << "\n";
-      //   }
-      // }
-      // deco = m_ast_to_deco_m[ast].second;
-      // std::cout << "second"  << "\n";
-      // for (auto m : deco) {
-      //   for (std::string s : m.second) {
-      //     std::cout << s  << "\n";
-      //   }
-      // }
-
       // FIXME TODO this is inside the main function. The main function is declared as int main(int argc, char *argv[])
       // No, because we will generate argc and argv, the main function actually is int main()
       // so the return statement should be a integer.
@@ -1019,17 +999,16 @@ TestResult* Context::test() {
   // The used method is ToString()
   TestResult *ret = new TestResult(m_test_suite);
 
-  print_trace("testing...");
   // std::string test_dir = utils::create_tmp_dir();
   utils::create_folder(m_builder->GetDir() + "/input");
-  if (m_test_suite.size() > 0 && PrintOption::Instance()->Has(POK_IOSpec)) {
-    utils::print("TestinputMetrics:\n", CK_Blue);
-    for (TestInput *in : m_test_suite[0]) {
-      assert(in);
-      utils::print(in->dump(), CK_Purple);
-      // utils::print(in->GetRaw() + "\n", CK_Cyan);
-    }
-  }
+  // if (m_test_suite.size() > 0 && PrintOption::Instance()->Has(POK_IOSpec)) {
+  //   utils::print("TestinputMetrics:\n", CK_Blue);
+  //   for (TestInput *in : m_test_suite[0]) {
+  //     assert(in);
+  //     utils::print(in->dump(), CK_Purple);
+  //     // utils::print(in->GetRaw() + "\n", CK_Cyan);
+  //   }
+  // }
   // do the test
   for (int i=0;i<(int)m_test_suite.size();i++) {
     // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
@@ -1100,6 +1079,11 @@ void Context::analyze(TestResult *test_result) {
   std::string csv_file = m_builder->GetDir() + "/io.csv";
   utils::write_file(csv_file, csv);
   std::cout << "Output to: " << csv_file   << "\n";
+  if (PrintOption::Instance()->Has(POK_CSV)) {
+    std::string cmd = "column -s , -t " + csv_file;
+    std::string output = utils::exec(cmd.c_str());
+    std::cout << output  << "\n";
+  }
   test_result->GetInvariants();
   test_result->GetPreconditions();
   test_result->GetTransferFunctions();
@@ -1115,19 +1099,18 @@ void Context::analyze(TestResult *test_result) {
   std::vector<std::string> pres = analyzer.GetPreConditions();
   std::vector<std::string> trans = analyzer.GetTransferFunctions();
   if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
-    std::cout << "------ invariants ------"  << "\n";
+    std::cout << "== invariants"  << "\n";
     for (auto &s : invs) {
-      std::cout << "| " << s  << "\n";
+      std::cout << "\t" << s  << "\n";
     }
-    std::cout << "------ pre condtions ------"  << "\n";
+    std::cout << "== pre condtions"  << "\n";
     for (auto &s : pres) {
-      std::cout << "| " << s  << "\n";
+      std::cout << "\t" << s  << "\n";
     }
-    std::cout << "------ transfer functions ------"  << "\n";
+    std::cout << "== transfer functions ------"  << "\n";
     for (auto &s : trans) {
-      std::cout << "| " << s  << "\n";
+      std::cout << "\t" << s  << "\n";
     }
-    std::cout << "------------------------------"  << "\n";
 
     // std::string cmd = "compare.py -f " + csv_file;
     // std::string inv = utils::exec(cmd.c_str());
@@ -1135,14 +1118,15 @@ void Context::analyze(TestResult *test_result) {
   }
 
 
-  std::cout << "---- resolveQuery -----"  << "\n";
+  // std::cout << "---- resolveQuery -----"  << "\n";
   m_query_resolved = resolveQuery(invs, pres, trans);
   if (m_query_resolved) {
+    std::cout << "== Query resolved!"  << "\n";
     // output some information to use in paper
-    std::cout << "== sig dir: " << m_sig_dir  << "\n";
-    std::cout << "== search time: " << m_search_time  << "\n";
+    std::cout << "\t sig dir: " << m_sig_dir  << "\n";
+    std::cout << "\t search time: " << m_search_time  << "\n";
   }
-  std::cout << "------ end of query resolving -----"  << "\n";
+  // std::cout << "------ end of query resolving -----"  << "\n";
 }
 
 void Context::freeTestSuite() {

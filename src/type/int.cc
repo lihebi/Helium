@@ -109,7 +109,10 @@ TestInput* Int::GetTestInputSpec(std::string var) {
 // for human read
 std::string IntTestInput::dump() {
   std::string ret;
-  ret += m_type->ToString() + " " + m_var + "\n";
+  if (m_type) {
+    ret += m_type->ToString() + " ";
+  }
+  ret +=  m_var + "\n";
   return ret;
 }
 

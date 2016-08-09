@@ -50,6 +50,8 @@ public:
     return m_query_resolved;
   }
 
+  std::map<std::string, Type*> GetInputVariables();
+
 
   /**
    * The resolving, code output related methods

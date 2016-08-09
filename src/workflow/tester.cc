@@ -173,7 +173,7 @@ void TestResult::PrepareData() {
     m = get_header_value_map(input);
     test_suite_map.insert(m.begin(), m.end());
 
-    test_suite_map["HELIUM_TEST_SUCCESS"] = success ? "true" : "false";
+    test_suite_map["HELIUM_TEST_SUCCESS"] = (success ? "true" : "false");
     if (!double_freed.empty()) {
       // TODO I use this name so that I don't need to change the analyzer
       // test_suite_map["HELIUM_DOUBLE_FREE"] = double_freed;

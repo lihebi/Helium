@@ -63,9 +63,14 @@ std::pair<TestInput*, TestInput*> ArgCV::GetTestInputSpec() {
     raw += std::to_string(s.length()+1) + " ";
     raw += s + " ";
   }
-  TestInput *argc_input = new TestInput(NULL, "argc");
+  // IntTestInput *argc_input = new IntTestInput(NULL, "argc");
+  // TestInput *argc_input = new TestInput(NULL, "argc");
+  ArgCTestInput *argc_input = new ArgCTestInput();
   int size = components.size();
   argc_input->SetRaw(std::to_string(size));
+  argc_input->SetSpec("Id_argc = " + std::to_string(size));
+  // argc_input->SetValue(size);
+  
   argv_input->SetRaw(raw);
   argv_input->SetSpec(argv_spec);
   return {argc_input, argv_input};
@@ -89,11 +94,11 @@ TEST(TypeTestCase, DISABLED_ArgCVTest) {
   std::cout << inputs.second->GetRaw() << "\n";
 }
 
-std::string ArgVTestInput::dump() {
-  return "This is argcv!";
-}
+// std::string ArgVTestInput::dump() {
+//   return "This is argv test input!";
+// }
 
-std::string ArgVTestInput::ToString() {
-  // remember to set spec!
-  return m_spec;
-}
+// std::string ArgVTestInput::ToString() {
+//   // remember to set spec!
+//   return m_spec;
+// }
