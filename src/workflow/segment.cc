@@ -16,7 +16,6 @@
 #include "context.h"
 #include "utils/log.h"
 
-using namespace ast;
 using namespace utils;
 
 /********************************
@@ -84,7 +83,7 @@ std::string get_header() {
  */
 static void replace_xml_node(XMLNode node, std::string tagname, std::string content) {
   assert(node.parent());
-  Node new_node = node.parent().insert_child_before(tagname.c_str(), node);
+  XMLNode new_node = node.parent().insert_child_before(tagname.c_str(), node);
   new_node.append_child(pugi::node_pcdata).set_value(content.c_str());
   node.parent().remove_child(node);
 }
@@ -101,7 +100,7 @@ std::string replace_return_to_35(const std::string &code) {
     // not sure if I need to add 
     replace_xml_node(node, "return", "return 35;");
   }
-  std::string ret = ast::get_text(root);
+  std::string ret = get_text(root);
   delete doc;
   return ret;
 }
@@ -137,7 +136,7 @@ Type* resolve_type(std::string var, ASTNode *node) {
 /********************************
  * The Segment Class
  ********************************/
-Segment::Segment(ast::XMLNode xmlnode, SegmentKind segkind)
+Segment::Segment(XMLNode xmlnode, SegmentKind segkind)
   : m_xmlnode(xmlnode), m_segkind(segkind) {
   print_trace("Segment::Segment()");
   m_segkind = segkind;
@@ -157,10 +156,10 @@ Segment::Segment(ast::XMLNode xmlnode, SegmentKind segkind)
   m_context_worklist.push_back(new Context(this));
 }
 Segment::~Segment() {
-  for (ast::AST *ast : m_asts) {
+  for (AST *ast : m_asts) {
     delete ast;
   }
-  for (ast::XMLDoc* doc : m_docs) {
+  for (XMLDoc* doc : m_docs) {
     delete doc;
   }
   for (Context *ctx : m_ctxs) {
@@ -338,7 +337,7 @@ XMLNodeList get_caller_nodes(std::string func) {
       XMLDoc *doc = XMLDocReader::Instance()->ReadSnippet(id);
       // std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
       // XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
-      XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
+      XMLNodeList funcs = find_nodes(doc->document_element(), NK_Function);
       for (XMLNode func : funcs) {
         if (function_get_name(func) == caller) {
           ret.push_back(func);
@@ -620,7 +619,7 @@ bool Segment::NextContext() {
   return true;
 }
 
-ast::XMLDoc* Segment::createCallerDoc(AST *ast) {
+XMLDoc* Segment::createCallerDoc(AST *ast) {
   print_trace("Segment::createCallerDoc()");
   std::string func = ast->GetFunctionName();
   std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
@@ -646,7 +645,7 @@ ast::XMLDoc* Segment::createCallerDoc(AST *ast) {
 /**
  * This will create a doc! The doc will be added into m_docs, and freed when the segment deconstruct
  */
-ast::XMLNode Segment::getCallerNode(AST *ast) {
+XMLNode Segment::getCallerNode(AST *ast) {
   print_trace("Segment::createCallerDoc()");
   std::string func = ast->GetFunctionName();
   std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
@@ -666,7 +665,7 @@ ast::XMLNode Segment::getCallerNode(AST *ast) {
   // but they should be the same
   // FIXME this is not cached! Performance issue! See XMLDocReader doc for detail
   XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
-  XMLNodeList funcs = ast::find_nodes(doc->document_element(), NK_Function);
+  XMLNodeList funcs = find_nodes(doc->document_element(), NK_Function);
   m_docs.push_back(doc);
   for (XMLNode func : funcs) {
     if (function_get_name(func) == caller_func) {

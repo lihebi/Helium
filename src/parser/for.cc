@@ -2,7 +2,6 @@
 #include "ast_common.h"
 #include "utils/log.h"
 
-using namespace ast;
 For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- FOR" << "\n";
@@ -31,7 +30,7 @@ void For::CreateSymbolTable() {
    * Push the symbol table
    */
   for (XMLNode init : m_inits) {
-    if (kind(init) == NK_Decl) {
+    if (xmlnode_to_kind(init) == NK_Decl) {
       Decl *decl = DeclFactory::CreateDecl(init);
       if (decl) {
         m_decls.push_back(decl);

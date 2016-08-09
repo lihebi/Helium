@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "workflow/segment.h"
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
 #include "utils/utils.h"
 
 class POISpec {
@@ -36,7 +36,7 @@ public:
   //   }
   //   return result;
   // }
-  static void slice(std::string slice_file, std::string benchmark_folder);
+  // static void slice(std::string slice_file, std::string benchmark_folder);
 private:
   // void getLoopSegments();
   void getAnnotationSegments();
@@ -47,7 +47,7 @@ private:
   void getFuncCallSegments(std::string func_name);
   // void GA();
   // SegmentList m_segments;
-  ast::Doc *m_doc;
+  XMLDoc *m_doc;
   std::string m_filename;
   static int m_skip_segment; // store config number
   static int m_cur_seg_no; // statically +1 to record current segment

@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "xmlnode.h"
 
 /*******************************
  ** DomUtil

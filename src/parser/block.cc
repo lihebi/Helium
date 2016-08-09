@@ -1,7 +1,6 @@
 #include "ast_node.h"
 #include "utils/log.h"
 
-using namespace ast;
 Block::Block(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Block" << "\n";

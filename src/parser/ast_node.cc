@@ -3,8 +3,7 @@
 #include "utils/utils.h"
 #include "config/options.h"
 
-using namespace ast;
-static const std::map<ast::NodeKind, ast::ASTNodeKind> nk2ank_m {
+static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}
   , {NK_Block, ANK_Block}
   // statements
@@ -167,15 +166,15 @@ size_t Gene::leaf_size() {
  * constructing AST from the root node.
  * FIXME This should be the only one constructor used?
  */
-ast::AST::AST(ast::XMLNode node) {
+AST::AST(XMLNode node) {
   print_trace("AST::AST(ast::XMLNode node)");
   m_xmlnode = node;
   // create root, and the root will create everything else
   m_root = ASTNodeFactory::CreateASTNode(node, NULL, this);
-  m_filename = ast::unit_get_filename(node);
+  m_filename = unit_get_filename(node);
   if (!m_root) return;
   // depth-first-search to traverse(keep) all nodes
-  dfs(m_root, m_nodes);
+  ast_dfs(m_root, m_nodes);
   /**
    * create idx map
    */
@@ -268,9 +267,9 @@ ASTNode *AST::GetPreviousLeafNodeInSlice(ASTNode *node) {
 
 
 ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
-  ast::NodeKind nk = ast::kind(xml_node);
+  XMLNodeKind nk = xmlnode_to_kind(xml_node);
   ASTNode *ret = NULL;
-  ast::ASTNodeKind ank;
+  ASTNodeKind ank;
   if (nk2ank_m.count(nk) == 1) {
     ank = nk2ank_m.at(nk);
   } else {
@@ -532,8 +531,8 @@ std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
   std::set<ASTNode*> ret (nodes.begin(), nodes.end());
   for (ASTNode *n : nodes) {
     if (n->Kind() == ANK_Stmt) {
-      if (kind(n->GetXMLNode()) == NK_Break
-          || kind(n->GetXMLNode()) == NK_Continue
+      if (xmlnode_to_kind(n->GetXMLNode()) == NK_Break
+          || xmlnode_to_kind(n->GetXMLNode()) == NK_Continue
           ) {
         ASTNode *p = n->GetParent();
         while (p && p->Kind() != ANK_For
@@ -637,7 +636,7 @@ void AST::ClearSlice() {
 ASTNode* AST::GetCallSite(std::string func_name) {
   print_trace("AST::GetCallSite");
   assert(m_root);
-  XMLNode callsite = ast::find_callsite(m_root->GetXMLNode(), func_name);
+  XMLNode callsite = find_callsite(m_root->GetXMLNode(), func_name);
   return GetEnclosingNodeByXMLNode(callsite);
 }
 
@@ -649,7 +648,7 @@ std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
   // // node.print(std::cout);
   // std::cout << get_text(node) << "\n";
   // std::cout << "finding : " << func_name  << "\n";
-  XMLNodeList callsites = ast::find_callsites(m_root->GetXMLNode(), func_name);
+  XMLNodeList callsites = find_callsites(m_root->GetXMLNode(), func_name);
   std::set<ASTNode*> ret;
   for (XMLNode node : callsites) {
     ASTNode *n = GetEnclosingNodeByXMLNode(node);
@@ -661,10 +660,10 @@ std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
 }
 
 
-void ast::dfs(ASTNode *node, std::vector<ASTNode*> &visited) {
+void ast_dfs(ASTNode *node, std::vector<ASTNode*> &visited) {
   visited.push_back(node);
   for (auto it=node->children_begin(),end=node->children_end();it!=end;++it) {
-    dfs(*it, visited);
+    ast_dfs(*it, visited);
   }
 }
 
@@ -738,7 +737,7 @@ std::string AST::GetFilename() {
   return ret;
 }
 int AST::GetLineNumber() {
-  return ast::get_node_line(m_root->GetXMLNode());
+  return get_node_line(m_root->GetXMLNode());
 }
 
 /**

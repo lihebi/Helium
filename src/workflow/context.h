@@ -19,10 +19,10 @@ public:
   Segment* GetSegment() {
     return m_seg;
   }
-  ast::ASTNode *GetFirstNode() {
+  ASTNode *GetFirstNode() {
     return m_first;
   }
-  void SetFirstNode(ast::ASTNode* node);
+  void SetFirstNode(ASTNode* node);
   void SetLast(Context *ctx) {
     m_last = ctx;
   }
@@ -30,9 +30,9 @@ public:
   // 2. newly added node already selected
   // So, set when AddNode
   // @return whether it is valid
-  bool AddNode(ast::ASTNode* node);
-  void RemoveNode(ast::ASTNode *node);
-  std::set<ast::ASTNode*> GetNodes() {
+  bool AddNode(ASTNode* node);
+  void RemoveNode(ASTNode *node);
+  std::set<ASTNode*> GetNodes() {
     return m_nodes;
   }
 
@@ -79,12 +79,12 @@ private:
    * 1. find the def, recursively, and include
    * 2. find the input variables, their type
    */
-  std::set<ast::ASTNode*> resolveDecl(ast::AST *ast, bool to_root);
-  void getUndefinedVariables(ast::AST *ast);
+  std::set<ASTNode*> resolveDecl(AST *ast, bool to_root);
+  void getUndefinedVariables(AST *ast);
   /**
    * No magic, the old one suffices.
    */
-  void resolveSnippet(ast::AST *ast);
+  void resolveSnippet(AST *ast);
   /**
    * Try to Resolve the query.
    * @return true, or false. CAUTION this return value should be set to m_query_resolved
@@ -122,13 +122,13 @@ private:
   /**
    * Storage
    */
-  std::set<ast::ASTNode*> m_nodes; // the selection of this context
-  std::map<ast::AST*, std::set<ast::ASTNode*> > m_ast_to_node_m;
-  ast::ASTNode *m_first;
+  std::set<ASTNode*> m_nodes; // the selection of this context
+  std::map<AST*, std::set<ASTNode*> > m_ast_to_node_m;
+  ASTNode *m_first;
   // decoration of declaration and input on AST
-  typedef std::map<ast::ASTNode*, std::set<std::string> > decl_deco;
+  typedef std::map<ASTNode*, std::set<std::string> > decl_deco;
   // local storage for the decoration of each AST
-  std::map<ast::AST*, std::pair<decl_deco, decl_deco> > m_ast_to_deco_m;
+  std::map<AST*, std::pair<decl_deco, decl_deco> > m_ast_to_deco_m;
 
   // this is another system for input code generation
   // this does not decorate the AST
@@ -140,8 +140,8 @@ private:
    */
   typedef std::map<std::string, Type*> InputMetrics;
   // the following two can overlap, i.e. need both declaration and input
-  std::map<ast::AST*, InputMetrics> m_decls; // only need declaraion
-  std::map<ast::AST*, InputMetrics> m_inputs; // only need input
+  std::map<AST*, InputMetrics> m_decls; // only need declaraion
+  std::map<AST*, InputMetrics> m_inputs; // only need input
 
   // global variables used
   // would be added into the input code for the first AST

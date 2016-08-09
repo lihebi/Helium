@@ -1,7 +1,6 @@
 #include "ast_node.h"
 #include "utils/log.h"
 
-using namespace ast;
 
 Decl::~Decl() {
   if (m_type) {

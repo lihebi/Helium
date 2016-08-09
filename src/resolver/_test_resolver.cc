@@ -4,8 +4,6 @@
 
 #include <gtest/gtest.h>
 
-using namespace ast;
-
 // TEST(resolver_test_case, io_resolver_test) {
 //   std::string helium_home = load_helium_home();
 //   SystemResolver::Instance()->Load(helium_home + "/systype.tags");

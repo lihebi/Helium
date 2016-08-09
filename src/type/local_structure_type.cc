@@ -8,9 +8,6 @@
 using namespace type;
 using namespace utils;
 
-using namespace ast;
-
-
 /**
  * For structure type, we will analyze two levels.
  * struct A {struct A *next;}

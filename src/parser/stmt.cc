@@ -2,8 +2,6 @@
 #include "ast_common.h"
 #include "utils/log.h"
 
-using namespace ast;
-
 Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Stmt" << "\n";
@@ -29,8 +27,8 @@ void Stmt::CreateSymbolTable() {
   /**
    * push the symbol table
    */
-  if (kind(m_xmlnode) == NK_DeclStmt) {
-    XMLNodeList decl_nodes = ast::decl_stmt_get_decls(m_xmlnode);
+  if (xmlnode_to_kind(m_xmlnode) == NK_DeclStmt) {
+    XMLNodeList decl_nodes = decl_stmt_get_decls(m_xmlnode);
     for (XMLNode decl_node : decl_nodes) {
       Decl *decl = DeclFactory::CreateDecl(decl_node);
       if (decl) {

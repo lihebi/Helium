@@ -7,7 +7,7 @@
 namespace fs = boost::filesystem;
 XMLDocReader *XMLDocReader::m_instance = NULL;
 
-ast::XMLDoc *XMLDocReader::ReadFile(std::string filename) {
+XMLDoc *XMLDocReader::ReadFile(std::string filename) {
   /**
    * Will not check the real path of filename. The key is the filename provided.
    */
@@ -30,7 +30,7 @@ ast::XMLDoc *XMLDocReader::ReadFile(std::string filename) {
  * Instead, use the file version, thus the cache can be used.
  * This should only be used in test code, or create SrcML for small code.
  */
-ast::XMLDoc* XMLDocReader::ReadString(const std::string &code) {
+XMLDoc* XMLDocReader::ReadString(const std::string &code) {
   std::cerr << "warning: [XMLDocReader::ReadString] create from string" << "\n";
   std::string cmd = "srcml --position -lC";
   // std::string cmd = "srcml -lC";
@@ -44,15 +44,15 @@ ast::XMLDoc* XMLDocReader::ReadString(const std::string &code) {
 /**
  * Create the XMLDoc for a snippet in database.
  */
-ast::XMLDoc* XMLDocReader::ReadSnippet(int id) {
+XMLDoc* XMLDocReader::ReadSnippet(int id) {
   if (m_snippet_docs.count(id) == 1) return m_snippet_docs[id];
   std::string code = SnippetDB::Instance()->GetCode(id);
-  ast::XMLDoc *doc = CreateDocFromString(code);
+  XMLDoc *doc = CreateDocFromString(code);
   m_snippet_docs[id] = doc;
   return doc;
 }
 
-ast::XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
+XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
   std::string cmd = "srcml --position -lC";
   if (!filename.empty()) {
     cmd += " -f " + filename;
@@ -64,7 +64,7 @@ ast::XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::str
   return doc;
 }
 
-ast::XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
+XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
   std::string cmd;
   cmd = "srcml --position -lC " + filename;
   std::string xml = utils::exec(cmd.c_str(), NULL);

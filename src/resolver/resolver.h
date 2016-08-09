@@ -4,7 +4,7 @@
 #include <readtags.h>
 #include "common.h"
 #include "resolver/snippet.h"
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
 
 #include "system_resolver.h"
 #include "header_sorter.h"
@@ -12,12 +12,12 @@
 std::set<std::string>
 extract_id_to_resolve(std::string code);
 std::set<std::string>
-extract_id_to_resolve(ast::NodeList nodes);
+extract_id_to_resolve(XMLNodeList nodes);
 
 
 std::set<std::string>
 get_to_resolve(
-               ast::NodeList nodes,
+               XMLNodeList nodes,
                std::set<std::string> known_to_resolve,
                std::set<std::string> known_not_resolve
                );

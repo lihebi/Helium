@@ -2,7 +2,7 @@
 #define TYPE_H
 
 #include <string>
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
 #include "resolver/snippet.h"
 
 class TestInput;
@@ -63,7 +63,7 @@ public:
   /**
    * This should not be a <type> node, because it does not include the dimention information.
    */
-  static Type* CreateType(ast::XMLNode decl_node, int token = 2);
+  static Type* CreateType(XMLNode decl_node, int token = 2);
 private:
 };
 

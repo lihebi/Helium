@@ -1,17 +1,16 @@
 #include "ast_node.h"
 #include "utils/utils.h"
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
 #include <gtest/gtest.h>
 
-using namespace ast;
 
 #if 0
 /**
  * Disable because it will not check something.
  * It just run some code, visualize it.
  */
-TEST(ASTNodeTestCase, DISABLED_NodeTest) {
-  ast::Doc doc;
+TEST(ASTXMLNodeTestCase, DISABLED_XMLNodeTest) {
+  XMLDoc doc;
 const char *raw = R"prefix(
 
 int foo() {
@@ -38,7 +37,7 @@ if (x>0) {
 )prefix";
 
  utils::string2xml(raw, doc);
- NodeList nodes = find_nodes(doc, NK_Function);
+ XMLNodeList nodes = find_nodes(doc, NK_Function);
  ASSERT_EQ(nodes.size(), 1);
  AST *ast = new AST(nodes[0]);
  std::string code = ast->GetCode();
@@ -81,8 +80,8 @@ if (x>0) {
 }
 #endif
 
-TEST(ASTNodeTestCase, DISABLED_ExtraNodeTest) {
-  ast::Doc doc;
+TEST(ASTXMLNodeTestCase, DISABLED_ExtraXMLNodeTest) {
+  XMLDoc doc;
   const char *raw = R"prefix(
 int
 res_hnok(const char *dn) {
@@ -110,15 +109,15 @@ res_hnok(const char *dn) {
 )prefix";
 
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
+  XMLNodeList nodes = find_nodes(doc, NK_Function);
   ASSERT_EQ(nodes.size(), 1);
   AST *ast = new AST(nodes[0]);
   ast->Visualize();
 }
 
 #if 0
-TEST(ASTNodeTestCase, DISABLED_VarDefUseTest) {
-  ast::Doc doc;
+TEST(ASTXMLNodeTestCase, DISABLED_VarDefUseTest) {
+  XMLDoc doc;
   const char *raw = R"prefix(
 
 
@@ -153,7 +152,7 @@ int foo() {
 )prefix";
 
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
+  XMLNodeList nodes = find_nodes(doc, NK_Function);
   ASSERT_EQ(nodes.size(), 1);
   AST *ast = new AST(nodes[0]);
   std::string code = ast->GetCode();

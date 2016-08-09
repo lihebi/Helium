@@ -9,7 +9,7 @@
 #include "config/config.h"
 #include "config/options.h"
 
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
 #include "parser/ast_node.h"
 
 #include "utils/utils.h"
@@ -123,12 +123,12 @@ Helium::Helium(int argc, char* argv[]) {
   if (args.Has("create-function-ast")) {
     // this only works for a single file
     if (utils::file_exists(m_folder)) {
-      ast::XMLDoc doc;
+      XMLDoc doc;
       utils::file2xml(m_folder, doc);
-      ast::NodeList func_nodes = ast::find_nodes(doc, ast::NK_Function);
-      for (ast::Node func : func_nodes) {
-        ast::AST ast(func);
-        std::set<ast::ASTNode*> leafs = ast.GetLeafNodes();
+      XMLNodeList func_nodes = find_nodes(doc, NK_Function);
+      for (XMLNode func : func_nodes) {
+        AST ast(func);
+        std::set<ASTNode*> leafs = ast.GetLeafNodes();
         ast.VisualizeN(leafs, {});
         // std::cout << ast.GetCode() <<"\n";
       }
@@ -250,13 +250,13 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
-  if (args.Has("slice")) {
-    // use slicing as code selection method
-    std::string slice_file = args.GetString("slice");
-    Reader::slice(slice_file, m_folder);
-    std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
-    exit(0);
-  }
+  // if (args.Has("slice")) {
+  //   // use slicing as code selection method
+  //   std::string slice_file = args.GetString("slice");
+  //   Reader::slice(slice_file, m_folder);
+  //   std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
+  //   exit(0);
+  // }
 
   /**
    * TODO so many singletons are good practice? Maybe I need to make the Helium class singleton and accessible, and make these singletons its fields.
@@ -338,9 +338,9 @@ sub/dir/b.cpp:364
 int Helium::countFunction() {
   int ret=0;
   for (std::string file : m_files) {
-    ast::XMLDoc doc;
+    XMLDoc doc;
     utils::file2xml(file, doc);
-    ast::XMLNodeList nodes = ast::find_nodes(doc, ast::NK_Function);
+    XMLNodeList nodes = find_nodes(doc, NK_Function);
     ret += nodes.size();
   }
   return ret;

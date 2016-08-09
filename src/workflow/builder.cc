@@ -8,8 +8,6 @@
 #include "parser/xml_doc_reader.h"
 #include <gtest/gtest.h>
 
-using namespace ast;
-
 Builder::Builder() {
   m_dir = utils::create_tmp_dir("/tmp/helium-test-tmp.XXXXXX");
 }
@@ -41,10 +39,10 @@ Builder::~Builder() {}
  * Assert them right before begin and after end.
  * FIXME stack grow to lower address? add guard before variable decl?
  */
-void add_stack_guard(Node begin, Node end) {
+void add_stack_guard(XMLNode begin, XMLNode end) {
   int id;
   id = 1;
-  Node node = begin;
+  XMLNode node = begin;
   std::string stack_guard_assert = "\n// @HeliumStackGuardAssert\n";
   while (true) {
     if (helium_previous_sibling(node)) {
@@ -54,8 +52,8 @@ void add_stack_guard(Node begin, Node end) {
     } else {
       break;
     }
-    if (kind(node) == NK_Function) break;
-    if (kind(node) == NK_DeclStmt) {
+    if (xmlnode_to_kind(node) == NK_Function) break;
+    if (xmlnode_to_kind(node) == NK_DeclStmt) {
       // constructing guard
       std::string var = "helium_stack_guard_"+std::to_string(id);
       std::string text = "\nint "+var+"="+std::to_string(id)+";\n";
@@ -63,12 +61,12 @@ void add_stack_guard(Node begin, Node end) {
       id++;
       // add guard
       // before the decl stmt, because the stack goes toward lower address
-      Node new_node = node.parent().insert_child_before("helium_instrument", node);
+      XMLNode new_node = node.parent().insert_child_before("helium_instrument", node);
       new_node.append_child(pugi::node_pcdata).set_value(text.c_str());
     }
   }
   // add guard assert
-  Node new_node;
+  XMLNode new_node;
   new_node = begin.parent().insert_child_before("helium_instrument", begin);
   new_node.append_child(pugi::node_pcdata).set_value(stack_guard_assert.c_str());
   new_node = end.parent().insert_child_after("helium_instrument", end);
@@ -80,14 +78,14 @@ void add_stack_guard(Node begin, Node end) {
  * insert guard malloc after every malloc/calloc,
  * and assert them right before begin and after end.
  */
-void add_heap_guard(Node begin, Node end) {
+void add_heap_guard(XMLNode begin, XMLNode end) {
   int id=1;
   std::string heap_guard_decl = "\n// @HeliumHeapGuard\n";
   std::string heap_guard_assert = "\n// @HeliumHeapGuardAssert\n";
-  NodeList calls = find_nodes_from_root(begin, NK_Call);
-  for (Node call : calls) {
+  XMLNodeList calls = find_nodes_from_root(begin, NK_Call);
+  for (XMLNode call : calls) {
     if (call_get_name(call) == "malloc" || call_get_name(call) == "calloc") {
-      Node stmt = helium_parent(call);
+      XMLNode stmt = helium_parent(call);
       // constructing guard code
       std::string var = "helium_heap_guard_"+std::to_string(id);
       heap_guard_decl += "int *"+var+";\n";
@@ -102,13 +100,13 @@ void add_heap_guard(Node begin, Node end) {
       heap_guard_assert += "HELIUM_ASSERT(!"+var+"_valid || "+"*"+var+"=="+std::to_string(id)+");\n";
       id++;
       // add guard
-      Node new_node = stmt.parent().insert_child_after("helium_instrument", stmt);
+      XMLNode new_node = stmt.parent().insert_child_after("helium_instrument", stmt);
       new_node.append_child(pugi::node_pcdata).set_value(def.c_str());
     }
   }
   // all guard should be global pointer
-  Node function = find_nodes_from_root(begin, NK_Function)[0];
-  Node new_node = function.parent().insert_child_before("helium_instrument", function);
+  XMLNode function = find_nodes_from_root(begin, NK_Function)[0];
+  XMLNode new_node = function.parent().insert_child_before("helium_instrument", function);
   new_node.append_child(pugi::node_pcdata).set_value(heap_guard_decl.c_str());
   // add guard assert
   new_node = begin.parent().insert_child_before("helium_instrument", begin);
@@ -120,8 +118,8 @@ void add_heap_guard(Node begin, Node end) {
 /**
  * Add print statement before and after segment.
  */
-void add_print_guard(Node begin, Node end) {
-  Node new_node;
+void add_print_guard(XMLNode begin, XMLNode end) {
+  XMLNode new_node;
   new_node = begin.parent().insert_child_before("helium_instrument", begin);
   new_node.append_child(pugi::node_pcdata).set_value("\nprintf(\"@HeliumBeforeSegment\\n\");\n");
   new_node = end.parent().insert_child_after("helium_instrument", end);
@@ -134,19 +132,18 @@ void add_print_guard(Node begin, Node end) {
  * Will add guard at both begin and end.
  */
 std::string add_helium_guard(std::string text) {
-  using namespace ast;
-  ast::Doc doc;
+  XMLDoc doc;
   utils::string2xml(text, doc);
-  Node segment_begin  = find_node_containing_str(doc, NK_Comment, "@HeliumSegmentBegin");
-  Node segment_end = find_node_containing_str(doc, NK_Comment, "@HeliumSegmentEnd");
+  XMLNode segment_begin  = find_node_containing_str(doc, NK_Comment, "@HeliumSegmentBegin");
+  XMLNode segment_end = find_node_containing_str(doc, NK_Comment, "@HeliumSegmentEnd");
   // no change is no such annotation comments.
   if (!segment_begin || !segment_end) return text;
   // heap guard
   add_heap_guard(segment_begin, segment_end);
   // stack guard
   add_stack_guard(segment_begin, segment_end);
-  NodeList callsites = find_nodes_containing_str(doc, NK_Comment, "@HeliumCallSite");
-  for (Node callsite : callsites) {
+  XMLNodeList callsites = find_nodes_containing_str(doc, NK_Comment, "@HeliumCallSite");
+  for (XMLNode callsite : callsites) {
     add_stack_guard(callsite, helium_next_sibling(callsite));
   }
   /**

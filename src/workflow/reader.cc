@@ -39,172 +39,10 @@ namespace fs = boost::filesystem;
 
 
 using namespace utils;
-using namespace ast;
 
 int Reader::m_skip_segment = -1;
 int Reader::m_cur_seg_no = 0;
 
-// void Reader::GA() {
-//   // std::cout << "Genetic Algorithm"  << "\n";
-//   NodeList func_nodes = ast::find_nodes(*m_doc, NK_Function);
-//   for (Node func : func_nodes) {
-//     std::cerr << "."  << std::flush;
-//     // std::cout << "For func: " << func.child_value("name") << "\n";
-//     // std::cout << "process Eneter to continue ...\n";
-//     // getchar();
-//     // std::cout << ast::get_text(func)  << "\n";
-//     AST ast(func);
-//     // std::cout << "Total leaf statement in this function: " << ast.leaf_size() << "\n";
-//     // if (ast.leaf_size() < 5) continue;
-//     Population pop(&ast);
-//     pop.CreateRandomIndividuals(3);
-//     // for (Individual *ind : pop.GetIndividuals()) {
-//     //   ind->Visualize();
-//     // }
-//     // return;
-//     pop.Solve();
-//     // std::cout << "done solving"  << "\n";
-//     // bool suc=false;
-//     for (Individual *ind : pop.GetIndividuals()) {
-//       // ind->Visualize();
-//       /**
-//        * Print some meta data for this individual
-//        */
-//       // std::cout << "Total leaf statements in this individual: " << ind->GetGene()->leaf_size() << "\n";
-//       /**
-//        * Now I want to dump the max,min,mean (leafsize, snippet size) of the successfully built code.
-//        */
-//       std::string main_code = ind->GetMain();
-//       std::string support = ind->GetSupport();
-//       std::string makefile = ind->GetMakefile();
-//       Builder builder;
-//       builder.SetMain(main_code);
-//       builder.SetSupport(support);
-//       builder.SetMakefile(makefile);
-//       builder.Write();
-//       if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
-//         std::cout << "Code output to "  << builder.GetDir() << "\n";
-//       }
-//       builder.Compile();
-//       int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
-//       int node_size = ind->GetGene()->node_size();
-//       if (builder.Success()) {
-//         g_compile_success_no++;
-//         // ExpASTDump::Instance()->compile_success++;
-//         // ExpASTDump::Instance()->suc_leaf_size.push_back(leaf_size);
-//         // ExpASTDump::Instance()->suc_snippet_size.push_back(ind->GetAllSnippetIds().size());
-//         BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, true);
-//         // suc=true;
-//         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-//           utils::print("success\n", utils::CK_Green);
-//         }
-//         if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
-//           utils::print(".", utils::CK_Green);
-//           std::cout << std::flush;
-//         }
-//       } else {
-//         g_compile_error_no++;
-//         // ExpASTDump::Instance()->compile_error++;
-//         // ExpASTDump::Instance()->err_leaf_size.push_back(leaf_size);
-//         // ExpASTDump::Instance()->err_snippet_size.push_back(ind->GetAllSnippetIds().size());
-//         BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, false);
-//         if (PrintOption::Instance()->Has(POK_CompileInfo)) {
-//           utils::print("error\n", utils::CK_Red);
-//         }
-//         if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
-//           utils::print(".", utils::CK_Red);
-//           std::cout << std::flush;
-//         }
-//       }
-//     }
-//   }
-//   std::cerr  << "\n";
-// }
-
-/**
- * Helium is instructed with one or a bunch of slice result.
- * The slice(s) will be the criteria to select segment to run.
- * @param [in] benchmark_folder is the prefix to find the actual file for each slice.
- * slice only contains relative path to the file, and the base is "benchmark_folder"
- * In this function, the validaty of the combo is checked.
- * If the benchmark_folder does not contain the file in the slice, assertion failure will be thrown
- */
-void Reader::slice(std::string file, std::string benchmark_folder) {
-  assert(false);
-#if 0
-  std::vector<SliceFile> slices;
-  // 
-  if (fs::is_directory(file)) {
-    // a directory of slice
-    for (fs::directory_entry &x : fs::directory_iterator(file)) {
-      std::string item = x.path().string();
-      if (fs::is_regular_file(item)) {
-        SliceFile sf(item);
-        slices.push_back(sf);
-      }
-    }
-  } else if (fs::is_regular_file(file)) {
-    // only one file, i.e. only one slice
-    SliceFile sf(file);
-    slices.push_back(sf);
-  }
-  // now slices are populated with the specified slice files.
-  // it is time to do the experiment.
-  for (SliceFile slice : slices) {
-    std::cerr << "." << std::flush;
-    std::string filename = benchmark_folder + "/" + slice.GetCriteriaFile();
-    // std::cout << filename  << "\n";
-    // FIXME assert failure
-    // assert(fs::exists(filename));
-    if (!fs::exists(filename)) continue;
-    pugi::xml_document *doc = file2xml(filename);
-    XMLNode func = ast::find_node_enclosing_line(doc->document_element(), NK_Function, slice.GetCriteriaLinum());
-    // FIXME assert failure
-    // assert(func);
-    if (!func) continue;
-    int func_begin_linum = get_node_line(func);
-    int func_end_linum = get_node_last_line(func);
-    std::map<std::string, int> slices = slice.GetSlices();
-    AST ast(func);
-    Individual *ind = new Individual(&ast);
-    // std::cout << "func range:" << func_begin_linum << " - " <<func_end_linum  << "\n";
-    for (auto s : slices) {
-      if (s.first == slice.GetCriteriaFile()) {
-        //same file
-        if (s.second >= func_begin_linum && s.second <= func_end_linum) {
-          // in the same function
-          // std::cout << "in range: " << s.second  << "\n";
-          ind->SelectNodeByLinum(s.second);
-        }
-      }
-    }
-    // build individual
-    ind->Solve();
-    std::string main_code = ind->GetMain();
-    std::string support = ind->GetSupport();
-    std::string makefile = ind->GetMakefile();
-    Builder builder;
-    builder.SetMain(main_code);
-    builder.SetSupport(support);
-    builder.SetMakefile(makefile);
-    builder.Write();
-    if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
-      std::cout << "Code output to "  << builder.GetDir() << "\n";
-    }
-    builder.Compile();
-    int leaf_size = ind->GetGene()->leaf_size(); // the leaf statements selected for this individual
-    int node_size = ind->GetGene()->node_size();
-    if (builder.Success()) {
-      BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, true);
-      // std::cerr << "Compile Success\n";
-    } else {
-      BuildRatePlotDump::Instance()->Push(leaf_size, node_size, -1, ind->GetAllSnippetIds().size(), -1, false);
-      // std::cerr << "Compile Error\n";
-    }
-  }
-  std::cerr << "\n";
-#endif
-}
 /**
  * Process the segment
  */
@@ -283,7 +121,7 @@ Reader::Reader(std::string filename, POISpec poi) {
   std::cout << "true line number: " <<  linum  << "\n";
   if (poi.type == "stmt") {
     // get the single statement
-    XMLNode node = ast::find_node_on_line(m_doc->document_element(),
+    XMLNode node = find_node_on_line(m_doc->document_element(),
                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
                                           linum);
     assert(node);
@@ -300,7 +138,7 @@ Reader::Reader(std::string filename, POISpec poi) {
      , {NK_Do, ANK_Do}
 
      */
-    XMLNode node = ast::find_node_on_line(m_doc->document_element(),
+    XMLNode node = find_node_on_line(m_doc->document_element(),
                                           {NK_While, NK_For, NK_Do},
                                           linum
                                           );
@@ -360,13 +198,13 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
  */
 Segment* Reader::getAnnotSeg() {
   print_trace("Reader::getAnnotSeg");
-  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
+  XMLNodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
     // std::cerr << "Error: Currently only support ONE single statement.";
     // std::cerr << "But Found: " << comment_nodes.size() << "\n";
     return NULL;
   }
-  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
+  XMLNode node = helium_next_sibling(comment_nodes[0]);
   assert(node);
   // FIXME seg should be free-d outside
   Segment *seg = new Segment(node);
@@ -380,11 +218,11 @@ Segment* Reader::getAnnotSeg() {
  */
 Segment* Reader::getAnnotLoop() {
   print_trace("Reader::getAnnotLoop");
-  NodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumLoop");
+  XMLNodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumLoop");
   if (comment_nodes.size() != 1) {
     return NULL;
   }
-  ast::XMLNode node = helium_next_sibling(comment_nodes[0]);
+  XMLNode node = helium_next_sibling(comment_nodes[0]);
   assert(node);
   Segment *seg = new Segment(node, SegKind_Loop);
   return seg;
@@ -400,7 +238,7 @@ Segment* Reader::getAnnotLoop() {
 //   std::vector<NodeKind> kinds;
 //   kinds.push_back(NK_DeclStmt);
 //   kinds.push_back(NK_ExprStmt);
-//   NodeList nodes = ast::find_nodes_on_lines(m_doc, kinds, line_numbers);
+//   NodeList nodes = find_nodes_on_lines(m_doc, kinds, line_numbers);
 //   for (Node n : nodes) {
 //     Segment seg;
 //     seg.PushBack(n);
@@ -623,7 +461,7 @@ If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
 // }
 
 // static bool is_leaf_node(Node node) {
-//   switch(ast::kind(node)) {
+//   switch(kind(node)) {
 //   case NK_ExprStmt:
 //   case NK_Return:
 //   case NK_Continue:
@@ -641,7 +479,7 @@ If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
 //   case NK_Switch:
 //   case NK_For: return false;
 //   default:
-//     std::cerr<<ast::kind_to_name(ast::kind(node)) << " is not recoganized or handled.\n";
+//     std::cerr<<kind_to_name(kind(node)) << " is not recoganized or handled.\n";
 //     assert(false);
 //     return true;
 //   }
@@ -654,36 +492,36 @@ If it is a block of interest(Loop, Condition), treat it singlely as a NodeList.
  * If can have two blocks, <then><block> and <else><block>.
  * The algorithm is to enumerate the type, and get the one we want.
  */
-std::vector<NodeList> get_block_bodies(Node node) {
-  std::vector<NodeList> result;
-  switch(ast::kind(node)) {
+std::vector<XMLNodeList> get_block_bodies(XMLNode node) {
+  std::vector<XMLNodeList> result;
+  switch(xmlnode_to_kind(node)) {
   case NK_If: {
-    Node then_block = ast::if_get_then_block(node);
+    XMLNode then_block = if_get_then_block(node);
     // TODO should move this into the uppr function, if all blocks here have a <block> tag.
     result.push_back(block_get_nodes(then_block));
-    Node else_block = ast::if_get_else_block(node);
+    XMLNode else_block = if_get_else_block(node);
     result.push_back(block_get_nodes(else_block));
     break;
   }
   case NK_For: {
-    Node block = ast::for_get_block(node);
+    XMLNode block = for_get_block(node);
     result.push_back(block_get_nodes(block));
     break;
   }
   case NK_Switch: {
-    NodeList cases = ast::switch_get_cases(node);
-    for (Node case_node : cases) {
-      result.push_back(ast::case_get_nodes(case_node));
+    XMLNodeList cases = switch_get_cases(node);
+    for (XMLNode case_node : cases) {
+      result.push_back(case_get_nodes(case_node));
     }
     break;
   }
   case NK_Do: {
-    Node block = ast::do_get_block(node);
+    XMLNode block = do_get_block(node);
     result.push_back(block_get_nodes(block));
     break;
   }
   case NK_While: {
-    Node block = ast::while_get_block(node);
+    XMLNode block = while_get_block(node);
     result.push_back(block_get_nodes(block));
     break;
   }
@@ -716,7 +554,7 @@ void Reader::getDivideRecursive(NodeList nodes) {
     } else {
       if (!tmp_group.empty()) seg_cands.push_back(tmp_group);
       tmp_group.clear();
-      if (ast::kind(node) != NK_Comment) {
+      if (kind(node) != NK_Comment) {
         NodeList l = {node}; // need this in document algorithm?
         seg_cands.push_back(l);
         block_nodes.push_back(node);

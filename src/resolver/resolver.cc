@@ -4,6 +4,7 @@
 #include "parser/xml_doc_reader.h"
 #include "config/options.h"
 #include <gtest/gtest.h>
+#include "parser/xmlnode_helper.h"
 /**
  * Extract id which is not c keyword
  * This is the master copy of this resolving
@@ -18,9 +19,9 @@ extract_id_to_resolve(std::string code) {
   // print_trace("extract_id_to_resolve");
 
   // Before doing the pattern matching, I want to first remove comments
-  ast::XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
   assert(doc);
-  code = get_text_except(doc->document_element(), ast::NK_Comment);
+  code = get_text_except(doc->document_element(), NK_Comment);
   delete doc;
   
   static boost::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
@@ -45,10 +46,10 @@ TEST(ResolverTestCase, ExtractIdTest) {
 }
 
 std::set<std::string>
-extract_id_to_resolve(ast::NodeList nodes) {
+extract_id_to_resolve(XMLNodeList nodes) {
   std::set<std::string> result;
-  for (ast::Node node : nodes) {
-    std::set<std::string> tmp = extract_id_to_resolve(ast::get_text(node));
+  for (XMLNode node : nodes) {
+    std::set<std::string> tmp = extract_id_to_resolve(get_text(node));
     result.insert(tmp.begin(), tmp.end());
   }
   return result;
@@ -56,19 +57,19 @@ extract_id_to_resolve(ast::NodeList nodes) {
 
 std::set<std::string>
 get_to_resolve(
-               ast::NodeList nodes,
+               XMLNodeList nodes,
                std::set<std::string> known_to_resolve,
                std::set<std::string> known_not_resolve
                ) {
   std::set<std::string> result;
-  std::set<std::string> var_ids = ast::get_var_ids(nodes);
+  std::set<std::string> var_ids = get_var_ids(nodes);
   result.insert(var_ids.begin(), var_ids.end());
   // var_ids
   // general types in the nodes
-  std::set<std::string> type_ids = ast::get_type_ids(nodes);
+  std::set<std::string> type_ids = get_type_ids(nodes);
   result.insert(type_ids.begin(), type_ids.end());
   // call to functions
-  std::set<std::string> call_ids = ast::get_call_ids(nodes);
+  std::set<std::string> call_ids = get_call_ids(nodes);
   result.insert(call_ids.begin(), call_ids.end());
   // constructing
   result.insert(known_to_resolve.begin(), known_to_resolve.end());
@@ -90,9 +91,9 @@ get_to_resolve(
                std::set<std::string> known_to_resolve,
                std::set<std::string> known_not_resolve
                ) {
-  ast::Doc doc;
+  XMLDoc doc;
   utils::string2xml(code, doc);
-  ast::NodeList nodes;
+  XMLNodeList nodes;
   nodes.push_back(doc.document_element());
   return get_to_resolve(nodes, known_to_resolve, known_not_resolve);
 }

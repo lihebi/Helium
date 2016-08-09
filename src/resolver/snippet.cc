@@ -3,7 +3,8 @@
 #include "snippet.h"
 #include "utils/utils.h"
 
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
+#include "parser/xmlnode_helper.h"
 #include "config/options.h"
 
 using namespace utils;
@@ -484,7 +485,7 @@ std::string Snippet::ToString() const {
 std::string get_func_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return ast::get_code_enclosing_line(filename, line_number, "function");
+  return get_code_enclosing_line(filename, line_number, "function");
 }
 
 /**
@@ -495,8 +496,8 @@ std::string get_func_code(const CtagsEntry& entry) {
 std::string get_enum_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string enum_code = ast::get_code_enclosing_line(filename, line_number, "enum");
-  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
+  std::string enum_code = get_code_enclosing_line(filename, line_number, "enum");
+  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
   if (!typedef_code.empty()) {
     return typedef_code;
   } else {
@@ -510,13 +511,13 @@ std::string get_def_code(const CtagsEntry& entry) {
                             // std::string filename, int line) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return ast::get_code_enclosing_line(filename, line_number, "cpp:define");
+  return get_code_enclosing_line(filename, line_number, "cpp:define");
 }
 
 std::string get_typedef_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  return ast::get_code_enclosing_line(filename, line_number, "typedef");
+  return get_code_enclosing_line(filename, line_number, "typedef");
 }
 
 /**
@@ -529,8 +530,8 @@ std::string get_typedef_code(const CtagsEntry& entry) {
 std::string get_struct_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string struct_code =  ast::get_code_enclosing_line(filename, line_number, "struct");
-  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
+  std::string struct_code =  get_code_enclosing_line(filename, line_number, "struct");
+  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
   /*
     If there's also a <typedef> enclosing this line, than we use it,
     because we don't want same code in different Snippets.
@@ -548,8 +549,8 @@ std::string get_struct_code(const CtagsEntry& entry) {
 std::string get_union_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  std::string union_code =  ast::get_code_enclosing_line(filename, line_number, "union");
-  std::string typedef_code = ast::get_code_enclosing_line(filename, line_number, "typedef");
+  std::string union_code =  get_code_enclosing_line(filename, line_number, "union");
+  std::string typedef_code = get_code_enclosing_line(filename, line_number, "typedef");
   if (!typedef_code.empty()) {
     return typedef_code;
   } else {
@@ -572,22 +573,22 @@ int (*read_buf) (char *buf, unsigned size);
 std::string get_var_code(const CtagsEntry& entry) {
   int line_number = entry.GetLineNumber();
   std::string filename = entry.GetFileName();
-  // return ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
+  // return get_code_enclosing_line(filename, line_number, "decl_stmt");
   std::string ret;
-  ret = ast::get_code_enclosing_line(filename, line_number, "decl_stmt");
+  ret = get_code_enclosing_line(filename, line_number, "decl_stmt");
   if (ret.empty()) {
     // If the structure has a name, then it will be the structure, together with the variable.
     // need to ensure that will be duplicate, i.e. the signature is fully chaptured, for both struct and variable
-    ret = ast::get_code_enclosing_line(filename, line_number, "struct");
+    ret = get_code_enclosing_line(filename, line_number, "struct");
     if (!ret.empty()) return ret;
-    ret = ast::get_code_enclosing_line(filename, line_number, "enum");
+    ret = get_code_enclosing_line(filename, line_number, "enum");
     if (!ret.empty()) return ret;
-    ret = ast::get_code_enclosing_line(filename, line_number, "union");
+    ret = get_code_enclosing_line(filename, line_number, "union");
     if (!ret.empty()) return ret;
   }
   if (ret.empty()) {
     // check if it is a function decl.
-    ret = ast::get_code_enclosing_line(filename, line_number, "function_decl");
+    ret = get_code_enclosing_line(filename, line_number, "function_decl");
   }
   return ret;
 }

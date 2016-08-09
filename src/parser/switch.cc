@@ -1,7 +1,6 @@
 #include "ast_node.h"
 #include "utils/log.h"
 
-using namespace ast;
 /**
  * Test case
 
@@ -79,7 +78,7 @@ Case::Case(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_ast = ast;
   // from this case to next case or default
   XMLNode node = xmlnode.next_sibling();
-  while (node && kind(node) != NK_Case && kind(node) != NK_Default) {
+  while (node && xmlnode_to_kind(node) != NK_Case && xmlnode_to_kind(node) != NK_Default) {
     ASTNode *n = ASTNodeFactory::CreateASTNode(node, this, ast);
     if (n) m_children.push_back(n);
     node = node.next_sibling();
@@ -124,7 +123,7 @@ Default::Default(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_xmlnode = xmlnode;
   m_ast = ast;
   XMLNode node = xmlnode.next_sibling();
-  while (node && kind(node) != NK_Case && kind(node) != NK_Default) {
+  while (node && xmlnode_to_kind(node) != NK_Case && xmlnode_to_kind(node) != NK_Default) {
     ASTNode *n = ASTNodeFactory::CreateASTNode(node, this, ast);
     if (n) m_children.push_back(n);
     node = node.next_sibling();

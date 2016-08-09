@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 
 using namespace utils;
-using namespace ast;
 using namespace type;
 
 /********************************
@@ -160,7 +159,7 @@ Type* TypeFactory::CreateType(std::string raw, std::vector<std::string> dims, in
   // assert(false);
   return NULL;
 }
-Type* TypeFactory::CreateType(ast::XMLNode decl_node, int token) {
+Type* TypeFactory::CreateType(XMLNode decl_node, int token) {
   std::string type = decl_get_type(decl_node);
   std::vector<std::string> dims = decl_get_dimension(decl_node);
   return TypeFactory::CreateType(type, dims, token);

@@ -1,15 +1,14 @@
-#include "parser/ast.h"
+#include "parser/xmlnode.h"
+#include "parser/xmlnode_helper.h"
 #include "utils/utils.h"
 #include <gtest/gtest.h>
-
-using namespace ast;
 
 /*******************************
  ** AST sub classes
  *******************************/
 
 TEST(ast_test_case, decl_test) {
-  Doc doc;
+  XMLDoc doc;
   const char *raw = R"prefix(
 int a;
 int a=0;
@@ -24,9 +23,9 @@ u_char *eom, *cp, *cp1, *rdatap;
 int a[3][8];
 )prefix";
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_DeclStmt);
+  XMLNodeList nodes = find_nodes(doc, NK_DeclStmt);
   ASSERT_EQ(nodes.size(), 9);
-  NodeList decls;
+  XMLNodeList decls;
   // 1
   decls = decl_stmt_get_decls(nodes[0]);
   ASSERT_EQ(decls.size(), 1);
@@ -61,7 +60,7 @@ int a[3][8];
 
 
 TEST(ast_test_case, function_test) {
-  Doc doc;
+  XMLDoc doc;
   const char *raw = R"prefix(
 
 int myfunc(int a, int b) {
@@ -70,12 +69,12 @@ int myfunc(int a, int b) {
 
 )prefix";
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
+  XMLNodeList nodes = find_nodes(doc, NK_Function);
   EXPECT_EQ(nodes.size(), 1);
-  Node myfunc = nodes[0];
+  XMLNode myfunc = nodes[0];
   EXPECT_EQ(function_get_return_type(myfunc), "int");
   EXPECT_EQ(function_get_name(myfunc), "myfunc");
-  NodeList params = function_get_params(myfunc);
+  XMLNodeList params = function_get_params(myfunc);
   ASSERT_EQ(params.size(), 2);
   EXPECT_EQ(param_get_type(params[0]), "int");
   EXPECT_EQ(param_get_name(params[0]), "a");
@@ -84,7 +83,7 @@ int myfunc(int a, int b) {
 }
 
 TEST(ast_test_case, for_test) {
-  Doc doc;
+  XMLDoc doc;
   const char *raw = R"prefix(
 
 for (int i=0,c=2;i<8;++i) {
@@ -92,10 +91,10 @@ for (int i=0,c=2;i<8;++i) {
 
 )prefix";
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_For);
+  XMLNodeList nodes = find_nodes(doc, NK_For);
   ASSERT_EQ(nodes.size(), 1);
-  Node myfor = nodes[0];
-  NodeList decls = for_get_init_decls_or_exprs(myfor);
+  XMLNode myfor = nodes[0];
+  XMLNodeList decls = for_get_init_decls_or_exprs(myfor);
   ASSERT_EQ(decls.size(), 2);
   EXPECT_EQ(decl_get_name(decls[0]), "i");
   EXPECT_EQ(decl_get_type(decls[0]), "int");
@@ -106,11 +105,11 @@ for (int i=0,c=2;i<8;++i) {
   // ASSERT_EQ(vars.size(), 2);
   // EXPECT_EQ(vars["i"], "int");
   // EXPECT_EQ(vars["c"], "int");
-  Node condition_expr = for_get_condition_expr(myfor);
+  XMLNode condition_expr = for_get_condition_expr(myfor);
   ASSERT_TRUE(condition_expr);
-  Node incr_expr = for_get_incr_expr(myfor);
+  XMLNode incr_expr = for_get_incr_expr(myfor);
   ASSERT_TRUE(incr_expr);
-  // Node block = for_get_block(myfor);
+  // XMLNode block = for_get_block(myfor);
 }
 
 /*******************************
@@ -118,7 +117,7 @@ for (int i=0,c=2;i<8;++i) {
  *******************************/
 
 TEST(ast_test_case, find_nodes_test) {
-  Doc doc;
+  XMLDoc doc;
   const char* raw = R"prefix(
 int func() {
 int a;
@@ -134,16 +133,16 @@ memcpy(a,b);
   while (isspace(*raw)) raw++;
 
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_Function);
+  XMLNodeList nodes = find_nodes(doc, NK_Function);
   ASSERT_EQ(nodes.size(), 1);
-  EXPECT_EQ(kind(nodes[0]), NK_Function);
+  EXPECT_EQ(xmlnode_to_kind(nodes[0]), NK_Function);
   nodes = find_nodes(doc, NK_ExprStmt);
   ASSERT_EQ(nodes.size(), 2);
-  Node node;
+  XMLNode node;
   node = find_node_on_line(doc, NK_ExprStmt, 4);
   ASSERT_TRUE(node);
 
-  std::vector<NodeKind> kinds;
+  std::vector<XMLNodeKind> kinds;
   kinds.push_back(NK_DeclStmt);
   kinds.push_back(NK_ExprStmt);
 
@@ -159,7 +158,7 @@ memcpy(a,b);
  * The reason is when the expr is ~a.b->c~, it will be <expr><name><name></name></name></name>
  */
 TEST(ast_test_case, get_var_ids) {
-  Doc doc;
+  XMLDoc doc;
   const char* raw = R"prefix(
 for (;;) {
 stats.hash_bytes =0;
@@ -169,7 +168,7 @@ for (ii = 0; ii < search->nkey; ++ii) {
 }
 )prefix";
   utils::string2xml(raw, doc);
-  NodeList fors = find_nodes(doc, NK_For);
+  XMLNodeList fors = find_nodes(doc, NK_For);
   ASSERT_EQ(fors.size(), 2);
   // first for
   std::set<std::string> ids = get_var_ids(fors[0]);
@@ -186,7 +185,7 @@ for (ii = 0; ii < search->nkey; ++ii) {
  * Test if the id to resolve from expr_stmt is correct.
  */
 TEST(ast_test_case, expr_stmt_test) {
-  Doc doc;
+  XMLDoc doc;
   const char* raw = R"prefix(
 
 a = a+b;
@@ -196,7 +195,7 @@ cp1 = data + strlen((char *)data) + 1;
 
 )prefix";
   utils::string2xml(raw, doc);
-  NodeList nodes = find_nodes(doc, NK_ExprStmt);
+  XMLNodeList nodes = find_nodes(doc, NK_ExprStmt);
   ASSERT_EQ(nodes.size(), 4);
   // a = a+b;
   std::set<std::string> ids;

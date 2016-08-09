@@ -18,7 +18,6 @@
 #include "utils/log.h"
 #include <gtest/gtest.h>
 
-using namespace ast;
 using namespace utils;
 
 /********************************
@@ -73,7 +72,7 @@ Context::~Context() {
 /**
  * The first node denote which the most recent AST is.
  */
-void Context::SetFirstNode(ast::ASTNode* node) {
+void Context::SetFirstNode(ASTNode* node) {
   m_first = node;
 }
 
@@ -670,7 +669,7 @@ std::string Context::getSupportBody() {
     }
     int id = *ids.begin();
     std::string code = SnippetDB::Instance()->GetCode(id);
-    std::string decl_code = ast::get_function_decl(code);
+    std::string decl_code = get_function_decl(code);
     code_func_decl +=
       "// Decl Code for " + s + "\n"
       + decl_code + "\n";
