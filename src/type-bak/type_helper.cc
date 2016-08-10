@@ -1,8 +1,8 @@
 #include "type_helper.h"
-#include "type_common.h"
+// #include "type_common.h"
+#include "utils/utils.h"
 
 using namespace utils;
-
 
 bool search_and_remove(std::string &s, boost::regex reg) {
   if (boost::regex_search(s, reg)) {

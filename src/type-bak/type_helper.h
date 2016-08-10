@@ -1,6 +1,5 @@
 #ifndef TYPE_HELPER_H
 #define TYPE_HELPER_H
-
 #include <string>
 #include <boost/regex.hpp>
 
