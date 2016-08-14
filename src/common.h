@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 extern const std::set<std::string> c_common_keywords;
 extern const std::set<std::string> c_extend_keywords;

@@ -165,9 +165,9 @@ void TestResult::PrepareData() {
     test_suite_map.insert(m.begin(), m.end());
     // input
     std::string input;
-    for (TestInput *in : m_test_suite[i]) {
+    for (InputSpec *in : m_test_suite[i]) {
       if (in) {
-        input += in->ToString();
+        input += in->GetRaw();
       }
     }
     m = get_header_value_map(input);

@@ -173,7 +173,7 @@ SystemResolver::ResolveType(const std::string& name) {
     }
     to_type.pop_back();
     // if it is primitive type, return
-    if (type::is_primitive(to_type)) {
+    if (is_primitive(to_type)) {
       return to_type;
     }
     // depth first resolve

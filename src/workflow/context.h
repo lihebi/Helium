@@ -117,7 +117,7 @@ private:
   Context *m_last = NULL; // last context
 
   Builder *m_builder = NULL;
-  std::vector<std::vector<TestInput*> > m_test_suite;
+  std::vector<std::vector<InputSpec*> > m_test_suite;
   std::string m_sig_dir;
   /**
    * Storage

@@ -11,7 +11,7 @@
  */
 class TestResult {
 public:
-  TestResult(std::vector<std::vector<TestInput*> > test_suite) : m_test_suite(test_suite) {}
+  TestResult(std::vector<std::vector<InputSpec*> > test_suite) : m_test_suite(test_suite) {}
   void GetInvariants();
   void GetPreconditions();
   void GetTransferFunctions();
@@ -43,7 +43,7 @@ private:
   std::vector<std::string> m_poi_output_success;
   std::vector<std::string> m_poi_output_failure;
   std::vector<std::pair<std::string, bool> > m_poi_output; // the output, and whether the test succeeds
-  std::vector<std::vector<TestInput*> > m_test_suite;
+  std::vector<std::vector<InputSpec*> > m_test_suite;
   // this is a pretty good data structure to hold CSV data
   // from the CSV header to its data values
   // The header contains both the poi output, and the preconditions

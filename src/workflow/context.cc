@@ -407,13 +407,13 @@ void Context::resolveSnippet(AST *ast) {
   for (auto m : m_decls[ast]) {
     std::string var = m.first;
     Type *t = m.second;
-    std::string raw = t->Raw();
+    std::string raw = t->GetRaw();
     // the type raw itself (does not contain dimension suffix)
     std::set<std::string> ids = extract_id_to_resolve(raw);
     all_ids.insert(ids.begin(), ids.end());
     // dimension suffix
-    std::string dim = t->DimensionSuffix();
-    ids = extract_id_to_resolve(dim);
+    // std::string dim = t->DimensionSuffix();
+    // ids = extract_id_to_resolve(dim);
     all_ids.insert(ids.begin(), ids.end());
   }
   // resolve the nodes selected by gene
@@ -885,7 +885,7 @@ void Context::createTestCases() {
     return;
   }
   int test_number = Config::Instance()->GetInt("test-number");
-  // std::vector<std::vector<TestInput*> > test_suite(test_number);
+  // std::vector<std::vector<InputSpec*> > test_suite(test_number);
   m_test_suite.clear();
   freeTestSuite();
   m_test_suite.resize(test_number);
@@ -902,7 +902,7 @@ void Context::createTestCases() {
   // metrics.insert(m_global.begin(), m_global.end());
     
   /**
-   * Using TestInput
+   * Using InputSpec
    */
 
   // when generating inputs, I need to monitor if the main file has the getopt staff
@@ -912,82 +912,82 @@ void Context::createTestCases() {
   // also, I need to mark the inputs as: argv_a, argv_c, argv_h
   // argv_a is binary
   // argv_f is a string!
-  ArgCV argcv;
-  std::string code_main = m_builder->GetMain();
-  if (code_main.find("getopt") != std::string::npos) {
-    std::string opt = code_main.substr(code_main.find("getopt"));
-    std::vector<std::string> lines = utils::split(opt, '\n');
-    assert(lines.size() > 0);
-    opt = lines[0];
-    assert(opt.find("\"") != std::string::npos);
-    opt = opt.substr(opt.find("\"")+1);
-    assert(opt.find("\"") != std::string::npos);
-    opt = opt.substr(0, opt.find("\""));
-    assert(opt.find("\"") == std::string::npos);
-    // print out the opt
-    utils::print(opt, utils::CK_Cyan);
-    // set the opt
-    argcv.SetOpt(opt);
-  }
+  // ArgCV argcv;
+  // std::string code_main = m_builder->GetMain();
+  // if (code_main.find("getopt") != std::string::npos) {
+  //   std::string opt = code_main.substr(code_main.find("getopt"));
+  //   std::vector<std::string> lines = utils::split(opt, '\n');
+  //   assert(lines.size() > 0);
+  //   opt = lines[0];
+  //   assert(opt.find("\"") != std::string::npos);
+  //   opt = opt.substr(opt.find("\"")+1);
+  //   assert(opt.find("\"") != std::string::npos);
+  //   opt = opt.substr(0, opt.find("\""));
+  //   assert(opt.find("\"") == std::string::npos);
+  //   // print out the opt
+  //   utils::print(opt, utils::CK_Cyan);
+  //   // set the opt
+  //   argcv.SetOpt(opt);
+  // }
 
   // I should also capture the argc and argv variable used, but I can currently assume these variables here
   // Also, for regular argc and argv, I need also care about them, e.g. sizeof(argv) = argc, to avoid crashes.
     
   // I'm going to pre-generate argc and argv.
   // so that if later the metrics have that, I don't need to implement the match, just query
-  std::vector<std::pair<TestInput*, TestInput*> > argcv_inputs = argcv.GetTestInputSpec(test_number);
+  // std::vector<std::pair<InputSpec*, InputSpec*> > argcv_inputs = argcv.GetInputSpecSpec(test_number);
   // used for freeing these inputs
-  bool argc_used = false;
-  bool argv_used = false;
+  // bool argc_used = false;
+  // bool argv_used = false;
     
   for (auto metric : metrics) {
     std::string var = metric.first;
-    Type *type = metric.second;
-    std::vector<TestInput*> inputs;
-    if (var == "argc") {
-      argc_used = true;
-      for (auto p : argcv_inputs) {
-        inputs.push_back(p.first);
-      }
-    } else if (var == "argv") {
-      argv_used = true;
-      for (auto p : argcv_inputs) {
-        inputs.push_back(p.second);
-      }
-    } else {
-      inputs = type->GetTestInputSpec(var, test_number);
-    }
+    // Type *type = metric.second;
+    std::vector<InputSpec*> inputs;
+    // if (var == "argc") {
+    //   argc_used = true;
+    //   for (auto p : argcv_inputs) {
+    //     inputs.push_back(p.first);
+    //   }
+    // } else if (var == "argv") {
+    //   argv_used = true;
+    //   for (auto p : argcv_inputs) {
+    //     inputs.push_back(p.second);
+    //   }
+    // } else {
+    // inputs = type->GetInputSpecSpec(var, test_number);
+    // }
     assert((int)inputs.size() == test_number);
     for (int i=0;i<(int)inputs.size();i++) {
       m_test_suite[i].push_back(inputs[i]);
     }
   }
 
-  if (Config::Instance()->GetBool("test-global-variable")) {
-    // global inputs
-    for (auto metric : m_globals) {
-      std::string var = metric.first;
-      Type *type = metric.second;
-      std::vector<TestInput*> inputs;
-      inputs = type->GetTestInputSpec(var, test_number);
-      assert((int)inputs.size() == test_number);
-      for (int i=0;i<(int)inputs.size();i++) {
-        m_test_suite[i].push_back(inputs[i]);
-      }
-    }
-  }
+  // if (Config::Instance()->GetBool("test-global-variable")) {
+  //   // global inputs
+  //   for (auto metric : m_globals) {
+  //     std::string var = metric.first;
+  //     Type *type = metric.second;
+  //     std::vector<InputSpec*> inputs;
+  //     inputs = type->GetInputSpecSpec(var, test_number);
+  //     assert((int)inputs.size() == test_number);
+  //     for (int i=0;i<(int)inputs.size();i++) {
+  //       m_test_suite[i].push_back(inputs[i]);
+  //     }
+  //   }
+  // }
 
   // free when not used, to avoid memory leak
-  if (!argc_used) {
-    for (auto p : argcv_inputs) {
-      delete p.first;
-    }
-  }
-  if (!argv_used) {
-    for (auto p : argcv_inputs) {
-      delete p.second;
-    }
-  }
+  // if (!argc_used) {
+  //   for (auto p : argcv_inputs) {
+  //     delete p.first;
+  //   }
+  // }
+  // if (!argv_used) {
+  //   for (auto p : argcv_inputs) {
+  //     delete p.second;
+  //   }
+  // }
 }
 
 TestResult* Context::test() {
@@ -1002,7 +1002,7 @@ TestResult* Context::test() {
   utils::create_folder(m_builder->GetDir() + "/input");
   // if (m_test_suite.size() > 0 && PrintOption::Instance()->Has(POK_IOSpec)) {
   //   utils::print("TestinputMetrics:\n", CK_Blue);
-  //   for (TestInput *in : m_test_suite[0]) {
+  //   for (InputSpec *in : m_test_suite[0]) {
   //     assert(in);
   //     utils::print(in->dump(), CK_Purple);
   //     // utils::print(in->GetRaw() + "\n", CK_Cyan);
@@ -1020,11 +1020,11 @@ TestResult* Context::test() {
     // std::string output = utils::exec(cmd.c_str(), &status, 1);
     std::string input;
     std::string spec;
-    for (TestInput *in : m_test_suite[i]) {
+    for (InputSpec *in : m_test_suite[i]) {
       if (in) {
         input += in->GetRaw() + "\n";
-        spec += in->dump() + "\n";
-        spec += in->ToString() + "\n\n";
+        // spec += in->dump() + "\n";
+        // spec += in->ToString() + "\n\n";
       }
     }
 
@@ -1129,8 +1129,8 @@ void Context::analyze(TestResult *test_result) {
 }
 
 void Context::freeTestSuite() {
-  for (std::vector<TestInput*> &v : m_test_suite) {
-    for (TestInput *in : v) {
+  for (std::vector<InputSpec*> &v : m_test_suite) {
+    for (InputSpec *in : v) {
       if (in) {
         delete in;
       }

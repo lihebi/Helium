@@ -4,52 +4,56 @@
 #include "common.h"
 #include "parser/xmlnode.h"
 
-/**
- * The spec for a chain of type is hard. But I have solution.
- * The spec format is a like-"json" format: use {} for the level.
- * For a struct, it will be {.field1 xxx, .field2 xxx}
- * When passing to the outer level, it becomes:
- * {.out_field1 {.field1 xxx}, ...}
- * finally for the outmost type, we have the variable name.
- */
-class InputSpec {
-public:
-  InputSpec();
-  ~InputSpec();
-  void Add(InputSpec *spec);
-  void SetRaw(std::string raw) {
-    m_raw = raw;
-  }
-  void SetSpec(std::string spec) {
-    m_spec = spec;
-  }
-private:
-  std::string m_raw;
-  std::string m_spec;
-};
+#include "input_spec.h"
 
 class Type;
+/**
+ * StrType
+ * BufType
+ * ArgCV
+ *
+ * PointerType
+ * ArrayType
+ *
+ * PrimitiveType
+ * - Int
+ * - Char
+ *
+ * System
+ * Structure
+ */
 class TypeFactory {
 public:
   static Type *CreateType(XMLNode decl_node);
+  static Type *CreateType(std::string str);
 };
+
+
+// class ArrayTypeFactory {
+// public:
+//   static Type *CreateType(std::string str);
+// };
+
+// class PointerTypeFactory {
+// public:
+//   static Type *CreateType(std::string str);
+// };
 
 class Type {
 public:
-
-  virtual InputSpec* GenerateInput();
-  
-  virtual std::string GetDeclCode(std::string var);
-  virtual std::string GetInputCode(std::string var);
-  virtual std::string GetOutputCode(std::string var);
+  Type() {}
+  virtual ~Type() {}
+  virtual InputSpec* GenerateInput() = 0;
+  virtual std::string GetDeclCode(std::string var) = 0;
+  virtual std::string GetInputCode(std::string var) = 0;
+  virtual std::string GetOutputCode(std::string var) = 0;
 
   // Get the "raw" of the type, e.g. "char"
   // this is proposed for "char* xx = malloc(sizeof(char) * num)". Note that sizeof(char)
-  virtual std::string GetValue();
+  // TODO what's this?
+  // virtual std::string GetValue() = 0;
+  virtual std::string GetRaw() = 0;
 protected:
-  friend class TypeFactory;
-  Type();
-  virtual ~Type();
 private:
 };
 
@@ -58,34 +62,64 @@ private:
  */
 class SystemType : public Type {
 public:
+  SystemType() {}
+  virtual ~SystemType() {}
 protected:
-  SystemType();
-  ~SystemType();
 private:
 };
 
 class PrimitiveType : public Type {
 public:
+  PrimitiveType() {}
+  virtual ~PrimitiveType() {}
 protected:
-  PrimitiveType();
-  ~PrimitiveType();
 private:
 };
 
 class CompositeType : public Type {
 public:
+  CompositeType() {}
+  virtual ~CompositeType() {}
 protected:
-  CompositeType();
-  ~CompositeType();
 private:
 };
 
 class SpecialType : public Type {
 public:
+  SpecialType() {}
+  virtual ~SpecialType() {}
 protected:
-  SpecialType();
-  ~SpecialType();
 private:
+};
+
+class UnknownType : public Type {
+public:
+  UnknownType(std::string str) : m_raw(str) {}
+  virtual ~UnknownType() {}
+  virtual InputSpec* GenerateInput() { return NULL;}
+  virtual std::string GetDeclCode(std::string var) {
+    std::string ret;
+    ret += "// UnknownType::GetDeclCode: " + var + ";\n";
+    if (m_raw.find('[') != std::string::npos) {
+      std::string prefix = m_raw.substr(0, m_raw.find('['));
+      std::string suffix = m_raw.substr(m_raw.find('['));
+      ret += prefix + " " + var + suffix + ";\n";
+    } else {
+      ret += m_raw + " " + var;
+    }
+    return ret;
+  }
+  virtual std::string GetInputCode(std::string var) {
+    var.empty();
+    return "";
+  }
+  virtual std::string GetOutputCode(std::string var) {
+    var.empty();
+    return "";
+  }
+  virtual std::string GetRaw() {return m_raw;}
+private:
+  std::string m_raw;
 };
 
 /**
@@ -94,19 +128,19 @@ private:
 
 class SequentialType : public CompositeType {
 public:
+  SequentialType() {}
+  virtual ~SequentialType() {}
 protected:
-  SequentialType();
-  ~SequentialType();
 private:
 };
 
 class StructType : public CompositeType {
 public:
+  StructType() {}
+  virtual ~StructType() {}
 protected:
-  StructType();
-  ~StructType();
 private:
-  int m_snippet_id = -1;
+  // int m_snippet_id = -1;
 };
 
 /**
@@ -119,16 +153,23 @@ private:
  */
 class ArrayType : public SequentialType {
 public:
+  ArrayType(std::string type_str, int num);
+  ~ArrayType();
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {
+    std::string ret;
+    if (m_contained_type) {
+      ret += m_contained_type->GetRaw() + "[" + std::to_string(m_num) + "]";
+    }
+    return ret;
+  }
 protected:
-  ArrayType();
-  ~ArrayType();
-private:
   Type *m_contained_type = NULL;
-  int m_num = 0;
+  int m_num = 0; // number
+private:
 };
 
 /**
@@ -137,15 +178,54 @@ private:
  */
 class PointerType : public SequentialType {
 public:
+  PointerType(std::string type_str);
+  virtual ~PointerType();
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {
+    std::string ret;
+    if (m_contained_type) {
+      ret += m_contained_type->GetRaw() + "*";
+    }
+    return ret;
+  }
+protected:
+private:
+  Type *m_contained_type = NULL;
+};
+
+/**
+ * StrType, aka char* and char[].
+ * Not sure if I need a "buffer type" for char[]
+ * This is created when construct Type.
+ * I.e. the char* should NOT be recognized as PointerType, but StrType
+ * Super clean!
+ * I'm genius.
+ */
+class StrType : public PointerType {
+public:
+  StrType();
+  virtual ~StrType();
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
 protected:
-  PointerType();
-  ~PointerType();
 private:
-  Type *m_contained_type = NULL;
+};
+
+class BufType : public ArrayType {
+public:
+  BufType(int num);
+  virtual ~BufType();
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+protected:
+private:
 };
 
 
@@ -155,16 +235,38 @@ private:
  */
 class IntType : public PrimitiveType {
 public:
-protected:
   IntType();
   ~IntType();
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {return "int";}
+protected:
 private:
 };
 
 class CharType : public PrimitiveType {
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {return "char";}
 public:
   CharType();
-  ~CharType();
+  virtual ~CharType();
+private:
+};
+
+class BoolType : public PrimitiveType {
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {return "bool";}
+public:
+  BoolType();
+  virtual ~BoolType();
 private:
 };
 
@@ -175,9 +277,20 @@ private:
 
 class ArgCVType : public SpecialType {
 public:
-  ArgCVType();
-  ~ArgCVType();
+  ArgCVType(std::string getopt_str="");
+  virtual ~ArgCVType();
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateInput() override;
+  virtual std::string GetRaw() override {
+    return "";
+  }
 private:
+  std::vector<char> m_bools;
+  std::vector<char> m_named_args;
+  Type *m_argv;
+  Type *m_argc;
 };
 
 

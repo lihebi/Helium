@@ -25,7 +25,7 @@ GlobalVariableRegistry::GlobalVariableRegistry() {
     }
   }
   // special variables
-  Type *type = TypeFactory::CreateType("char*", {});
+  Type *type = TypeFactory::CreateType("char*");
   // FIXME I add optarg here, but, there're some good and bad things:
   // good: the variable is like a globla variable, no need to declare in generated program
   // bad: the snippet id is set to -1, which might cause crash when look up in snippet db

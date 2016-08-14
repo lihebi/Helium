@@ -388,9 +388,9 @@ void Segment::TestNextContext() {
       std::map<std::string, Type*> vars = ctx->GetInputVariables();
       for (auto m : vars) {
         std::cout << "\t";
-        if (m.second) {
-          std::cout << m.second->ToString() << " ";
-        }
+        // if (m.second) {
+        //   std::cout << m.second->ToString() << " ";
+        // }
         std::cout << m.first  << "\n";
       }
       std::cout << "== Output Variables:"  << "\n";
@@ -398,11 +398,11 @@ void Segment::TestNextContext() {
         std::vector<Variable> vars = m.second;
         for (Variable v : vars) {
           std::cout <<"\t";
-          Type *t = v.GetType();
+          // Type *t = v.GetType();
           std::string name = v.GetName();
-          if (t) {
-            std::cout << t->ToString() << " ";
-          }
+          // if (t) {
+          //   std::cout << t->ToString() << " ";
+          // }
           std::cout << name  << "\n";
         }
       }

@@ -5,7 +5,7 @@
 #include "xmlnode.h"
 #include "xmlnode_helper.h"
 #include "type/type.h"
-#include "type/variable.h"
+// #include "type/variable.h"
 #include "resolver/resolver.h"
 #include "parser/slice_reader.h"
 

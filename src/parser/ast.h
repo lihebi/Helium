@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "xmlnode.h"
+#include "type/type.h"
 #include "type/variable.h"
 
 class ASTNode;

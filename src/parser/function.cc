@@ -64,7 +64,7 @@ void Function::GetCode(std::set<ASTNode*> nodes,
     ret += m_ret_ty + " " + m_name + "(";
     if (!m_params.empty()) {
       for (Decl *param : m_params) {
-        ret += param->GetType()->Raw();
+        ret += param->GetType()->GetRaw();
         ret += " ";
         ret += param->GetName();
         ret += ",";
@@ -119,7 +119,7 @@ std::string Function::GetLabel() {
         helium_log_warning("Function param type is NULL");
         continue;
       }
-      ret += type->Raw();
+      ret += type->GetRaw();
       ret += " ";
       ret += param->GetName();
       ret += ",";
@@ -139,7 +139,7 @@ std::set<std::string> Function::GetIdToResolve() {
   tmp = extract_id_to_resolve(GetReturnType());
   ret.insert(tmp.begin(), tmp.end());
   for (Decl *param : m_params) {
-    tmp = extract_id_to_resolve(param->GetType()->Raw());
+    tmp = extract_id_to_resolve(param->GetType()->GetRaw());
     ret.insert(tmp.begin(), tmp.end());
   }
   return ret;

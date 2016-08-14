@@ -1,0 +1,67 @@
+#+TITLE: Design the Type System
+
+* Input Spec
+- Raw Input
+- Json specification
+
+** struct
+it will be 
+#+BEGIN_EXAMPLE
+{field1: xxx, field2: yyy}
+#+END_EXAMPLE
+When passing to the outer level, it becomes:
+#+BEGIN_EXAMPLE
+{out_field1: {field1: xxx, field2: yyy}, ...}
+#+END_EXAMPLE
+finally for the outmost type, we have the variable name.
+
+** =int var[8];=
+the inner is:
+#+BEGIN_EXAMPLE
+{int: 0}
+#+END_EXAMPLE
+The outside is
+#+BEGIN_EXAMPLE
+[ {int: 0}, {int: 8} ]
+#+END_EXAMPLE
+
+** =char *=
+the inner is
+#+BEGIN_EXAMPLE
+{strlen: 12, sizeof: 100}
+#+END_EXAMPLE
+The outer is
+#+BEGIN_EXAMPLE
+{HELIUM_POINTER: {strlen:12, sizeof: 100}}
+#+END_EXAMPLE
+
+** =int *=
+the inner is
+#+BEGIN_EXAMPLE
+{int: 8}
+#+END_EXAMPLE
+The outer is
+#+BEGIN_EXAMPLE
+{HELIUM_POINTER: {int: 8}}
+#+END_EXAMPLE
+
+** ArgCV
+The identification of ArgCV is in TypeFactory.
+There's a class ArgCVType for this variable.
+
+=char *argv[]=, =int argc=
+
+#+BEGIN_EXAMPLE json
+{ // 1
+  argv_a: true, argv_b: false, // 1
+  argv_f: {strlen: 4}, // 2
+  argv_1: {strlen: 12}, argv_2: {strlen: 18} // 4
+  argc: 1 + 1 + 2 + 4 = 8
+}
+#+END_EXAMPLE
+
+The raw:
+#+BEGIN_EXAMPLE
+9
+HELIUM_PROG -a -f fdsj 0123456789ab 0123456789abcdefgh
+#+END_EXAMPLE
