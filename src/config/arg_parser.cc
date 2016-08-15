@@ -54,6 +54,8 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("print-headers", "print header")
     ("print-meta", "print meta data")
     ("resolve-system-type", "Resolve a system type and print out result")
+    ("print-cfg", "print CFG for each function")
+    ("print-ast", "print AST for each function")
     ;
     
 

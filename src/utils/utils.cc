@@ -482,7 +482,7 @@ std::string utils::visualize_dot_graph(const std::string& dot, std::string filen
   std::string display_cmd = "open " + filename;
 #else
   utils::exec(png_convert_cmd.c_str());
-  std::string display_cmd = "feh "+ png_filename;
+  std::string display_cmd = "feh -F --zoom 100 "+ png_filename;
 #endif
   utils::exec(display_cmd.c_str());
   return filename;

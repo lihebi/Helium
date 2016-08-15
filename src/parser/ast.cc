@@ -133,10 +133,10 @@ ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *a
     ret = new Function(xml_node, parent, ast);
     break;
   }
-  case ANK_Block: {
-    ret = new Block(xml_node, parent, ast);
-    break;
-  }
+  // case ANK_Block: {
+  //   ret = new Block(xml_node, parent, ast);
+  //   break;
+  // }
   case ANK_Stmt: {
     ret = new Stmt(xml_node, parent, ast);
     break;

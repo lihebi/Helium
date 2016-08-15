@@ -9,8 +9,10 @@
 #include "config/config.h"
 #include "config/options.h"
 
+#include "parser/xml_doc_reader.h"
 #include "parser/xmlnode.h"
 #include "parser/ast_node.h"
+#include "parser/cfg.h"
 
 #include "utils/utils.h"
 #include "utils/dump.h"
@@ -18,6 +20,7 @@
 #include "resolver/snippet.h"
 #include "resolver/resolver.h"
 #include "resolver/snippet_db.h"
+
 
 #include <gtest/gtest.h>
 
@@ -120,23 +123,35 @@ Helium::Helium(int argc, char* argv[]) {
   //   exit(0);
   // }
 
-  if (args.Has("create-function-ast")) {
-    // this only works for a single file
-    if (utils::file_exists(m_folder)) {
-      XMLDoc doc;
-      utils::file2xml(m_folder, doc);
-      XMLNodeList func_nodes = find_nodes(doc, NK_Function);
-      for (XMLNode func : func_nodes) {
-        AST ast(func);
-        std::set<ASTNode*> leafs = ast.GetLeafNodes();
-        ast.VisualizeN(leafs, {});
-        // std::cout << ast.GetCode() <<"\n";
-      }
-      exit(0);
-    } else {
-      std::cerr << "create-function-ast only works for a single file.\n";
+  if (args.Has("print-ast")) {
+    if (!utils::file_exists(m_folder)) {
+      std::cerr << "only works for a single file.\n";
       exit(1);
     }
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_folder);
+    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
+    for (XMLNode func : func_nodes) {
+      AST ast(func);
+      ast.Visualize();
+    }
+    exit(0);
+  }
+
+  if (args.Has("print-cfg")) {
+    if (!utils::file_exists(m_folder)) {
+      std::cerr << "only works for a single file.\n";
+      exit(1);
+    }
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_folder);
+    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
+    for (XMLNode func : func_nodes) {
+      AST ast(func);
+      ASTNode *root = ast.GetRoot(); 
+      CFG *cfg = CFGFactory::CreateCFG(root);
+      cfg->Visualize();
+      delete cfg;
+    }
+    exit(0);
   }
   
   /* load tag file */

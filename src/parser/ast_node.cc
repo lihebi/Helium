@@ -5,7 +5,7 @@
 
 static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}
-  , {NK_Block, ANK_Block}
+  // , {NK_Block, ANK_Block}
   // statements
   , {NK_Stmt, ANK_Stmt}
   , {NK_ExprStmt, ANK_Stmt}
@@ -15,7 +15,7 @@ static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   , {NK_Continue, ANK_Stmt}
   , {NK_Return, ANK_Stmt}
   // , {NK_EmptyStmt, ANK_Stmt}
-  , {NK_Expr, ANK_Expr}
+  // , {NK_Expr, ANK_Expr}
   // condition
   , {NK_If, ANK_If}
   , {NK_Else, ANK_Else}

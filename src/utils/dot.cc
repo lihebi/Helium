@@ -1,7 +1,13 @@
+
 #include "dot.h"
 #include <gtest/gtest.h>
+#include "utils.h"
 
 
+static std::string dot_id_filter(std::string s) {
+  utils::replace(s, "\"", "");
+  return "\"" + s + "\"";
+}
 TEST(DotGraphTestCase, DotGraphTest) {
   DotGraph dotgraph;
   dotgraph.AddNode("id_1", "label 1");
@@ -9,4 +15,68 @@ TEST(DotGraphTestCase, DotGraphTest) {
   dotgraph.AddEdge("id_1", "id_2");
   std::string dot = dotgraph.dump();
   // std::cout << dot  << "\n";
+}
+
+
+std::string DotEdge::GetCode() {
+  std::string ret;
+  if (m_from && m_to) {
+    ret += m_from->GetID() + " -> " + m_to->GetID();
+    if (!m_label.empty()) {
+      ret += "[label=" + dot_id_filter(m_label) + "]";
+    }
+    ret += ";\n";
+  }
+  return ret;
+}
+
+
+std::string DotNode::GetCode() {
+  std::string ret;
+  std::string prefix,suffix;
+  if (!m_text.empty()) {
+    std::string cluster = dot_id_filter("cluster" + m_id);
+    prefix += "subgraph " + cluster + " {\n";
+    prefix += "label=" + dot_id_filter(m_text) + ";\n";
+    suffix = "}\n";
+  }
+  ret += prefix;
+  ret += m_id + "[label=" + dot_id_filter(m_label) + "];\n";
+  ret += suffix;
+  return ret;
+}
+
+
+void DotGraph::AddNode(std::string id, std::string label) {
+  if (m_nodes.count(id) == 0) {
+    DotNode *node = new DotNode(id, label);
+    m_nodes[id] = node;
+  }
+}
+void DotGraph::AddEdge(std::string id_from, std::string id_to, std::string label) {
+  if (m_nodes.count(id_from) == 1 && m_nodes.count(id_to) == 1) {
+    DotNode *from = m_nodes[id_from];
+    DotNode *to = m_nodes[id_to];
+    m_edges.push_back(new DotEdge(from, to, label));
+  }
+}
+void DotGraph::AddText(std::string id, std::string text) {
+  if (m_nodes.count(id) == 1) {
+    m_nodes[id]->AddText(text);
+  } else {
+    std::cout << "[WW] Dot graph No node found: " << id  << "\n";
+  }
+}
+std::string DotGraph::dump() {
+  std::string ret;
+  ret += "digraph {\n";
+  for (auto m : m_nodes) {
+    DotNode* node = m.second;
+    ret += node->GetCode();
+  }
+  for (DotEdge *edge : m_edges) {
+    ret += edge->GetCode();
+  }
+  ret += "}\n";
+  return ret;
 }

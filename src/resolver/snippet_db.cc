@@ -413,8 +413,10 @@ void SnippetDB::PrintCG() {
     int to_id = m.second;
     std::string from_name = GetMeta(from_id).GetKey();
     std::string to_name = GetMeta(to_id).GetKey();
-    dotgraph.AddNodeIfNotExist(from_name, from_name);
-    dotgraph.AddNodeIfNotExist(to_name, to_name);
+    // dotgraph.AddNodeIfNotExist(from_name, from_name);
+    // dotgraph.AddNodeIfNotExist(to_name, to_name);
+    dotgraph.AddNode(from_name, from_name);
+    dotgraph.AddNode(to_name, to_name);
     dotgraph.AddEdge(from_name, to_name);
   }
   std::string dot = dotgraph.dump();

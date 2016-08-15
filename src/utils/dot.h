@@ -18,8 +18,28 @@ public:
   ~DotNode() {}
   std::string GetID() const {return m_id;}
   std::string GetLabel() const {return m_label;}
+  void SetText(std::string text) {
+    m_text = text;
+  }
+  void AddText(std::string text) {
+    m_text += " " + text;
+  }
+  std::string GetText() {return m_text;}
+  std::string GetCode();
 private:
   std::string m_id;
+  std::string m_label;
+  std::string m_text;
+};
+
+class DotEdge {
+public:
+  DotEdge(DotNode *from, DotNode *to, std::string label="") : m_from(from), m_to(to), m_label(label) {}
+  ~DotEdge() {}
+  std::string GetCode();
+private:
+  DotNode *m_from;
+  DotNode *m_to;
   std::string m_label;
 };
 
@@ -27,53 +47,22 @@ class DotGraph {
 public:
   DotGraph() {}
   ~DotGraph() {
-    for (auto m : m_id_m) {
-      delete m.second;
-    }
-  }
-  void AddNode(std::string id, std::string label) {
-    assert(m_id_m.count(id) == 0);
-    DotNode *node = new DotNode(id, label);
-    m_id_m[id] = node;
-  }
-  void AddNodeIfNotExist(std::string id, std::string label) {
-    if (m_id_m.count(id) == 1) return;
-    AddNode(id, label);
-  }
-  DotNode* GetNode(std::string id) {
-    assert(m_id_m.count(id) == 1);
-    return m_id_m[id];
-  }
-  void AddEdge(DotNode* from, DotNode* to) {
-    assert(from);
-    assert(to);
-    m_edge_m[from].insert(to);
-  }
-  void AddEdge(std::string id_from, std::string id_to) {
-    assert(m_id_m.count(id_from) == 1);
-    assert(m_id_m.count(id_to) == 1);
-    m_edge_m[m_id_m[id_from]].insert(m_id_m[id_to]);
-  }
-  std::string dump() {
-    std::string ret;
-    ret += "digraph {\n";
-    for (auto m : m_id_m) {
-      DotNode* node = m.second;
-      ret += node->GetID() + "[label=\"" + node->GetLabel() + "\"];\n";
-    }
-    for (auto m : m_edge_m) {
-      DotNode* from = m.first;
-      std::set<DotNode*> to = m.second;
-      for (DotNode* t : to) {
-        ret += from->GetID() + " -> " + t->GetID() + ";\n";
+    for (auto m : m_nodes) {
+      if (m.second) {
+        delete m.second;
       }
     }
-    ret += "}\n";
-    return ret;
+    for (DotEdge *edge : m_edges) {
+      delete edge;
+    }
   }
+  void AddNode(std::string id, std::string label);
+  void AddEdge(std::string id_from, std::string id_to, std::string label="");
+  void AddText(std::string id, std::string text);
+  std::string dump();
 private:
-  std::map<std::string, DotNode*> m_id_m;
-  std::map<DotNode*, std::set<DotNode*> > m_edge_m;
+  std::map<std::string, DotNode*> m_nodes;
+  std::vector<DotEdge*> m_edges;
 };
 
 
