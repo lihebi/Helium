@@ -144,6 +144,8 @@ public:
   size_t size() {return m_nodes.size();}
   size_t leaf_size();
 
+  ASTNode *GetRoot() {return m_root;}
+  std::vector<ASTNode*> GetNodes() {return m_nodes;}
 
   /**
    * Create symbol table for the whole AST

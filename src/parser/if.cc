@@ -65,8 +65,6 @@ Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_xmlnode = xmlnode;
   m_ast = ast;
   XMLNode blk_node = then_get_block(xmlnode);
-  // m_blk = new Block(node, this, ast);
-  // m_children.push_back(m_blk);
   for (XMLNode child : block_get_nodes(blk_node)) {
     ASTNode *node = ASTNodeFactory::CreateASTNode(child, this, m_ast);
     if (node) {
@@ -126,8 +124,6 @@ ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_xmlnode = xmlnode;
   m_ast = ast;
   m_cond = elseif_get_condition_expr(xmlnode);
-  // m_blk = new Block(node, this, ast);
-  // m_children.push_back(m_blk);
   XMLNode blk = elseif_get_block(xmlnode);
   for (XMLNode n : block_get_nodes(blk)) {
     ASTNode *node = ASTNodeFactory::CreateASTNode(n, this, m_ast);
@@ -141,12 +137,7 @@ void ElseIf::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "else if(" + get_text(m_cond) + ")";
-    // put these {} inside (selected) because,
-    // in the case of if() {} else if() {} else {}
-    // the result would be
-    // if () {} {} else {}, which is not syntax correct
     ret += "{\n";
-    // m_blk->GetCode(nodes, ret, all, selected);
     for (ASTNode *n : m_children) {
       n->GetCode(nodes, ret, all);
     }

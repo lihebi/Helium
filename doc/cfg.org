@@ -1,0 +1,43 @@
+#+TITLE: CFG design document
+
+#+BEGIN_SRC C
+stmt0;
+if (a) {
+  stmt1;
+} else {
+  stmt2;
+  stmt3;
+}
+stmt4;
+#+END_SRC
+
+
+#+BEGIN_SRC C
+stmt1;
+while (a) {
+  stmt2;
+  stmt3;
+}
+stmt4;
+#+END_SRC
+
+#+BEGIN_SRC C
+while (a) {
+  stmt1;
+  if (b) {
+    stmt3;
+    break;
+  }
+  stmt4;
+}
+stmt5;
+#+END_SRC
+
+#+BEGIN_SRC C
+void foo() {
+  stmt1;
+}
+void bar() {
+  foo();
+}
+#+END_SRC

@@ -15,9 +15,7 @@ typedef enum {
   // function
   ANK_Function,
   // general
-  ANK_Block,
   ANK_Stmt,
-  ANK_Expr,
   // condition
   ANK_If,
   ANK_Then,
@@ -37,7 +35,6 @@ ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind);
 
 
 class Function;
-class Block;
 class Stmt;
 class Expr;
 class If;
@@ -130,6 +127,18 @@ public:
   ASTNode *Child(int idx) {
     if (idx <0 || idx >= (int)m_children.size()) return NULL;
     return m_children[idx];
+  }
+  ASTNode *GetFirstChild() {
+    if (m_children.size() > 0) {
+      return *m_children.begin();
+    }
+    return NULL;
+  }
+  ASTNode *GetLastChild() {
+    if (m_children.size() > 0) {
+      return m_children.back();
+    }
+    return NULL;
   }
   /**
    * All the children recursively
@@ -284,19 +293,7 @@ public:
 private:
   std::string m_ret_ty;
   std::string m_name;
-  // Block *m_blk = NULL;
   std::vector<Decl*> m_params;
-};
-// general
-class Block : public ASTNode {
-public:
-  Block(XMLNode, ASTNode* parent, AST *ast);
-  ~Block() {}
-  ASTNodeKind Kind() override {return ANK_Block;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Block";}
-private:
 };
 
 class Stmt : public ASTNode {
@@ -343,6 +340,7 @@ public:
     return extract_id_to_resolve(get_text(m_cond));
   }
   // virtual ASTNode* LookUpDefinition(std::string id) override;
+
 private:
   XMLNode m_cond;
   Then *m_then = NULL;
@@ -385,12 +383,10 @@ class Then : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Then;}
   Then(XMLNode, ASTNode* parent, AST *ast);
-  Block* GetBlock() {return m_blk;}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override {return "Then";}
 private:
-  Block *m_blk = NULL;
 };
 
 
@@ -448,7 +444,6 @@ public:
   XMLNodeList GetInits() {return m_inits;}
   XMLNode GetCondition() override {return m_cond;}
   XMLNode GetIncr() {return m_incr;}
-  // Block* GetBlock() {return m_blk;}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override;
@@ -460,7 +455,6 @@ private:
   XMLNode m_cond;
   XMLNodeList m_inits;
   XMLNode m_incr;
-  // Block* m_blk = NULL;
   std::vector<Decl*> m_decls;
 };
 class While : public ASTNode {
@@ -469,7 +463,6 @@ public:
   While(XMLNode, ASTNode* parent, AST *ast);
   ~While() {}
   XMLNode GetCondition() override {return m_cond;}
-  // Block* GetBlock() {return m_blk;}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override;
@@ -481,7 +474,6 @@ public:
   }
 private:
   XMLNode m_cond;
-  // Block *m_blk = NULL;
 };
 class Do : public ASTNode {
 public:
@@ -489,7 +481,6 @@ public:
   Do(XMLNode, ASTNode* parent, AST *ast);
   ~Do() {}
   XMLNode GetCondition() override {return m_cond;}
-  // Block* GetBlock() {return m_blk;}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override;
@@ -501,7 +492,6 @@ public:
   }
 private:
   XMLNode m_cond;
-  // Block *m_blk = NULL;
 };
 
 class ASTOther : public ASTNode {

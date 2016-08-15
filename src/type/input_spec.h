@@ -14,6 +14,7 @@ public:
   virtual void Add(InputSpec *spec) {
     // Should not reach here.
     assert(false && "Should not reach here.");
+    if (spec) {}
   }
   virtual std::string GetSpec() {
     return m_spec;
