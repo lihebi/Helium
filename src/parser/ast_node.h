@@ -14,6 +14,7 @@
 typedef enum {
   // function
   ANK_Function,
+  ANK_Block,
   // general
   ANK_Stmt,
   // condition
@@ -35,6 +36,7 @@ ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind);
 
 
 class Function;
+class Block;
 class Stmt;
 class Expr;
 class If;
@@ -318,6 +320,21 @@ public:
   virtual void CreateSymbolTable() override;
 private:
   std::vector<Decl*> m_decls;
+};
+
+
+
+
+
+class Block : public ASTNode {
+public:
+  Block(XMLNode, ASTNode* parent, AST *ast);
+  ~Block() {}
+  ASTNodeKind Kind() override {return ANK_Block;}
+  virtual void GetCode(std::set<ASTNode*> nodes,
+                       std::string &ret, bool all) override;
+  virtual std::string GetLabel() override {return "Block";}
+private:
 };
 
 // condition

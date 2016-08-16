@@ -5,7 +5,7 @@
 
 static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}
-  // , {NK_Block, ANK_Block}
+  , {NK_Block, ANK_Block}
   // statements
   , {NK_Stmt, ANK_Stmt}
   , {NK_ExprStmt, ANK_Stmt}
@@ -81,6 +81,85 @@ std::string ASTNode::FreedListCode() {
   std::vector<std::string> freed_exprs = m_ast->GetFreedExprs(this);
   for (std::string expr : freed_exprs) {
     ret += "printf(\"freedlist: %p\\n\", (void*)" + expr + ");\n";
+  }
+  return ret;
+}
+
+
+ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
+  XMLNodeKind nk = xmlnode_to_kind(xml_node);
+  ASTNode *ret = NULL;
+  ASTNodeKind ank;
+  ank = xmlnode_kind_to_astnode_kind(nk);
+  switch (ank) {
+  case ANK_Function: {
+    ret = new Function(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Block: {
+    ret = new Block(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Stmt: {
+    ret = new Stmt(xml_node, parent, ast);
+    break;
+  }
+  // case ANK_Expr: {
+  //   ret = new Expr(xml_node, parent, ast);
+  //   break;
+  // }
+  case ANK_If: {
+    ret = new If(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Then: {
+    ret = new Then(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Else: {
+    ret = new Else(xml_node, parent, ast);
+    break;
+  }
+  case ANK_ElseIf: {
+    ret = new ElseIf(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Switch: {
+    ret = new Switch(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Case: {
+    ret = new Case(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Default: {
+    ret = new Default(xml_node, parent, ast);
+    break;
+  }
+  case ANK_While: {
+    ret = new While(xml_node, parent, ast);
+    break;
+  }
+  case ANK_For: {
+    ret = new For(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Do: {
+    ret = new Do(xml_node, parent, ast);
+    break;
+  }
+  case ANK_Other: {
+    // ret = new ASTOther(xml_node);
+    // TODO for other xml node(like <unit>),
+    // we need to smartly get the valid chlidren of that nodes,
+    // and have edges from this to those nodes.
+    // But currently, just NULL.
+    ret = NULL;
+    break;
+  }
+  default: {
+    assert(false);
+  }
   }
   return ret;
 }

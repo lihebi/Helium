@@ -81,6 +81,7 @@ public:
   
   void Visualize();
 private:
+  void copyEdge(CFG *cfg);
   std::set<CFGNode*> m_nodes;
   // std::map<ASTNode*,CFGNode*> m_ast2cfg;
   // CFGNode *m_root = NULL;
@@ -106,6 +107,7 @@ public:
   static CFG *CreateCFGFromWhile(While *node);
   static CFG *CreateCFGFromFor(For *node);
   static CFG *CreateCFGFromDo(Do *node);
+  static CFG *CreateCFGFromBlock(Block *block);
 };
 
 

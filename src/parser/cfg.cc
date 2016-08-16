@@ -3,6 +3,7 @@
 
 #include "utils/dot.h"
 #include "utils/utils.h"
+#include "config/options.h"
 
 
 CFG::CFG() {}
@@ -12,6 +13,7 @@ CFG::~CFG() {}
  * Connect this->outs to this node.
  */
 void CFG::AddNode(CFGNode *node) {
+  print_trace("CFG::AddNode");
   if (!node) return;
   m_nodes.insert(node);
   for (CFGNode *out : m_outs) {
@@ -22,6 +24,8 @@ void CFG::AddNode(CFGNode *node) {
 }
 
 void CFG::Merge(CFG *cfg) {
+  print_trace("CFG::Merge");
+  if (!cfg) return;
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
@@ -31,15 +35,7 @@ void CFG::Merge(CFG *cfg) {
     }
   }
   // copy edges
-  for (auto m : cfg->m_edges) {
-    CFGNode *from = m.first;
-    for (CFGNode *to : m.second) {
-      CreateEdge(from, to);
-    }
-  }
-  for (auto m : cfg->m_labels) {
-    m_labels[m.first] = m.second;
-  }
+  copyEdge(cfg);
   // connect this.out to cfg->in, then clear this->out
   for (CFGNode *in : m_outs) {
     for (CFGNode *cfg_in : cfg->GetIns()) {
@@ -51,10 +47,25 @@ void CFG::Merge(CFG *cfg) {
   m_outs = cfg->GetOuts();
 }
 
+void CFG::copyEdge(CFG *cfg) {
+  print_trace("CFG::copyEdge");
+  for (auto m : cfg->m_edges) {
+    CFGNode *from = m.first;
+    for (CFGNode *to : m.second) {
+      CreateEdge(from, to);
+    }
+  }
+  for (auto m : cfg->m_labels) {
+    m_labels[m.first] = m.second;
+  }
+}
+
 void CFG::MergeBranch(CFG *cfg, bool b) {
+  print_trace("CFG::MergeBranch");
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
+  copyEdge(cfg);
   // add cfg->out to this->out
   for (CFGNode *out : cfg->GetOuts()) {
     m_outs.insert(out);
@@ -70,6 +81,7 @@ void CFG::MergeBranch(CFG *cfg, bool b) {
 
 // TODO case condition as label
 void CFG::MergeCase(CFG *cfg) {
+  print_trace("CFG::MergeCase");
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
@@ -81,9 +93,11 @@ void CFG::MergeCase(CFG *cfg) {
       CreateEdge(m_cond, in, "case: TODO");
     }
   }
+  copyEdge(cfg);
 }
 
 void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
+  print_trace("CFG::CreateEdge");
   if (!from || !to) return;
   m_edges[from].insert(to);
   if (!label.empty()) {
@@ -113,8 +127,15 @@ void CFG::Visualize() {
   for (CFGNode *in : m_ins) {
     dot.AddText(in->GetID(), "IN");
   }
+  // for (CFGNode *out : m_outs) {
+  //   dot.AddText(out->GetID(), "OUT");
+  // }
+
+  std::string helium_out = "HELIUM_OUT";
+  dot.AddNode(helium_out, helium_out);
+  dot.AddText(helium_out, helium_out);
   for (CFGNode *out : m_outs) {
-    dot.AddText(out->GetID(), "OUT");
+    dot.AddEdge(out->GetID(), helium_out);
   }
   std::string dotcode = dot.dump();
   std::string path = utils::visualize_dot_graph(dotcode);
@@ -135,6 +156,7 @@ void CFG::Visualize() {
 
 
 CFG *CFGFactory::CreateCFG(ASTNode *node) {
+  print_trace("CFGFactory::CreateCFG");
   if (!node) return NULL;
   switch (node->Kind()) {
   case ANK_Stmt: {
@@ -152,10 +174,12 @@ CFG *CFGFactory::CreateCFG(ASTNode *node) {
   case ANK_While: return CreateCFGFromWhile(dynamic_cast<While*>(node)); break;
   case ANK_For: return CreateCFGFromFor(dynamic_cast<For*>(node)); break;
   case ANK_Do: return CreateCFGFromDo(dynamic_cast<Do*>(node)); break;
+  case ANK_Block: return CreateCFGFromBlock(dynamic_cast<Block*>(node)); break;
   default: return NULL;
   }
 }
 CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
+  print_trace("CFGFactory::CreateCFGFromIf");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
@@ -199,6 +223,7 @@ CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
+  print_trace("CFGFactory::CreateCFGFromFunction");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
@@ -212,6 +237,7 @@ CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
+  print_trace("CFGFactory::CreateCFGFromElseIf");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
@@ -226,11 +252,13 @@ CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
+  print_trace("CFGFactory::CreateCFGFromSwitch");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   cfg->SetCond(node);
+  cfg->RemoveOut(node); // switch itself should not be in outs
   std::vector<Case*> cases = astnode->GetCases();
   for (Case *c : cases) {
     CFG *case_cfg = new CFG();
@@ -240,9 +268,11 @@ CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
     }
     cfg->MergeCase(case_cfg);
   }
+  // TODO default
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
+  print_trace("CFGFactory::CreateCFGFromWhile");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
@@ -257,13 +287,16 @@ CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
   cfg->Merge(body_cfg);
   for (CFGNode *out : body_cfg->GetOuts()) {
     cfg->CreateEdge(out, node, "B");
+    cfg->RemoveOut(out);
   }
+  cfg->AddOut(node);
   return cfg;
 }
 /**
  * Exactly the same as While
  */
 CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
+  print_trace("CFGFactory::CreateCFGFromFor");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
   cfg->AddNode(node);
@@ -290,28 +323,42 @@ CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
   // std::cout << "cfg->Out: " << cfg->GetOuts().size()  << "\n";
   // std::cout << "cfg->In: " << cfg->GetIns().size()  << "\n";
   
-  cfg->Visualize();
+  // cfg->Visualize();
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
+  print_trace("CFGFactory::CreateCFGFromDo");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(astnode);
-  CFG *body_cfg = new CFG();
 
+  CFG *body_cfg = new CFG();
+  for (ASTNode *child : astnode->Children()) {
+    CFG *child_cfg = CreateCFG(child);
+    body_cfg->Merge(child_cfg);
+  }
+  // body_cfg->Visualize();
+
+  
+  cfg->Merge(body_cfg);
+  
+  cfg->AddNode(node);
+  cfg->AddOut(node);
+
+  for (CFGNode *in : body_cfg->GetIns()) {
+    cfg->CreateEdge(node, in, "B");
+  }
+  return cfg;
+}
+
+
+CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
+  print_trace("CFGFactory::CreateCFGFromBlock");
+  CFG *cfg = new CFG();
+  CFG *body_cfg = new CFG();
   for (ASTNode *child : astnode->Children()) {
     CFG *child_cfg = CreateCFG(child);
     body_cfg->Merge(child_cfg);
   }
   cfg->Merge(body_cfg);
-  
-  cfg->AddNode(node);
-  cfg->AddIn(node);
-  cfg->AddOut(node);
-
-  for (CFGNode *out : body_cfg->GetOuts()) {
-    cfg->CreateEdge(out, node, "B");
-  }
   return cfg;
 }
-
-
