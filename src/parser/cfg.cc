@@ -152,7 +152,12 @@ void CFG::Visualize() {
 
 
 
-
+CFG *CFGFactory::CreateCFG(AST *ast) {
+  print_trace("CFGFactory::CreateCFG");
+  if (!ast) return NULL;
+  ASTNode *root = ast->GetRoot();
+  return CreateCFG(root);
+}
 
 
 CFG *CFGFactory::CreateCFG(ASTNode *node) {

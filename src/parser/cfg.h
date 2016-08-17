@@ -99,6 +99,7 @@ private:
 
 class CFGFactory {
 public:
+  static CFG *CreateCFG(AST *ast);
   static CFG *CreateCFG(ASTNode *node);
   static CFG *CreateCFGFromIf(If *node);
   static CFG *CreateCFGFromFunction(Function *node);

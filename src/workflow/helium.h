@@ -2,6 +2,7 @@
 #define __HELIUM_H__
 
 #include "common.h"
+#include "reader.h"
 
 
 class Helium {
@@ -19,5 +20,11 @@ private:
   std::string m_whole_poi;
   std::string m_benchmark;
 };
+
+
+class FailureCondition {
+};
+
+void helium(std::string program, POISpec poi);
 
 #endif

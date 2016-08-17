@@ -1,28 +1,35 @@
 #include "reader.h"
 
-#include <stdio.h>
-
-#include <cstring>
-#include <signal.h>
-#include <setjmp.h>
-#include <iostream>
 
 #include "builder.h"
 #include "tester.h"
 #include "analyzer.h"
+#include "context.h"
+#include "resource.h"
+
+
 
 #include "config/options.h"
 #include "config/config.h"
 
+
+
+#include "utils/log.h"
 #include "utils/utils.h"
 #include "utils/dump.h"
+
+
 
 #include "parser/slice_reader.h"
 #include "parser/xml_doc_reader.h"
 
-#include <iostream>
 
-#include "context.h"
+
+#include <stdio.h>
+#include <cstring>
+#include <signal.h>
+#include <setjmp.h>
+#include <iostream>
 
 /*******************************
  ** portable timing
@@ -33,6 +40,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+
 
 // #include "seg.h"
 namespace fs = boost::filesystem;
@@ -89,6 +97,10 @@ int get_true_linum(std::string filename, int linum) {
   return ret;
 }
 
+
+
+
+
 /**
  * 
   , {NK_Stmt, ANK_Stmt}
@@ -101,40 +113,35 @@ int get_true_linum(std::string filename, int linum) {
  */
 Reader::Reader(std::string filename, POISpec poi) {
   print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
-  // poi contains linum
-  // read the file, use line marker to get the true linum
   m_doc = XMLDocReader::Instance()->ReadFile(filename);
   int linum = get_true_linum(filename, poi.linum);
   std::cout << "true line number: " <<  linum  << "\n";
   if (poi.type == "stmt") {
-    // get the single statement
     XMLNode node = find_node_on_line(m_doc->document_element(),
                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
                                           linum);
     assert(node);
-    Segment *seg = new Segment(node);
-    if (seg) {
-      ProcessSeg(seg);
-      delete seg;
+    XMLNode func = get_function_node(node);
+    std::string func_name = function_get_name(func);
+    int func_linum = get_node_line(func);
+    AST *ast = Resource::Instance()->GetAST(func_name);
+    if (!ast) {
+      helium_log("[WW] No AST constructed!");
+      return;
     }
-  } else if (poi.type == "loop") {
-    // get the whole loop
-    /**
-     *   , {NK_While, ANK_While}
-     , {NK_For, ANK_For}
-     , {NK_Do, ANK_Do}
-
-     */
-    XMLNode node = find_node_on_line(m_doc->document_element(),
-                                          {NK_While, NK_For, NK_Do},
-                                          linum
-                                          );
-    assert(node);
-    Segment *seg = new Segment(node, SegKind_Loop);
-    if (seg) {
-      ProcessSeg(seg);
-      delete seg;
+    ASTNode *root = ast->GetRoot();
+    if (!root) {
+      helium_log("[WW] AST root is NULL.");
+      return;
     }
+    int ast_linum = root->GetBeginLinum();
+    int target_linum = linum - func_linum + ast_linum;
+    ASTNode *target = ast->GetNodeByLinum(target_linum);
+    if (!target) {
+      helium_log("[WW] cannot find target AST node");
+      return;
+    }
+    // process(target);
   }
 }
 
@@ -214,3 +221,86 @@ Segment* Reader::getAnnotLoop() {
   Segment *seg = new Segment(node, SegKind_Loop);
   return seg;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+
+/**
+ * 
+  , {NK_Stmt, ANK_Stmt}
+  , {NK_ExprStmt, ANK_Stmt}
+  , {NK_DeclStmt, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
+  , {NK_Break, ANK_Stmt}
+  , {NK_Continue, ANK_Stmt}
+  , {NK_Return, ANK_Stmt}
+ */
+Reader::Reader(std::string filename, POISpec poi) {
+  print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
+  // poi contains linum
+  // read the file, use line marker to get the true linum
+  m_doc = XMLDocReader::Instance()->ReadFile(filename);
+  int linum = get_true_linum(filename, poi.linum);
+  std::cout << "true line number: " <<  linum  << "\n";
+  if (poi.type == "stmt") {
+    // get the single statement
+    XMLNode node = find_node_on_line(m_doc->document_element(),
+                                          {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
+                                          linum);
+    assert(node);
+    XMLNode func = get_function_node(node);
+    std::string func_name = function_get_name(func);
+    AST *ast = Resource::Instance()->GetAST(func_name);
+
+
+
+    /**
+     * This node is important. This is the failure point.
+     */
+    Segment *init = new Segment(node);
+    
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
+  } else if (poi.type == "loop") {
+    // get the whole loop
+    /**
+     *   , {NK_While, ANK_While}
+     , {NK_For, ANK_For}
+     , {NK_Do, ANK_Do}
+
+     */
+    XMLNode node = find_node_on_line(m_doc->document_element(),
+                                          {NK_While, NK_For, NK_Do},
+                                          linum
+                                          );
+    assert(node);
+    Segment *seg = new Segment(node, SegKind_Loop);
+    if (seg) {
+      ProcessSeg(seg);
+      delete seg;
+    }
+  }
+}
+
+
+#endif

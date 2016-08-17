@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "reader.h"
+#include "hebi.h"
 #include "helium_utils.h"
 
 #include "config/arg_parser.h"
@@ -480,7 +481,8 @@ Helium::Run() {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       std::string filename = *it;
       if (filename.find(poi.filename) != std::string::npos) {
-        Reader reader(filename, poi);
+        // Reader reader(filename, poi);
+        hebi(filename, poi);
       }
     }
     // find this line in "cpped" file, by line marker
@@ -534,5 +536,3 @@ Helium::Run() {
   // ExpASTDump::Instance()->AppendData();
   // std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
 }
-
-
