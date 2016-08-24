@@ -8,6 +8,32 @@
 
 #include <iostream>
 
+
+Query::Query(ASTNode *astnode) {
+  assert(astnode);
+  CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+  CFGNode *cfgnode = cfg->ASTNodeToCFGNode(astnode);
+  m_nodes.insert(cfgnode);
+  m_new = cfgnode;
+}
+
+/**
+ * Visualize on CFG.
+ * Only display the first CFG for now.
+ */
+void Query::Visualize(bool open) {
+  ASTNode *astnode = m_new->GetASTNode();
+  CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+  // these nodes may not belong to this cfg
+  cfg->Visualize(m_nodes, {m_new}, open);
+}
+
+
+
+std::deque<Query*> g_worklist;
+std::map<CFGNode*, std::set<Query*> > g_waiting_quries;
+std::map<Query*, std::set<Query*> > g_propagating_queries;
+
 void hebi(std::string filename, POISpec poi) {
   print_trace("hebi");
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
@@ -46,7 +72,6 @@ void hebi(std::string filename, POISpec poi) {
 // ASTNode *g_fp = NULL;
 // std::vector<Variable> g_outvs;
 // Formula g_f_cond;
-std::deque<Query*> worklist;
 
 
 /**
@@ -89,10 +114,15 @@ void init(ASTNode *node) {
 void process(ASTNode *node) {
   print_trace("process");
   std::cout << "AST node created!"  << "\n";
+  Query *init_query = new Query(node);
+  g_worklist.push_back(init_query);
+  init_query->Visualize();
   // init(node);
-  while (!worklist.empty()) {
-    Query *query = worklist.front();
-    worklist.pop_front();
+  while (!g_worklist.empty()) {
+    // std::cout << "size of worklist: " << g_worklist.size()  << "\n";
+    Query *query = g_worklist.front();
+    g_worklist.pop_front();
+    // query->Visualize();
     // std::set<ASTNode*> first_ast_nodes = query->GetNodes(ast);
     // std::vector<Variable> invs = get_input_variables(first_ast_nodes);
     // std::string code = gen_code(query, invs, outvs);
@@ -104,19 +134,22 @@ void process(ASTNode *node) {
     //   Merge(BS, bs);
     // } else {
       std::vector<Query*> queries = select(query);
-      worklist.insert(worklist.end(), queries.begin(), queries.end());
+      g_worklist.insert(g_worklist.end(), queries.begin(), queries.end());
+      std::cout << "---"  << "\n";
+      for (Query *q : queries) {
+        q->Visualize();
+      }
     // }
   }
 }
 
-std::map<ASTNode*, std::set<Query*> > g_waiting_quries;
-std::map<Query*, std::set<Query*> > g_propagating_queries;
 
 /**
  * TODO context search
  * , Profile profile
  */
 std::vector<Query*> select(Query *query) {
+  print_trace("select");
   std::vector<Query*> ret;
   // TODO hard to reach
   // if (profile.ReachFP()) {
@@ -125,22 +158,29 @@ std::vector<Query*> select(Query *query) {
 
   // branch
   // TODO merge paths
-  ASTNode *node = query->New();
-  if (node->Kind() == ANK_If) {
-    std::set<Query*> queries = find_mergable_query(node, query);
+  CFGNode *cfgnode = query->New();
+  ASTNode *astnode = cfgnode->GetASTNode();
+  if (astnode->Kind() == ANK_If) {
+    std::set<Query*> queries = find_mergable_query(cfgnode, query);
     if (!queries.empty()) {
       for (Query *q : queries) {
         // modify in place
         q->Merge(query);
       }
       return ret;
+    } else {
+      // add it self to the waiting list
+      g_waiting_quries[cfgnode].insert(query);
     }
   }
   // Now, the query should not be mergeable to reach here
   // predecessor
-  CFG *cfg = Resource::Instance()->GetCFG(node->GetAST());
-  std::set<ASTNode*> preds = cfg->GetPredecessors(node);
-  for (ASTNode *pred : preds) {
+  CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+  if (!cfg) return ret;
+  std::set<CFGNode*> preds = cfg->GetPredecessors(cfgnode);
+  for (CFGNode *pred : preds) {
+    // FIXME this will not work on loops
+    if (query->ContainNode(pred)) continue;
     Query *q = new Query(*query);
     q->Add(pred);
     ret.push_back(q);
@@ -149,7 +189,8 @@ std::vector<Query*> select(Query *query) {
 }
 
 
-std::set<Query*> find_mergable_query(ASTNode *node, Query *orig_query) {
+std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query) {
+  print_trace("find_mergable_query");
   std::set<Query*> ret;
   if (g_waiting_quries.count(node) == 0) {
     return ret;
@@ -171,9 +212,10 @@ std::set<Query*> find_mergable_query(ASTNode *node, Query *orig_query) {
   // for all the candidates that have same transfer function as orig_query
   for (Query *q : candidates) {
     // use random here
-    if (utils::rand_bool()) {
-      ret.insert(q);
-    }
+    // if (utils::rand_bool()) {
+    //   ret.insert(q);
+    // }
+    ret.insert(q);
   }
   return ret;
 }

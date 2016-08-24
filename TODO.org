@@ -19,8 +19,8 @@ The delivery:
 - Print out every step as CFG.
 
 current stack
-- CFG keep a back edge
-- CFG get cfg node from AST node, get predecessor function!
+- [x] CFG keep a back edge
+- [x] CFG get cfg node from AST node, get predecessor function!
 
 
 

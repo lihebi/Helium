@@ -94,3 +94,13 @@ cloc --include-lang="C,C/C++ Header" jasper-1.900.1.zip  | grep SUM | awk '{prin
 # to use clocc.sh
 for fname in *; do echo $fname; clocc.sh $fname; done
 #+END_EXAMPLE
+
+
+* Random
+
+Context search demo:
+(pwd: =/home/hebi/github/test-programs/context-search/helium/test=)
+#+BEGIN_EXAMPLE
+helium -s snippets/ -c src/ cpped/ --poi=../../poi-test.txt > out.txt
+helium-cp-pic.sh out.txt
+#+END_EXAMPLE

@@ -84,14 +84,26 @@ public:
 
 
   /**
-   * 0. create ast to cfg mapping
-   * 1. get the cfg node for the ast node
-   * 2. get predecessor cfg nodes
-   * 3. convert back to AST node
+   * get predecessor cfg nodes
    */
-  std::set<ASTNode*> GetPredecessors(ASTNode *astnode);
+  std::set<CFGNode*> GetPredecessors(CFGNode *node);
+  CFGNode *ASTNodeToCFGNode(ASTNode *astnode) {
+    // check if all m_nodes are in m_ast_to_cfg mapping
+    // FIXME performance
+    for (CFGNode *cfgnode : m_nodes) {
+      if (m_cfg_to_ast.count(cfgnode) == 0) {
+        m_cfg_to_ast[cfgnode] = cfgnode->GetASTNode();
+        m_ast_to_cfg[cfgnode->GetASTNode()] = cfgnode;
+      }
+    }
+    // get it
+    if (m_ast_to_cfg.count(astnode) == 1) {
+      return m_ast_to_cfg[astnode];
+    }
+    return NULL;
+  }
   
-  void Visualize();
+  void Visualize(std::set<CFGNode*> nodesA = {}, std::set<CFGNode*> nodesB = {}, bool open=true);
 private:
   void copyEdge(CFG *cfg);
   std::set<CFGNode*> m_nodes;
@@ -99,9 +111,14 @@ private:
   // CFGNode *m_root = NULL;
   std::set<CFGNode*> m_ins;
   std::set<CFGNode*> m_outs;
+
+  std::map<ASTNode*, CFGNode*> m_ast_to_cfg;
+  std::map<CFGNode*, ASTNode*> m_cfg_to_ast;
   
   std::map<CFGNode*, std::set<CFGNode*> > m_edges;
   std::map<std::pair<CFGNode*, CFGNode*>, std::string> m_labels;
+
+  std::map<CFGNode*, std::set<CFGNode*> > m_back_edges;
 
   // sub graph utility
   CFGNode *m_cond = NULL;

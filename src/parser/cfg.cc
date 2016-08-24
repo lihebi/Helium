@@ -4,6 +4,8 @@
 #include "utils/dot.h"
 #include "utils/utils.h"
 #include "config/options.h"
+#include "resolver/snippet_db.h"
+#include "workflow/resource.h"
 
 #include <iostream>
 
@@ -102,18 +104,27 @@ void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
   print_trace("CFG::CreateEdge");
   if (!from || !to) return;
   m_edges[from].insert(to);
-  // TODO also keep the back edge
   if (!label.empty()) {
     m_labels[std::make_pair(from, to)] = label;
   }
+  // also keep the back edge
+  m_back_edges[to].insert(from);
+  print_trace("CFG::CreateEdge end");
 }
 
 
-void CFG::Visualize() {
+void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool open) {
   DotGraph dot;
   // Add node for all the nodes
   for (CFGNode *node : m_nodes) {
     dot.AddNode(node->GetID(), node->GetLabel());
+  }
+  // color selected nodes
+  for (CFGNode *a : nodesA) {
+    dot.ColorNode(a->GetID(), DNCK_Yellow);
+  }
+  for (CFGNode *b : nodesB) {
+    dot.ColorNode(b->GetID(), DNCK_Cyan);
   }
   // Add edge for the nodes
   for (auto m : m_edges) {
@@ -141,9 +152,11 @@ void CFG::Visualize() {
     dot.AddEdge(out->GetID(), helium_out);
   }
   std::string dotcode = dot.dump();
-  std::string path = utils::visualize_dot_graph(dotcode);
+  std::string path = utils::visualize_dot_graph(dotcode, open);
   std::cout << "written to " << path  << "\n";
 }
+
+
 
 
 /********************************
@@ -375,6 +388,30 @@ CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
 
 
 
+
+
+std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
+  std::set<CFGNode*> ret;
+  if (m_back_edges.count(node) == 1) {
+    return m_back_edges[node];
+  }
+  // ICFG
+  ASTNode *astnode = node->GetASTNode();
+  assert(astnode->Kind() == ANK_Function);
+  std::string func = astnode->GetAST()->GetFunctionName();
+  std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
+  for (std::string caller_func : caller_funcs) {
+    AST *ast = Resource::Instance()->GetAST(caller_func);
+    CFG *cfg = Resource::Instance()->GetCFG(caller_func);
+    if (!ast) continue;
+    std::set<ASTNode*> callsites = ast->GetCallSites(func);
+    for (ASTNode * callsite : callsites) {
+      CFGNode *cfgnode = cfg->ASTNodeToCFGNode(callsite);
+      ret.insert(cfgnode);
+    }
+  }
+  return ret;
+}
 
 
 

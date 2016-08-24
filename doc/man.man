@@ -130,3 +130,18 @@ for fname in *; do echo $fname; clocc.sh $fname; done
 
 .fi
 .RE
+
+
+.SH "Random"
+.PP
+Context search demo:
+(pwd: .nf
+nil
+.fi)
+.RS
+.nf
+helium -s snippets/ -c src/ cpped/ --poi=../../poi-test.txt > out.txt
+helium-cp-pic.sh out.txt
+
+.fi
+.RE

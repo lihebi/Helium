@@ -125,7 +125,7 @@ ASTNode *AST::GetPreviousLeafNodeInSlice(ASTNode *node) {
 
 
 std::string AST::GetFunctionName() {
-  print_trace("GetFunctionName");
+  // print_trace("AST::GetFunctionName");
   if (m_nodes.size() == 0) return "";
   ASTNode *func_node = m_nodes[0];
   if (func_node->Kind() != ANK_Function) return "";
@@ -609,7 +609,7 @@ std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::s
     }
   }
   dot += "}";
-  std::string dot_file = utils::visualize_dot_graph(dot, filename);
+  std::string dot_file = utils::visualize_dot_graph(dot, true, filename);
   std::cout << "written to " << dot_file  << "\n";
   return dot;
 }

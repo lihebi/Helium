@@ -41,7 +41,13 @@ std::string DotNode::GetCode() {
     suffix = "}\n";
   }
   ret += prefix;
-  ret += m_id + "[label=" + dot_id_filter(m_label) + "];\n";
+  ret += m_id + "[label=" + dot_id_filter(m_label);
+  switch (m_color) {
+  case DNCK_Yellow: ret += ", style=\"filled,dotted\", fillcolor=greenyellow"; break;
+  case DNCK_Cyan:   ret += ", style=\"filled,dotted\", fillcolor=cyan"; break;
+  default: break;
+  }
+  ret += + "];\n";
   ret += suffix;
   return ret;
 }

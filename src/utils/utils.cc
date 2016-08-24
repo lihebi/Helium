@@ -457,7 +457,7 @@ utils::create_folder(const std::string& folder) {
  * Visualize dot graph, create a tmp dir to hold the filename
  * @return the dot file generated
  */
-std::string utils::visualize_dot_graph(const std::string& dot, std::string filename) {
+std::string utils::visualize_dot_graph(const std::string& dot, bool open, std::string filename) {
   std::string dir = create_tmp_dir();
   // std::string extension = filename.substr(filename.find_last_of('.'));
   // if (extension == "dot") {
@@ -478,13 +478,16 @@ std::string utils::visualize_dot_graph(const std::string& dot, std::string filen
   // std::cout << "wrote to file: " + filename << "\n";
   // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
   // utils::exec(cmd_png.c_str());
+
+  if (open) {
 #ifdef __MACH__
-  std::string display_cmd = "open " + filename;
+    std::string display_cmd = "open " + filename;
 #else
-  utils::exec(png_convert_cmd.c_str());
-  std::string display_cmd = "feh -F --zoom 100 "+ png_filename;
+    utils::exec(png_convert_cmd.c_str());
+    std::string display_cmd = "feh -F --zoom 100 "+ png_filename;
 #endif
-  utils::exec(display_cmd.c_str());
+    utils::exec(display_cmd.c_str());
+  }
   return filename;
 }
 

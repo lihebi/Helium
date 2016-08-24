@@ -5,6 +5,11 @@
 #include <string>
 #include "common.h"
 
+typedef enum _DotNodeColorKind {
+  DNCK_Yellow,
+  DNCK_Cyan,
+  DNCK_Default
+} DotNodeColorKind;
 
 /**
  * Dot Graph Helper
@@ -26,10 +31,14 @@ public:
   }
   std::string GetText() {return m_text;}
   std::string GetCode();
+  void SetColor(DotNodeColorKind color) {
+    m_color = color;
+  }
 private:
   std::string m_id;
   std::string m_label;
   std::string m_text;
+  DotNodeColorKind m_color = DNCK_Default;
 };
 
 class DotEdge {
@@ -42,6 +51,7 @@ private:
   DotNode *m_to;
   std::string m_label;
 };
+
 
 class DotGraph {
 public:
@@ -57,6 +67,11 @@ public:
     }
   }
   void AddNode(std::string id, std::string label);
+  void ColorNode(std::string id, DotNodeColorKind color) {
+    if (m_nodes.count(id) == 1) {
+      m_nodes[id]->SetColor(color);
+    }
+  }
   void AddEdge(std::string id_from, std::string id_to, std::string label="");
   void AddText(std::string id, std::string text);
   std::string dump();
