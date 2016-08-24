@@ -1,5 +1,30 @@
 #+TITLE: Helium Project TODO
 
+
+* Context search
+I already have a CFG. I need to implement the context search algorithm.
+Basically each time get the predecessor on CFG, and construct.
+Based on return test profile, decide whether to remove the new one.
+If is branch, wait there and insert an entry at that branch.
+If previously some path comes, merge into them.
+
+The delivery:
+construct various of situations of code.
+Start at various of POI. (need a POI setting scheme).
+
+Print out every step nodes.
+Print out the CFG itself.
+Print out every step as CFG.
+
+
+
+
+
+
+
+
+
+
 - Construct bug signature myself
 - figure out the different backend oracle for different type of bugs (like instrument-xxx=true)
 - make it stable for examples

@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "utils/utils.h"
 #include "ast_node.h"
+#include <iostream>
 
 /*******************************
  ** Gene 

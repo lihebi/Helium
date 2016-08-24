@@ -1,3 +1,7 @@
+#ifndef READER_H
+#define READER_H
+
+
 #include <vector>
 #include <memory>
 
@@ -54,3 +58,6 @@ private:
 };
 
 int get_true_linum(std::string filename, int linum);
+
+
+#endif /* READER_H */

@@ -28,7 +28,8 @@ public:
   CFG *GetCFG(std::string function);
   
 private:
-  Resource();
+  Resource() {}
+  ~Resource() {}
   static Resource* m_instance;
   
   std::map<std::string, XMLDoc*> m_xmldocs;

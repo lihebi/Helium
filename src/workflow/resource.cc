@@ -4,7 +4,6 @@
 
 Resource* Resource::m_instance = 0;
 
-
 XMLDoc *Resource::GetXMLDoc(std::string filename) {
   // file must exist
   XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);

@@ -5,6 +5,8 @@
 #include "utils/utils.h"
 #include "config/options.h"
 
+#include <iostream>
+
 
 CFG::CFG() {}
 CFG::~CFG() {}

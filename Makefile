@@ -2,8 +2,9 @@
 # TODO: Move `libmongoclient.a` to /usr/local/lib so this can work on production servers
 #
 
-# CC := g++
-CC := clang++
+CC := g++
+# Clang is not compitible with g++ ABI, which causes the boost::program_option::args not defined, on Debian stretch
+# CC := clang++-3.8
 # CC := clang --analyze # and comment out the linker last line for sanity
 
 ##############################
@@ -65,13 +66,13 @@ CFLAGS := -g -Wall --std=c++11 # -fsanitize=address
 # C_TEST_LIB += -lboost_unit_test_framework # boost test framework
 
 C_INCLUDE := -Isrc
-
-C_LIB := -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
+C_LIB := -pthread
+# C_LIB += -L/usr/lib -L/usr/local/lib
+C_LIB += -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
 C_LIB += -lpugixml
 C_LIB += -lctags # 3rd party library, shipped with source code
-C_LIB += -lgtest
+C_LIB += -lgtest -lgtest_main
 C_LIB += -lsqlite3
-C_LIB += -pthread
 
 ##############################
 ## Targets
