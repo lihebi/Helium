@@ -102,6 +102,7 @@ void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
   print_trace("CFG::CreateEdge");
   if (!from || !to) return;
   m_edges[from].insert(to);
+  // TODO also keep the back edge
   if (!label.empty()) {
     m_labels[std::make_pair(from, to)] = label;
   }
@@ -369,3 +370,12 @@ CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
   cfg->Merge(body_cfg);
   return cfg;
 }
+
+
+
+
+
+
+
+
+

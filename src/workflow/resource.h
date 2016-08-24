@@ -17,7 +17,7 @@
 class Resource {
 public:
   static Resource *Instance() {
-    if (m_instance) {
+    if (!m_instance) {
       m_instance = new Resource();
     }
     return m_instance;
@@ -26,7 +26,7 @@ public:
   XMLDoc *GetXMLDoc(std::string filename);
   AST *GetAST(std::string function);
   CFG *GetCFG(std::string function);
-  
+  CFG *GetCFG(AST *ast);
 private:
   Resource() {}
   ~Resource() {}

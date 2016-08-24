@@ -4,10 +4,12 @@
 #include "workflow/resource.h"
 
 #include "common.h"
+#include "config/options.h"
 
 #include <iostream>
 
 void hebi(std::string filename, POISpec poi) {
+  print_trace("hebi");
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
   int linum = get_true_linum(filename, poi.linum);
   std::cout << "true line number: " <<  linum  << "\n";
@@ -44,7 +46,7 @@ void hebi(std::string filename, POISpec poi) {
 // ASTNode *g_fp = NULL;
 // std::vector<Variable> g_outvs;
 // Formula g_f_cond;
-// std::deque<Query*> worklist;
+std::deque<Query*> worklist;
 
 
 /**
@@ -85,58 +87,96 @@ void init(ASTNode *node) {
  * TODO workflow
  */
 void process(ASTNode *node) {
+  print_trace("process");
+  std::cout << "AST node created!"  << "\n";
   // init(node);
-  // while (!worklist.empty()) {
-  //   Query *query = worklist.front();
-  //   worklist.pop_front();
-  //   std::set<ASTNode*> first_ast_nodes = query->GetNodes(ast);
-  //   std::vector<Variable> invs = get_input_variables(first_ast_nodes);
-  //   std::string code = gen_code(query, invs, outvs);
-  //   std::string executable = write_and_compile(code);
-  //   InputSpec input = generate_input(invs);
-  //   Profile profile = test(executable, input);
-  //   BugSig *bs = oracle(input, profile);
-  //   if (bs) {
-  //     Merge(BS, bs);
-  //   } else {
-  //     std::vector<Query*> queries = select(query);
-  //     worklist.insert(worklist.end(), queries.begin(), queries.end());
-  //   }
-  // }
+  while (!worklist.empty()) {
+    Query *query = worklist.front();
+    worklist.pop_front();
+    // std::set<ASTNode*> first_ast_nodes = query->GetNodes(ast);
+    // std::vector<Variable> invs = get_input_variables(first_ast_nodes);
+    // std::string code = gen_code(query, invs, outvs);
+    // std::string executable = write_and_compile(code);
+    // InputSpec input = generate_input(invs);
+    // Profile profile = test(executable, input);
+    // BugSig *bs = oracle(input, profile);
+    // if (bs) {
+    //   Merge(BS, bs);
+    // } else {
+      std::vector<Query*> queries = select(query);
+      worklist.insert(worklist.end(), queries.begin(), queries.end());
+    // }
+  }
 }
+
+std::map<ASTNode*, std::set<Query*> > g_waiting_quries;
+std::map<Query*, std::set<Query*> > g_propagating_queries;
 
 /**
  * TODO context search
+ * , Profile profile
  */
-// std::vector<Query*> select(Query *query, Profile profile) {
-//   std::vector<Query*> ret;
-//   // TODO hard to reach
-//   if (profile.ReachFP()) {
-//     query->RemoveNew();
-//   }
+std::vector<Query*> select(Query *query) {
+  std::vector<Query*> ret;
+  // TODO hard to reach
+  // if (profile.ReachFP()) {
+  //   query->RemoveNew();
+  // }
 
-//   // branch
-//   // TODO merge paths
-//   ASTNode *node = query->New();
-//   if (node->Kind() == ANK_If) {
-//     std::vector<Query*> queries = find_mergable_query(node, profile);
-//     for (Query *q : queries) {
-//       // modify in place
-//       q->merge(query);
-//     }
-//   }
+  // branch
+  // TODO merge paths
+  ASTNode *node = query->New();
+  if (node->Kind() == ANK_If) {
+    std::set<Query*> queries = find_mergable_query(node, query);
+    if (!queries.empty()) {
+      for (Query *q : queries) {
+        // modify in place
+        q->Merge(query);
+      }
+      return ret;
+    }
+  }
+  // Now, the query should not be mergeable to reach here
+  // predecessor
+  CFG *cfg = Resource::Instance()->GetCFG(node->GetAST());
+  std::set<ASTNode*> preds = cfg->GetPredecessors(node);
+  for (ASTNode *pred : preds) {
+    Query *q = new Query(*query);
+    q->Add(pred);
+    ret.push_back(q);
+  }
+  return ret;
+}
 
-//   // predecessor
-//   CFG *cfg = Resource::Instance()->GetCFG(node->GetAST());
-//   CFGNode *cfgnode = cfg->GetNode(node);
-//   std::vector<CFGNode*> preds = cfg->GetPredecessor(cfgnode);
-//   for (CFGNode *pred : preds) {
-//     Query *q = new Query(query);
-//     q->Add(pred);
-//     ret.push_back(q);
-//   }
-//   return ret;
-// }
+
+std::set<Query*> find_mergable_query(ASTNode *node, Query *orig_query) {
+  std::set<Query*> ret;
+  if (g_waiting_quries.count(node) == 0) {
+    return ret;
+  }
+  std::set<Query*> queries = g_waiting_quries[node];
+  // follow propagation path for the most recent position
+  std::set<Query*> worklist;
+  worklist.insert(queries.begin(), queries.end());
+  std::set<Query*> candidates;
+  while (!worklist.empty()) {
+    Query *q = *worklist.begin();
+    worklist.erase(q);
+    if (g_propagating_queries.count(q) == 1) {
+      worklist.insert(g_propagating_queries[q].begin(), g_propagating_queries[q].end());
+    } else {
+      candidates.insert(q);
+    }
+  }
+  // for all the candidates that have same transfer function as orig_query
+  for (Query *q : candidates) {
+    // use random here
+    if (utils::rand_bool()) {
+      ret.insert(q);
+    }
+  }
+  return ret;
+}
 
 
 /**

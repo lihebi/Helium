@@ -78,6 +78,18 @@ public:
   std::set<CFGNode*> GetIns() {return m_ins;}
   std::set<CFGNode*> GetOuts() {return m_outs;}
   std::set<CFGNode*> GetNodes() {return m_nodes;}
+
+  // CFGNode *GetCFGNode(ASTNode *astnode);
+  // std::set<CFGNode*> GetPredecessors(CFGNode *node);
+
+
+  /**
+   * 0. create ast to cfg mapping
+   * 1. get the cfg node for the ast node
+   * 2. get predecessor cfg nodes
+   * 3. convert back to AST node
+   */
+  std::set<ASTNode*> GetPredecessors(ASTNode *astnode);
   
   void Visualize();
 private:
