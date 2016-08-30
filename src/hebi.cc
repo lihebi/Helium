@@ -162,10 +162,16 @@ std::vector<Query*> select(Query *query) {
   ASTNode *astnode = cfgnode->GetASTNode();
   if (astnode->Kind() == ANK_If) {
     std::set<Query*> queries = find_mergable_query(cfgnode, query);
+
+    // std::cout << "For node: " << astnode->GetLabel()  << "\n";
+    // std::cout << "mergable query no. " << queries.size()  << "\n";
+    
     if (!queries.empty()) {
       for (Query *q : queries) {
         // modify in place
+        // std::cout << "merging: "  << q->GetNodes().size() << "\n";
         q->Merge(query);
+        // std::cout << "After merge: " << q->GetNodes().size()  << "\n";
       }
       return ret;
     } else {
@@ -185,6 +191,9 @@ std::vector<Query*> select(Query *query) {
     q->Add(pred);
     ret.push_back(q);
   }
+
+  // update g_propagating_queries
+  g_propagating_queries[query].insert(ret.begin(), ret.end());
   return ret;
 }
 
