@@ -6,6 +6,8 @@
 #include "common.h"
 #include "config/options.h"
 
+#include "workflow/builder.h"
+
 #include <iostream>
 
 
@@ -123,10 +125,20 @@ void process(ASTNode *node) {
     Query *query = g_worklist.front();
     g_worklist.pop_front();
     // query->Visualize();
-    // std::set<ASTNode*> first_ast_nodes = query->GetNodes(ast);
-    // std::vector<Variable> invs = get_input_variables(first_ast_nodes);
-    // std::string code = gen_code(query, invs, outvs);
+    std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
+    std::vector<Variable> invs = get_input_variables(first_function_nodes);
+    // std::string code = gen_code(query, invs);
+    query->GenCode(invs);
+    Builder builder;
+    builder.SetMain(query->GetMain());
+    builder.SetSupport(query->GetSupport());
+    builder.SetMakefile(query->GetMakefile());
+    builder.Write();
+    builder.Compile();
+    std::string executable = builder.GetExecutable();
     // std::string executable = write_and_compile(code);
+    
+    // TODO
     // InputSpec input = generate_input(invs);
     // Profile profile = test(executable, input);
     // BugSig *bs = oracle(input, profile);

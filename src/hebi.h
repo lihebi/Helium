@@ -35,12 +35,24 @@ public:
   std::set<CFGNode*> GetNodes() {
     return m_nodes;
   }
+
+  // TODO nodes in the CFG that contains m_new
+  std::set<CFGNode*> GetNodesForNewFunction();
   bool ContainNode(CFGNode *node) {
     if (m_nodes.count(node) == 1) return true;
     else return false;
   }
 
   void Visualize(bool open=false);
+
+
+  /**
+   * Code generating
+   */
+  void GenCode(std::vector<Variable> invs);
+  std::string GetMain();
+  std::string GetSupport();
+  std::string GetMakefile();
 private:
   std::set<CFGNode*> m_nodes;
   CFGNode *m_new = NULL;
@@ -49,6 +61,9 @@ private:
 
 std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);
 std::vector<Query*> select(Query *query);
+
+std::vector<Variable> get_input_variables(std::set<CFGNode*> nodes);
+// std::string gen_code(Query *query, std::vector<Variable> invs);
 
 
 #endif /* HEBI_H */
