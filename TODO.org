@@ -1,6 +1,31 @@
 #+TITLE: Helium Project TODO
 
 
+
+* Helium
+
+** Done
+- [x] fix return, break, continue edge
+** Urgent
+- fix merge bug
+- generate and compile code for new CFG frontend
+- hook backend and testing
+- Z3 multiple values
+
+
+- function go into callsite function body
+
+** Nice to have
+- refactor test case generation
+- refactor backend analysis
+
+
+
+** enhancement
+- output warning instead of assertion
+- if callsite cannot compile, no need to continue
+- log trace verbose
+
 * Context search
 I already have a CFG. I need to implement the context search algorithm.
 

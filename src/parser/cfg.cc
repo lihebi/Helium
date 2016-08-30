@@ -62,6 +62,49 @@ void CFG::copyEdge(CFG *cfg) {
   for (auto m : cfg->m_labels) {
     m_labels[m.first] = m.second;
   }
+  // try to copy m_breaks, m_continues, m_returns here
+  for (CFGNode *node : cfg->m_breaks) {
+    m_breaks.insert(node);
+  }
+  for (CFGNode *node : cfg->m_continues) {
+    m_continues.insert(node);
+  }
+  for (CFGNode *node : cfg->m_returns) {
+    m_returns.insert(node);
+  }
+}
+
+void CFG::AdjustReturn() {
+  print_trace("CFG::AdjustReturn");
+  for (CFGNode *node : m_returns) {
+    // assert(m_ins.size() == 1);
+    // CFGNode *out = *m_outs.begin();
+    // CreateEdge(node, out);
+    m_outs.insert(node);
+  }
+  m_returns.clear();
+}
+
+void CFG::AdjustBreak() {
+  print_trace("CFG::AdjustBreak");
+  for (CFGNode *node : m_breaks) {
+    // assert(m_outs.size() == 1);
+    // CFGNode *out = *m_outs.begin();
+    // CreateEdge(node, out);
+    m_outs.insert(node);
+  }
+  m_breaks.clear();
+}
+
+void CFG::AdjustContinue() {
+  print_trace("CFG::AdjustContinue");
+  // redirect continue node to m_in
+  for (CFGNode *node : m_continues) {
+    assert(m_ins.size() == 1);
+    CFGNode *in = *m_ins.begin();
+    CreateEdge(node, in);
+  }
+  m_continues.clear();
 }
 
 void CFG::MergeBranch(CFG *cfg, bool b) {
@@ -165,6 +208,15 @@ void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool o
 
 
 
+/**
+ * How to add special edges for break, continue, and return
+ *
+ * 1. when adding the node, put into m_breaks, and m_returns
+ * 2. When for special constructs, consume the m_breaks and m_returns (remove them) and add edges
+ *    - switch, while, for, do: break, continue
+ *    - when creating with AST, consume return
+ * 3. When merging, merge all m_breaks and m_returns
+ */
 
 
 
@@ -172,7 +224,8 @@ CFG *CFGFactory::CreateCFG(AST *ast) {
   print_trace("CFGFactory::CreateCFG");
   if (!ast) return NULL;
   ASTNode *root = ast->GetRoot();
-  return CreateCFG(root);
+  CFG *cfg = CreateCFG(root);
+  return cfg;
 }
 
 
@@ -186,15 +239,35 @@ CFG *CFGFactory::CreateCFG(ASTNode *node) {
     cfg->AddNode(cfgnode);
     cfg->AddIn(cfgnode);
     cfg->AddOut(cfgnode);
+
+
+    // If it is break, continue, AddBreakNode
+    XMLNodeKind kind = xmlnode_to_kind(node->GetXMLNode());
+    if (kind == NK_Break) {
+      cfg->AddBreak(cfgnode);
+      cfg->RemoveOut(cfgnode);
+    } else if (kind == NK_Continue) {
+      cfg->AddContinue(cfgnode);
+      cfg->RemoveOut(cfgnode);
+    } else if (kind == NK_Return) {
+      cfg->AddReturn(cfgnode);
+      cfg->RemoveOut(cfgnode);
+    }
+    // If it is return, AddReturnNode
+
+    
     return cfg;
   }
   case ANK_If: return CreateCFGFromIf(dynamic_cast<If*>(node)); break;
   case ANK_Function: return CreateCFGFromFunction(dynamic_cast<Function*>(node)); break;
   case ANK_ElseIf: return CreateCFGFromElseIf(dynamic_cast<ElseIf*>(node)); break;
+    // the following 4 types need to adjust breaks nodes
   case ANK_Switch: return CreateCFGFromSwitch(dynamic_cast<Switch*>(node)); break;
   case ANK_While: return CreateCFGFromWhile(dynamic_cast<While*>(node)); break;
   case ANK_For: return CreateCFGFromFor(dynamic_cast<For*>(node)); break;
   case ANK_Do: return CreateCFGFromDo(dynamic_cast<Do*>(node)); break;
+
+    
   case ANK_Block: return CreateCFGFromBlock(dynamic_cast<Block*>(node)); break;
   default: return NULL;
   }
@@ -255,6 +328,8 @@ CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
       cfg->Merge(child_cfg);
     }
   }
+  // this is from the root of AST, take care of AdjustReturn
+  cfg->AdjustReturn();
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
@@ -272,6 +347,11 @@ CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
   cfg->MergeBranch(branch_cfg, true);
   return cfg;
 }
+
+
+
+
+// switch
 CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
   print_trace("CFGFactory::CreateCFGFromSwitch");
   CFG *cfg = new CFG();
@@ -290,8 +370,13 @@ CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
     cfg->MergeCase(case_cfg);
   }
   // TODO default
+
+  cfg->AdjustBreak();
+  
   return cfg;
 }
+
+// while
 CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
   print_trace("CFGFactory::CreateCFGFromWhile");
   CFG *cfg = new CFG();
@@ -311,6 +396,9 @@ CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
     cfg->RemoveOut(out);
   }
   cfg->AddOut(node);
+
+  cfg->AdjustBreak();
+  cfg->AdjustContinue();
   return cfg;
 }
 /**
@@ -345,6 +433,10 @@ CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
   // std::cout << "cfg->In: " << cfg->GetIns().size()  << "\n";
   
   // cfg->Visualize();
+
+
+  cfg->AdjustBreak();
+  cfg->AdjustContinue();
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
@@ -368,6 +460,9 @@ CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
   for (CFGNode *in : body_cfg->GetIns()) {
     cfg->CreateEdge(node, in, "B");
   }
+
+  cfg->AdjustBreak();
+  cfg->AdjustContinue();
   return cfg;
 }
 

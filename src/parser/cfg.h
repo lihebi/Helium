@@ -104,6 +104,14 @@ public:
   }
   
   void Visualize(std::set<CFGNode*> nodesA = {}, std::set<CFGNode*> nodesB = {}, bool open=true);
+
+  void AddBreak(CFGNode *node) {m_breaks.insert(node);}
+  void AddContinue(CFGNode *node) {m_continues.insert(node);}
+  void AddReturn(CFGNode *node) {m_returns.insert(node);}
+
+  void AdjustBreak();
+  void AdjustContinue();
+  void AdjustReturn();
 private:
   void copyEdge(CFG *cfg);
   std::set<CFGNode*> m_nodes;
@@ -111,6 +119,10 @@ private:
   // CFGNode *m_root = NULL;
   std::set<CFGNode*> m_ins;
   std::set<CFGNode*> m_outs;
+
+  std::set<CFGNode*> m_breaks;
+  std::set<CFGNode*> m_continues;
+  std::set<CFGNode*> m_returns;
 
   std::map<ASTNode*, CFGNode*> m_ast_to_cfg;
   std::map<CFGNode*, ASTNode*> m_cfg_to_ast;

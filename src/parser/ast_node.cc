@@ -10,7 +10,7 @@ static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   , {NK_Stmt, ANK_Stmt}
   , {NK_ExprStmt, ANK_Stmt}
   , {NK_DeclStmt, ANK_Stmt}
-  , {NK_Return, ANK_Stmt}
+  // Break, Continue, Return
   , {NK_Break, ANK_Stmt}
   , {NK_Continue, ANK_Stmt}
   , {NK_Return, ANK_Stmt}
