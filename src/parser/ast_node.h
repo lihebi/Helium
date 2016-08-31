@@ -184,6 +184,7 @@ public:
     }
     // "this" must be a child of "m_parent"
     assert(false);
+    return NULL;
   }
   ASTNode* NextSibling() {
     if (m_parent==NULL) return NULL;

@@ -7,6 +7,7 @@
 #include "config/options.h"
 
 #include "workflow/builder.h"
+#include "code_gen.h"
 
 #include <iostream>
 
@@ -102,6 +103,60 @@ void init(ASTNode *node) {
   // worklist.push_back(query);
 }
 
+void Query::ResolveInput() {
+  std::cout << "Query::ResolveInput"  << "\n";
+  // for all the ASTs, resolve input
+  // TODO should we supply input when necessary? Based on the output instrumentation during run time?
+  m_inputs.clear();
+  CFG *cfg = m_new->GetCFG();
+  // ASTNode *astnode = m_new->GetASTNode();
+  // AST *ast = astnode->GetAST();
+  std::set<ASTNode*> first_astnodes;
+  for (CFGNode *cfgnode : m_nodes) {
+    if (cfg->Contains(cfgnode)) {
+      first_astnodes.insert(cfgnode->GetASTNode());
+    }
+  }
+  // std::map<std::string, Type*> inputs;
+  for (ASTNode *astnode : first_astnodes) {
+    std::set<std::string> ids = astnode->GetVarIds();
+    for (std::string id : ids) {
+      if (id.empty()) continue;
+      if (is_c_keyword(id)) continue;
+      std::cout << id  << "\n";
+      SymbolTable *tbl = astnode->GetSymbolTable();
+      tbl->dump();
+      SymbolTableValue *st_value = tbl->LookUp(id);
+      if (st_value) {
+        if (first_astnodes.count(st_value->GetNode()) == 0) {
+          // input
+          m_inputs[st_value->GetName()] = st_value->GetType();
+        }
+      } else {
+        // TODO global
+        // Type *type = GlobalVariableRegistry::Instance()->LookUp(id);
+      }
+    }
+  }
+  std::cout << "input size: " << m_inputs.size()  << "\n";
+}
+
+/**
+ * Generate main, support, makefile, scripts
+ */
+void Query::GenCode() {
+  CodeGen generator;
+  generator.SetFirstAST(m_new->GetASTNode()->GetAST());
+  for (CFGNode *cfgnode : m_nodes) {
+    generator.AddNode(cfgnode->GetASTNode());
+  }
+  generator.SetInput(m_inputs);
+  generator.Gen();
+  m_main = generator.GetMain();
+  m_support = generator.GetSupport();
+  m_makefile = generator.GetMakefile();
+}
+
 
 /**
  * Initialize the query as the segment, into worklist
@@ -125,17 +180,24 @@ void process(ASTNode *node) {
     Query *query = g_worklist.front();
     g_worklist.pop_front();
     // query->Visualize();
-    std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
-    std::vector<Variable> invs = get_input_variables(first_function_nodes);
+    query->ResolveInput();
+    // std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
+    // std::vector<Variable> invs = get_input_variables(first_function_nodes);
     // std::string code = gen_code(query, invs);
-    query->GenCode(invs);
+    query->GenCode();
     Builder builder;
     builder.SetMain(query->GetMain());
     builder.SetSupport(query->GetSupport());
     builder.SetMakefile(query->GetMakefile());
     builder.Write();
     builder.Compile();
-    std::string executable = builder.GetExecutable();
+    std::cout << "Wrote to: " << builder.GetDir()  << "\n";
+    if (builder.Success()) {
+      utils::print("compile success\n", utils::CK_Green);
+      std::string executable = builder.GetExecutable();
+    } else {
+      utils::print("compile error\n", utils::CK_Red);
+    }
     // std::string executable = write_and_compile(code);
     
     // TODO
@@ -291,8 +353,8 @@ std::set<ASTNode*> g_m_list;
  * TODO coverage feedback correct path removing
  * TODO mutation test
  */
-InputSpec generate_input(std::vector<Variable> invs) {
-}
+// InputSpec generate_input(std::vector<Variable> invs) {
+// }
 
 /**
  * TODO m_list

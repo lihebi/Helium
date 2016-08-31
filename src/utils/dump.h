@@ -75,13 +75,13 @@ public:
   std::string dump() {
     std::string ret;
     ret += GetHeader() + "\n";
-    for (struct Data data : m_data) {
-      ret += std::to_string(data.leaf_size) + ", "
-        + std::to_string(data.node_size) + ", "
-        + std::to_string(data.main_loc) + ", "
-        + std::to_string(data.snippet_size) + ", "
-        + std::to_string(data.snippet_loc) + ", "
-        + (data.build_or_not?"true":"false") + "\n";
+    for (int i=0;i<(int)m_data.size();i++) {
+      ret += std::to_string(m_data[i].leaf_size) + ", "
+        + std::to_string(m_data[i].node_size) + ", "
+        + std::to_string(m_data[i].main_loc) + ", "
+        + std::to_string(m_data[i].snippet_size) + ", "
+        + std::to_string(m_data[i].snippet_loc) + ", "
+        + (m_data[i].build_or_not?"true":"false") + "\n";
     }
     return ret;
   }

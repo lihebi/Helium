@@ -2,6 +2,7 @@
 #include "type_helper.h"
 #include "utils/utils.h"
 #include "config/config.h"
+#include "corner.h"
 
 /********************************
  * IntType
@@ -43,6 +44,49 @@ InputSpec *IntType::GenerateInput() {
   std::string spec = "{int: " + std::to_string(value) + "}";
   std::string raw = std::to_string(value);
   return new InputSpec(spec, raw);
+}
+
+InputSpec *IntType::wrap(int value) {
+  std::string spec = "{int: " + std::to_string(value) + "}";
+  std::string raw = std::to_string(value);
+  return new InputSpec(spec, raw);
+}
+
+int IntType::corner() {
+  std::set<int> choices = {-2, -1, 0, 1, 2, 10, 100, 100};
+  for (int i=0;i<10;i++) {
+    choices.insert(pow(2, i));
+  }
+  choices.insert(BUFSIZ);
+  // TODO literal values from program
+  std::set<int> additional;
+  for (int a : choices) {
+    additional.insert(a-2);
+    additional.insert(a-1);
+    additional.insert(a+1);
+    additional.insert(a+2);
+  }
+  choices.insert(additional.begin(), additional.end());
+  std::vector<int> v(choices.begin(), choices.end());
+  // choose from choices
+  int r = utils::rand_int(0, v.size()-1);
+  return v[r];
+}
+
+
+/**
+ * Generate all the inputs used for pairwise testing
+ * 1. some corner cases
+ * 2. some random values: 5
+ */
+std::vector<InputSpec*> IntType::GeneratePairInput() {
+  std::vector<InputSpec*> ret;
+  std::vector<int> corners = Corner::Instance()->GetIntCorner();
+  ret.push_back(GenerateInput());
+  for (int corner : corners) {
+    ret.push_back(wrap(corner));
+  }
+  return ret;
 }
 
 
@@ -127,4 +171,28 @@ InputSpec *CharType::GenerateInput() {
   std::string spec = "{char: " + std::to_string(c) + "}";
   std::string raw = std::to_string(c);
   return new InputSpec(spec, raw);
+}
+
+char CharType::corner() {
+  std::vector<char> choices = {'\0', '\t', '\v', '\n'};
+  int r = utils::rand_int(0, choices.size()-1);
+  return choices[r];
+}
+
+InputSpec *CharType::wrap(char c) {
+  std::string spec = "{char: " + std::to_string(c) + "}";
+  std::string raw = std::to_string(c);
+  return new InputSpec(spec, raw);
+}
+
+std::vector<InputSpec*> CharType::GeneratePairInput() {
+  std::vector<InputSpec*> ret;
+  std::vector<char> corners = Corner::Instance()->GetCharCorner();
+  for (char c : corners) {
+    ret.push_back(wrap(c));
+  }
+  for (int i=0;i<5;i++) {
+    ret.push_back(GenerateInput());
+  }
+  return ret;
 }

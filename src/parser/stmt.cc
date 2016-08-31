@@ -108,4 +108,5 @@ ASTNode* Stmt::LookUpDefinition(std::string id) {
   }
   default: assert(false);
   }
+  return NULL;
 }

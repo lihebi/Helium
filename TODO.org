@@ -1,75 +1,13 @@
 #+TITLE: Helium Project TODO
 
-
-* Z3 notes
-- http://stackoverflow.com/questions/39220169/using-z3-to-sample-from-a-constrained-space
-
-#+BEGIN_QUOTE
-You can then assert the negation of the model to force the solver to produce a different assignment for the next query.
-This kind of scheme is used by many applications, but it's not necessarily "efficient", but that really depends on what kind of sampling you're trying to achieve
-(e.g., Z3 models will not be distributed randomly across the search space). 
-#+END_QUOTE
-
-- http://stackoverflow.com/questions/13395391/z3-finding-all-satisfying-models
-- http://stackoverflow.com/questions/11867611/z3py-checking-all-solutions-for-equation
-- https://www.reddit.com/r/ReverseEngineering/comments/tbsrx/z3_theorem_prover_all_possible_solutions/
-
-* Follow a callsite
-#+BEGIN_SRC C
-void foo() {
-  int a,b,c,d;
-  bar(a,b);
-  c=a;
-  if (a>b) {
-    bar(c,d);
-  }
-  // Failure Point
-  fp();
-}
-
-int bar(int c, int d) {
-  int e = foobar(c, d);
-  if (c > d) {
-    swap(c,d);
-  }
-  return e - c;
-}
-#+END_SRC
-** Connect
-To generate buildable program, we need to include the callsite.
-And we need to resume the callsite when the inner function reaches beginning.
-We need to be able to follow callsite recursively, so we implement a stack of callsite to resume.
-
-** Input variables
-Once we are selecting nodes in the inner function, the input variables will spread both the inner and outer function.
-The situation is not exactly the same: inner function receive arguments from outer function, which are valid at the beginning of inner function.
-How to select temporary variables in inner function as input?
-
-** Multiple times
-If first time we select the bar, then second time we reach bar, we still need to go inside it?
-Since there should only be one definition of the function bar to compile the code, we have the choices:
-1. use one version of bar for all the callsites. In this case which selection to use? the first one? update in the second one?
-2. rename bar to =bar1=, =bar2= to implement different callsite. In this case the code needs to be modified.
-
-** Merge
-The merge algorithm put the query reference information on the branch node in CFG.
-If multiple queries with different selection of foo, reach the same branch in the inner function =bar=, they should not be merged.
-The criteria for merge should be "with the same paused head in stack"?
-I think this is general, not just for callsite, say a loop.
-The different is that for loop, if we already follow one path, we will not follow again.
-That means we should not follow again in terms of a inner callsite?
-
 * Helium
-
-** Done
-- [x] fix return, break, continue edge
-- [x] fix merge bug
-** Urgent
-- [x] Z3 multiple values
-- [x] function go into callsite function body
-
+- input variables for new frontend
 - generate and compile code for new CFG frontend
 - hook backend and testing
+
+** Urgent
+- Pairwise corner testing
+- z3 symbolic exe
 
 ** Nice to have
 - refactor test case generation

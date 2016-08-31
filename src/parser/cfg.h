@@ -4,9 +4,11 @@
 #include "ast.h"
 #include "ast_node.h"
 
+class CFG;
+
 class CFGNode {
 public:
-  CFGNode(ASTNode *astnode) : m_astnode(astnode) {}
+  CFGNode(CFG *cfg, ASTNode *astnode) : m_cfg(cfg), m_astnode(astnode) {}
   ~CFGNode() {}
   ASTNode *GetASTNode() {return m_astnode;}
   
@@ -35,7 +37,9 @@ public:
   //     m_successors.insert(node);
   //   }
   // }
+  CFG *GetCFG() {return m_cfg;}
 private:
+  CFG *m_cfg = NULL;
   ASTNode *m_astnode = NULL;
   // std::set<CFGNode*> m_predecessors;
   // std::set<CFGNode*> m_successors;
@@ -112,6 +116,10 @@ public:
   void AdjustBreak();
   void AdjustContinue();
   void AdjustReturn();
+
+  bool Contains(CFGNode* cfgnode) {
+    return m_nodes.count(cfgnode) == 1;
+  }
 private:
   void copyEdge(CFG *cfg);
   std::set<CFGNode*> m_nodes;

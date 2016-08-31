@@ -49,13 +49,20 @@ public:
   /**
    * Code generating
    */
-  void GenCode(std::vector<Variable> invs);
-  std::string GetMain();
-  std::string GetSupport();
-  std::string GetMakefile();
+  void ResolveInput();
+  void GenCode();
+  std::string GetMain() {return m_main;}
+  std::string GetSupport() {return m_support;}
+  std::string GetMakefile() {return m_makefile;}
 private:
   std::set<CFGNode*> m_nodes;
   CFGNode *m_new = NULL;
+  // std::map<AST*, std::vector<Variable> > m_inputs;
+  std::map<std::string, Type*> m_inputs;
+
+  std::string m_main;
+  std::string m_support;
+  std::string m_makefile;
 };
 
 
@@ -63,6 +70,7 @@ std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);
 std::vector<Query*> select(Query *query);
 
 std::vector<Variable> get_input_variables(std::set<CFGNode*> nodes);
+
 // std::string gen_code(Query *query, std::vector<Variable> invs);
 
 

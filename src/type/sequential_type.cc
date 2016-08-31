@@ -3,6 +3,7 @@
 #include "type_helper.h"
 #include "utils/utils.h"
 #include "config/config.h"
+#include "corner.h"
 
 /**
  * char aaa[5]
@@ -195,6 +196,45 @@ InputSpec *StrType::GenerateInput() {
   std::string joined = boost::algorithm::join(list, " ");
   std::string raw = joined;
   return new InputSpec(spec, raw);
+}
+
+std::string StrType::corner() {
+  std::set<int> strlen_choices = {1024, BUFSIZ};
+  std::set<int> additional;
+  for (int len : strlen_choices) {
+    additional.insert(len-2);
+    additional.insert(len-1);
+    additional.insert(len+1);
+    additional.insert(len+2);
+  }
+  strlen_choices.insert(additional.begin(), additional.end());
+  std::vector<int> v(strlen_choices.begin(), strlen_choices.end());
+  int r = utils::rand_int(0, v.size()-1);
+  std::string ret = utils::rand_str(v[r]);
+  return ret;
+}
+
+InputSpec *StrType::wrap(std::string str) {
+  std::vector<std::string> list;
+  list.push_back(std::to_string(str.size()));
+  list.push_back(str);
+  std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(str.size()) + "}";
+  std::string joined = boost::algorithm::join(list, " ");
+  std::string raw = joined;
+  return new InputSpec(spec, raw);
+}
+
+std::vector<InputSpec*> StrType::GeneratePairInput() {
+  std::vector<InputSpec*> ret;
+  std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
+  for (int len : strlen_corners) {
+    std::string str = utils::rand_str(len);
+    ret.push_back(wrap(str));
+  }
+  for (int i=0;i<5;i++) {
+    ret.push_back(GenerateInput());
+  }
+  return ret;
 }
 
 

@@ -673,4 +673,5 @@ XMLNode Segment::getCallerNode(AST *ast) {
     }
   }
   assert(false);
+  return XMLNode();
 }

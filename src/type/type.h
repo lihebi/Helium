@@ -47,6 +47,17 @@ public:
   virtual std::string GetDeclCode(std::string var) = 0;
   virtual std::string GetInputCode(std::string var) = 0;
   virtual std::string GetOutputCode(std::string var) = 0;
+  // overwrite when possible!
+  // The default implementaiton is just generate multiple times
+  virtual std::vector<InputSpec*> GeneratePairInput() {
+    std::vector<InputSpec*> ret;
+    // TODO magic number
+    for (int i=0;i<10;i++) {
+      InputSpec *spec = GenerateInput();
+      ret.push_back(spec);
+    }
+    return ret;
+  }
 
   // Get the "raw" of the type, e.g. "char"
   // this is proposed for "char* xx = malloc(sizeof(char) * num)". Note that sizeof(char)
@@ -212,8 +223,11 @@ public:
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
+  virtual std::vector<InputSpec*> GeneratePairInput() override;
 protected:
 private:
+  std::string corner();
+  InputSpec* wrap(std::string s);
 };
 
 class BufType : public ArrayType {
@@ -242,8 +256,12 @@ public:
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {return "int";}
+  virtual std::vector<InputSpec*> GeneratePairInput() override;
 protected:
 private:
+  int corner();
+  // wrap value into a InputSpec
+  InputSpec *wrap(int value);
 };
 
 class CharType : public PrimitiveType {
@@ -252,10 +270,13 @@ class CharType : public PrimitiveType {
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {return "char";}
+  virtual std::vector<InputSpec*> GeneratePairInput() override;
 public:
   CharType();
   virtual ~CharType();
 private:
+  char corner();
+  InputSpec* wrap(char c);
 };
 
 class BoolType : public PrimitiveType {
@@ -293,6 +314,6 @@ private:
   Type *m_argc;
 };
 
-
+std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b);
 
 #endif /* TYPE_H */

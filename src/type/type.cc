@@ -156,3 +156,18 @@ Type *TypeFactory::CreateType(std::string str) {
 }
 
 
+/**
+ * FIXME need smart pointer!
+ */
+std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b) {
+  std::vector<std::pair<InputSpec*, InputSpec*> > ret;
+  std::vector<InputSpec*> apair = a->GeneratePairInput();
+  std::vector<InputSpec*> bpair = b->GeneratePairInput();
+  // combine
+  for (InputSpec* ain : apair) {
+    for (InputSpec *bin : bpair) {
+      ret.push_back({ain, bin});
+    }
+  }
+  return ret;
+}

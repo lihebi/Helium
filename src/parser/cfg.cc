@@ -235,7 +235,7 @@ CFG *CFGFactory::CreateCFG(ASTNode *node) {
   switch (node->Kind()) {
   case ANK_Stmt: {
     CFG *cfg = new CFG();
-    CFGNode *cfgnode = new CFGNode(node);
+    CFGNode *cfgnode = new CFGNode(cfg, node);
     cfg->AddNode(cfgnode);
     cfg->AddIn(cfgnode);
     cfg->AddOut(cfgnode);
@@ -275,7 +275,7 @@ CFG *CFGFactory::CreateCFG(ASTNode *node) {
 CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
   print_trace("CFGFactory::CreateCFGFromIf");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   cfg->AddOut(node);
@@ -319,7 +319,7 @@ CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
 CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
   print_trace("CFGFactory::CreateCFGFromFunction");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   for (ASTNode *child : astnode->Children()) {
@@ -335,7 +335,7 @@ CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
 CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
   print_trace("CFGFactory::CreateCFGFromElseIf");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   CFG *branch_cfg = new CFG();
@@ -355,7 +355,7 @@ CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
 CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
   print_trace("CFGFactory::CreateCFGFromSwitch");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   cfg->SetCond(node);
@@ -380,7 +380,7 @@ CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
 CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
   print_trace("CFGFactory::CreateCFGFromWhile");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   cfg->AddOut(node);
@@ -407,7 +407,7 @@ CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
 CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
   print_trace("CFGFactory::CreateCFGFromFor");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
   cfg->AddIn(node);
   cfg->AddOut(node);
@@ -442,7 +442,7 @@ CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
 CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
   print_trace("CFGFactory::CreateCFGFromDo");
   CFG *cfg = new CFG();
-  CFGNode *node = new CFGNode(astnode);
+  CFGNode *node = new CFGNode(cfg, astnode);
 
   CFG *body_cfg = new CFG();
   for (ASTNode *child : astnode->Children()) {
