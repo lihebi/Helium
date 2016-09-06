@@ -2,6 +2,7 @@
 #include "ast_node.h"
 #include "config/options.h"
 #include "utils/utils.h"
+#include "utils/dot.h"
 #include <iostream>
 
 
@@ -28,7 +29,7 @@ AST::AST(XMLNode node) {
   print_trace("AST::AST(ast::XMLNode node)");
   m_xmlnode = node;
   // create root, and the root will create everything else
-  m_root = ASTNodeFactory::CreateASTNode(node, NULL, this);
+  m_root = ASTNodeFactory::CreateASTNode(node, this, NULL, NULL);
   m_filename = unit_get_filename(node);
   if (!m_root) return;
   // depth-first-search to traverse(keep) all nodes
@@ -457,6 +458,28 @@ void SymbolTable::dump() {
   }
 }
 
+std::string SymbolTable::ToStringLocal() {
+  std::string ret;
+  for (auto m : m_map) {
+    // ret += m.first + ":" + m.second->GetNode()->GetLabel() + "\n";
+    // ret += m.first + ":" + m.second->GetNode()->GetLabel() + "\n";
+    SymbolTableValue *v = m.second;
+    ret += v->GetName() + " : " + v->GetType()->GetRaw() + "\n";
+    // ret += m.first + ":" + m.second->GetNode()->GetLabel() + "\n";
+  }
+  return ret;
+}
+
+std::string SymbolTable::ToString() {
+  std::string ret;
+  SymbolTable *tbl = this;
+  while (tbl) {
+    ret += tbl->ToStringLocal();
+    tbl = tbl->GetParent();
+  }
+  return ret;
+}
+
 
 AST::~AST() {
   // this will delete everyting tracked by the "children" relation from root
@@ -464,9 +487,9 @@ AST::~AST() {
     delete node;
   }
   // free the symbol tables
-  for (SymbolTable *tbl : m_sym_tbls) {
-    delete tbl;
-  }
+  // for (SymbolTable *tbl : m_sym_tbls) {
+  //   delete tbl;
+  // }
 }
 
 
@@ -623,6 +646,50 @@ std::string AST::VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan
     cyan_d_s.insert(m_idx_m[n]);
   }
   return VisualizeI(yellow_d_s, cyan_d_s, filename);
+}
+
+void AST::Visualize2(bool open) {
+  DotGraph dot;
+
+
+  // DEBUG
+  // std::cout << "going to visualize, dumping the symbol table first:"  << "\n";
+
+  // for (ASTNode *node : m_nodes) {
+  //   std::cout << node->GetLabel()  << "\n";
+  //   std::cout << node->GetSymbolTable()->ToStringLocal()  << "\n";
+  //   std::cout   << "\n";
+  // }
+
+
+  
+  
+  for (size_t i=0, size=m_nodes.size();i<size;i++) {
+    dot.AddNode(std::to_string(i), m_nodes[i]->GetLabel());
+
+    // add symbol table in the graph
+    SymbolTable *symtbl = m_nodes[i]->GetSymbolTable();
+    if (symtbl) {
+      // std::string tbl = symtbl->dump();
+      // dot.AddText(std::to_string(i), symtbl->ToString());
+      dot.AddText(std::to_string(i), symtbl->ToStringLocal());
+    } else {
+      dot.AddText(std::to_string(i), "No Sym Tbl");
+    }
+  }
+  // edges
+  for (ASTNode *node : m_nodes) {
+    std::vector<ASTNode*> children = node->Children();
+    // std::cout <<children.size()  << "\n";
+    for (ASTNode* ch : children) {
+      size_t from = m_idx_m[node];
+      size_t to = m_idx_m[ch];
+      dot.AddEdge(std::to_string(from), std::to_string(to));
+    }
+  }
+  std::string dotcode = dot.dump();
+  std::string path = utils::visualize_dot_graph(dotcode, open);
+  std::cout << "AST written to " << path  << "\n";
 }
 
 std::string AST::VisualizeSlice(std::string filename) {

@@ -55,26 +55,19 @@ void ast_dfs(ASTNode *root, std::vector<ASTNode*> &visited);
 
 class ASTNodeFactory {
 public:
-  static ASTNode* CreateASTNode(XMLNode xml_node, ASTNode *parent, AST *ast);
+  static ASTNode* CreateASTNode(XMLNode xml_node, AST *ast, ASTNode *parent, ASTNode *prev);
 };
 
 class ASTNode {
 public:
   typedef std::vector<ASTNode*>::iterator iterator;
-  ASTNode() {}
+  ASTNode(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual ~ASTNode() {}
   virtual ASTNodeKind Kind() = 0;
   /**
    * Default behavior: create under parent symbol table
    */
-  virtual void CreateSymbolTable() {
-    if (m_parent == NULL) {
-      // this is root, create the default symbol table.
-      m_sym_tbl = m_ast->CreateSymTbl(NULL);
-    } else {
-      m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
-    }
-  }
+  virtual void CreateSymbolTable() {}
   /**
    * Label is the string appear on the visualization dot graph.
    * E.g. for 'while', 'if', it is the name; for a single statement, it is the statement itself.
@@ -219,10 +212,12 @@ protected:
 
     
   XMLNode m_xmlnode;
+  AST *m_ast = NULL;
   ASTNode *m_parent = NULL;
+  ASTNode *m_prev = NULL;
+  
   std::vector<ASTNode*> m_children;
   // int m_index;
-  AST *m_ast;
   SymbolTable *m_sym_tbl = NULL;
   // I'm not using these two fields because I need to initialize them in every Node class
   // Instead, the GetBeginLinum and GetEndLinum will compute them on-the-fly
@@ -283,7 +278,7 @@ public:
 // function
 class Function : public ASTNode {
 public:
-  Function(XMLNode n, ASTNode* parent, AST *ast);
+  Function(XMLNode n, AST *ast, ASTNode* parent, ASTNode *prev);
   ~Function();
   virtual ASTNodeKind Kind() override {return ANK_Function;}
   virtual std::string GetLabel() override;
@@ -301,7 +296,7 @@ private:
 
 class Stmt : public ASTNode {
 public:
-  Stmt(XMLNode, ASTNode* parent, AST *ast);
+  Stmt(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual ~Stmt();
   ASTNodeKind Kind() override {return ANK_Stmt;}
   virtual void GetCode(std::set<ASTNode*> nodes,
@@ -329,7 +324,7 @@ private:
 
 class Block : public ASTNode {
 public:
-  Block(XMLNode, ASTNode* parent, AST *ast);
+  Block(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~Block() {}
   ASTNodeKind Kind() override {return ANK_Block;}
   virtual void GetCode(std::set<ASTNode*> nodes,
@@ -342,7 +337,7 @@ private:
 class If : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_If;}
-  If(XMLNode xmlnode, ASTNode* parent, AST *ast);
+  If(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~If() {}
   XMLNode GetCondition() override {return m_cond;}
   Then* GetThen() {return m_then;}
@@ -370,7 +365,7 @@ private:
 class Else : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Else;}
-  Else(XMLNode, ASTNode* parent, AST *ast);
+  Else(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~Else() {}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
@@ -381,7 +376,7 @@ private:
 class ElseIf : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_ElseIf;}
-  ElseIf(XMLNode, ASTNode* parent, AST *ast);
+  ElseIf(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   XMLNode GetCondition() override {return m_cond;}
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
@@ -400,7 +395,7 @@ private:
 class Then : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Then;}
-  Then(XMLNode, ASTNode* parent, AST *ast);
+  Then(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override {return "Then";}
@@ -414,7 +409,7 @@ private:
 class Switch : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Switch;}
-  Switch(XMLNode, ASTNode* parent, AST *ast);
+  Switch(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~Switch() {}
   XMLNode GetCondition() override {return m_cond;}
   std::vector<Case*> GetCases() {return m_cases;}
@@ -434,22 +429,20 @@ private:
 class Case : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Case;}
-  Case(XMLNode, ASTNode* parent, AST *ast);
+  Case(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override;
-  virtual void CreateSymbolTable() override;
 private:
   XMLNode m_cond;
 };
 class Default : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Default;}
-  Default(XMLNode, ASTNode* parent, AST *ast);
+  Default(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override {return "Default";}
-  virtual void CreateSymbolTable() override;
 private:
 };
 
@@ -457,7 +450,7 @@ private:
 class For : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_For;}
-  For(XMLNode, ASTNode* parent, AST *ast);
+  For(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~For();
   XMLNodeList GetInits() {return m_inits;}
   XMLNode GetCondition() override {return m_cond;}
@@ -478,7 +471,7 @@ private:
 class While : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_While;}
-  While(XMLNode, ASTNode* parent, AST *ast);
+  While(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~While() {}
   XMLNode GetCondition() override {return m_cond;}
   virtual void GetCode(std::set<ASTNode*> nodes,
@@ -496,7 +489,7 @@ private:
 class Do : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Do;}
-  Do(XMLNode, ASTNode* parent, AST *ast);
+  Do(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   ~Do() {}
   XMLNode GetCondition() override {return m_cond;}
   virtual void GetCode(std::set<ASTNode*> nodes,
@@ -515,7 +508,7 @@ private:
 class ASTOther : public ASTNode {
 public:
   ASTNodeKind Kind() override {return ANK_Other;}
-  ASTOther(XMLNode, ASTNode* parent, AST *ast);
+  ASTOther(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
   virtual void GetCode(std::set<ASTNode*> nodes,
                        std::string &ret, bool all) override;
   virtual std::string GetLabel() override {return "Other";}

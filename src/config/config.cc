@@ -90,8 +90,8 @@ bool Config::GetBool(std::string name) {
   if (res == "true") return true;
   else if (res == "false") return false;
   else {
-    std::cout << "error: " << name << " is not a boolean value in config file."  << "\n";
-    assert(false);
+    std::cout << "EE: " << name << " is not a boolean value in config file."  << "\n";
+    exit(1);
   }
 }
 
@@ -124,8 +124,8 @@ int Config::GetInt(std::string name) {
  * For all the keys in config file, check if it is also specified in args.
  * If yes, substitute the value.
  */
-void Config::Overwrite(ArgParser &args) {
-  std::string conf_str = args.GetString("conf");
+void Config::Overwrite() {
+  std::string conf_str = ArgParser::Instance()->GetString("conf");
   /**
    * The format of conf:
    * --conf="test-number=10, run-test=,xxx"

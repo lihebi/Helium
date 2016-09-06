@@ -1,8 +1,9 @@
-#include "ast_node.h"
-#include "ast_common.h"
+#include "parser/ast_node.h"
+#include "parser/ast_common.h"
 #include "utils/log.h"
 
-For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+For::For(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- FOR" << "\n";
   #endif
@@ -12,23 +13,31 @@ For::For(XMLNode xmlnode, ASTNode* parent, AST *ast) {
   m_cond = for_get_condition_expr(xmlnode);
   m_incr = for_get_incr_expr(xmlnode);
   m_inits = for_get_init_decls_or_exprs(xmlnode);
+  m_prev = prev;
+
+
+  CreateSymbolTable();
+
+  prev = NULL;
   XMLNode blk_n = for_get_block(xmlnode);
   for (XMLNode node : block_get_nodes(blk_n)) {
-    ASTNode *n  = ASTNodeFactory::CreateASTNode(node, this, ast);
+    ASTNode *n  = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
     if (n) {m_children.push_back(n);}
+    prev = n;
   }
 }
 
 void For::CreateSymbolTable() {
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
-  }
+  // if (m_parent == NULL) {
+  //   // this is root, create the default symbol table.
+  //   m_sym_tbl = m_ast->CreateSymTbl(NULL);
+  // } else {
+  //   m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
+  // }
   /**
    * Push the symbol table
    */
+  // FIXME should not push
   for (XMLNode init : m_inits) {
     if (xmlnode_to_kind(init) == NK_Decl) {
       Decl *decl = DeclFactory::CreateDecl(init);

@@ -1,17 +1,20 @@
-#include "ast_node.h"
+#include "parser/ast_node.h"
 #include "utils/log.h"
 
-While::While(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+While::While(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- WHILE" << "\n";
   #endif
   m_xmlnode = xmlnode;
   m_parent = parent;
+  m_prev = prev;
   m_ast = ast;
+
   XMLNode blk = while_get_block(xmlnode);
-  // m_blk = new Block(blk_node, this, ast);
+  // m_blk = new Block(blk_node, ast, this, prev);
   for (XMLNode node : block_get_nodes(blk)) {
-    ASTNode *n = ASTNodeFactory::CreateASTNode(node, this, ast);
+    ASTNode *n = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
     if (n) m_children.push_back(n);
   }
   m_cond = while_get_condition_expr(xmlnode);

@@ -109,6 +109,14 @@ void Query::ResolveInput() {
   // TODO should we supply input when necessary? Based on the output instrumentation during run time?
   m_inputs.clear();
   CFG *cfg = m_new->GetCFG();
+
+
+  // DEBUG
+  // AST *ast = m_new->GetASTNode()->GetAST();
+  // ast->Visualize2();
+
+
+  
   // ASTNode *astnode = m_new->GetASTNode();
   // AST *ast = astnode->GetAST();
   std::set<ASTNode*> first_astnodes;
@@ -120,12 +128,12 @@ void Query::ResolveInput() {
   // std::map<std::string, Type*> inputs;
   for (ASTNode *astnode : first_astnodes) {
     std::set<std::string> ids = astnode->GetVarIds();
+    // astnode->GetAST()->Visualize2();
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
-      std::cout << id  << "\n";
+      // std::cout << id  << "\n";
       SymbolTable *tbl = astnode->GetSymbolTable();
-      tbl->dump();
       SymbolTableValue *st_value = tbl->LookUp(id);
       if (st_value) {
         if (first_astnodes.count(st_value->GetNode()) == 0) {

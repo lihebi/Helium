@@ -57,20 +57,20 @@ Helium::Helium(int argc, char* argv[]) {
   /* load HELIUM_HOME */
   std::string helium_home = load_helium_home();
   /* parse arguments */
-  ArgParser args(argc, argv);
+  ArgParser::Instance()->Set(argc, argv);
 
   /* load config */
   Config::Instance()->ParseFile(helium_home+"/helium.conf");
-  Config::Instance()->Overwrite(args);
-  if (args.Has("print-config")) {
+  Config::Instance()->Overwrite();
+  if (ArgParser::Instance()->Has("print-config")) {
     std::cout << Config::Instance()->ToString() << "\n";
     exit(0);
   }
 
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
 
-  if (args.Has("resolve-system-type")) {
-    std::string type = args.GetString("resolve-system-type");
+  if (ArgParser::Instance()->Has("resolve-system-type")) {
+    std::string type = ArgParser::Instance()->GetString("resolve-system-type");
     std::string output = SystemResolver::Instance()->ResolveType(type);
     std::cout << output  << "\n";
     exit(0);
@@ -78,9 +78,9 @@ Helium::Helium(int argc, char* argv[]) {
 
 
   // target folder
-  m_folder = args.GetString("folder");
+  m_folder = ArgParser::Instance()->GetString("folder");
   if (m_folder.empty()) {
-    args.PrintHelp();
+    ArgParser::Instance()->PrintHelp();
     exit(1);
   }
   if (utils::is_dir(m_folder)) {
@@ -94,22 +94,22 @@ Helium::Helium(int argc, char* argv[]) {
   /*******************************
    ** utilities
    *******************************/
-  if (args.Has("create-tagfile")) {
-    std::string output_file = args.GetString("output");
+  if (ArgParser::Instance()->Has("create-tagfile")) {
+    std::string output_file = ArgParser::Instance()->GetString("output");
     if (output_file.empty()) output_file = "tags";
     create_tagfile(m_folder, output_file);
     exit(0);
   }
 
-  if (args.Has("create-snippet-db")) {
+  if (ArgParser::Instance()->Has("create-snippet-db")) {
     std::string output_folder;
-    if (args.Has("output")) {
-      output_folder = args.GetString("output");
+    if (ArgParser::Instance()->Has("output")) {
+      output_folder = ArgParser::Instance()->GetString("output");
     }
     if (output_folder.empty()) output_folder = "snippets";
     std::string tagfile;
-    if (args.Has("tagfile")) {
-      tagfile = args.GetString("tagfile");
+    if (ArgParser::Instance()->Has("tagfile")) {
+      tagfile = ArgParser::Instance()->GetString("tagfile");
     }
     std::string tmpdir = utils::create_tmp_dir();
     create_tagfile(m_folder, tmpdir+"/tags");
@@ -118,13 +118,13 @@ Helium::Helium(int argc, char* argv[]) {
     SnippetDB::Instance()->Create(tagfile, output_folder);
     exit(0);
   }
-  // if (args.Has("print-header-deps")) {
+  // if (ArgParser::Instance()->Has("print-header-deps")) {
   //   HeaderResolver::Instance()->Load(m_folder);
   //   HeaderResolver::Instance()->Dump();
   //   exit(0);
   // }
 
-  if (args.Has("print-ast")) {
+  if (ArgParser::Instance()->Has("print-ast")) {
     if (!utils::file_exists(m_folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -138,7 +138,7 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
-  if (args.Has("print-cfg")) {
+  if (ArgParser::Instance()->Has("print-cfg")) {
     if (!utils::file_exists(m_folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -156,7 +156,7 @@ Helium::Helium(int argc, char* argv[]) {
   }
   
   /* load tag file */
-  std::string tagfile = args.GetString("tagfile");
+  std::string tagfile = ArgParser::Instance()->GetString("tagfile");
   if (tagfile.empty()) {
     // ctags_load(m_folder + "/tags");
     // create tagfile
@@ -172,15 +172,23 @@ Helium::Helium(int argc, char* argv[]) {
     ctags_load(tagfile);
   }
 
-  std::string snippet_db_folder = args.GetString("snippet-db-folder");
+  std::string snippet_db_folder = ArgParser::Instance()->GetString("snippet-db-folder");
   if (snippet_db_folder.empty()) {
-    std::cerr << "snippet database folder unset. Please use --snippet-db-folder option. --help for more details." << "\n";
-    assert(false);
+    if (ArgParser::Instance()->Has("verbose")) {
+      // std::cerr << "snippet database folder unset. Please use --snippet-db-folder option. --help for more details." << "\n";
+      std::cout << "Using default snippet folder: './snippets/'. If not desired, set via '-s' option."  << "\n";
+    }
+    snippet_db_folder = "snippets";
+    // assert(false);
+  }
+  if (!utils::exists(snippet_db_folder)) {
+    std::cout << "EE: Snippet folder " << snippet_db_folder << " does not exist."  << "\n";
+    exit(1);
   }
   SnippetDB::Instance()->Load(snippet_db_folder);
 
 
-  if (args.Has("print-callgraph")) {
+  if (ArgParser::Instance()->Has("print-callgraph")) {
     SnippetDB::Instance()->PrintCG();
     exit(0);
   }
@@ -188,10 +196,22 @@ Helium::Helium(int argc, char* argv[]) {
   
 
   // HeaderResolver::Instance()->Load(m_folder);
-  std::string src_folder = args.GetString("src-folder");
+  std::string src_folder = ArgParser::Instance()->GetString("src-folder");
+
+
+  if (src_folder.empty()) {
+    if (ArgParser::Instance()->Has("verbose")) {
+      std::cerr << "Using default src folder: 'src'. If not desired, set via '-c' option."  << "\n";
+    }
+    src_folder = "src";
+  }
+  if (!utils::exists(src_folder)) {
+    std::cerr << "EE: src folder " << src_folder << " does not exist."  << "\n";
+    exit(1);
+  }
+  
   HeaderResolver::Instance()->Load(src_folder);
   /* load system tag file */
-  assert(!src_folder.empty());
 
 
   /**
@@ -200,7 +220,7 @@ Helium::Helium(int argc, char* argv[]) {
    * 1. headers used
    * 2. header dependence
    */
-  if (args.Has("print-meta")) {
+  if (ArgParser::Instance()->Has("print-meta")) {
     std::cout << "== Helium Meta Data Printer =="  << "\n";
     std::cout << "== Headers"  << "\n";
     // 0
@@ -247,7 +267,7 @@ Helium::Helium(int argc, char* argv[]) {
    ** More advanced utils(needs to run some functionality of Helium)
    *******************************/
 
-  if (args.Has("print-segments")) {
+  if (ArgParser::Instance()->Has("print-segments")) {
     assert(false);
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
@@ -256,7 +276,7 @@ Helium::Helium(int argc, char* argv[]) {
     }
     exit(0);
   }
-  if (args.Has("print-segment-info")) {
+  if (ArgParser::Instance()->Has("print-segment-info")) {
     assert(false);
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       Reader reader(*it);
@@ -266,9 +286,9 @@ Helium::Helium(int argc, char* argv[]) {
     exit(0);
   }
 
-  // if (args.Has("slice")) {
+  // if (ArgParser::Instance()->Has("slice")) {
   //   // use slicing as code selection method
-  //   std::string slice_file = args.GetString("slice");
+  //   std::string slice_file = ArgParser::Instance()->GetString("slice");
   //   Reader::slice(slice_file, m_folder);
   //   std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
   //   exit(0);
@@ -277,19 +297,21 @@ Helium::Helium(int argc, char* argv[]) {
   /**
    * TODO so many singletons are good practice? Maybe I need to make the Helium class singleton and accessible, and make these singletons its fields.
    */
-  if (args.Has("slice-file")) {
-    std::string slice_file = args.GetString("slice-file");
+  if (ArgParser::Instance()->Has("slice-file")) {
+    std::string slice_file = ArgParser::Instance()->GetString("slice-file");
     SimpleSlice::Instance()->SetSliceFile(slice_file);
   }
 
-  if (args.Has("poi")) {
-    m_poi_file = args.GetString("poi");
+  if (ArgParser::Instance()->Has("poi")) {
+    m_poi_file = ArgParser::Instance()->GetString("poi");
+  } else if (ArgParser::Instance()->Has("whole-poi")) {
+    m_whole_poi = ArgParser::Instance()->GetString("whole-poi");
+  } else {
+    std::cerr << "EE: You should provide POI file."  << "\n";
+    exit(1);
   }
-  if (args.Has("whole-poi")) {
-    m_whole_poi = args.GetString("whole-poi");
-  }
-  if (args.Has("benchmark")) {
-    m_benchmark = args.GetString("benchmark");
+  if (ArgParser::Instance()->Has("benchmark")) {
+    m_benchmark = ArgParser::Instance()->GetString("benchmark");
   }
 }
 Helium::~Helium() {}

@@ -1,17 +1,20 @@
-#include "ast_node.h"
+#include "parser/ast_node.h"
 #include "utils/log.h"
 
-Do::Do(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+Do::Do(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- DO" << "\n";
   #endif
   m_xmlnode = xmlnode;
   m_parent = parent;
   m_ast = ast;
+  m_prev = prev;
   m_cond = while_get_condition_expr(xmlnode);
+
   XMLNode blk_node = while_get_block(xmlnode);
   for (XMLNode node : block_get_nodes(blk_node)) {
-    ASTNode *n  = ASTNodeFactory::CreateASTNode(node, this, ast);
+    ASTNode *n  = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
     if (n) {m_children.push_back(n);}
   }
   // m_blk = new Block(blk_node, this, ast);

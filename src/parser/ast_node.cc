@@ -3,6 +3,26 @@
 #include "utils/utils.h"
 #include "config/options.h"
 
+
+ASTNode::ASTNode(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : m_xmlnode(xmlnode), m_ast(ast),  m_parent(parent), m_prev(prev) {
+  // FIXME will this run everytime a subclass create?
+  if (m_prev) {
+    // extend this symbol table
+    // this does not work for:
+    // int a;
+    // {
+    //   stmt1; // will point to the second a
+    //   int a; // again
+    // }
+    m_sym_tbl = m_prev->GetSymbolTable();
+  } else if (m_parent && m_parent->GetSymbolTable()) {
+    m_sym_tbl = new SymbolTable(*m_parent->GetSymbolTable()); // m_ast->CreateSymTbl(m_parent->GetSymbolTable());
+  } else {
+    m_sym_tbl = new SymbolTable(NULL);
+  }
+}
+
 static const std::map<XMLNodeKind, ASTNodeKind> nk2ank_m {
   {NK_Function, ANK_Function}
   , {NK_Block, ANK_Block}
@@ -86,22 +106,25 @@ std::string ASTNode::FreedListCode() {
 }
 
 
-ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *ast) {
+ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, AST *ast, ASTNode* parent, ASTNode *prev) {
+  print_trace("ASTNodeFactory::CreateASTNode");
   XMLNodeKind nk = xmlnode_to_kind(xml_node);
   ASTNode *ret = NULL;
   ASTNodeKind ank;
+  
   ank = xmlnode_kind_to_astnode_kind(nk);
+  
   switch (ank) {
   case ANK_Function: {
-    ret = new Function(xml_node, parent, ast);
+    ret = new Function(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Block: {
-    ret = new Block(xml_node, parent, ast);
+    ret = new Block(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Stmt: {
-    ret = new Stmt(xml_node, parent, ast);
+    ret = new Stmt(xml_node, ast, parent, prev);
     break;
   }
   // case ANK_Expr: {
@@ -109,43 +132,43 @@ ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, ASTNode* parent, AST *a
   //   break;
   // }
   case ANK_If: {
-    ret = new If(xml_node, parent, ast);
+    ret = new If(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Then: {
-    ret = new Then(xml_node, parent, ast);
+    ret = new Then(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Else: {
-    ret = new Else(xml_node, parent, ast);
+    ret = new Else(xml_node, ast, parent, prev);
     break;
   }
   case ANK_ElseIf: {
-    ret = new ElseIf(xml_node, parent, ast);
+    ret = new ElseIf(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Switch: {
-    ret = new Switch(xml_node, parent, ast);
+    ret = new Switch(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Case: {
-    ret = new Case(xml_node, parent, ast);
+    ret = new Case(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Default: {
-    ret = new Default(xml_node, parent, ast);
+    ret = new Default(xml_node, ast, parent, prev);
     break;
   }
   case ANK_While: {
-    ret = new While(xml_node, parent, ast);
+    ret = new While(xml_node, ast, parent, prev);
     break;
   }
   case ANK_For: {
-    ret = new For(xml_node, parent, ast);
+    ret = new For(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Do: {
-    ret = new Do(xml_node, parent, ast);
+    ret = new Do(xml_node, ast, parent, prev);
     break;
   }
   case ANK_Other: {

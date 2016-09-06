@@ -1,28 +1,31 @@
-#include "ast_node.h"
+#include "parser/ast_node.h"
 #include "utils/log.h"
 
-If::If(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+If::If(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- IF" << "\n";
   #endif
   m_xmlnode = xmlnode;
   m_parent = parent;
+  m_prev = prev;
   m_ast = ast;
   m_cond = if_get_condition_expr(xmlnode);
+
   XMLNode then_node = if_get_then(xmlnode);
   XMLNode else_node = if_get_else(xmlnode);
   XMLNodeList nodes = if_get_elseifs(xmlnode);
   if (then_node) {
-    m_then = new Then(then_node, this, ast);
+    m_then = new Then(then_node, ast, this, NULL);
     m_children.push_back(m_then);
   }
   for (XMLNode node : nodes) {
-    ElseIf *anode = new ElseIf(node, this, ast);
+    ElseIf *anode = new ElseIf(node, ast, this, NULL);
     m_elseifs.push_back(anode);
   }
   m_children.insert(m_children.end(), m_elseifs.begin(), m_elseifs.end());
   if (else_node) {
-    m_else = new Else(else_node, this, ast);
+    m_else = new Else(else_node, ast, this, NULL);
     m_children.push_back(m_else);
   }
 }
@@ -57,16 +60,19 @@ std::string If::GetLabel() {
 }
 
 
-Then::Then(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+Then::Then(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
  #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- THEN" << "\n";
   #endif
   m_parent = parent;
+  m_prev = prev;
   m_xmlnode = xmlnode;
   m_ast = ast;
+
   XMLNode blk_node = then_get_block(xmlnode);
   for (XMLNode child : block_get_nodes(blk_node)) {
-    ASTNode *node = ASTNodeFactory::CreateASTNode(child, this, m_ast);
+    ASTNode *node = ASTNodeFactory::CreateASTNode(child, m_ast, this, NULL);
     if (node) {
       m_children.push_back(node);
     }
@@ -88,16 +94,19 @@ void Then::GetCode(std::set<ASTNode*> nodes,
   ret += "}\n";
 }
 
-Else::Else(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+Else::Else(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
  #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- ELSE" << "\n";
   #endif
-   m_parent = parent;
+  m_parent = parent;
+  m_prev = prev;
   m_xmlnode = xmlnode;
   m_ast = ast;
+
   XMLNode blk = else_get_block(xmlnode);
   for (XMLNode n : block_get_nodes(blk)) {
-    ASTNode *node = ASTNodeFactory::CreateASTNode(n, this, m_ast);
+    ASTNode *node = ASTNodeFactory::CreateASTNode(n, m_ast, this, NULL);
     if (node) {m_children.push_back(node);}
   }
 }
@@ -116,17 +125,20 @@ void Else::GetCode(std::set<ASTNode*> nodes,
   }
 }
 
-ElseIf::ElseIf(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+ElseIf::ElseIf(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
  #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- ELSEIF" << "\n";
   #endif
-   m_parent = parent;
+  m_parent = parent;
+  m_prev = prev;
   m_xmlnode = xmlnode;
   m_ast = ast;
   m_cond = elseif_get_condition_expr(xmlnode);
+
   XMLNode blk = elseif_get_block(xmlnode);
   for (XMLNode n : block_get_nodes(blk)) {
-    ASTNode *node = ASTNodeFactory::CreateASTNode(n, this, m_ast);
+    ASTNode *node = ASTNodeFactory::CreateASTNode(n, m_ast, this, NULL);
     if (node) {m_children.push_back(node);}
   }
 }

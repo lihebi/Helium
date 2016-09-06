@@ -19,7 +19,7 @@ public:
   /* parsing */
   void ParseFile(std::string filename);
   void ParseString(std::string s);
-  void Overwrite(ArgParser &args);
+  void Overwrite();
   /* querying */
   std::string GetString(std::string name);
   int GetInt(std::string name);

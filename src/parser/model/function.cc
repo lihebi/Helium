@@ -1,26 +1,39 @@
-#include "ast_node.h"
+#include "parser/ast_node.h"
 #include "utils/log.h"
+#include <iostream>
+#include "config/options.h"
 
-Function::Function(XMLNode xmlnode, ASTNode *parent, AST *ast) {
+Function::Function(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
+  print_trace("Function::Function");
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Function" << "\n";
   #endif
+
+
+  
   m_xmlnode = xmlnode;
   m_parent = parent;
+  m_prev = prev;
   m_ast = ast;
-  // m_ret_ty = xmlnode.child("type").child_value("name"); // function_get_return_type(xmlnode);
   // FIXME return static specifier
   m_ret_ty = function_get_return_type(xmlnode);
   m_name = xmlnode.child_value("name"); // function_get_name(xmlnode);
+
+
+  CreateSymbolTable();
+  
   // constructnig children
   XMLNode blk_n = xmlnode.child("block"); // function_get_block(xmlnode);
-  // m_blk = new Block(blk_n, this, ast);
+  // m_blk = new Block(blk_n, ast, this, prev);
   XMLNodeList nodes = block_get_nodes(blk_n);
+  prev = NULL;
   for (XMLNode node : nodes) {
-    ASTNode *anode = ASTNodeFactory::CreateASTNode(node, this, ast);
+    ASTNode *anode = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
     if (anode) {
       m_children.push_back(anode);
     }
+    prev = anode;
   }
   // m_children.push_back(m_blk);
 }
@@ -36,18 +49,20 @@ void Function::CreateSymbolTable() {
       helium_log_warning("Function::Function param is NULL");
     }
   }
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
-  }
+  // if (m_parent == NULL) {
+  //   // this is root, create the default symbol table.
+  //   m_sym_tbl = m_ast->CreateSymTbl(NULL);
+  // } else {
+  //   m_sym_tbl = m_ast->CreateSymTbl(m_parent->GetSymbolTable());
+  // }
   /**
    * Push the symbol table
    */
+  // std::cout << "function before adding: " << m_sym_tbl->ToStringLocal()  << "\n";
   for (Decl *decl : m_params) {
     m_sym_tbl->AddSymbol(decl->GetName(), decl->GetType(), this);
   }
+  // std::cout << "function after adding: " << m_sym_tbl->ToStringLocal()  << "\n";
 }
 
 Function::~Function() {

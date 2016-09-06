@@ -95,6 +95,7 @@ public:
     if (m_map.count(key) == 1) return m_map[key];
     else return NULL;
   }
+
   /**
    * key is name of the variable(symbol)
    */
@@ -107,6 +108,8 @@ public:
   }
   void dump();
   void local_dump();
+  std::string ToString();
+  std::string ToStringLocal();
 private:
   SymbolTable *m_parent = NULL;
   std::map<std::string, SymbolTableValue*> m_map;
@@ -160,6 +163,10 @@ public:
   std::string VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::string filename="out");
   std::string VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan_s, std::string filename="out");
   std::string VisualizeSlice(std::string filename="out");
+
+  void Visualize2(bool open=true);
+
+  
   /**
    * Code
    */
@@ -304,11 +311,11 @@ public:
    * TODO This is the only place to create a symbol table.
    * Consider some technique to enforce it.
    */
-  SymbolTable *CreateSymTbl(SymbolTable *parent) {
-    SymbolTable *ret = new SymbolTable(parent);
-    m_sym_tbls.push_back(ret);
-    return ret;
-  }
+  // SymbolTable *CreateSymTbl(SymbolTable *parent) {
+  //   SymbolTable *ret = new SymbolTable(parent);
+  //   m_sym_tbls.push_back(ret);
+  //   return ret;
+  // }
   ASTNode* GetNodeByIndex(size_t idx) {
     if (idx >= m_nodes.size()) return NULL;
     return m_nodes[idx];
@@ -388,7 +395,7 @@ private:
   std::vector<ASTNode*> m_nodes;
   std::map<ASTNode*, int> m_idx_m;
   std::map<XMLNode, ASTNode*> m_xmlnode_m;
-  std::vector<SymbolTable*> m_sym_tbls; // just a storage
+  // std::vector<SymbolTable*> m_sym_tbls; // just a storage
   // from the decl node to the variable needed to be declared
   std::map<ASTNode*, std::set<std::string> > m_decl_input_m;
   // do not need input

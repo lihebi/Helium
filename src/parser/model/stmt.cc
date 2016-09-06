@@ -1,14 +1,19 @@
-#include "ast_node.h"
-#include "ast_common.h"
+#include "parser/ast_node.h"
+#include "parser/ast_common.h"
 #include "utils/log.h"
 
-Stmt::Stmt(XMLNode xmlnode, ASTNode* parent, AST *ast) {
+Stmt::Stmt(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Stmt" << "\n";
   #endif
   m_xmlnode = xmlnode;
   m_parent = parent;
+  m_prev = prev;
   m_ast = ast;
+
+  
+  CreateSymbolTable();
 }
 
 Stmt::~Stmt() {
@@ -18,12 +23,13 @@ Stmt::~Stmt() {
 }
 
 void Stmt::CreateSymbolTable() {
-  if (m_parent == NULL) {
-    // this is root, create the default symbol table.
-    m_sym_tbl = m_ast->CreateSymTbl(NULL);
-  } else {
-    m_sym_tbl = m_parent->GetSymbolTable();
-  }
+  // if (m_parent == NULL) {
+  //   // this is root, create the default symbol table.
+  //   m_sym_tbl = m_ast->CreateSymTbl(NULL);
+  // } else {
+  //   m_sym_tbl = m_parent->GetSymbolTable();
+  // }
+  // m_sym_tbl = m_ast->CreateSymTbl(NULL);
   /**
    * push the symbol table
    */

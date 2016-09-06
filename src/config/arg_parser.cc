@@ -5,17 +5,20 @@
 
 #include <gtest/gtest.h>
 
+ArgParser *ArgParser::m_instance = NULL;
+
 /*******************************
  ** ArgParser
  *******************************/
 
-ArgParser::ArgParser(int argc, char* argv[])
+void ArgParser::Set(int argc, char* argv[])
 {
   // create options_description
   po::options_description options("Arguments");
   // add options to it
   options.add_options()
     ("help,h", "produce help message") // --help, -h
+    ("verbose,v", "verbose mode")
     ("config,f", po::value<std::string>(), "config file")
     ("poi", po::value<std::string>(), "poi file")
     // The following two must be together
@@ -24,7 +27,6 @@ ArgParser::ArgParser(int argc, char* argv[])
     ("tagfile,t", po::value<std::string>(), "tag file")
     ("snippet-db-folder,s", po::value<std::string>(), "snippet database folder")
     ("src-folder,c", po::value<std::string>(), "source file folder (not orig)")
-    ("verbose,v", "verbose output")
     ("output,o", po::value<std::string>(), "output location")
     ("conf", po::value<std::string>(), "key=value pair of configure to owerwrite items in helium.conf")
     /**
@@ -119,8 +121,6 @@ ArgParser::ArgParser(int argc, char* argv[])
   PrintOption::Instance()->Load(GetString("print"));
   DebugOption::Instance()->Load(GetString("debug"));
 }
-
-ArgParser::~ArgParser() {}
 
 void ArgParser::PrintHelp() {
   if (Has("print") && GetString("print").empty()) {
