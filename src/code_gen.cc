@@ -6,6 +6,8 @@
 #include "config/options.h"
 #include "config/config.h"
 
+#include <iostream>
+
 std::string CodeGen::GetMain() {
   std::string ret;
   ret += get_header();
@@ -33,7 +35,9 @@ std::string CodeGen::GetMain() {
         main_func += t->GetInputCode(var);
       }
 
-      
+
+      main_func += "// " + ast->GetFunctionName() + "\n";
+      main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
       std::string code = ast->GetCode(nodes);
       ast->ClearDecl();
       // modify the code, specifically change all return statement to return 35;
@@ -43,7 +47,14 @@ std::string CodeGen::GetMain() {
       main_func += "};\n";
     } else {
       std::string code = ast->GetCode(nodes);
+      // for (ASTNode *node : nodes) {
+      //   if (!ast->Contains(node)) {
+      //     std::cout << "not contain!!!"  << "\n";
+      //   }
+      // }
       ast->ClearDecl();
+      other_func += "// " + ast->GetFunctionName() + "\n";
+      other_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
       other_func += code;
       other_func += "\n";
     }

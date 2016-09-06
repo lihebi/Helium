@@ -86,11 +86,14 @@ void Then::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   // For a then block, even if it is not selected, we need to have braces to make it compile
   ret += "{\n";
-  if (selected) {
+  ret += "// then block\n";
+  // if (selected) {
+    // ret += "// selected\n";
     for (ASTNode *n : m_children) {
+      // ret += "// child\n";
       n->GetCode(nodes, ret, all);
     }
-  }
+  // }
   ret += "}\n";
 }
 

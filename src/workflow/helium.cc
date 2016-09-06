@@ -133,7 +133,7 @@ Helium::Helium(int argc, char* argv[]) {
     XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
     for (XMLNode func : func_nodes) {
       AST ast(func);
-      ast.Visualize();
+      ast.Visualize2();
     }
     exit(0);
   }

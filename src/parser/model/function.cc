@@ -32,8 +32,8 @@ Function::Function(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
     ASTNode *anode = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
     if (anode) {
       m_children.push_back(anode);
+      prev = anode;
     }
-    prev = anode;
   }
   // m_children.push_back(m_blk);
 }

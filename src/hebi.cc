@@ -112,8 +112,10 @@ void Query::ResolveInput() {
   // CFG *cfg = m_new->GetCFG();
 
 
+  AST *ast = m_new->GetASTNode()->GetAST();
+
+
   // DEBUG
-  // AST *ast = m_new->GetASTNode()->GetAST();
   // ast->Visualize2();
 
 
@@ -122,7 +124,6 @@ void Query::ResolveInput() {
   // AST *ast = astnode->GetAST();
   std::set<ASTNode*> first_astnodes;
   // std::cout << "cfgnode size: " << m_nodes.size()  << "\n";
-  AST *ast = m_new->GetASTNode()->GetAST();
   for (CFGNode *cfgnode : m_nodes) {
     /// FIXME cfg is not consistent!
     // if (cfg->Contains(cfgnode)) {
@@ -141,7 +142,7 @@ void Query::ResolveInput() {
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
-      // std::cout << "  " << id  << "\n";
+      std::cout << "  " << id  << "\n";
       SymbolTable *tbl = astnode->GetSymbolTable();
       SymbolTableValue *st_value = tbl->LookUp(id);
       if (st_value) {
@@ -208,6 +209,9 @@ void process(ASTNode *node) {
     // visulize Q?
     // query->Visualize();
 
+
+    // query->Complete();
+
     query->ResolveInput();
     // std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
     // std::vector<Variable> invs = get_input_variables(first_function_nodes);
@@ -228,6 +232,7 @@ void process(ASTNode *node) {
       std::string executable = builder.GetExecutable();
     } else {
       utils::print("compile error\n", utils::CK_Red);
+      query->Visualize();
     }
     // std::string executable = write_and_compile(code);
     
