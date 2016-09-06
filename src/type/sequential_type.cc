@@ -3,7 +3,9 @@
 #include "type_helper.h"
 #include "utils/utils.h"
 #include "config/config.h"
+#include "config/options.h"
 #include "corner.h"
+#include <iostream>
 
 /**
  * char aaa[5]
@@ -67,6 +69,7 @@ std::string ArrayType::GetOutputCode(std::string var) {
 }
 
 InputSpec *ArrayType::GenerateInput() {
+  print_trace("ArrayType::GenerateInput");
   InputSpec *spec = NULL;
   if (!m_contained_type) {
     helium_log_warning("ArrayType::GetOutputCode with no contained type");
@@ -137,6 +140,7 @@ std::string PointerType::GetOutputCode(std::string var) {
 }
 
 InputSpec *PointerType::GenerateInput() {
+  print_trace("PointerType::GenerateInput");
   if (!m_contained_type) {
     helium_log_warning("PointerType::GenerateInput with no contained type");
     return NULL;
@@ -185,15 +189,20 @@ std::string StrType::GetOutputCode(std::string var) {
   return ret;
 }
 InputSpec *StrType::GenerateInput() {
+  print_trace("StrType::GenerateInput");
+  // std::cout << "1"  << "\n";
   static int max_strlen = Config::Instance()->GetInt("max-strlen");
   // TODO at least a string? 0 here?
   int size = utils::rand_int(1, max_strlen);
+  // std::cout << "2"  << "\n";
   std::vector<std::string> list;
   list.push_back(std::to_string(size));
   std::string str = utils::rand_str(utils::rand_int(1, size));
+  // std::cout << "3"  << "\n";
   list.push_back(str);
   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(size) + "}";
   std::string joined = boost::algorithm::join(list, " ");
+  // std::cout << "4"  << "\n";
   std::string raw = joined;
   return new InputSpec(spec, raw);
 }
@@ -265,6 +274,7 @@ std::string BufType::GetOutputCode(std::string var) {
   return ret;
 }
 InputSpec *BufType::GenerateInput() {
+  print_trace("BufType::GenerateInput");
   // TODO
   return NULL;
 }

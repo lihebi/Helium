@@ -43,7 +43,7 @@ public:
     else return false;
   }
 
-  void Visualize(bool open=false);
+  void Visualize(bool open=true);
 
 
   /**
@@ -54,6 +54,14 @@ public:
   std::string GetMain() {return m_main;}
   std::string GetSupport() {return m_support;}
   std::string GetMakefile() {return m_makefile;}
+  
+  std::map<std::string, Type*> GetInputs() {
+    return m_inputs;
+  }
+
+
+  // void GenTestSuite();
+  // void Test();
 private:
   std::set<CFGNode*> m_nodes;
   CFGNode *m_new = NULL;

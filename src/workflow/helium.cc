@@ -524,7 +524,8 @@ Helium::Run() {
     for (auto it=m_files.begin();it!=m_files.end();it++) {
       std::string filename = *it;
       if (filename.find(poi.filename) != std::string::npos) {
-        Reader reader(filename, poi);
+        // Reader reader(filename, poi);
+        hebi(filename, poi);
       }
     }
     // process whole poi to match current benchmark

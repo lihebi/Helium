@@ -25,7 +25,7 @@ for bench in $1/*; do
     ##############################
     # when testing build rate, use test-number=1
     # do NOT use run-test=false, that is buggy
-    helium -s snippets/ cpped/ --print='ci,ce,col,t' --conf='instrument-strlen=true, test-number=30' -c src --whole-poi=/tmp/poi/poi.org -b $simple_name
+    helium -s snippets/ cpped/ --print='ci,ce,col' --conf='instrument-strlen=true, test-number=30' -c src --whole-poi=/tmp/poi/poi.org -b $simple_name
     # helium -s snippets/ cpped/ --print='ci,ce,col' --conf='test-number=1' -c src --whole-poi=/tmp/poi/poi.org -b $simple_name
     
     if [ $? == 0 ]; then

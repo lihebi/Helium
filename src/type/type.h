@@ -64,6 +64,7 @@ public:
   // TODO what's this?
   // virtual std::string GetValue() = 0;
   virtual std::string GetRaw() = 0;
+  virtual std::string ToString() = 0;
 protected:
 private:
 };
@@ -129,6 +130,9 @@ public:
     return "";
   }
   virtual std::string GetRaw() {return m_raw;}
+  virtual std::string ToString() {
+    return "UnknownType: " + m_raw;
+  }
 private:
   std::string m_raw;
 };
@@ -149,6 +153,7 @@ class StructType : public CompositeType {
 public:
   StructType() {}
   virtual ~StructType() {}
+  virtual std::string ToString() {return "SturctType";}
 protected:
 private:
   // int m_snippet_id = -1;
@@ -177,6 +182,7 @@ public:
     }
     return ret;
   }
+  virtual std::string ToString() override {return "ArrayType";}
 protected:
   Type *m_contained_type = NULL;
   int m_num = 0; // number
@@ -202,6 +208,7 @@ public:
     }
     return ret;
   }
+  virtual std::string ToString() override {return "PointerType";}
 protected:
 private:
   Type *m_contained_type = NULL;
@@ -224,6 +231,9 @@ public:
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
   virtual std::vector<InputSpec*> GeneratePairInput() override;
+  virtual std::string ToString() override {
+    return "StrType";
+  }
 protected:
 private:
   std::string corner();
@@ -238,6 +248,7 @@ public:
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
+  virtual std::string ToString() override {return "BufType";}
 protected:
 private:
 };
@@ -257,6 +268,7 @@ public:
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {return "int";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
+  virtual std::string ToString() override {return "IntType";}
 protected:
 private:
   int corner();
@@ -271,6 +283,7 @@ class CharType : public PrimitiveType {
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {return "char";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
+  virtual std::string ToString() override {return "CharType";}
 public:
   CharType();
   virtual ~CharType();
@@ -285,6 +298,7 @@ class BoolType : public PrimitiveType {
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {return "bool";}
+  virtual std::string ToString() override {return "BoolType";}
 public:
   BoolType();
   virtual ~BoolType();
@@ -306,6 +320,9 @@ public:
   virtual InputSpec *GenerateInput() override;
   virtual std::string GetRaw() override {
     return "";
+  }
+  virtual std::string ToString() override {
+    return "ArgCVType";
   }
 private:
   std::vector<char> m_bools;

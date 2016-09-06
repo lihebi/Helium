@@ -70,7 +70,7 @@ public:
   }
 
 private:
-  InputSpec *m_to;
+  InputSpec *m_to = NULL;
   
 };
 

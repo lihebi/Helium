@@ -99,10 +99,10 @@ Type *TypeFactory::CreateType(std::string str) {
   if (str.empty()) return NULL;
   Type *type;
 
-  if (helium_valid_type(str)) {
-  } else {
-    return new UnknownType(str);
-  }
+  // if (helium_valid_type(str)) {
+  // } else {
+  //   return new UnknownType(str);
+  // }
 
   // 4. check if char*
   if (type_is_str(str)) {
@@ -152,6 +152,7 @@ Type *TypeFactory::CreateType(std::string str) {
   } else if (type_has_word(str, "bool") || type_has_word(str, "_Bool")) {
     return new BoolType();
   }
+  return new UnknownType(str);
   return NULL;
 }
 

@@ -8,6 +8,7 @@
 
 #include "workflow/builder.h"
 #include "code_gen.h"
+#include "code_test.h"
 
 #include <iostream>
 
@@ -108,7 +109,7 @@ void Query::ResolveInput() {
   // for all the ASTs, resolve input
   // TODO should we supply input when necessary? Based on the output instrumentation during run time?
   m_inputs.clear();
-  CFG *cfg = m_new->GetCFG();
+  // CFG *cfg = m_new->GetCFG();
 
 
   // DEBUG
@@ -120,11 +121,19 @@ void Query::ResolveInput() {
   // ASTNode *astnode = m_new->GetASTNode();
   // AST *ast = astnode->GetAST();
   std::set<ASTNode*> first_astnodes;
+  // std::cout << "cfgnode size: " << m_nodes.size()  << "\n";
+  AST *ast = m_new->GetASTNode()->GetAST();
   for (CFGNode *cfgnode : m_nodes) {
-    if (cfg->Contains(cfgnode)) {
-      first_astnodes.insert(cfgnode->GetASTNode());
+    /// FIXME cfg is not consistent!
+    // if (cfg->Contains(cfgnode)) {
+    //   first_astnodes.insert(cfgnode->GetASTNode());
+    // }
+    ASTNode *astnode = cfgnode->GetASTNode();
+    if (astnode && ast->Contains(astnode)) {
+      first_astnodes.insert(astnode);
     }
   }
+  // std::cout << "astnode size: " << first_astnodes.size()  << "\n";
   // std::map<std::string, Type*> inputs;
   for (ASTNode *astnode : first_astnodes) {
     std::set<std::string> ids = astnode->GetVarIds();
@@ -132,7 +141,7 @@ void Query::ResolveInput() {
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
-      // std::cout << id  << "\n";
+      // std::cout << "  " << id  << "\n";
       SymbolTable *tbl = astnode->GetSymbolTable();
       SymbolTableValue *st_value = tbl->LookUp(id);
       if (st_value) {
@@ -146,7 +155,7 @@ void Query::ResolveInput() {
       }
     }
   }
-  std::cout << "input size: " << m_inputs.size()  << "\n";
+  // std::cout << "input size: " << m_inputs.size()  << "\n";
 }
 
 /**
@@ -181,17 +190,31 @@ void process(ASTNode *node) {
   std::cout << "AST node created!"  << "\n";
   Query *init_query = new Query(node);
   g_worklist.push_back(init_query);
-  init_query->Visualize();
+  // init_query->Visualize();
   // init(node);
   while (!g_worklist.empty()) {
     // std::cout << "size of worklist: " << g_worklist.size()  << "\n";
     Query *query = g_worklist.front();
     g_worklist.pop_front();
+
+
+    // reach the function definition, continue search, do not test, because will dont need, and will compile error
+    // FIXME how to supply testing profile?
+    if (query->New()->GetASTNode()->Kind() == ANK_Function) {
+      std::vector<Query*> queries = select(query);
+      g_worklist.insert(g_worklist.end(), queries.begin(), queries.end());
+      continue;
+    }
+    // visulize Q?
     // query->Visualize();
+
     query->ResolveInput();
     // std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
     // std::vector<Variable> invs = get_input_variables(first_function_nodes);
     // std::string code = gen_code(query, invs);
+
+
+    
     query->GenCode();
     Builder builder;
     builder.SetMain(query->GetMain());
@@ -199,7 +222,7 @@ void process(ASTNode *node) {
     builder.SetMakefile(query->GetMakefile());
     builder.Write();
     builder.Compile();
-    std::cout << "Wrote to: " << builder.GetDir()  << "\n";
+    std::cout << "Code Written to: " << builder.GetDir()  << "\n";
     if (builder.Success()) {
       utils::print("compile success\n", utils::CK_Green);
       std::string executable = builder.GetExecutable();
@@ -209,7 +232,15 @@ void process(ASTNode *node) {
     // std::string executable = write_and_compile(code);
     
     // TODO
-    // InputSpec input = generate_input(invs);
+    // query->GenTestSuite();
+    // query->Test();
+
+    CodeTester tester(builder.GetDir(), builder.GetExecutable(), query->GetInputs());
+    // tester.SetInputs(query->GetInputs());
+    // tester.SetExecutable(builder.GetDir(), builder.GetExecutable());
+    // tester.GenTestSuite();
+    tester.Test();
+    
     // Profile profile = test(executable, input);
     // BugSig *bs = oracle(input, profile);
     // if (bs) {
@@ -217,10 +248,10 @@ void process(ASTNode *node) {
     // } else {
       std::vector<Query*> queries = select(query);
       g_worklist.insert(g_worklist.end(), queries.begin(), queries.end());
-      std::cout << "---"  << "\n";
-      for (Query *q : queries) {
-        q->Visualize();
-      }
+      // std::cout << "---"  << "\n";
+      // for (Query *q : queries) {
+      //   q->Visualize();
+      // }
     // }
   }
 }

@@ -491,6 +491,7 @@ std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
     return m_back_edges[node];
   }
   // ICFG
+  std::cout << "ICFG"  << "\n";
   ASTNode *astnode = node->GetASTNode();
   assert(astnode->Kind() == ANK_Function);
   std::string func = astnode->GetAST()->GetFunctionName();
