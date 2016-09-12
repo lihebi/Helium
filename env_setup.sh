@@ -24,7 +24,7 @@ echo "export HELIUM_HOME=$(pwd)" >> ~/.bashrc.local
 
 # add $HELIUM_HOME/bin to the begginning of $PATH, so that, no need to install, `heluim` command will automatically redirect to the correct path.
 # export PATH=$HELIUM_HOME/bin:$PATH
-echo "export PATH=\$HELIUM_HOME/bin:PATH=\$HELIUM_HOME/scripts:\$PATH" >> ~/.bashrc.local
+echo "export PATH=\$HELIUM_HOME/bin:\$HELIUM_HOME/scripts:\$PATH" >> ~/.bashrc.local
 echo "export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0" >> ~/.bashrc.local
 echo "source ~/.bashrc.local" >> ~/.bashrc
 
