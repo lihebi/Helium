@@ -2,53 +2,18 @@
 
 * Install
 ** Prerequisite
-*** boost
-Require boost 1.59 or above.
-*** pugixml
-#+begin_src shell
-cd lib/pugixml
-cp Makefile.linux Makefile # for linux
-cp Makefile.mac Makefile # for mac
-make
-make install
-#+end_src
 
-*** ctags
-#+begin_src shell
-cd lib/ctags
-cp Makefile.linux Makefile # for linux
-cp Makefile.mac Makefile # for mac
-make
-make install
-#+end_src
-
-Also, on Mac, you probably need to install the ctags executable.
+*** Packages
+On Debian based system, the following packages should be installed:
 
 #+BEGIN_EXAMPLE
-brew install ctags
+exuberant-ctags libsqlite3-dev autoconf graphviz
+gnulib libboost-all-dev libgtest-dev libpugixml-dev
+llvm clang
+feh cmake autoconf automake
 #+END_EXAMPLE
 
-This will overwrite the =readtags.h= header file.
-
-*** google test
-Follow instructions on [[https://github.com/google/googletest][Google Test]].
-Basically
-
-#+BEGIN_SRC shell
-mkdir build
-cd build
-cmake ..
-make
-make install # will install libgtest.a to standard location
-#+END_SRC
-
-On debian, you can actually grab gtest from apt:
-#+BEGIN_EXAMPLE
-apt-get install libgtest-dev
-#+END_EXAMPLE
-
-This only install the header and the source files, not the static library.
-To build the static library:
+=gtest= needs to be built manually:
 #+BEGIN_EXAMPLE
 cd /tmp
 mkdir build
@@ -58,110 +23,135 @@ make
 sudo mv libg* /usr/lib/
 #+END_EXAMPLE
 
-*** sqlite3
-Install the sqlite3 develop package.
-*** python3
-*** SrcML
+*** compile ctags library manually
+#+begin_src shell
+cd lib/ctags
+cp Makefile.linux Makefile
+make
+make install
+#+end_src
+
+*** Download SrcML
 http://www.srcml.org/
 
-*** autoconf
-*** gnulib && helium-lib
+** compile and setup
+
+In Helium folder, run
 #+BEGIN_EXAMPLE
-git clone https://github.com/lihebi/helium-lib
-apt-get install gnulib
-cd helium-lib
-# follow instruction to bulid config.h and libgnu.a
-# FIXME make sure this config.h is used, a.k.a. in the beginning of C_INCLUDE_PATH
+make
 #+END_EXAMPLE
 
-** compile
-
-before you run helium, you need to make the system type tag file.
+Set up environment:
 #+BEGIN_EXAMPLE
+. env_setup.sh
 make systype.tags
 #+END_EXAMPLE
 
-Then compile and run unit tests:
-
-#+begin_src shell
-make
-make test
-#+end_src
-
-** Trouble shooting
-On =CentOS=, the default =LD_LIBRARY_PATH= does not contains the =/usr/local/lib=.
-The consequence is the =-lpugi= and =-lctags= are not recognized because they are put in that directory.
-Set it, or edit =/etc/ld.conf.d/local.conf= and add the path.
-After that, run =ldconf -v= as root to update the database.
-
-Also, the error:
-#+BEGIN_QUOTE
-Linux error while loading shared libraries: cannot open shared object file: No such file or directory
-#+END_QUOTE
-
-is also because the cache is not updated.
-So the solution is =sudo ldconfig=
-
-* Run
-IMPORTANT: before pre-processing, make the $HELIUM_HOME available, and make the lib/config/config.h by
+Additional steps:
 #+BEGIN_EXAMPLE
+cd lib/config
 aclocal
 autoconf
+autoheader
 ./configure
 #+END_EXAMPLE
-** A quick test
-git clone https://github.com/lihebi/poi
-cd poi && ./setup.sh
-git clone https://github.com/lihebi/bugbench
-cd bugbench
-helium-create-snippetdb folder
-cd helium
-heilum-run.sh .
 
-** third party libraries
-Helium relies on ~headers.conf~ for the headers to include.
-Helium will test if the system has that header.
-If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
+** Run
 
-So, when you run Helium, be sure to check if you have installed that package.
-If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
+Now the following command should be available:
+- =helium=
+- =helium-create-snippetdb
 
-To install all the dependencies in this file, use this command:
+Say we have the following benchmarks in the =folder=
+#+BEGIN_EXAMPLE
+top
+|-- folder
+    |--- gzip-1.2.4
+         |-- a.c
+         |-- b.c
+#+END_EXAMPLE
 
-#+begin_src shell
-cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
-#+end_src
+Run the command:
+#+BEGIN_EXAMPLE
+helium-create-snippet-db folder
+#+END_EXAMPLE
 
-After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
+This will create the following file tree:
+#+BEGIN_EXAMPLE
+top
+|-- folder
+    |--- gzip-1.2.4
+         |-- a.c
+         |-- b.c
+    |--- helium
+         |-- gzip-1.2.4
+             |-- cpped/
+             |-- snippet/
+             |-- src/
+#+END_EXAMPLE
 
-** before you run
+Now, go into =top/folder/helium/gzip-1.2.4/= and execute:
+#+BEGIN_EXAMPLE
+helium --whole-poi /path/to/poi cpped
+#+END_EXAMPLE
 
-#+begin_src shell
-. env_setup.sh # set up HELIUM_HOME to CURRENT directory, add ./bin to PATH
-make systype.tags # create system type tag file. Need only once on a new platform
-#+end_src
+** Getting help
+There's a man page. Install via:
+#+BEGIN_EXAMPLE
+./doc/setup-man.sh
+#+END_EXAMPLE
 
-** show help
-Run ~helium~ to show help information.
-Run ~helium -p~ to see print option help info.
-Run ~helium -d~ to see debug option help info.
+The following command will show help information:
+#+BEGIN_EXAMPLE
+helium
+helium -p
+helium -d
+man helium
+#+END_EXAMPLE
 
-** config
-The default config file is ~$HELIUM_HOME/helium.conf~.
-It can be specified by ~-f~ argument.
-Use ~helium --print-config~ to show the current config.
-Use ~helium --conf "key=value,key2=value2"~ to change each single config.
 
-~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
+# ** A quick test
+# git clone https://github.com/lihebi/poi
+# cd poi && ./setup.sh
+# git clone https://github.com/lihebi/bugbench
+# cd bugbench
+# helium-create-snippetdb folder
+# cd helium
+# heilum-run.sh .
 
-** some examples
-#+begin_src shell
-helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
-#+end_src
+# ** third party libraries
+# Helium relies on ~headers.conf~ for the headers to include.
+# Helium will test if the system has that header.
+# If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
 
-* Trouble Shooting
-** What to look at when compile failure everywhere
-- check if all required package installed
-- check if compiler set correctly and available
-  - CC=clang helium-create-snippet.sh /folder
-  - helium --conf="cc=clang"
+# So, when you run Helium, be sure to check if you have installed that package.
+# If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
+
+# To install all the dependencies in this file, use this command:
+
+# #+begin_src shell
+# cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
+# #+end_src
+
+# After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
+
+
+# ** config
+# The default config file is ~$HELIUM_HOME/helium.conf~.
+# It can be specified by ~-f~ argument.
+# Use ~helium --print-config~ to show the current config.
+# Use ~helium --conf "key=value,key2=value2"~ to change each single config.
+
+# ~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
+
+# ** some examples
+# #+begin_src shell
+# helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
+# #+end_src
+
+# * Trouble Shooting
+# ** What to look at when compile failure everywhere
+# - check if all required package installed
+# - check if compiler set correctly and available
+#   - CC=clang helium-create-snippet.sh /folder
+#   - helium --conf="cc=clang"
