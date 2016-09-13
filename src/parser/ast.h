@@ -386,6 +386,19 @@ public:
     }
     return ret;
   }
+
+  void SetFailurePoint(ASTNode *astnode) {
+    m_failure_points.insert(astnode);
+  }
+  void ClearFailurePoint(ASTNode *astnode) {
+    // m_failure_points.clear();
+    m_failure_points.erase(astnode);
+  }
+  bool IsFailurePoint(ASTNode *astnode) {
+    return m_failure_points.count(astnode) == 1;
+  }
+
+  
 private:
   std::vector<ASTNode*> getPath(ASTNode *node, ASTNode* lca);
   size_t dist(ASTNode* low, ASTNode* high);
@@ -413,6 +426,10 @@ private:
 
   // the free-d list instrumentation related
   std::map<ASTNode*, std::vector<std::string> > m_freed_node;
+
+
+  std::set<ASTNode*> m_failure_points;
+  
 };
 
 

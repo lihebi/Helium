@@ -56,36 +56,45 @@ void Stmt::GetCode(std::set<ASTNode*> nodes,
     // FIXME not only this, but also other model such as while, branch, because they can be the POI too
     // current ones: stmt, for, while, if
     ret += POIOutputCode();
+
+
     // TODO NOW add this to all the free point, but for this benchmark, it's fine, the code is a expr_stmt
     ret += FreedListCode();
     ret += get_text(m_xmlnode);
     // utils::print(get_text(m_xmlnode), utils::CK_Red);
     ret += "\n";
+
+
     ret += POIAfterCode();
   } else {
-    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
-    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+    // std::set<std::string> decls = m_ast->GetRequiredDecl(this);
+    // std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
+
+    
     // std::cout << "this is a stmt"  << "\n";
     // std::cout << inputed_decls.size()  << "\n";
     // m_sym_tbl->dump();
-    for (std::string decl : decls) {
-      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
-      if (val) {
-        // ret += "/*HELIUM_DECL*/";
-        // ret += val->GetType() + " " + val->GetName() + ";\n";
-        val->GetType()->GetDeclCode(val->GetName());
-      }
-    }
+
+
+    // for (std::string decl : decls) {
+    //   SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+    //   if (val) {
+    //     // ret += "/*HELIUM_DECL*/";
+    //     // ret += val->GetType() + " " + val->GetName() + ";\n";
+    //     val->GetType()->GetDeclCode(val->GetName());
+    //   }
+    // }
+
     // FIXME All the models lack this!
-    for (std::string decl : inputed_decls) {
-      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
-      if (val) {
-        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        // ret += val->GetType() + " " + val->GetName() + ";\n";
-        ret += val->GetType()->GetDeclCode(val->GetName());
-        ret += val->GetType()->GetInputCode(val->GetName());
-      }
-    }
+    // for (std::string decl : inputed_decls) {
+    //   SymbolTableValue *val = m_sym_tbl->LookUp(decl);
+    //   if (val) {
+    //     // ret += "/*HELIUM_DECL_WITH_INPUT*/";
+    //     // ret += val->GetType() + " " + val->GetName() + ";\n";
+    //     ret += val->GetType()->GetDeclCode(val->GetName());
+    //     ret += val->GetType()->GetInputCode(val->GetName());
+    //   }
+    // }
   }
   // ret += "\n";
 }

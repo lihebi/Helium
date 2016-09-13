@@ -190,7 +190,16 @@ void Query::GenCode() {
 void process(ASTNode *node) {
   print_trace("process");
   std::cout << "AST node created!"  << "\n";
+
+
+  node->SetFailurePoint();
+
+  
   Query *init_query = new Query(node);
+
+  
+
+  
   g_worklist.push_back(init_query);
   // init_query->Visualize();
   // init(node);
@@ -248,6 +257,7 @@ void process(ASTNode *node) {
     // tester.SetExecutable(builder.GetDir(), builder.GetExecutable());
     // tester.GenTestSuite();
     tester.Test();
+    // tester.Analyze(res);
     
     // Profile profile = test(executable, input);
     // BugSig *bs = oracle(input, profile);

@@ -66,10 +66,23 @@ ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind) {
 
 std::string ASTNode::POIOutputCode() {
   std::string ret;
-  std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
-  if (vars.size() > 0) {
+  // std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
+  // if (vars.size() > 0) {
+  //   ret += "printf(\"HELIUM_POI = true\\n\");\n";
+  //   ret += "fflush(stdout);\n";
+  //   for (Variable var : vars) {
+  //     ret += var.GetType()->GetOutputCode(var.GetName());
+  //   }
+  //   ret += "printf(\"HELIUM_POI_OUT_END = true\\n\");\n";
+  //   ret += "fflush(stdout);\n";
+  //   ret += "// @HeliumSegmentBegin\n";
+  // }
+
+
+  if (m_ast->IsFailurePoint(this)) {
     ret += "printf(\"HELIUM_POI = true\\n\");\n";
     ret += "fflush(stdout);\n";
+    std::vector<Variable> vars = GetVariables();
     for (Variable var : vars) {
       ret += var.GetType()->GetOutputCode(var.GetName());
     }

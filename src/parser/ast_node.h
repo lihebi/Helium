@@ -93,6 +93,25 @@ public:
   virtual XMLNode GetCondition() {return XMLNode();}
   virtual std::set<std::string> GetVarIds() {return {};}
   virtual std::set<std::string> GetIdToResolve() {return {};}
+
+
+  virtual std::vector<Variable> GetVariables() {
+    std::vector<Variable> ret;
+    std::set<std::string> ids = this->GetVarIds();
+    for (std::string id : ids) {
+      if (id.empty()) continue;
+      if (is_c_keyword(id)) continue;
+      SymbolTable *tbl = this->GetSymbolTable();
+      SymbolTableValue *st_value = tbl->LookUp(id);
+      if (st_value) {
+        std::string name = st_value->GetName();
+        Type *type = st_value->GetType();
+        ret.push_back({type, name});
+      }
+    }
+    return ret;
+  }
+
   /**
    * Look Up the first definition of the variable "id"
    * That means it must appear on the left side of "="
@@ -204,6 +223,21 @@ public:
   int GetEndLinum() {
     return get_node_last_line(m_xmlnode);
   }
+
+
+
+  void SetFailurePoint() {
+    if (m_ast) {
+      m_ast->SetFailurePoint(this);
+    }
+  }
+  void ClearFailurePoint() {
+    if (m_ast) {
+      m_ast->ClearFailurePoint(this);
+    }
+  }
+
+  
 protected:
   std::string POIOutputCode();
   std::string POIAfterCode();

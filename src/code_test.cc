@@ -10,77 +10,55 @@
 
 void CodeTester::genTestSuite() {
   print_trace("CodeTester::genTestSuite");
-  // FIXME this function is too long
   if (Config::Instance()->GetBool("run-test") == false) {
     return;
   }
   int test_number = Config::Instance()->GetInt("test-number");
-  // std::vector<std::vector<InputSpec*> > test_suite(test_number);
-  m_test_suite.clear();
+  m_test_suites.clear();
   freeTestSuite();
-  m_test_suite.resize(test_number);
-  // decl_deco decl_input_m = m_ast_to_deco_m[m_first->GetAST()].second;
-
-  /**
-   * Testing!
-   */
-  // print_trace("preparing inputs ...");
-  // FIXME decls or inputs?
-  // InputMetrics metrics = m_inputs[first_ast];
-  // metrics.insert(m_global.begin(), m_global.end());
+  m_test_suites.resize(test_number);
   for (auto input : m_inputs) {
     std::string var = input.first;
     Type *type = input.second;
     if (!type) continue;
     
-    std::vector<InputSpec*> suite;
-
     for (int i=0;i<test_number;i++) {
       InputSpec *spec = type->GenerateInput();
-      m_test_suite[i].push_back(spec);
+      m_specs.insert(spec);
+      m_test_suites[i].Add(var, spec);
     }
-    // assert((int)inputs.size() == test_number);
-    // for (int i=0;i<(int)inputs.size();i++) {
-    //   m_test_suite[i].push_back(inputs[i]);
-    // }
   }
   print_trace("End of CodeTester::genTestSuite");
 }
 
-TestResult* CodeTester::Test() {
+void CodeTester::Test() {
   print_trace("CodeTester::Test");
   // std::cout << "generate test suite" << "input size: " << m_inputs.size()  << "\n";
   genTestSuite();
-  TestResult *ret = new TestResult(m_test_suite);
+  // TestResult *ret = new TestResult(m_test_suite);
 
   // std::string test_dir = utils::create_tmp_dir();
   utils::create_folder(m_exe_folder + "/input");
-  for (int i=0;i<(int)m_test_suite.size();i++) {
-    // std::cout << "test " << i  << "\n";
-    // std::string test_file = test_dir + "/test" + std::to_string(i) + ".txt";
-    // utils::write_file(test_file, m_test_suite[i]);
-    // std::string cmd = m_builder->GetExecutable() + "< " + test_file + " 2>/dev/null";
-    // std::cout << cmd  << "\n";
+  utils::create_folder(m_exe_folder + "/tests");
+    
+  for (int i=0;i<(int)m_test_suites.size();i++) {
     std::string cmd = m_exe;
     int status;
-    // FIXME some command cannot be controled by time out!
-    // std::string output = utils::exec(cmd.c_str(), &status, 1);
-    std::string input;
-    std::string spec;
-    for (InputSpec *in : m_test_suite[i]) {
-      if (in) {
-        input += in->GetRaw() + "\n";
-        // spec += in->dump() + "\n";
-        // spec += in->ToString() + "\n\n";
-      }
-    }
+    TestSuite suite = m_test_suites[i];
 
-    utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
+    // utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
       
     // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
     // I'm also going to write the input file in the executable directory
-    utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
+    // utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
+
+
+
+
+    std::string input = suite.GetInput();
+    // Run the program
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+
     if (status == 0) {
       if (PrintOption::Instance()->Has(POK_TestInfo)) {
         utils::print("test success\n", utils::CK_Green);
@@ -88,7 +66,8 @@ TestResult* CodeTester::Test() {
       if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
         utils::print(".", utils::CK_Green);
       }
-      ret->AddOutput(output, true);
+      // ret->AddOutput(output, true);
+      output += "HELIUM_STATUS = true\n";
     } else {
       if (PrintOption::Instance()->Has(POK_TestInfo)) {
         utils::print("test failure\n", utils::CK_Red);
@@ -96,25 +75,30 @@ TestResult* CodeTester::Test() {
       if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
         utils::print(".", utils::CK_Red);
       }
-      ret->AddOutput(output, false);
+      // ret->AddOutput(output, false);
+      output += "HELIUM_STATUS = false\n";
     }
+
+    // For input, and output, log them out only
+    std::string in_file = m_exe_folder + "/tests/in-" + std::to_string(i) + ".txt";
+    std::string out_file = m_exe_folder + "/tests/out-" + std::to_string(i) + ".txt";
+    utils::write_file(in_file, suite.GetSpec());
+    utils::write_file(out_file, output);
+
   }
   if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
     std::cout << "\n";
   }
-  return ret;
+  // return ret;
 }
 
 void CodeTester::freeTestSuite() {
   print_trace("CodeTester::freeTestSuite");
-  for (std::vector<InputSpec*> &v : m_test_suite) {
-    for (InputSpec *in : v) {
-      if (in) {
-        delete in;
-      }
-    }
+  m_test_suites.clear();
+  for (InputSpec *spec : m_specs) {
+    delete spec;
   }
-  m_test_suite.clear();
+  m_specs.clear();
   print_trace("End of CodeTester::freeTestSuite");
 }
 
