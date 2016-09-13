@@ -850,6 +850,16 @@ std::set<int> SnippetDB::GetAllDep(std::set<int> snippet_ids) {
     worklist.erase(id);
     ret.insert(id);
     std::set<int> ids = GetDep(id);
+
+    // DEBUG
+    // if (snippet_ids.count(id)==1) {
+    //   std::cout << id   << ": ";
+    //   for (int id : ids) {
+    //     std::cout << id  << ",";
+    //   }
+    //   std::cout   << "\n";
+    // }
+    
     for (int id : ids) {
       if (ret.count(id) == 0) {
         worklist.insert(id);

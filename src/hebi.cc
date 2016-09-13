@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+std::set<CFGNode*> Query::m_bad = {};
 
 Query::Query(ASTNode *astnode) {
   assert(astnode);
@@ -142,7 +143,7 @@ void Query::ResolveInput() {
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
-      std::cout << "  " << id  << "\n";
+      // std::cout << "  " << id  << "\n";
       SymbolTable *tbl = astnode->GetSymbolTable();
       SymbolTableValue *st_value = tbl->LookUp(id);
       if (st_value) {
@@ -169,7 +170,7 @@ void Query::GenCode() {
     generator.AddNode(cfgnode->GetASTNode());
   }
   generator.SetInput(m_inputs);
-  generator.Gen();
+  generator.Compute();
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();
@@ -232,7 +233,9 @@ void process(ASTNode *node) {
       std::string executable = builder.GetExecutable();
     } else {
       utils::print("compile error\n", utils::CK_Red);
-      query->Visualize();
+      // query->Visualize();
+      Query::MarkBad(query->New());
+      query->Remove(query->New());
     }
     // std::string executable = write_and_compile(code);
     
@@ -305,6 +308,8 @@ std::vector<Query*> select(Query *query) {
   for (CFGNode *pred : preds) {
     // FIXME this will not work on loops
     if (query->ContainNode(pred)) continue;
+    // continue here, easier..
+    if (Query::IsBad(pred)) continue;
     Query *q = new Query(*query);
     q->Add(pred);
     ret.push_back(q);

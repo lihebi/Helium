@@ -8,6 +8,25 @@
 
 #include <iostream>
 
+void CodeGen::Compute() {
+  std::map<AST*, std::set<ASTNode*> > ret;
+  for (auto m : m_data) {
+    ret[m.first] = m.first->CompleteGene(m.second);
+    if (m.first == m_first_ast) {
+      // std::cout << "remove root"  << "\n";
+      ret[m.first] = m.first->RemoveRoot(ret[m.first]);
+    }
+    // comparing
+    // m.first->VisualizeN(m.second, ret[m.first]);
+  }
+
+
+  
+
+  
+  m_data = ret;
+}
+
 std::string CodeGen::GetMain() {
   std::string ret;
   ret += get_header();
@@ -253,6 +272,15 @@ void CodeGen::resolveSnippet(AST *ast) {
   for (ASTNode *n : nodes) {
     assert(n);
     std::set<std::string> ids = n->GetIdToResolve();
+
+
+    // if (ids.count("lzw")==1) {
+    //   std::cout << n->GetLabel()  << "\n";
+    //   ast->VisualizeN(nodes, {});
+    //   getchar();
+    // }
+
+
     all_ids.insert(ids.begin(), ids.end());
   }
 
@@ -266,6 +294,13 @@ void CodeGen::resolveSnippet(AST *ast) {
     std::string func = ast->GetFunctionName();
     all_ids.erase(func);
   }
+
+
+  // std::cout << "all ids for snippet: "  << "\n";
+  // for (std::string id : all_ids) {
+  //   std::cout <<id  << ",";
+  // }
+  // std::cout   << "\n";
 
   std::set<int> snippet_ids = SnippetDB::Instance()->LookUp(all_ids);
   // not sure if it should be here ..

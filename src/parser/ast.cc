@@ -648,6 +648,10 @@ std::string AST::VisualizeN(std::set<ASTNode*> yellow_s, std::set<ASTNode*> cyan
   return VisualizeI(yellow_d_s, cyan_d_s, filename);
 }
 
+
+/**
+ * Show symbol table
+ */
 void AST::Visualize2(bool open) {
   DotGraph dot;
 

@@ -29,6 +29,18 @@ public:
     m_nodes.insert(node);
     m_new = node;
   }
+
+  /**
+   * Remove a node.
+   * This node is typically marked as "bad".
+   * This node is typically m_new;
+   * But I will not change m_new to something else, because I need to do context search from there.
+   */
+  void Remove(CFGNode *node) {
+    if (m_nodes.count(node) == 1) {
+      m_nodes.erase(node);
+    }
+  }
   CFGNode* New() {
     return m_new;
   }
@@ -60,6 +72,15 @@ public:
   }
 
 
+  static void MarkBad(CFGNode *node) {
+    m_bad.insert(node);
+  }
+  static bool IsBad(CFGNode *node) {
+    if (m_bad.count(node) == 1) return true;
+    return false;
+  }
+
+
   // void GenTestSuite();
   // void Test();
 private:
@@ -71,6 +92,9 @@ private:
   std::string m_main;
   std::string m_support;
   std::string m_makefile;
+
+
+  static std::set<CFGNode*> m_bad;
 };
 
 

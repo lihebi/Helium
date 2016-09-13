@@ -17,7 +17,7 @@ public:
     m_data[astnode->GetAST()].insert(astnode);
   }
   void SetInput(std::map<std::string, Type*> inputs) {m_inputs = inputs;}
-  void Gen() {}
+  void Compute();
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();
@@ -25,7 +25,7 @@ private:
   std::string getSupportBody();
   void resolveSnippet(AST *ast);
   void resolveSnippet();
-  AST *m_first_ast;
+  AST *m_first_ast = NULL;
   std::map<AST*, std::set<ASTNode*> > m_data;
   std::set<int> m_snippet_ids;
   std::map<std::string, Type*> m_inputs;
