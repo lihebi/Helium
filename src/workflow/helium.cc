@@ -504,7 +504,7 @@ Helium::Run() {
       std::string filename = *it;
       if (filename.find(poi.filename) != std::string::npos) {
         // Reader reader(filename, poi);
-        hebi(filename, poi);
+        Hebi hebi(filename, poi);
       }
     }
     // find this line in "cpped" file, by line marker
@@ -525,7 +525,7 @@ Helium::Run() {
       std::string filename = *it;
       if (filename.find(poi.filename) != std::string::npos) {
         // Reader reader(filename, poi);
-        hebi(filename, poi);
+        Hebi hebi(filename, poi);
       }
     }
     // process whole poi to match current benchmark

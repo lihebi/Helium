@@ -47,6 +47,11 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
 
 std::string get_sizeof_output(std::string var);
 std::string get_strlen_output(std::string var);
+
+std::string get_sizeof_input_output(std::string var);
+std::string get_strlen_input_output(std::string var);
+
+
 std::string get_addr_output(std::string var);
 std::string get_addr_input(std::string var);
 std::string get_check_null_if(std::string var);

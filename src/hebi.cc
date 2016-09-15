@@ -10,6 +10,9 @@
 #include "code_gen.h"
 #include "code_test.h"
 
+#include "code_analyze.h"
+#include "workflow/analyzer.h"
+
 #include <iostream>
 
 std::set<CFGNode*> Query::m_bad = {};
@@ -35,11 +38,8 @@ void Query::Visualize(bool open) {
 
 
 
-std::deque<Query*> g_worklist;
-std::map<CFGNode*, std::set<Query*> > g_waiting_quries;
-std::map<Query*, std::set<Query*> > g_propagating_queries;
 
-void hebi(std::string filename, POISpec poi) {
+Hebi::Hebi(std::string filename, POISpec poi) {
   print_trace("hebi");
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
   int linum = get_true_linum(filename, poi.linum);
@@ -86,24 +86,89 @@ void hebi(std::string filename, POISpec poi) {
  * - GenerateInput
  * - Test
  * - Oracle infer failure condition
+ * This will fill failure condition
  */
-void init(ASTNode *node) {
-  // Query *query = new Query(node);
-  // AST *ast = query->GetNewAST();
-  // std::set<ASTNode*> first_ast_nodes = query->GetNodes(ast);
-  // std::vector<Variable> invs = get_input_variables(first_ast_nodes);
-  // std::vector<Variable> outvs = get_output_variables(node);
-  // std::string code = gen_code(query, invs, outvs);
-  // std::string executable = write_and_compile(code);
-  // InputSpec input = generate_input(invs);
-  // Profile profile = test(executable, input);
-  // Formula f_cond = gen_failure_cond(input, profile);
+void Hebi::init(ASTNode *node) {
+  Query *query = new Query(node);
 
-  // g_fp = node;
-  // g_outvs = outvs;
-  // g_f_cond = f_cond;
-  // worklist.push_back(query);
+  query->ResolveInput();
+  query->GenCode();
+  Builder builder;
+  builder.SetMain(query->GetMain());
+  builder.SetSupport(query->GetSupport());
+  builder.SetMakefile(query->GetMakefile());
+  builder.Write();
+  builder.Compile();
+  std::cout << "Code Written to: " << builder.GetDir()  << "\n";
+  if (builder.Success()) {
+    utils::print("compile success\n", utils::CK_Green);
+    std::string executable = builder.GetExecutable();
+  } else {
+    utils::print("compile error\n", utils::CK_Red);
+    std::cerr << "EE: The selected Failure Point is not able to compile"  << "\n";
+    exit(1);
+  }
+  CodeTester tester(builder.GetDir(), builder.GetExecutable(), query->GetInputs());
+  tester.Test();
+  CodeAnalyzer new_analyzer(builder.GetDir());
+  new_analyzer.Compute();
+
+  Analyzer analyzer(builder.GetDir() + "/io.csv", {});
+  std::vector<std::string> invs = analyzer.GetInvariants();
+  // invs
+  std::cout << "Failure invariants:"  << "\n";
+  // merge
+  for (std::string inv : invs) {
+    // TODO many?
+    std::cout << inv  << "\n";
+  }
+  if (invs.empty()) {
+    std::cerr << "EE: Failed to infer failure condition."  << "\n";
+    exit(1);
+  }
+
+  m_failure_condition = merge_failure_condition(invs);
+  std::cout << "******************************"  << "\n";
+  std::cout << "selected failure condition:"  << "\n";
+  std::cout << "\t" << m_failure_condition  << "\n";
+  std::cout << "******************************"  << "\n";
+  if (m_failure_condition.empty()) {
+    std::cerr << "EE: Failure condition empty."  << "\n";
+    exit(1);
+  }
 }
+
+std::string Hebi::merge_failure_condition(std::vector<std::string> str_invs) {
+  if (str_invs.size() == 1) return str_invs[0];
+  std::vector<BinaryFormula*> invs;
+  BinaryFormula *base = NULL;
+  std::vector<BinaryFormula*> assignments;
+  for (std::string str : str_invs) {
+    BinaryFormula *fm = new BinaryFormula(str);
+    invs.push_back(fm);
+  }
+
+  for (BinaryFormula *fm : invs) {
+    if (fm->GetOP() == "=" && !fm->IsRightVar()) {
+      assignments.push_back(fm);
+    } else {
+      if (!base) {
+        base = fm;
+      }
+    }
+  }
+  
+  for (BinaryFormula *assign : assignments) {
+    base->Update(assign->GetLHS(), assign->GetRHS());
+  }
+
+  std::string ret = base->ToString();
+  for (BinaryFormula *fm : invs) {
+    delete fm;
+  }
+  return ret;
+}
+
 
 void Query::ResolveInput() {
   std::cout << "Query::ResolveInput"  << "\n";
@@ -177,6 +242,76 @@ void Query::GenCode() {
 }
 
 
+std::string Hebi::derive_pre_cond(std::vector<std::string> str_invs, std::vector<std::string> str_trans) {
+  std::string ret;
+  // TODO select some, combine, get pre cond
+
+  // std::string str_inv = merge_failure_condition(str_invs);
+  // std::cout << "\t ********* " << str_inv  << "\n";
+  // BinaryFormula *inv = new BinaryFormula(str_inv);
+
+  // std::vector<BinaryFormula*> invs;
+  // std::vector<BinaryFormula*> pres;
+  std::vector<BinaryFormula*> trans;
+  // create BinaryFormula here. CAUTION need to free them
+  // for (std::string &s : str_invs) {
+  //   invs.push_back(new BinaryFormula(s));
+  // }
+  for (std::string &s : str_trans) {
+    trans.push_back(new BinaryFormula(s));
+  }
+
+  // TODO NOW Replace with failure condition in "init"
+  // BinaryFormula *key_inv = get_key_inv(invs);
+  BinaryFormula *key_inv = new BinaryFormula(m_failure_condition);
+  // FIXME not guranteed
+  if (!key_inv->IsLeftVar()) {
+    key_inv->Inverse();
+  }
+
+  std::vector<BinaryFormula*> related_trans; // = get_related_trans(trans, vars);
+  // for (BinaryFormula *bf : trans) {
+  //   std::string item = bf->GetLHS();
+  //   if (item == key_inv->GetLHS() || item == key_inv->GetRHS()) {
+  //     related_trans.push_back(bf);
+  //   }
+  // }
+
+  for (BinaryFormula *fm : trans) {
+    std::cout << "using: " << fm->ToString()  << "\n";
+    key_inv->Update(fm->GetLHS(), fm->GetRHS());
+    std::cout << "Got: " << key_inv->ToString()  << "\n";
+  }
+
+  // input varaible name is special
+
+  // for (BinaryFormula *tran : trans) {
+  //   BinaryFormula *tmp = new BinaryFormula(*key_inv);
+  //   if (tran->GetLHS() == tmp->GetLHS()) {
+  //     tmp->UpdateLHS(tran->GetRHS());
+  //   }
+  //   if (tran->GetLHS() == tmp->GetRHS()) {
+  //     tmp->UpdateRHS(tran->GetRHS());
+  //   }
+
+
+  //   // if contains no output variable, add it to ret
+  //   std::string lhs = tmp->GetLHS();
+  //   std::string rhs = tmp->GetRHS();
+  //   if (!lhs.empty() && lhs[0] != 'O'
+  //       && !rhs.empty() && rhs[0] != 'O') {
+  //     ret.push_back(tmp->ToString());
+  //   }
+  //   delete tmp;
+  // }
+  // FIXME delete formulas
+  ret = key_inv->ToString();
+  delete key_inv;
+  
+  return ret;
+}
+
+
 /**
  * Initialize the query as the segment, into worklist
  * Traverse the worklist:
@@ -187,18 +322,15 @@ void Query::GenCode() {
  *   - Selector(q) into worklist
  * TODO workflow
  */
-void process(ASTNode *node) {
+void Hebi::process(ASTNode *node) {
   print_trace("process");
   std::cout << "AST node created!"  << "\n";
 
 
   node->SetFailurePoint();
 
-  
   Query *init_query = new Query(node);
-
-  
-
+  init(node);
   
   g_worklist.push_back(init_query);
   // init_query->Visualize();
@@ -257,8 +389,59 @@ void process(ASTNode *node) {
     // tester.SetExecutable(builder.GetDir(), builder.GetExecutable());
     // tester.GenTestSuite();
     tester.Test();
-    // tester.Analyze(res);
+
+
+
+    CodeAnalyzer new_analyzer(builder.GetDir());
+    new_analyzer.Compute();
+
+
+
+    Analyzer analyzer(builder.GetDir() + "/io.csv", {});
+    std::vector<std::string> invs = analyzer.GetInvariants();
+    // std::vector<std::string> pres = analyzer.GetPreConditions();
+    std::vector<std::string> trans = analyzer.GetTransferFunctions();
+    if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+      std::cout << "== invariants"  << "\n";
+      for (auto &s : invs) {
+        std::cout << "\t" << s  << "\n";
+      }
+      // std::cout << "== pre condtions"  << "\n";
+      // for (auto &s : pres) {
+      //   std::cout << "\t" << s  << "\n";
+      // }
+      std::cout << "== transfer functions ------"  << "\n";
+      for (auto &s : trans) {
+        std::cout << "\t" << s  << "\n";
+      }
+    }
+
+    std::string pre = derive_pre_cond(invs, trans);
+    if (!pre.empty()) {
+      if (pre_entry_point(pre)) {
+        std::cout << "RESOLVED!!"  << "\n";
+        exit(0);
+      }
+    }
+    // if (!pres.empty()) {
+    //   bool resolved = true;
+    //   for (std::string pre : pres) {
+    //     if (!pre_entry_point(pre)) {
+    //       resolved = false;
+    //       break;
+    //     }
+    //   }
+    //   if (resolved) {
+    //     std::cout << "RESOLVED!!!"  << "\n";
+    //     // DEBUG here
+    //     exit(0);
+    //   }
+    // }
+
+    // TODO if the preconditions are related to only inputs, done!
     
+
+    // tester.Analyze(res);
     // Profile profile = test(executable, input);
     // BugSig *bs = oracle(input, profile);
     // if (bs) {
@@ -274,12 +457,36 @@ void process(ASTNode *node) {
   }
 }
 
+bool Hebi::pre_entry_point(std::string pre) {
+  BinaryFormula *formula = new BinaryFormula(pre);
+  std::set<std::string> vars = formula->GetVars();
+  for (std::string var : vars) {
+    std::cout << "| " << var  << "\n";
+    // this is argv:f!
+    if (var.find(':') != std::string::npos) {
+      var = var.substr(0, var.find(':'));
+    }
+    if (var != "argv" && var != "argc" && var != "optarg") {
+      delete formula;
+      return false;
+    }
+    if (var == "argv" || var == "argc") {
+      // the argv should come from main
+      // if (m_first->GetAST()->GetFunctionName() != "main") {
+      //   return false;
+      // }
+    }
+  }
+  delete formula;
+  return true;
+}
+
 
 /**
  * TODO context search
  * , Profile profile
  */
-std::vector<Query*> select(Query *query) {
+std::vector<Query*> Hebi::select(Query *query) {
   print_trace("select");
   std::vector<Query*> ret;
   // TODO hard to reach
@@ -331,7 +538,7 @@ std::vector<Query*> select(Query *query) {
 }
 
 
-std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query) {
+std::set<Query*> Hebi::find_mergable_query(CFGNode *node, Query *orig_query) {
   print_trace("find_mergable_query");
   std::set<Query*> ret;
   if (g_waiting_quries.count(node) == 0) {

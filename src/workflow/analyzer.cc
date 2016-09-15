@@ -376,12 +376,16 @@ void Analyzer::processCSVFile(std::string csv_file) {
           reach_poi_test_failure++;
         }
       } else {
-        assert(test_success_idx != -1);
-        assert(test_success_idx < (int)row.size());
-        if (row[test_success_idx] == "true") {
-          no_reach_poi_test_success++;
+        // assert(test_success_idx != -1);
+        // assert(test_success_idx < (int)row.size());
+        if (test_success_idx < (int)row.size()) {
+          if (row[test_success_idx] == "true") {
+            no_reach_poi_test_success++;
+          } else {
+            no_reach_poi_test_failure++;
+          }
         } else {
-          no_reach_poi_test_failure++;
+          // TODO FIXME
         }
       }
     }

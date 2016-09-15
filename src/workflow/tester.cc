@@ -222,6 +222,8 @@ std::string TestResult::GenerateCSV() {
 /********************************
  * Resolving Query
  *******************************/
+
+
 /**
  * Return the inversed version of op. > becomes <
  */
@@ -277,6 +279,11 @@ BinaryFormula::BinaryFormula(std::string raw) : m_raw(raw) {
   m_rhs = formula.substr(pos + offset);
   utils::trim(m_lhs);
   utils::trim(m_rhs);
+  if (!is_var(m_lhs)) {
+    std::string tmp = m_lhs;
+    m_lhs = m_rhs;
+    m_rhs = tmp;
+  }
 }
 
 
@@ -438,3 +445,27 @@ BinaryFormula* derive_key_inv(std::vector<BinaryFormula*> pres, std::vector<Bina
 }
 
 
+BinaryFormula *merge(BinaryFormula *fm1, BinaryFormula *fm2) {
+  if (!fm1) return NULL;
+  if (!fm2) return NULL;
+  std::string lhs1 = fm1->GetLHS();
+  std::string rhs1 = fm1->GetRHS();
+  std::string lhs2 = fm2->GetLHS();
+  std::string rhs2 = fm2->GetRHS();
+  if (lhs1.empty() || rhs1.empty()) return NULL;
+  if (lhs2.empty() || rhs2.empty()) return NULL;
+  if (!BinaryFormula::is_var(rhs1)) {
+    if (lhs1 == lhs2 || lhs1 == rhs2) {
+      BinaryFormula *fm = new BinaryFormula(*fm2);
+      fm->Update(lhs1, rhs1);
+      return fm;
+    }
+  } else if (!BinaryFormula::is_var(rhs2)) {
+    if (lhs2 == lhs1 || lhs2 == rhs1) {
+      BinaryFormula *fm = new BinaryFormula(*fm1);
+      fm->Update(lhs2, rhs2);
+      return fm;
+    }
+  }
+  return NULL;
+}

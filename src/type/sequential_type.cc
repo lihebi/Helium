@@ -175,17 +175,27 @@ std::string StrType::GetInputCode(std::string var) {
   ret += "// StrType::GetInputCode: " + var + "\n";
   ret += get_str_input_code(var);
   ret += get_addr_input(var);
+
+  // FIXME
+  // ret += get_strlen_input_output(var);
+  
   return ret;
 }
 std::string StrType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// StrType::GetOutputCode: " + var + "\n";
-  ret += get_strlen_output(var);
-  ret += get_addr_output(var);
-  ret += get_check_null(var,
-                        get_null_output(var, true),
-                        get_null_output(var, false)
-                        );
+  if (Config::Instance()->GetBool("instrument-strlen")) {
+    ret += get_strlen_output(var);
+  }
+  if (Config::Instance()->GetBool("instrument-address")) {
+    ret += get_addr_output(var);
+  }
+  if (Config::Instance()->GetBool("instrument-null")) {
+    ret += get_check_null(var,
+                          get_null_output(var, true),
+                          get_null_output(var, false)
+                          );
+  }
   return ret;
 }
 InputSpec *StrType::GenerateInput() {
@@ -264,13 +274,18 @@ std::string BufType::GetInputCode(std::string var) {
   std::string ret;
   ret += "// BufType::GetInputCode: " + var + ";\n";
   ret += "// HELIUM_TODO\n";
+
+  // FIXME
+  // ret += get_sizeof_input_output(var);
   return ret;
 }
 std::string BufType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// BufType::GetOutputCode: " + var = "\n";
   ret += get_sizeof_output(var);
-  ret += get_addr_output(var);
+  if (Config::Instance()->GetBool("instrument-address")) {
+    ret += get_addr_output(var);
+  }
   return ret;
 }
 InputSpec *BufType::GenerateInput() {

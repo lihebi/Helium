@@ -67,7 +67,7 @@ void CodeTester::Test() {
         utils::print(".", utils::CK_Green);
       }
       // ret->AddOutput(output, true);
-      output += "HELIUM_STATUS = true\n";
+      output += "HELIUM_TEST_SUCCESS = true\n";
     } else {
       if (PrintOption::Instance()->Has(POK_TestInfo)) {
         utils::print("test failure\n", utils::CK_Red);
@@ -76,7 +76,7 @@ void CodeTester::Test() {
         utils::print(".", utils::CK_Red);
       }
       // ret->AddOutput(output, false);
-      output += "HELIUM_STATUS = false\n";
+      output += "HELIUM_TEST_SUCCESS = false\n";
     }
 
     // For input, and output, log them out only

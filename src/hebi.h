@@ -3,8 +3,6 @@
 #include "workflow/reader.h"
 #include "parser/cfg.h"
 
-void hebi(std::string filename, POISpec poi);
-void process(ASTNode *node);
 
 class Query {
 public:
@@ -93,9 +91,34 @@ private:
   std::string m_support;
   std::string m_makefile;
 
-
   static std::set<CFGNode*> m_bad;
 };
+
+
+class Hebi {
+public:
+  Hebi(std::string filename, POISpec poi);
+  ~Hebi() {}
+private:
+  void init(ASTNode *node);
+  void process(ASTNode *node);
+  std::vector<Query*> select(Query *query);
+  std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);
+  std::string derive_pre_cond(std::vector<std::string> invs, std::vector<std::string> trans);
+  bool pre_entry_point(std::string pre);
+  std::string merge_failure_condition(std::vector<std::string> invs);
+
+
+  
+  std::deque<Query*> g_worklist;
+  std::map<CFGNode*, std::set<Query*> > g_waiting_quries;
+  std::map<Query*, std::set<Query*> > g_propagating_queries;
+
+
+  std::string m_failure_condition;
+};
+
+
 
 
 std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);

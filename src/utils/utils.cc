@@ -219,6 +219,9 @@ std::vector<std::string> utils::get_files(const std::string& folder) {
  * get all files of the folder.
  * @param[in] folder
  * @param[out] vs
+ * This is recursive
+ * The input must be path without ~
+ * The output will be full path
  */
 void utils::get_files(const std::string& folder, std::vector<std::string>& vs) {
   fs::path project_folder(folder);
@@ -227,6 +230,13 @@ void utils::get_files(const std::string& folder, std::vector<std::string>& vs) {
     if (is_regular_file(p)) {
       vs.push_back(p.string());
     }
+  }
+}
+
+TEST(UtilsTestCase, GetFilesTest) {
+  std::vector<std::string> files = get_files("/home/hebi/tmp");
+  for (std::string file : files) {
+    std::cout << file  << "\n";
   }
 }
 

@@ -3,6 +3,8 @@
 #include "utils/utils.h"
 #include "config/options.h"
 
+#include "resolver/global_variable.h"
+
 
 ASTNode::ASTNode(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
   : m_xmlnode(xmlnode), m_ast(ast),  m_parent(parent), m_prev(prev) {
@@ -60,6 +62,33 @@ ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind) {
   return ret;
 }
 
+
+/**
+ * Get variables used in this node.
+ * This is currently used for output variables.
+ * Also resovle global variable!
+ */
+std::vector<Variable> ASTNode::GetVariables() {
+  std::vector<Variable> ret;
+  std::set<std::string> ids = this->GetVarIds();
+  for (std::string id : ids) {
+    if (id.empty()) continue;
+    if (is_c_keyword(id)) continue;
+    SymbolTable *tbl = this->GetSymbolTable();
+    SymbolTableValue *st_value = tbl->LookUp(id);
+    if (st_value) {
+      std::string name = st_value->GetName();
+      Type *type = st_value->GetType();
+      ret.push_back({type, name});
+    } else {
+      Type *type = GlobalVariableRegistry::Instance()->LookUp(id);
+      if (type) {
+        ret.push_back({type, id});
+      }
+    }
+  }
+  return ret;
+}
 
 
 

@@ -89,6 +89,16 @@ std::string get_sizeof_output(std::string var) {
 std::string get_strlen_output(std::string var) {
   return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
 }
+
+
+
+std::string get_sizeof_input_output(std::string var) {
+  return "printf(\"Id_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n" + flush_output;
+}
+std::string get_strlen_input_output(std::string var) {
+  return "printf(\"Id_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
+}
+
 std::string get_addr_output(std::string var) {
   return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
   // if (Config::Instance()->GetString("use-address") == "true") {
