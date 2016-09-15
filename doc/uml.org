@@ -1,0 +1,901 @@
+#+TITLE: Helium UML
+
+** Workflow
+
+#+BEGIN_SRC plantuml :file helium-uml.png :exports results
+class Query {
+  Merge();
+  Add();
+  Remove();
+  New()
+  GetNodes();
+  GetNodesForNewFunction();
+  ContainNode();
+  ResolveInput();
+  GenCode();
+  GetMain();
+  GetSupport();
+  GetMakefile();
+  GetInputs();
+  MarkBad();
+  IsBad();
+}
+
+class Hebi {
+  init();
+  process();
+  select();
+  find_mergable_query();
+  derive_pre_cond();
+  pre_entry_point();
+  merge_failure_condition();
+}
+
+class CodeAnalyzer {
+  Compute();
+}
+
+class CodeGen {
+  SetFirstAST();
+  AddNode();
+  SetInput();
+  Compute();
+  GetMain();
+  GetSupport();
+  GetMakefile();
+
+  - getSupportBody();
+  - resolveSnippet();
+  - resolveSnippet();
+}
+
+class TestSuite {
+  GetInput();
+  GetSpec();
+  Add();
+};
+
+class CodeTester {
+  Test();
+  Analyze();
+  
+  - genTestSuite();
+  - freeTestSuite();
+}
+#+END_SRC
+
+#+RESULTS:
+[[file:helium-uml.png]]
+
+
+** Old Workflow
+
+#+BEGIN_SRC plantuml :file helium-workflow-old-uml.png :exports results
+class Segment {
+  SetPOI();
+  NextContext();
+  TestNextContext();
+  ContinueNextContext();
+  GetFirstNode();
+  GetPOI();
+  DeclOutput();
+  UnDeclOutput();
+  GetConditions();
+
+  - getMetaData();
+  - createAST();
+  - createPOI();
+  - createOutputVars();
+  - extractJumpOutCondition();
+}
+
+class Context {
+  GetSegment();
+  GetFirstNode();
+  SetFirstNode();
+  SetLast();
+  AddNode();
+  RemoveNode();
+  GetNodes();
+  Test();
+  dump();
+  IsResolved();
+
+  GetInputVariables();
+  Resolve();
+  GetProcedureNum();
+
+  - resolveDecl();
+  - getUndefinedVariables();
+  - resolveSnippet();
+  - resolveQuery();
+  - getMain();
+  - getSupport();
+  - getSupportBody();
+  - getMakefile();
+
+  - getSigMain();
+
+
+  - simplify();
+
+  - compile();
+  - createTestCases();
+  - test();
+  - analyze();
+
+  - freeTestSuite();
+}
+
+class Reader {
+  Read();
+  PrintSegments();
+  - getAnnotationSegments();
+  - getAnnotSeg();
+  - getAnnotLoop();
+  - getFuncCallSegments();
+}
+
+
+class TestResult {
+  GetInvariants();
+  GetPreconditions();
+  GetTransferFunctions();
+  AddOutput();
+  PrepareData();
+  GenerateCSV();
+}
+
+
+class BinaryFormula {
+  GetLHS();
+  GetRHS();
+  GetConf();
+  GetOP();
+  dump();
+  GetVars();
+
+  GetLHSVar();
+  GetRHSVar();
+
+  IsLeftVar();
+  IsRightVar();
+
+  UpdateRHS();
+  UpdateLHS();
+  Update();
+
+  Inverse();
+
+  ToString();
+  is_var();
+
+  - getVar();
+}
+
+
+
+class Formula {
+  {static} is_constant();
+  GetKind();
+  GetLHS();
+  GetRHS();
+  GetOp();
+  Replace();
+  Valid();
+
+  ClearData();
+  SetLHSData();
+  AddRHSData();
+  {abstract} Validate();
+  {abstract} ValidateVariance();
+  {abstract} ToString();
+}
+
+class UnaryFormula {
+  Validate();
+  ValidateVariance();
+  ToString();
+  - validate();
+}
+
+Formula <-- UnaryFormula
+
+class BiFormula {
+  Validate();
+  ValidateVariance();
+  ToString();
+  - validate();
+}
+
+Formula <-- BiFormula
+
+class FormulaFactory {
+  {static} CreateFormula();
+}
+
+
+class Builder {
+  void SetMain();
+  void SetSupport();
+  void SetMakefile();
+
+  std::string GetMain();
+  std::string GetSupport();
+  std::string GetMakefile();
+
+  
+  AddScript();
+  AddScript();
+  Write();
+  Compile();
+  Success();
+  GetExecutable();
+  GetDir();
+
+  - preProcess();
+  - postProcess();
+}
+
+
+class Analyzer {
+  GetInvariants();
+  GetTransferFunctions();
+  GetPreConditions();
+
+  GetSummary();
+
+  - checkRelation();
+  - checkConstant();
+  - checkTransfer();
+  - checkTemplate();
+
+  - checkDiscoveredConstants();
+  - processCSVFile();
+  - processConditions();
+  - createSimplifiedHeader();
+}
+#+END_SRC
+
+
+#+RESULTS:
+[[file:helium-workflow-old-uml.png]]
+
+** AST
+
+#+BEGIN_SRC plantuml :file helium-ast-uml.png :exports results
+class SymbolTableValue {
+  GetName();
+  GetType();
+  GetNode();
+}
+
+class SymbolTable {
+  GetParent();
+  LookUp();
+  LocalLookUp();
+  AddSymbol();
+  dump();
+}
+
+class AST {
+  size();
+  GetRoot();
+  GetNodes();
+  CreateSymboltable();
+  Visualize();
+  VisualizeI();
+  VisualizeN();
+  GetCode();
+  GetFilename();
+  GetLineNumber();
+  GetCallSite();
+  GetCallSites();
+  GetLeafNodes();
+  SetSlice();
+  ClearSlice();
+  SetDecl();
+  SetDecoDecl();
+  SetDecoDeclInput();
+  SetDecooutput();
+  SetOutput();
+  ClearOutput();
+  ClearDecl();
+  HideOutput();
+  RestoreOutput();
+  GetRequiredDecl();
+  GetRequiredDeclWithInput();
+  GetRequiredDecoOutput();
+  GetRequiredOutputVariables();
+  GetFunctionName();
+  CoputeLCA();
+  Distance();
+  CompleteGene();
+  CompleteGeneToRoot();
+  RemoveRoot();
+  Node2Index();
+  Index2Node();
+  CompleteVarDefUse();
+  GetNodeByIndex();
+  GetIndexByNode();
+  Contains();
+  GetNodeByLinum();
+  GetNodeByXMLNode();
+  GetEnclosingNodeByXMLNode();
+  GetPreviousLeafNode();
+  GetPreviousLeafNodeInSlice();
+  GetFirstNode();
+  IsInFreedList();
+  SetFailurePoint();
+  ClearFailurePoint();
+  IsFailurePoint();
+}
+
+
+class ASTNode {
+  Kind();
+  CreateSymbolTable();
+  GetLabel();
+  GetCode();
+  GetCondition();
+  GetVarIds();
+  GetIdToResolve();
+  GetVariables();
+  LookUpDefinition();
+  GetParent();
+  Children();
+  Child();
+  GetFirstChild();
+  GetLastChild();
+  AllChildren();
+  GetChildren();
+  PreviousSibling();
+  NextSibling();
+  children_begin();
+  children_end();
+  GetXMLNode();
+  GetSymbolTable();
+  GetBeginLinum();
+  GetEndLinum();
+  SetFailurePoint();
+  ClearFailurePoint();
+  POIOutputCode();
+  POIAfterCode();
+  FreedListCode();
+}
+
+class Decl {
+  GetType();
+  GetName();
+}
+
+class DeclFactory {
+  {static} CreateDecl();
+}
+
+
+class Function {
+  Kind();
+  GetLabel();
+  GetReturnType();
+  GetName();
+  GetParams();
+  GetCode();
+  GetIdToResolve();
+  CreateSymbolTable();
+}
+
+ASTNode <-- Function
+
+
+class Stmt {
+  Kind();
+  GetCode();
+  GetVarIds();
+  GetLabel();
+  GetIdToResolve();
+  LookUpDefinition();
+  CreateSymbolTable();
+}
+
+ASTNode <-- Stmt
+
+class Block {
+  Kind()
+  GetCode();
+  GetLabel();
+}
+
+ASTNode <-- Block
+
+class If {
+  Kind();
+  GetCondition();
+  GetThen();
+  GetElseIfs();
+  GetElse();
+  GetCode();
+  GetLabel();
+  GetVarIds();
+  GetIdToResolve();
+}
+
+ASTNode <-- If
+
+class Else {
+  Kind();
+  GetCode();
+  GetLabel();
+}
+
+ASTNode <-- Else
+
+class ElseIf {
+  Kind();
+  GetCondition();
+  GetCode();
+  GetLabel();
+  GetVarIds();
+  GetIdToResolve();
+}
+
+ASTNode <-- ElseIf
+
+class Then {
+  Kind();
+  GetCode();
+  GetLabel();
+}
+
+ASTNode <-- Then
+
+class Switch {
+  Kind();
+  GetCondition();
+  GetCases();
+  GetDefault();
+  GetCode();
+  GetLabel();
+  GetVarIds();
+}
+
+ASTNode <-- Switch
+
+class Case {
+  Kind();
+  GetCode();
+  GetLabel();
+}
+
+ASTNode <-- Case
+
+class Default {
+  Kind();
+  GetCode();
+  GetLabel();
+}
+
+ASTNode <-- Default
+
+class For {
+  Kind();
+  GetInits();
+  GetCondition();
+  GetIncr();
+  GetCode();
+  GetLabel();
+  GetVarIds();
+  GetIdToResolve();
+  LookUpDefinition();
+  CreateSymbolTable();
+}
+
+ASTNode <-- For
+
+class While {
+  Kind();
+  GetCondition()
+  GetCode();
+  GetLabel();
+  GetVarIds();
+  GetIdToResolve();
+}
+
+ASTNode <-- While
+
+class Do {
+  Kind();
+  GetCondition();
+  GetCode();
+  GetLabel();
+  GetVarIds();
+  GetIdToResolve();
+}
+
+ASTNode <-- Do
+
+class ASTOther {
+  Kind();
+  GetCode();
+  GetLabel();
+  CreateSymbolTable();
+}
+
+ASTNode <-- ASTOther
+
+
+
+#+END_SRC
+
+#+RESULTS:
+[[file:helium-ast-uml.png]]
+
+
+
+** CFG
+
+#+BEGIN_SRC plantuml :file helium-cfg-uml.png :exports results
+class CFGNode {
+  GetASTNode()
+  GetID();
+  GetLabel();
+  GetCFG();
+}
+
+class CFG {
+  AddNode();
+  Merge();
+  MergeBranch();
+  MergeCase();
+  GetBranchNum();
+  RemoveOut();
+  SetCond();
+  CreateEdge();
+  AddIn();
+  AddOut();
+  GetIns();
+  GetOuts();
+  GetNodes();
+  GetPredecessors();
+  ASTNodeToCFGNode();
+  Visualize();
+  AddBreak();
+  AddContinue();
+  AddReturn();
+  AdjustBreak();
+  AdjustContinue();
+  AdjustReturn();
+  Contains();
+}
+
+class CFGFactory {
+  {static} CreateCFG();
+  {static} CreateCFGFromIf();
+  {static} CreateCFGFromFunction();
+  {static} CreateCFGFromElseIf();
+  {static} CreateCFGFromSwitch();
+  {static} CreateCFGFromWhile();
+  {static} CreateCFGFromFor();
+  {static} CreateCFGFromDo();
+  {static} CreateCFGFromBlock();
+}
+#+END_SRC
+
+
+** Type
+
+#+BEGIN_SRC plantuml :file helium-type-uml.png :exports results
+class TypeFactory {
+  {static} CreateType();
+}
+
+class Type {
+  {abstract} GenerateInput();
+  {abstract} GetDeclCode();
+  {abstract} GetInputCode();
+  {abstract} GetOutputCode();
+
+  GeneratePairInput();
+  GetRaw();
+  ToString();
+}
+
+class SystemType
+
+Type <-- SystemType
+
+class PrimitiveType
+
+Type <-- PrimitiveType
+
+class CompositeType
+
+Type <-- CompositeType
+
+class SpecialType
+
+Type <-- SpecialType
+
+class UnknownType {
+  GenerateInput();
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GetRaw();
+  ToString();
+}
+
+Type <-- UnknownType
+
+class SequentialType
+
+CompositeType <-- SequentialType
+
+class StructType {
+  ToString();
+}
+
+CompositeType <-- StructType
+
+class ArrayType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GetRaw();
+  ToString();
+}
+
+SequentialType <-- ArrayType
+
+class PointerType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GetRaw();
+  ToString();
+}
+
+SequentialType <-- PointerType
+
+class StrType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GeneratePairInput();
+  ToString();
+}
+
+PointerType <-- StrType
+
+class BufType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  ToString();
+}
+
+ArrayType <-- BufType
+
+class IntType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  ToString();
+}
+
+PrimitiveType <-- IntType
+class CharType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GetRaw();
+  GeneratePairInput();
+  ToString();
+}
+
+PrimitiveType <-- CharType
+
+class BoolType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GetRaw();
+  ToString();
+}
+
+PrimitiveType <-- BoolType
+
+class ArgCVType {
+  GetDeclCode();
+  GetInputCode();
+  GetOutputCode();
+  GenerateInput();
+  GetRaw();
+  ToString();
+}
+
+SpecialType <-- ArgCVType
+
+
+class Variable {
+  GetType();
+  GetName();
+}
+
+class InputSpec {
+  Add();
+  GetSpec();
+  GetRaw();
+}
+
+class ArrayInputSpec {
+  Add();
+  GetSpec();
+  GetRaw();
+}
+
+InputSpec <-- ArrayInputSpec
+
+class PointerInputSpec {
+  Add();
+  GetSpec();
+  GetRaw();
+}
+
+InputSpec <-- PointerInputSpec
+
+class StructInputSpec {
+  GetSpec();
+  GetRaw();
+  AddField();
+}
+
+InputSpec <-- StructInputSpec
+
+class ArgCVInputSpec {
+  GetSpec();
+  GetRaw();
+  SetArgv0();
+  AddBool();
+  AddNamedArg();
+  AddArg();
+}
+
+InputSpec <-- ArgCVInputSpec
+
+
+#+END_SRC
+
+#+RESULTS:
+[[file:helium-type-uml.png]]
+
+
+
+Resolver
+
+
+#+BEGIN_SRC plantuml :file helium-resolver-uml.png :exports results
+class CtagsEntry {
+  GetName(); 
+  GetFileName(); 
+  GetSimpleFileName(); 
+  GetLineNumber(); 
+  GetPattern(); 
+  GetType();
+}
+
+class Snippet {
+  GetName();;
+  GetSignature();;
+  GetSignature();
+  GetSignatureKey();;
+  MainKind(); 
+  MainName(); 
+  SatisfySignature();
+
+  GetCode(); 
+  GetLineNumber(); 
+  GetFileName(); 
+  GetLOC(); 
+  IsValid(); 
+
+  ToString();;
+}
+
+class SnippetMeta {
+  AddSignature();
+  HasKind();
+  GetKey();
+}
+
+class SnippetDB {
+  Load();
+  Create();
+  LookUp();
+  LookUp();
+  LookUp();
+  GetMeta();
+  GetCode();
+  RemoveDup();
+  GetAllDep();
+  GetDep();
+  SortSnippets();
+
+  PrintCG();
+
+  InsertHeaderDep();
+  GetHeaderDep();
+
+  QueryCallers();
+  QueryCaller();
+
+
+
+
+  - queryInt();
+  - queryStr();
+  - queryIntStr();
+  - queryStrInt();
+  - queryStrChar();
+  - queryIntInt();
+  - queryStrStr();
+
+  - queryFunctions();
+
+  - insertSnippet();
+  - createTable();
+  - createDep();
+  - createCG();
+  - constructCG();
+
+  - loadCG();
+}
+
+class SystemResolver {
+  Load();
+  ResolveType();
+  Parse() ;
+  Parse();
+  Has();
+  GetLibs();
+  check_headers();
+  GetAvailableHeaders();
+  - parseHeaderConf();
+}
+
+
+class HeaderResolver {
+  Load();
+  Sort();
+  Dump();
+  DumpDeps();
+  IsIncluded();
+
+  GetUsedHeaders();
+
+  - sortOneRound();
+  - isDependOn();
+}
+
+class GlobalVariable {
+  GetType();
+  GetName();
+  GetSnippetID();
+}
+
+class GlobalVariableRegistry {
+  LookUp();
+}
+
+#+END_SRC
+
+#+RESULTS:
+[[file:helium-resolver-uml.png]]
+
