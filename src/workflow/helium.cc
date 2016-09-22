@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "reader.h"
-#include "hebi.h"
 #include "helium_utils.h"
 
 #include "config/arg_parser.h"
@@ -21,358 +20,543 @@
 #include "resolver/snippet.h"
 #include "resolver/resolver.h"
 #include "resolver/snippet_db.h"
+#include "resource.h"
+#include "utils/log.h"
+#include "builder.h"
+#include "analyzer.h"
+
+
+
 
 
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+
+
+#include "code_test.h"
+#include "code_gen.h"
+#include "code_analyze.h"
+
 namespace fs = boost::filesystem;
 
 
 using namespace utils;
 
-static void
-create_tagfile(const std::string& folder, const std::string& file) {
-  assert(utils::exists(folder));
-  // use full path because I want to have the full path in tag file
-  std::string full_path = utils::full_path(folder);
-  std::string cmd = "ctags -f ";
-  cmd += file;
-  cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
-  cmd += full_path;
-  // std::cout << cmd  << "\n";
-  // std::system(cmd.c_str());
-  int status;
-  utils::exec(cmd.c_str(), &status);
-  if (status != 0) {
-    std::cerr << "create tagfile failed" << "\n";
-    std::cerr << cmd << "\n";
-    exit(1);
+
+
+Helium::Helium(FailurePoint *fp) {
+  print_trace("hebi");
+  XMLDoc *doc = XMLDocReader::Instance()->ReadFile(fp->GetPath());
+  int linum = get_true_linum(fp->GetPath(), fp->GetLinum());
+  std::cout << "true line number: " <<  linum  << "\n";
+  if (fp->GetType() == "stmt") {
+    XMLNode node = find_node_on_line(doc->document_element(),
+                                          {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
+                                          linum);
+    assert(node);
+    XMLNode func = get_function_node(node);
+    std::string func_name = function_get_name(func);
+    int func_linum = get_node_line(func);
+    AST *ast = Resource::Instance()->GetAST(func_name);
+    if (!ast) {
+      helium_log("[WW] No AST constructed!");
+      return;
+    }
+    ASTNode *root = ast->GetRoot();
+    if (!root) {
+      helium_log("[WW] AST root is NULL.");
+      return;
+    }
+    int ast_linum = root->GetBeginLinum();
+    int target_linum = linum - func_linum + ast_linum;
+    ASTNode *target = ast->GetNodeByLinum(target_linum);
+    if (!target) {
+      helium_log("[WW] cannot find target AST node");
+      return;
+    }
+    process(target);
   }
 }
 
-
-Helium::Helium(int argc, char* argv[]) {
-  /* load HELIUM_HOME */
-  std::string helium_home = load_helium_home();
-  /* parse arguments */
-  ArgParser::Instance()->Set(argc, argv);
-
-  /* load config */
-  Config::Instance()->ParseFile(helium_home+"/helium.conf");
-  Config::Instance()->Overwrite();
-  if (ArgParser::Instance()->Has("print-config")) {
-    std::cout << Config::Instance()->ToString() << "\n";
-    exit(0);
-  }
-
-  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
-
-  if (ArgParser::Instance()->Has("resolve-system-type")) {
-    std::string type = ArgParser::Instance()->GetString("resolve-system-type");
-    std::string output = SystemResolver::Instance()->ResolveType(type);
-    std::cout << output  << "\n";
-    exit(0);
-  }
-
-
-  // target folder
-  m_folder = ArgParser::Instance()->GetString("folder");
-  if (m_folder.empty()) {
-    ArgParser::Instance()->PrintHelp();
-    exit(1);
-  }
-  if (utils::is_dir(m_folder)) {
-    while (m_folder.back() == '/') m_folder.pop_back();
-  } else if (utils::is_file(m_folder)) {
-  } else {
-    std::cerr<<"target folder: " << m_folder << " does not exists." <<'\n';
-    assert(false);
-  }
-
-  /*******************************
-   ** utilities
-   *******************************/
-  if (ArgParser::Instance()->Has("create-tagfile")) {
-    std::string output_file = ArgParser::Instance()->GetString("output");
-    if (output_file.empty()) output_file = "tags";
-    create_tagfile(m_folder, output_file);
-    exit(0);
-  }
-
-  if (ArgParser::Instance()->Has("create-snippet-db")) {
-    std::string output_folder;
-    if (ArgParser::Instance()->Has("output")) {
-      output_folder = ArgParser::Instance()->GetString("output");
-    }
-    if (output_folder.empty()) output_folder = "snippets";
-    std::string tagfile;
-    if (ArgParser::Instance()->Has("tagfile")) {
-      tagfile = ArgParser::Instance()->GetString("tagfile");
-    }
-    std::string tmpdir = utils::create_tmp_dir();
-    create_tagfile(m_folder, tmpdir+"/tags");
-    tagfile = tmpdir+"/tags";
-    std::cout << "created tagfile: " << tagfile  << "\n";
-    SnippetDB::Instance()->Create(tagfile, output_folder);
-    exit(0);
-  }
-  // if (ArgParser::Instance()->Has("print-header-deps")) {
-  //   HeaderResolver::Instance()->Load(m_folder);
-  //   HeaderResolver::Instance()->Dump();
-  //   exit(0);
-  // }
-
-  if (ArgParser::Instance()->Has("print-ast")) {
-    if (!utils::file_exists(m_folder)) {
-      std::cerr << "only works for a single file.\n";
-      exit(1);
-    }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_folder);
-    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
-    for (XMLNode func : func_nodes) {
-      AST ast(func);
-      ast.Visualize2();
-    }
-    exit(0);
-  }
-
-  if (ArgParser::Instance()->Has("print-cfg")) {
-    if (!utils::file_exists(m_folder)) {
-      std::cerr << "only works for a single file.\n";
-      exit(1);
-    }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_folder);
-    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
-    for (XMLNode func : func_nodes) {
-      AST ast(func);
-      ASTNode *root = ast.GetRoot(); 
-      CFG *cfg = CFGFactory::CreateCFG(root);
-      cfg->Visualize();
-      delete cfg;
-    }
-    exit(0);
-  }
-  
-  /* load tag file */
-  std::string tagfile = ArgParser::Instance()->GetString("tagfile");
-  if (tagfile.empty()) {
-    // ctags_load(m_folder + "/tags");
-    // create tagfile
-    // std::cout << "creating tag file ..."  << "\n";
-    std::string tmpdir = utils::create_tmp_dir();
-    create_tagfile(m_folder, tmpdir+"/tags");
-    tagfile = tmpdir+"/tags";
-    // create_tagfile(m_folder, "/tmp/helium.tags");
-    // std::cout << "done"  << "\n";
-    // ctags_load("/tmp/helium.tags");
-    ctags_load(tagfile);
-  } else {
-    ctags_load(tagfile);
-  }
-
-  std::string snippet_db_folder = ArgParser::Instance()->GetString("snippet-db-folder");
-  if (snippet_db_folder.empty()) {
-    if (ArgParser::Instance()->Has("verbose")) {
-      // std::cerr << "snippet database folder unset. Please use --snippet-db-folder option. --help for more details." << "\n";
-      std::cout << "Using default snippet folder: './snippets/'. If not desired, set via '-s' option."  << "\n";
-    }
-    snippet_db_folder = "snippets";
-    // assert(false);
-  }
-  if (!utils::exists(snippet_db_folder)) {
-    std::cout << "EE: Snippet folder " << snippet_db_folder << " does not exist."  << "\n";
-    exit(1);
-  }
-  SnippetDB::Instance()->Load(snippet_db_folder);
-
-
-  if (ArgParser::Instance()->Has("print-callgraph")) {
-    SnippetDB::Instance()->PrintCG();
-    exit(0);
-  }
-
-  
-
-  // HeaderResolver::Instance()->Load(m_folder);
-  std::string src_folder = ArgParser::Instance()->GetString("src-folder");
-
-
-  if (src_folder.empty()) {
-    if (ArgParser::Instance()->Has("verbose")) {
-      std::cerr << "Using default src folder: 'src'. If not desired, set via '-c' option."  << "\n";
-    }
-    src_folder = "src";
-  }
-  if (!utils::exists(src_folder)) {
-    std::cerr << "EE: src folder " << src_folder << " does not exist."  << "\n";
-    exit(1);
-  }
-  
-  HeaderResolver::Instance()->Load(src_folder);
-  /* load system tag file */
-
-
-  /**
-   * Print src meta.
-   * 0. check headers
-   * 1. headers used
-   * 2. header dependence
-   */
-  if (ArgParser::Instance()->Has("print-meta")) {
-    std::cout << "== Helium Meta Data Printer =="  << "\n";
-    std::cout << "== Headers"  << "\n";
-    // 0
-    SystemResolver::check_headers();
-    // 1
-    // std::string header = SystemResolver::Instance()->GetHeaders();
-    // std::cout << header  << "\n";
-    // std::cout << "== Headers available on the machine"  << "\n";
-    std::set<std::string> avail_headers = SystemResolver::Instance()->GetAvailableHeaders();
-    // for (std::string s : avail_headers) {
-    //   std::cout << s  << "\n";
-    // }
-    std::cout << "== Headers used in project"  << "\n";
-    std::cout  << "\t";
-    std::set<std::string> used_headers = HeaderResolver::Instance()->GetUsedHeaders();
-    for (std::string s : used_headers) {
-      std::cout << s  << " ";
-    }
-    std::cout  << "\n";
-    // 2
-    std::cout << "== Header Dependence"  << "\n";
-    // HeaderDep::Instance()->Dump();
-    HeaderResolver::Instance()->DumpDeps();
-    std::cout << "== Final headers included:"  << "\n";
-    std::cout << "\t";
-    for (std::string s : avail_headers) {
-      if (used_headers.count(s) == 1) {
-        std::cout << s  << " ";
-      }
-    }
-    std::cout  << "\n";
-    exit(0);
-  }
-
-  /* get files in target folder */
-  if (utils::is_dir(m_folder)) {
-    get_files_by_extension(m_folder, m_files, "c");
-  } else {
-    // this is just a file.
-    m_files.push_back(m_folder);
-  }
-
-  /*******************************
-   ** More advanced utils(needs to run some functionality of Helium)
-   *******************************/
-
-  if (ArgParser::Instance()->Has("print-segments")) {
-    assert(false);
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      Reader reader(*it);
-      // std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
-      reader.PrintSegments();
-    }
-    exit(0);
-  }
-  if (ArgParser::Instance()->Has("print-segment-info")) {
-    assert(false);
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      Reader reader(*it);
-      // std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
-      // std::cout << "segment size: " << reader.GetSegmentLOC() << "\n";
-    }
-    exit(0);
-  }
-
-  // if (ArgParser::Instance()->Has("slice")) {
-  //   // use slicing as code selection method
-  //   std::string slice_file = ArgParser::Instance()->GetString("slice");
-  //   Reader::slice(slice_file, m_folder);
-  //   std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
-  //   exit(0);
-  // }
-
-  /**
-   * TODO so many singletons are good practice? Maybe I need to make the Helium class singleton and accessible, and make these singletons its fields.
-   */
-  if (ArgParser::Instance()->Has("slice-file")) {
-    std::string slice_file = ArgParser::Instance()->GetString("slice-file");
-    SimpleSlice::Instance()->SetSliceFile(slice_file);
-  }
-
-  if (ArgParser::Instance()->Has("poi")) {
-    m_poi_file = ArgParser::Instance()->GetString("poi");
-  } else if (ArgParser::Instance()->Has("whole-poi")) {
-    m_whole_poi = ArgParser::Instance()->GetString("whole-poi");
-  } else {
-    std::cerr << "EE: You should provide POI file."  << "\n";
-    exit(1);
-  }
-  if (ArgParser::Instance()->Has("benchmark")) {
-    m_benchmark = ArgParser::Instance()->GetString("benchmark");
-  }
-}
-Helium::~Helium() {}
 
 /**
- * Get segments based on config file.
- * this should be a config file with the filename:line_number format
- * the detailed formats:
- * a.c:504
- * TODO a.c:504-510
- * TODO to support function name
- * @return a.c -> 102,208
+ * 
+ * Build a single segment to get the error condition.
+ * - Build the query
+ * - GenerateInput
+ * - Test
+ * - Oracle infer failure condition
+ * This will fill failure condition
  */
-std::map<std::string, std::vector<int> > parse_selection_conf(const std::string& file) {
-  std::map<std::string, std::vector<int> > result;
-  std::string content = utils::read_file(file);
-  // delimiter by *space*
-  std::vector<std::string> lines = utils::split(content);
-  for (std::string &line : lines) {
-    std::vector<std::string> tmp = utils::split(line, ':');
-    assert(tmp.size() == 2 && "Config file error for code selection.");
-    std::string f = tmp[0];
-    std::string l_str = tmp[1];
-    utils::trim(f);
-    utils::trim(l_str);
-    int l = atoi(l_str.c_str());
-    if (result.find(f) == result.end()) {
-      result[f] = std::vector<int>();
-    }
-    // FIXME value or reference?
-    result[f].push_back(l);
+void Helium::init(ASTNode *node) {
+  Query *query = new Query(node);
+
+  query->ResolveInput();
+  query->GenCode();
+  Builder builder;
+  builder.SetMain(query->GetMain());
+  builder.SetSupport(query->GetSupport());
+  builder.SetMakefile(query->GetMakefile());
+  builder.Write();
+  builder.Compile();
+  std::cout << "Code Written to: " << builder.GetDir()  << "\n";
+  if (builder.Success()) {
+    utils::print("compile success\n", utils::CK_Green);
+    std::string executable = builder.GetExecutable();
+  } else {
+    utils::print("compile error\n", utils::CK_Red);
+    std::cerr << "EE: The selected Failure Point is not able to compile"  << "\n";
+    exit(1);
   }
-  return result;
+  CodeTester tester(builder.GetDir(), builder.GetExecutable(), query->GetInputs());
+  tester.Test();
+  CodeAnalyzer new_analyzer(builder.GetDir());
+  new_analyzer.Compute();
+
+  Analyzer analyzer(builder.GetDir() + "/io.csv", {});
+  std::vector<std::string> invs = analyzer.GetInvariants();
+  // invs
+  std::cout << "Failure invariants:"  << "\n";
+  // merge
+  for (std::string inv : invs) {
+    // TODO many?
+    std::cout << inv  << "\n";
+  }
+  if (invs.empty()) {
+    std::cerr << "EE: Failed to infer failure condition."  << "\n";
+    exit(1);
+  }
+
+  m_failure_condition = merge_failure_condition(invs);
+  std::cout << "******************************"  << "\n";
+  std::cout << "selected failure condition:"  << "\n";
+  std::cout << "\t" << m_failure_condition  << "\n";
+  std::cout << "******************************"  << "\n";
+  if (m_failure_condition.empty()) {
+    std::cerr << "EE: Failure condition empty."  << "\n";
+    exit(1);
+  }
 }
 
-TEST(helium_test_case, parse_selection_conf_test) {
-  char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
-  char *result = mkdtemp(tmp_dir);
-  ASSERT_TRUE(result != NULL);
-  std::string dir = tmp_dir;
-  std::string filename = dir+"/a.c";
-  const char *code = R"prefix(
+std::string Helium::merge_failure_condition(std::vector<std::string> str_invs) {
+  if (str_invs.size() == 1) return str_invs[0];
+  std::vector<BinaryFormula*> invs;
+  BinaryFormula *base = NULL;
+  std::vector<BinaryFormula*> assignments;
+  for (std::string str : str_invs) {
+    BinaryFormula *fm = new BinaryFormula(str);
+    invs.push_back(fm);
+  }
 
-a.c:100
-a.c:235
-sub/dir/b.cpp:364
+  for (BinaryFormula *fm : invs) {
+    if (fm->GetOP() == "=" && !fm->IsRightVar()) {
+      assignments.push_back(fm);
+    } else {
+      if (!base) {
+        base = fm;
+      }
+    }
+  }
+  
+  for (BinaryFormula *assign : assignments) {
+    base->Update(assign->GetLHS(), assign->GetRHS());
+  }
 
-)prefix";
-  utils::write_file(filename, code);
-
-  std::map<std::string, std::vector<int> > m = parse_selection_conf(filename);
-  ASSERT_EQ(m.size(), 2);
-  std::vector<int> a = m["a.c"];
-  ASSERT_EQ(a.size(), 2);
-  EXPECT_EQ(a[0], 100);
-  EXPECT_EQ(a[1], 235);
-  std::vector<int> b = m["sub/dir/b.cpp"];
-  ASSERT_EQ(b.size(), 1);
-  EXPECT_EQ(b[0], 364);
+  std::string ret = base->ToString();
+  for (BinaryFormula *fm : invs) {
+    delete fm;
+  }
+  return ret;
 }
 
+
+
+/**
+ * Generate main, support, makefile, scripts
+ */
+void Query::GenCode() {
+  CodeGen generator;
+  generator.SetFirstAST(m_new->GetASTNode()->GetAST());
+  for (CFGNode *cfgnode : m_nodes) {
+    generator.AddNode(cfgnode->GetASTNode());
+  }
+  generator.SetInput(m_inputs);
+  generator.Compute();
+  m_main = generator.GetMain();
+  m_support = generator.GetSupport();
+  m_makefile = generator.GetMakefile();
+}
+
+
+std::string Helium::derive_pre_cond(std::vector<std::string> str_invs, std::vector<std::string> str_trans) {
+  std::string ret;
+  // TODO select some, combine, get pre cond
+
+  // std::string str_inv = merge_failure_condition(str_invs);
+  // std::cout << "\t ********* " << str_inv  << "\n";
+  // BinaryFormula *inv = new BinaryFormula(str_inv);
+
+  // std::vector<BinaryFormula*> invs;
+  // std::vector<BinaryFormula*> pres;
+  std::vector<BinaryFormula*> trans;
+  // create BinaryFormula here. CAUTION need to free them
+  // for (std::string &s : str_invs) {
+  //   invs.push_back(new BinaryFormula(s));
+  // }
+  for (std::string &s : str_trans) {
+    trans.push_back(new BinaryFormula(s));
+  }
+
+  // TODO NOW Replace with failure condition in "init"
+  // BinaryFormula *key_inv = get_key_inv(invs);
+  BinaryFormula *key_inv = new BinaryFormula(m_failure_condition);
+  // FIXME not guranteed
+  if (!key_inv->IsLeftVar()) {
+    key_inv->Inverse();
+  }
+
+  std::vector<BinaryFormula*> related_trans; // = get_related_trans(trans, vars);
+  // for (BinaryFormula *bf : trans) {
+  //   std::string item = bf->GetLHS();
+  //   if (item == key_inv->GetLHS() || item == key_inv->GetRHS()) {
+  //     related_trans.push_back(bf);
+  //   }
+  // }
+
+  for (BinaryFormula *fm : trans) {
+    std::cout << "using: " << fm->ToString()  << "\n";
+    key_inv->Update(fm->GetLHS(), fm->GetRHS());
+    std::cout << "Got: " << key_inv->ToString()  << "\n";
+  }
+
+  // input varaible name is special
+
+  // for (BinaryFormula *tran : trans) {
+  //   BinaryFormula *tmp = new BinaryFormula(*key_inv);
+  //   if (tran->GetLHS() == tmp->GetLHS()) {
+  //     tmp->UpdateLHS(tran->GetRHS());
+  //   }
+  //   if (tran->GetLHS() == tmp->GetRHS()) {
+  //     tmp->UpdateRHS(tran->GetRHS());
+  //   }
+
+
+  //   // if contains no output variable, add it to ret
+  //   std::string lhs = tmp->GetLHS();
+  //   std::string rhs = tmp->GetRHS();
+  //   if (!lhs.empty() && lhs[0] != 'O'
+  //       && !rhs.empty() && rhs[0] != 'O') {
+  //     ret.push_back(tmp->ToString());
+  //   }
+  //   delete tmp;
+  // }
+  // FIXME delete formulas
+  ret = key_inv->ToString();
+  delete key_inv;
+  
+  return ret;
+}
+
+
+/**
+ * Initialize the query as the segment, into worklist
+ * Traverse the worklist:
+ * - Build the query
+ * - Oracle judge for BS
+ * - If bs, merge(BS, bs)
+ * - else
+ *   - Selector(q) into worklist
+ * TODO workflow
+ */
+void Helium::process(ASTNode *node) {
+  print_trace("process");
+  std::cout << "AST node created!"  << "\n";
+
+
+  node->SetFailurePoint();
+
+  Query *init_query = new Query(node);
+  init(node);
+  
+  g_worklist.push_back(init_query);
+  // init_query->Visualize();
+  // init(node);
+  while (!g_worklist.empty()) {
+    // std::cout << "size of worklist: " << g_worklist.size()  << "\n";
+    Query *query = g_worklist.front();
+    g_worklist.pop_front();
+
+
+    // reach the function definition, continue search, do not test, because will dont need, and will compile error
+    // FIXME how to supply testing profile?
+    if (query->New()->GetASTNode()->Kind() == ANK_Function) {
+      std::vector<Query*> queries = select(query);
+      g_worklist.insert(g_worklist.end(), queries.begin(), queries.end());
+      continue;
+    }
+    // visulize Q?
+    // query->Visualize();
+
+
+    // query->Complete();
+
+    query->ResolveInput();
+    // std::set<CFGNode*> first_function_nodes = query->GetNodesForNewFunction();
+    // std::vector<Variable> invs = get_input_variables(first_function_nodes);
+    // std::string code = gen_code(query, invs);
+
+
+    
+    query->GenCode();
+    Builder builder;
+    builder.SetMain(query->GetMain());
+    builder.SetSupport(query->GetSupport());
+    builder.SetMakefile(query->GetMakefile());
+    builder.Write();
+    builder.Compile();
+    std::cout << "Code Written to: " << builder.GetDir()  << "\n";
+    if (builder.Success()) {
+      utils::print("compile success\n", utils::CK_Green);
+      std::string executable = builder.GetExecutable();
+    } else {
+      utils::print("compile error\n", utils::CK_Red);
+      // query->Visualize();
+      Query::MarkBad(query->New());
+      query->Remove(query->New());
+    }
+    // std::string executable = write_and_compile(code);
+    
+    // TODO
+    // query->GenTestSuite();
+    // query->Test();
+
+    CodeTester tester(builder.GetDir(), builder.GetExecutable(), query->GetInputs());
+    // tester.SetInputs(query->GetInputs());
+    // tester.SetExecutable(builder.GetDir(), builder.GetExecutable());
+    // tester.GenTestSuite();
+    tester.Test();
+
+
+
+    CodeAnalyzer new_analyzer(builder.GetDir());
+    new_analyzer.Compute();
+
+
+
+    Analyzer analyzer(builder.GetDir() + "/io.csv", {});
+    std::vector<std::string> invs = analyzer.GetInvariants();
+    // std::vector<std::string> pres = analyzer.GetPreConditions();
+    std::vector<std::string> trans = analyzer.GetTransferFunctions();
+    if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+      std::cout << "== invariants"  << "\n";
+      for (auto &s : invs) {
+        std::cout << "\t" << s  << "\n";
+      }
+      // std::cout << "== pre condtions"  << "\n";
+      // for (auto &s : pres) {
+      //   std::cout << "\t" << s  << "\n";
+      // }
+      std::cout << "== transfer functions ------"  << "\n";
+      for (auto &s : trans) {
+        std::cout << "\t" << s  << "\n";
+      }
+    }
+
+    std::string pre = derive_pre_cond(invs, trans);
+    if (!pre.empty()) {
+      if (pre_entry_point(pre)) {
+        std::cout << "RESOLVED!!"  << "\n";
+        exit(0);
+      }
+    }
+    // if (!pres.empty()) {
+    //   bool resolved = true;
+    //   for (std::string pre : pres) {
+    //     if (!pre_entry_point(pre)) {
+    //       resolved = false;
+    //       break;
+    //     }
+    //   }
+    //   if (resolved) {
+    //     std::cout << "RESOLVED!!!"  << "\n";
+    //     // DEBUG here
+    //     exit(0);
+    //   }
+    // }
+
+    // TODO if the preconditions are related to only inputs, done!
+    
+
+    // tester.Analyze(res);
+    // Profile profile = test(executable, input);
+    // BugSig *bs = oracle(input, profile);
+    // if (bs) {
+    //   Merge(BS, bs);
+    // } else {
+      std::vector<Query*> queries = select(query);
+      g_worklist.insert(g_worklist.end(), queries.begin(), queries.end());
+      // std::cout << "---"  << "\n";
+      // for (Query *q : queries) {
+      //   q->Visualize();
+      // }
+    // }
+  }
+}
+
+bool Helium::pre_entry_point(std::string pre) {
+  BinaryFormula *formula = new BinaryFormula(pre);
+  std::set<std::string> vars = formula->GetVars();
+  for (std::string var : vars) {
+    std::cout << "| " << var  << "\n";
+    // this is argv:f!
+    if (var.find(':') != std::string::npos) {
+      var = var.substr(0, var.find(':'));
+    }
+    if (var != "argv" && var != "argc" && var != "optarg") {
+      delete formula;
+      return false;
+    }
+    if (var == "argv" || var == "argc") {
+      // the argv should come from main
+      // if (m_first->GetAST()->GetFunctionName() != "main") {
+      //   return false;
+      // }
+    }
+  }
+  delete formula;
+  return true;
+}
+
+
+/**
+ * TODO context search
+ * , Profile profile
+ */
+std::vector<Query*> Helium::select(Query *query) {
+  print_trace("select");
+  std::vector<Query*> ret;
+  // TODO hard to reach
+  // if (profile.ReachFP()) {
+  //   query->RemoveNew();
+  // }
+
+  // branch
+  // TODO merge paths
+  CFGNode *cfgnode = query->New();
+  ASTNode *astnode = cfgnode->GetASTNode();
+  if (astnode->Kind() == ANK_If) {
+    std::set<Query*> queries = find_mergable_query(cfgnode, query);
+
+    // std::cout << "For node: " << astnode->GetLabel()  << "\n";
+    // std::cout << "mergable query no. " << queries.size()  << "\n";
+    
+    if (!queries.empty()) {
+      for (Query *q : queries) {
+        // modify in place
+        // std::cout << "merging: "  << q->GetNodes().size() << "\n";
+        q->Merge(query);
+        // std::cout << "After merge: " << q->GetNodes().size()  << "\n";
+      }
+      return ret;
+    } else {
+      // add it self to the waiting list
+      g_waiting_quries[cfgnode].insert(query);
+    }
+  }
+  // Now, the query should not be mergeable to reach here
+  // predecessor
+  CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+  if (!cfg) return ret;
+  std::set<CFGNode*> preds = cfg->GetPredecessors(cfgnode);
+  for (CFGNode *pred : preds) {
+    // FIXME this will not work on loops
+    if (query->ContainNode(pred)) continue;
+    // continue here, easier..
+    if (Query::IsBad(pred)) continue;
+    Query *q = new Query(*query);
+    q->Add(pred);
+    ret.push_back(q);
+  }
+
+  // update g_propagating_queries
+  g_propagating_queries[query].insert(ret.begin(), ret.end());
+  return ret;
+}
+
+
+std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
+  print_trace("find_mergable_query");
+  std::set<Query*> ret;
+  if (g_waiting_quries.count(node) == 0) {
+    return ret;
+  }
+  std::set<Query*> queries = g_waiting_quries[node];
+  // follow propagation path for the most recent position
+  std::set<Query*> worklist;
+  worklist.insert(queries.begin(), queries.end());
+  std::set<Query*> candidates;
+  while (!worklist.empty()) {
+    Query *q = *worklist.begin();
+    worklist.erase(q);
+    if (g_propagating_queries.count(q) == 1) {
+      worklist.insert(g_propagating_queries[q].begin(), g_propagating_queries[q].end());
+    } else {
+      candidates.insert(q);
+    }
+  }
+  // for all the candidates that have same transfer function as orig_query
+  for (Query *q : candidates) {
+    // use random here
+    // if (utils::rand_bool()) {
+    //   ret.insert(q);
+    // }
+    ret.insert(q);
+  }
+  return ret;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
 int Helium::countFunction() {
   int ret=0;
   for (std::string file : m_files) {
@@ -384,86 +568,8 @@ int Helium::countFunction() {
   return ret;
 }
 
-POISpec parse_poi_file(std::string file) {
-  print_trace("parse_poi_file");
-  POISpec ret;
-  // read the first line
-  // split into three parts
-  // simple filename, line number, type
-  std::string content = utils::read_file(file);
-  std::vector<std::string> sp = utils::split(content);
-  assert(sp.size() > 2);
-  ret.filename = sp[0];
-  try {
-    ret.linum = std::stoi(sp[1]);
-  } catch (std::invalid_argument e) {
-    std::cerr << "error parsing poi file line number"  << "\n";
-    exit(1);
-  }
-  ret.type = sp[2];
-  assert(ret.type == "loop" || ret.type == "stmt");
-  std::cout << "POI: " << ret.filename << ":" << ret.linum << " " << ret.type  << "\n";
-  return ret;
-}
-
-/**
- * Parse whole poi file.
- * TODO use a format table parser
- | benchmark                 | file               | line | type | bug-type |
- |---------------------------+--------------------+------+------+----------|
- | cabextract-1.2            | mszipd.c           |  353 | loop |          |
- */
-POISpec parse_whole_poi_file(std::string file, std::string benchmark) {
-  POISpec ret;
-  std::string content = utils::read_file(file);
-  std::vector<std::string> lines = utils::split(content, '\n');
-  for (std::string line : lines) {
-    std::vector<std::string> components = utils::split(line, '|');
-    // FIXME the first is empty?
-    // FIXME what is there's one empty in the middle?
-    // FIXME in the end?
-    if (components.size() < 6) {
-      continue;
-    }
-    std::string bench = components[1];
-    std::string file = components[2];
-    std::string linum = components[3];
-    std::string type = components[4];
-    std::string bug_type = components[5];
-    utils::trim(bench);
-    utils::trim(file);
-    utils::trim(linum);
-    utils::trim(type);
-    utils::trim(bug_type);
-    // std::cout << bench << ":" << file << ":" << linum  << "\n";
-    if (benchmark == bench) {
-      std::cout << "found POI: " << file << ":" << linum << " " << type  << "\n";
-      ret.filename = file;
-      try {
-        ret.linum = std::stoi(linum);
-      } catch (std::invalid_argument e) {
-        std::cout << "Error parsing poi file " << file << ": linum is not a number"  << "\n";
-        exit(1);
-      }
-      ret.type = type;
-      return ret;
-    }
-  }
-  return ret;
-}
-
-TEST(HeliumTestCase, WholePOITest) {
-  std::string s = "| xfd | fds | | xxfd | |";
-  // the test shows: the first is empty, the last empty is omitted (in this case only one last empty string)
-  std::vector<std::string> v = utils::split(s, '|');
-  for (std::string s : v) {
-    std::cout << "COMP: " << s  << "\n";
-  }
-}
-
 void
 Helium::Run() {
-  print_trace("Helium::Run");
   /**
    * Print some meta data for the benchmark project.
    */
@@ -476,65 +582,7 @@ Helium::Run() {
   // ExpASTDump::Instance()->func_count = func_count;
   // ExpASTDump::Instance()->benchmark = m_folder;
   // double t1 = utils::get_time();
-  /**
-   * Code selection method is given as a file, so this is a config file, contains the <file:line> format
-   */
-  // if (utils::file_exists(Config::Instance()->GetString("code-selection"))) {
-    // code selection method is a config file, we only need to check those files in the config.
-    // std::map<std::string, std::vector<int> > conf = parse_selection_conf(Config::Instance()->GetString("code-selection"));
-    // for (auto c : conf) {
-    //   std::string filename = m_folder + "/" + c.first;
-    //   if (utils::file_exists(filename)) {
-    //     std::cerr << "processing: " << filename << " ...\n";
-    //     Reader reader(filename, c.second);
-    //     reader.PrintSegments();
-    //     // reader.Read();
-    //   }
-    // }
-  // } else {
-  // }
 
-  if (!m_poi_file.empty()) {
-    assert(utils::file_exists(m_poi_file));
-    // filename, line number, typ
-    POISpec poi = parse_poi_file(m_poi_file);
-    if (poi.filename.empty()) return;
-    // find this file
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      std::string filename = *it;
-      if (filename.find(poi.filename) != std::string::npos) {
-        // Reader reader(filename, poi);
-        Hebi hebi(filename, poi);
-      }
-    }
-    // find this line in "cpped" file, by line marker
-  } else if (!m_whole_poi.empty()) {
-    if (m_benchmark.empty()) {
-      std::cerr << "EE: benchmark name must be set (--benchmark, -b) in order to use whole poi" << "\n";
-      return;
-    }
-    // TODO support multiple POIs (multiple bugs for the same benchmark version)
-    POISpec poi = parse_whole_poi_file(m_whole_poi, m_benchmark);
-    if (poi.filename.empty()
-        || poi.linum == 0
-        || poi.type.empty()
-        ) {
-      return;
-    }
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      std::string filename = *it;
-      if (filename.find(poi.filename) != std::string::npos) {
-        // Reader reader(filename, poi);
-        Hebi hebi(filename, poi);
-      }
-    }
-    // process whole poi to match current benchmark
-  } else {
-    for (auto it=m_files.begin();it!=m_files.end();it++) {
-      Reader reader(*it);
-      // reader.Read();
-    }
-  }
   // double t2 = utils::get_time();
   std::cerr << "********** End of Helium **********"  << "\n";
   if (PrintOption::Instance()->Has(POK_BuildRate)) {
@@ -559,3 +607,87 @@ Helium::Run() {
   // ExpASTDump::Instance()->AppendData();
   // std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
 }
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Deprecated code
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Get segments based on config file.
+ * this should be a config file with the filename:line_number format
+ * the detailed formats:
+ * a.c:504
+ * TODO a.c:504-510
+ * TODO to support function name
+ * @return a.c -> 102,208
+ */
+// std::map<std::string, std::vector<int> > parse_selection_conf(const std::string& file) {
+//   std::map<std::string, std::vector<int> > result;
+//   std::string content = utils::read_file(file);
+//   // delimiter by *space*
+//   std::vector<std::string> lines = utils::split(content);
+//   for (std::string &line : lines) {
+//     std::vector<std::string> tmp = utils::split(line, ':');
+//     assert(tmp.size() == 2 && "Config file error for code selection.");
+//     std::string f = tmp[0];
+//     std::string l_str = tmp[1];
+//     utils::trim(f);
+//     utils::trim(l_str);
+//     int l = atoi(l_str.c_str());
+//     if (result.find(f) == result.end()) {
+//       result[f] = std::vector<int>();
+//     }
+//     // FIXME value or reference?
+//     result[f].push_back(l);
+//   }
+//   return result;
+// }
+
+// TEST(helium_test_case, parse_selection_conf_test) {
+//   char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
+//   char *result = mkdtemp(tmp_dir);
+//   ASSERT_TRUE(result != NULL);
+//   std::string dir = tmp_dir;
+//   std::string filename = dir+"/a.c";
+//   const char *code = R"prefix(
+
+// a.c:100
+// a.c:235
+// sub/dir/b.cpp:364
+
+// )prefix";
+//   utils::write_file(filename, code);
+
+//   std::map<std::string, std::vector<int> > m = parse_selection_conf(filename);
+//   ASSERT_EQ(m.size(), 2);
+//   std::vector<int> a = m["a.c"];
+//   ASSERT_EQ(a.size(), 2);
+//   EXPECT_EQ(a[0], 100);
+//   EXPECT_EQ(a[1], 235);
+//   std::vector<int> b = m["sub/dir/b.cpp"];
+//   ASSERT_EQ(b.size(), 1);
+//   EXPECT_EQ(b[0], 364);
+// }
+
+#endif

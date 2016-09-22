@@ -3,28 +3,38 @@
 
 #include "common.h"
 #include "reader.h"
+#include "query.h"
+
+#include "failure_point.h"
 
 
 class Helium {
 public:
-  Helium(int argc, char** argv);
-  virtual ~Helium();
-  void Run();
+  Helium(FailurePoint *fp);
+  ~Helium() {}
 private:
-  int countFunction();
-  std::string m_folder;
-  std::vector<std::string> m_files;
-  std::string m_poi_file;
-  // this requires m_benchmark to be set, to benchmark name and version combo
-  // e.g. gzip-1.2.4
-  std::string m_whole_poi;
-  std::string m_benchmark;
+  void init(ASTNode *node);
+  void process(ASTNode *node);
+  std::vector<Query*> select(Query *query);
+  std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);
+  std::string derive_pre_cond(std::vector<std::string> invs, std::vector<std::string> trans);
+  bool pre_entry_point(std::string pre);
+  std::string merge_failure_condition(std::vector<std::string> invs);
+
+
+  std::deque<Query*> g_worklist;
+  std::map<CFGNode*, std::set<Query*> > g_waiting_quries;
+  std::map<Query*, std::set<Query*> > g_propagating_queries;
+
+
+  std::string m_failure_condition;
+  // int countFunction();
 };
 
+std::set<Query*> find_mergable_query(CFGNode *node, Query *orig_query);
+std::vector<Query*> select(Query *query);
 
-class FailureCondition {
-};
+std::vector<Variable> get_input_variables(std::set<CFGNode*> nodes);
 
-void helium(std::string program, POISpec poi);
 
 #endif

@@ -111,39 +111,39 @@ int get_true_linum(std::string filename, int linum) {
   , {NK_Continue, ANK_Stmt}
   , {NK_Return, ANK_Stmt}
  */
-Reader::Reader(std::string filename, POISpec poi) {
-  print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
-  m_doc = XMLDocReader::Instance()->ReadFile(filename);
-  int linum = get_true_linum(filename, poi.linum);
-  std::cout << "true line number: " <<  linum  << "\n";
-  if (poi.type == "stmt") {
-    XMLNode node = find_node_on_line(m_doc->document_element(),
-                                          {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
-                                          linum);
-    assert(node);
-    XMLNode func = get_function_node(node);
-    std::string func_name = function_get_name(func);
-    int func_linum = get_node_line(func);
-    AST *ast = Resource::Instance()->GetAST(func_name);
-    if (!ast) {
-      helium_log("[WW] No AST constructed!");
-      return;
-    }
-    ASTNode *root = ast->GetRoot();
-    if (!root) {
-      helium_log("[WW] AST root is NULL.");
-      return;
-    }
-    int ast_linum = root->GetBeginLinum();
-    int target_linum = linum - func_linum + ast_linum;
-    ASTNode *target = ast->GetNodeByLinum(target_linum);
-    if (!target) {
-      helium_log("[WW] cannot find target AST node");
-      return;
-    }
-    // process(target);
-  }
-}
+// Reader::Reader(std::string filename, POISpec poi) {
+//   print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
+//   m_doc = XMLDocReader::Instance()->ReadFile(filename);
+//   int linum = get_true_linum(filename, poi.linum);
+//   std::cout << "true line number: " <<  linum  << "\n";
+//   if (poi.type == "stmt") {
+//     XMLNode node = find_node_on_line(m_doc->document_element(),
+//                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
+//                                           linum);
+//     assert(node);
+//     XMLNode func = get_function_node(node);
+//     std::string func_name = function_get_name(func);
+//     int func_linum = get_node_line(func);
+//     AST *ast = Resource::Instance()->GetAST(func_name);
+//     if (!ast) {
+//       helium_log("[WW] No AST constructed!");
+//       return;
+//     }
+//     ASTNode *root = ast->GetRoot();
+//     if (!root) {
+//       helium_log("[WW] AST root is NULL.");
+//       return;
+//     }
+//     int ast_linum = root->GetBeginLinum();
+//     int target_linum = linum - func_linum + ast_linum;
+//     ASTNode *target = ast->GetNodeByLinum(target_linum);
+//     if (!target) {
+//       helium_log("[WW] cannot find target AST node");
+//       return;
+//     }
+//     // process(target);
+//   }
+// }
 
 /**
  * Constructor of Reader should read the filename, and select segments.

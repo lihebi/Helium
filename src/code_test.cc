@@ -50,14 +50,10 @@ void CodeTester::Test() {
       
     // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
     // I'm also going to write the input file in the executable directory
-    // utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
-
-
-
-
     std::string input = suite.GetInput();
     // Run the program
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+    utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
 
     if (status == 0) {
       if (PrintOption::Instance()->Has(POK_TestInfo)) {
