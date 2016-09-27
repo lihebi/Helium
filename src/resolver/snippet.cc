@@ -1,11 +1,12 @@
 #include <pugixml.hpp>
 #include <iostream>
 #include "snippet.h"
+#include "utils/log.h"
 #include "utils/utils.h"
 
 #include "parser/xmlnode.h"
 #include "parser/xmlnode_helper.h"
-#include "config/options.h"
+
 
 using namespace utils;
 
@@ -25,7 +26,7 @@ CtagsEntry::CtagsEntry(const tagEntry* const entry) {
   if (entry->kind) {
     m_type = *(entry->kind);
   } else {
-    print_warning("Warning: CtagsEntry::CtagsEntry: entry->kind == NULL");
+    helium_print_warning("Warning: CtagsEntry::CtagsEntry: entry->kind == NULL");
     std::cout << "warning:"  << "\n";
     std::cout << m_name  << "\n";
     std::cout << m_file  << "\n";
@@ -174,7 +175,7 @@ std::vector<std::string> query_code(const std::string& code, const std::string& 
 }
 
 Snippet::Snippet(const CtagsEntry& entry) {
-  print_trace("Snippet::Snippet");
+  helium_print_trace("Snippet::Snippet");
   /**
    * 1. get code
    * 2. get signature

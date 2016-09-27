@@ -1,8 +1,8 @@
 #include "header_resolver.h"
 #include "utils/utils.h"
+#include "utils/log.h"
 #include <cassert>
 #include <iostream>
-#include "config/options.h"
 
 using namespace utils;
 
@@ -16,7 +16,7 @@ static boost::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
 // scan the #inlcude "" statement, and get dependence relations between them
 void
 HeaderResolver::Load(const std::string& folder) {
-  print_trace("HeaderResolver::Load");
+  helium_print_trace("HeaderResolver::Load");
   std::vector<std::string> headers;
   utils::get_files_by_extension(folder, headers, std::vector<std::string>({"h", "c"}));
   for (auto it=headers.begin();it!=headers.end();it++) {

@@ -2,7 +2,6 @@
 #include <boost/regex.hpp>
 #include "utils/utils.h"
 #include "parser/xml_doc_reader.h"
-#include "config/options.h"
 #include <gtest/gtest.h>
 #include "parser/xmlnode_helper.h"
 /**

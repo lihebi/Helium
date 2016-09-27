@@ -2,9 +2,8 @@
 #include "utils/log.h"
 #include "type_helper.h"
 #include "utils/utils.h"
-#include "config/config.h"
-#include "config/options.h"
 #include "corner.h"
+#include "helium_options.h"
 #include <iostream>
 
 /**
@@ -69,7 +68,7 @@ std::string ArrayType::GetOutputCode(std::string var) {
 }
 
 InputSpec *ArrayType::GenerateInput() {
-  print_trace("ArrayType::GenerateInput");
+  helium_print_trace("ArrayType::GenerateInput");
   InputSpec *spec = NULL;
   if (!m_contained_type) {
     helium_log_warning("ArrayType::GetOutputCode with no contained type");
@@ -140,7 +139,7 @@ std::string PointerType::GetOutputCode(std::string var) {
 }
 
 InputSpec *PointerType::GenerateInput() {
-  print_trace("PointerType::GenerateInput");
+  helium_print_trace("PointerType::GenerateInput");
   if (!m_contained_type) {
     helium_log_warning("PointerType::GenerateInput with no contained type");
     return NULL;
@@ -184,13 +183,13 @@ std::string StrType::GetInputCode(std::string var) {
 std::string StrType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// StrType::GetOutputCode: " + var + "\n";
-  if (Config::Instance()->GetBool("instrument-strlen")) {
+  if (HeliumOptions::Instance()->GetBool("instrument-strlen")) {
     ret += get_strlen_output(var);
   }
-  if (Config::Instance()->GetBool("instrument-address")) {
+  if (HeliumOptions::Instance()->GetBool("instrument-address")) {
     ret += get_addr_output(var);
   }
-  if (Config::Instance()->GetBool("instrument-null")) {
+  if (HeliumOptions::Instance()->GetBool("instrument-null")) {
     ret += get_check_null(var,
                           get_null_output(var, true),
                           get_null_output(var, false)
@@ -199,9 +198,9 @@ std::string StrType::GetOutputCode(std::string var) {
   return ret;
 }
 InputSpec *StrType::GenerateInput() {
-  print_trace("StrType::GenerateInput");
+  helium_print_trace("StrType::GenerateInput");
   // std::cout << "1"  << "\n";
-  static int max_strlen = Config::Instance()->GetInt("max-strlen");
+  static int max_strlen = HeliumOptions::Instance()->GetInt("max-strlen");
   // TODO at least a string? 0 here?
   int size = utils::rand_int(1, max_strlen);
   // std::cout << "2"  << "\n";
@@ -283,13 +282,13 @@ std::string BufType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// BufType::GetOutputCode: " + var = "\n";
   ret += get_sizeof_output(var);
-  if (Config::Instance()->GetBool("instrument-address")) {
+  if (HeliumOptions::Instance()->GetBool("instrument-address")) {
     ret += get_addr_output(var);
   }
   return ret;
 }
 InputSpec *BufType::GenerateInput() {
-  print_trace("BufType::GenerateInput");
+  helium_print_trace("BufType::GenerateInput");
   // TODO
   return NULL;
 }

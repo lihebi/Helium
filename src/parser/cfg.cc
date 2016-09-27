@@ -3,9 +3,10 @@
 
 #include "utils/dot.h"
 #include "utils/utils.h"
-#include "config/options.h"
 #include "resolver/snippet_db.h"
 #include "workflow/resource.h"
+
+#include "utils/log.h"
 
 #include <iostream>
 
@@ -17,7 +18,7 @@ CFG::~CFG() {}
  * Connect this->outs to this node.
  */
 void CFG::AddNode(CFGNode *node) {
-  print_trace("CFG::AddNode");
+  helium_print_trace("CFG::AddNode");
   if (!node) return;
   m_nodes.insert(node);
   for (CFGNode *out : m_outs) {
@@ -28,7 +29,7 @@ void CFG::AddNode(CFGNode *node) {
 }
 
 void CFG::Merge(CFG *cfg) {
-  print_trace("CFG::Merge");
+  helium_print_trace("CFG::Merge");
   if (!cfg) return;
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
@@ -52,7 +53,7 @@ void CFG::Merge(CFG *cfg) {
 }
 
 void CFG::copyEdge(CFG *cfg) {
-  print_trace("CFG::copyEdge");
+  helium_print_trace("CFG::copyEdge");
   for (auto m : cfg->m_edges) {
     CFGNode *from = m.first;
     for (CFGNode *to : m.second) {
@@ -75,7 +76,7 @@ void CFG::copyEdge(CFG *cfg) {
 }
 
 void CFG::AdjustReturn() {
-  print_trace("CFG::AdjustReturn");
+  helium_print_trace("CFG::AdjustReturn");
   for (CFGNode *node : m_returns) {
     // assert(m_ins.size() == 1);
     // CFGNode *out = *m_outs.begin();
@@ -86,7 +87,7 @@ void CFG::AdjustReturn() {
 }
 
 void CFG::AdjustBreak() {
-  print_trace("CFG::AdjustBreak");
+  helium_print_trace("CFG::AdjustBreak");
   for (CFGNode *node : m_breaks) {
     // assert(m_outs.size() == 1);
     // CFGNode *out = *m_outs.begin();
@@ -97,7 +98,7 @@ void CFG::AdjustBreak() {
 }
 
 void CFG::AdjustContinue() {
-  print_trace("CFG::AdjustContinue");
+  helium_print_trace("CFG::AdjustContinue");
   // redirect continue node to m_in
   for (CFGNode *node : m_continues) {
     assert(m_ins.size() == 1);
@@ -108,7 +109,7 @@ void CFG::AdjustContinue() {
 }
 
 void CFG::MergeBranch(CFG *cfg, bool b) {
-  print_trace("CFG::MergeBranch");
+  helium_print_trace("CFG::MergeBranch");
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
@@ -128,7 +129,7 @@ void CFG::MergeBranch(CFG *cfg, bool b) {
 
 // TODO case condition as label
 void CFG::MergeCase(CFG *cfg) {
-  print_trace("CFG::MergeCase");
+  helium_print_trace("CFG::MergeCase");
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
@@ -144,7 +145,7 @@ void CFG::MergeCase(CFG *cfg) {
 }
 
 void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
-  print_trace("CFG::CreateEdge");
+  helium_print_trace("CFG::CreateEdge");
   if (!from || !to) return;
   m_edges[from].insert(to);
   if (!label.empty()) {
@@ -152,7 +153,7 @@ void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
   }
   // also keep the back edge
   m_back_edges[to].insert(from);
-  print_trace("CFG::CreateEdge end");
+  helium_print_trace("CFG::CreateEdge end");
 }
 
 
@@ -221,7 +222,7 @@ void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool o
 
 
 CFG *CFGFactory::CreateCFG(AST *ast) {
-  print_trace("CFGFactory::CreateCFG");
+  helium_print_trace("CFGFactory::CreateCFG");
   if (!ast) return NULL;
   ASTNode *root = ast->GetRoot();
   CFG *cfg = CreateCFG(root);
@@ -230,7 +231,7 @@ CFG *CFGFactory::CreateCFG(AST *ast) {
 
 
 CFG *CFGFactory::CreateCFG(ASTNode *node) {
-  print_trace("CFGFactory::CreateCFG");
+  helium_print_trace("CFGFactory::CreateCFG");
   if (!node) return NULL;
   switch (node->Kind()) {
   case ANK_Stmt: {
@@ -273,7 +274,7 @@ CFG *CFGFactory::CreateCFG(ASTNode *node) {
   }
 }
 CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
-  print_trace("CFGFactory::CreateCFGFromIf");
+  helium_print_trace("CFGFactory::CreateCFGFromIf");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -317,7 +318,7 @@ CFG *CFGFactory::CreateCFGFromIf(If *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
-  print_trace("CFGFactory::CreateCFGFromFunction");
+  helium_print_trace("CFGFactory::CreateCFGFromFunction");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -333,7 +334,7 @@ CFG *CFGFactory::CreateCFGFromFunction(Function *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
-  print_trace("CFGFactory::CreateCFGFromElseIf");
+  helium_print_trace("CFGFactory::CreateCFGFromElseIf");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -353,7 +354,7 @@ CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
 
 // switch
 CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
-  print_trace("CFGFactory::CreateCFGFromSwitch");
+  helium_print_trace("CFGFactory::CreateCFGFromSwitch");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -378,7 +379,7 @@ CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
 
 // while
 CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
-  print_trace("CFGFactory::CreateCFGFromWhile");
+  helium_print_trace("CFGFactory::CreateCFGFromWhile");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -405,7 +406,7 @@ CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
  * Exactly the same as While
  */
 CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
-  print_trace("CFGFactory::CreateCFGFromFor");
+  helium_print_trace("CFGFactory::CreateCFGFromFor");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
   cfg->AddNode(node);
@@ -440,7 +441,7 @@ CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
   return cfg;
 }
 CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
-  print_trace("CFGFactory::CreateCFGFromDo");
+  helium_print_trace("CFGFactory::CreateCFGFromDo");
   CFG *cfg = new CFG();
   CFGNode *node = new CFGNode(cfg, astnode);
 
@@ -468,7 +469,7 @@ CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
 
 
 CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
-  print_trace("CFGFactory::CreateCFGFromBlock");
+  helium_print_trace("CFGFactory::CreateCFGFromBlock");
   CFG *cfg = new CFG();
   CFG *body_cfg = new CFG();
   for (ASTNode *child : astnode->Children()) {

@@ -1,5 +1,5 @@
 #include "segment.h" // for get_header, etc
-#include "config/options.h"
+#include "helium_options.h"
 #include <iostream>
 #include "utils/utils.h"
 #include "resolver/snippet_db.h"
@@ -9,7 +9,6 @@
 #include "resolver/resolver.h" // for SystemResolver
 #include "builder.h"
 #include "resolver/global_variable.h"
-#include "config/config.h"
 #include "analyzer.h"
 #include <gtest/gtest.h>
 
@@ -115,7 +114,7 @@ std::string replace_return_to_35(const std::string &code) {
  * FIXME currently it is only used in output variable resolving
  */
 Type* resolve_type(std::string var, ASTNode *node) {
-  print_trace("resolve_type(std::string var, ASTNode *node)");
+  helium_print_trace("resolve_type(std::string var, ASTNode *node)");
   SymbolTable *tbl = node->GetSymbolTable();
   SymbolTableValue* value = tbl->LookUp(var);
   if (value) {
@@ -138,7 +137,7 @@ Type* resolve_type(std::string var, ASTNode *node) {
  ********************************/
 Segment::Segment(XMLNode xmlnode, SegmentKind segkind)
   : m_xmlnode(xmlnode), m_segkind(segkind) {
-  print_trace("Segment::Segment()");
+  helium_print_trace("Segment::Segment()");
   m_segkind = segkind;
   /**
    * Get Some meta data
@@ -325,7 +324,7 @@ void Segment::extractJumpOutCondition() {
  * Instead, record a "offset" field in meta data.
  */
 XMLNodeList get_caller_nodes(std::string func) {
-  print_trace("get_caller_nodes");
+  helium_print_trace("get_caller_nodes");
   std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
   XMLNodeList ret;
   for (std::string caller : caller_funcs) {
@@ -358,7 +357,7 @@ XMLNodeList get_caller_nodes(std::string func) {
    2.3 otherwise, search for new context, and push to the end of worklist
  */
 void Segment::TestNextContext() {
-  print_trace("void Segment::TestNextContext()");
+  helium_print_trace("void Segment::TestNextContext()");
   if (m_context_worklist.empty()) {
     return;
   }
@@ -367,7 +366,7 @@ void Segment::TestNextContext() {
   m_context_worklist.pop_front();
 
   // Procedure Limit
-  int procedure_limit = Config::Instance()->GetInt("procedure-limit");
+  int procedure_limit = HeliumOptions::Instance()->GetInt("procedure-limit");
   if (procedure_limit >= 0 && ctx->GetProcedureNum() > procedure_limit) {
     helium_log_trace("procedure limit reached, discard context");
     return;
@@ -379,11 +378,11 @@ void Segment::TestNextContext() {
   assert(first_node->GetAST());
   // TODO output multiple if multiple step context search
   utils::print(first_node->dump() + "\n", utils::CK_Purple);
-  if (Config::Instance()->GetBool("context-search-only") == false) {
+  if (HeliumOptions::Instance()->GetBool("context-search-only") == false) {
     ctx->Resolve();
 
     // print out IO variables
-    if (PrintOption::Instance()->Has(POK_IOSpec)) {
+    if (HeliumOptions::Instance()->GetBool("print-io-spec")) {
       std::cout << "== Input Variables:"  << "\n";
       std::map<std::string, Type*> vars = ctx->GetInputVariables();
       for (auto m : vars) {
@@ -424,7 +423,7 @@ void Segment::TestNextContext() {
   }
   // Context Searching
 
-  int ctx_step = Config::Instance()->GetInt("context-search-step");
+  int ctx_step = HeliumOptions::Instance()->GetInt("context-search-step");
   assert(ctx_step > 0);
   
   ASTNode *leaf = first_node->GetAST()->GetPreviousLeafNodeInSlice(first_node);
@@ -462,7 +461,7 @@ void Segment::TestNextContext() {
       AST *newast;
       if (m_func_to_ast_m.count(new_func_name) == 1) {
         // FIXME callers with the same name, e.g. main function?
-        print_warning("Same function, maybe recursive call, or two function with same name");
+        helium_print_warning("Same function, maybe recursive call, or two function with same name");
         newast = m_func_to_ast_m[new_func_name];
       } else {
         newast = new AST(func_node);
@@ -478,7 +477,7 @@ void Segment::TestNextContext() {
       // Each one should try! But I don't think we can take care of the order
       // ASTNode *callsite = newast->GetCallSite(ast->GetFunctionName());
       std::set<ASTNode*> callsites = newast->GetCallSites(ast->GetFunctionName());
-      print_trace("found " + std::to_string(callsites.size()) + "call sites");
+      helium_print_trace("found " + std::to_string(callsites.size()) + "call sites");
       for (ASTNode *callsite : callsites) {
       // if (callsite && callsite->GetAST()) {
         Context *new_ctx = new Context(*ctx);
@@ -489,7 +488,7 @@ void Segment::TestNextContext() {
         // 2. the newly added node is already in the selection. (this only works if we use linear context search)
         if (new_ctx->AddNode(callsite)) {
           // FIXME NOW std::cout << "adding new context into the worklist"  << "\n";
-          if ((int)m_context_worklist.size() >= Config::Instance()->GetInt("context-worklist-limit")) {
+          if ((int)m_context_worklist.size() >= HeliumOptions::Instance()->GetInt("context-worklist-limit")) {
             // FIXME side effect? e.g. new AST, modify AST
             std::cerr << "deleting context due to worklist size limit"  << "\n";
             delete new_ctx;
@@ -504,7 +503,7 @@ void Segment::TestNextContext() {
     }
   }
   delete ctx;
-  print_trace("void Segment::TestNextContext end");
+  helium_print_trace("void Segment::TestNextContext end");
 }
 
 /**
@@ -532,7 +531,7 @@ void Segment::TestNextContext() {
  DEPRECATED
  */
 bool Segment::NextContext() {
-  print_trace("Segment::NextContext()");
+  helium_print_trace("Segment::NextContext()");
   Context *ctx;
   if (m_ctxs.empty()) {
     ctx = new Context(this);
@@ -620,7 +619,7 @@ bool Segment::NextContext() {
 }
 
 XMLDoc* Segment::createCallerDoc(AST *ast) {
-  print_trace("Segment::createCallerDoc()");
+  helium_print_trace("Segment::createCallerDoc()");
   std::string func = ast->GetFunctionName();
   std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
   // std::cout << "caller function: " << caller_func  << "\n";
@@ -646,7 +645,7 @@ XMLDoc* Segment::createCallerDoc(AST *ast) {
  * This will create a doc! The doc will be added into m_docs, and freed when the segment deconstruct
  */
 XMLNode Segment::getCallerNode(AST *ast) {
-  print_trace("Segment::createCallerDoc()");
+  helium_print_trace("Segment::createCallerDoc()");
   std::string func = ast->GetFunctionName();
   std::string caller_func = SnippetDB::Instance()->QueryCaller(func);
   // std::cout << "caller function: " << caller_func  << "\n";

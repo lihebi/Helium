@@ -1,19 +1,20 @@
 #include "code_test.h"
-#include "config/config.h"
-#include "config/options.h"
 #include "workflow/analyzer.h"
 
+#include "utils/log.h"
+#include "utils/utils.h"
+#include "helium_options.h"
 
 
 #include <iostream>
 
 
 void CodeTester::genTestSuite() {
-  print_trace("CodeTester::genTestSuite");
-  if (Config::Instance()->GetBool("run-test") == false) {
+  helium_print_trace("CodeTester::genTestSuite");
+  if (!HeliumOptions::Instance()->GetBool("run-test")) {
     return;
   }
-  int test_number = Config::Instance()->GetInt("test-number");
+  int test_number = HeliumOptions::Instance()->GetInt("test-number");
   m_test_suites.clear();
   freeTestSuite();
   m_test_suites.resize(test_number);
@@ -28,11 +29,11 @@ void CodeTester::genTestSuite() {
       m_test_suites[i].Add(var, spec);
     }
   }
-  print_trace("End of CodeTester::genTestSuite");
+  helium_print_trace("End of CodeTester::genTestSuite");
 }
 
 void CodeTester::Test() {
-  print_trace("CodeTester::Test");
+  helium_print_trace("CodeTester::Test");
   // std::cout << "generate test suite" << "input size: " << m_inputs.size()  << "\n";
   genTestSuite();
   // TestResult *ret = new TestResult(m_test_suite);
@@ -56,19 +57,19 @@ void CodeTester::Test() {
     utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
 
     if (status == 0) {
-      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
         utils::print("test success\n", utils::CK_Green);
       }
-      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
         utils::print(".", utils::CK_Green);
       }
       // ret->AddOutput(output, true);
       output += "HELIUM_TEST_SUCCESS = true\n";
     } else {
-      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
         utils::print("test failure\n", utils::CK_Red);
       }
-      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
         utils::print(".", utils::CK_Red);
       }
       // ret->AddOutput(output, false);
@@ -82,26 +83,26 @@ void CodeTester::Test() {
     utils::write_file(out_file, output);
 
   }
-  if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+  if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
     std::cout << "\n";
   }
   // return ret;
 }
 
 void CodeTester::freeTestSuite() {
-  print_trace("CodeTester::freeTestSuite");
+  helium_print_trace("CodeTester::freeTestSuite");
   m_test_suites.clear();
   for (InputSpec *spec : m_specs) {
     delete spec;
   }
   m_specs.clear();
-  print_trace("End of CodeTester::freeTestSuite");
+  helium_print_trace("End of CodeTester::freeTestSuite");
 }
 
 
 
 void CodeTester::Analyze(TestResult *test_result) {
-  print_trace("CodeTester::Analyze");
+  helium_print_trace("CodeTester::Analyze");
   test_result->PrepareData();
   // HEBI Generating CSV file
   std::string csv = test_result->GenerateCSV();
@@ -110,7 +111,7 @@ void CodeTester::Analyze(TestResult *test_result) {
   std::string csv_file = m_exe_folder + "/io.csv";
   utils::write_file(csv_file, csv);
   std::cout << "Output to: " << csv_file   << "\n";
-  if (PrintOption::Instance()->Has(POK_CSV)) {
+  if (HeliumOptions::Instance()->Has("print-csv")) {
     std::string cmd = "column -s , -t " + csv_file;
     std::string output = utils::exec(cmd.c_str());
     std::cout << output  << "\n";
@@ -130,7 +131,7 @@ void CodeTester::Analyze(TestResult *test_result) {
   std::vector<std::string> invs = analyzer.GetInvariants();
   std::vector<std::string> pres = analyzer.GetPreConditions();
   std::vector<std::string> trans = analyzer.GetTransferFunctions();
-  if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+  if (HeliumOptions::Instance()->Has("print-analysis-result")) {
     std::cout << "== invariants"  << "\n";
     for (auto &s : invs) {
       std::cout << "\t" << s  << "\n";

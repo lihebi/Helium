@@ -1,7 +1,7 @@
 #include "tester.h"
 #include <gtest/gtest.h>
 #include "utils/utils.h"
-#include "config/options.h"
+#include "utils/log.h"
 
 /**
  * @pram [in] output lines representing output. The format is xxx=yyy.
@@ -141,7 +141,7 @@ std::pair<std::set<std::string>, std::string> get_freed_list(std::string output)
  * 2. NO HELIUM_POI checks
  */
 void TestResult::PrepareData() {
-  print_trace("TestResult::PrepareData");
+  helium_print_trace("TestResult::PrepareData");
   std::set<std::string> output_headers;
   // The final output will be written into m_header_value_maps, one test_suite per line.
   assert(m_poi_output.size() == m_test_suite.size());
@@ -194,7 +194,7 @@ void TestResult::PrepareData() {
 }
 
 std::string TestResult::GenerateCSV() {
-  print_trace("TestResult::GenerateCSV");
+  helium_print_trace("TestResult::GenerateCSV");
   std::string ret;
   for (const std::string &header : m_headers) {
     ret += header;

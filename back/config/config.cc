@@ -125,11 +125,17 @@ int Config::GetInt(std::string name) {
  * If yes, substitute the value.
  */
 void Config::Overwrite() {
+  if (ArgParser::Instance()->empty()) {
+    std::cerr << "WW: arguments empty. No overwrite done for config."  << "\n";
+    return;
+  }
+  for (auto m : m_map) {
+    if (ArgParser::Instance()->Has(m.first)) {
+      std::string s =ArgParser::Instance()->GetString(m.first);
+      
+    }
+  }
   std::string conf_str = ArgParser::Instance()->GetString("conf");
-  /**
-   * The format of conf:
-   * --conf="test-number=10, run-test=,xxx"
-   */
   std::vector<std::string> pairs = utils::split(conf_str, ',');
   for (std::string &s : pairs) {
     utils::trim(s);

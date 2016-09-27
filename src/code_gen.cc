@@ -3,8 +3,7 @@
 
 #include "resolver/snippet_db.h"
 #include "utils/log.h"
-#include "config/options.h"
-#include "config/config.h"
+#include "helium_options.h"
 
 #include <iostream>
 
@@ -208,7 +207,7 @@ std::string CodeGen::getSupportBody() {
 
 std::string CodeGen::GetMakefile() {
   std::string makefile;
-  std::string cc = Config::Instance()->GetString("cc");
+  std::string cc = HeliumOptions::Instance()->GetString("cc");
   makefile += "CC:=" + cc + "\n";
   // TODO test if $CC is set correctly
   // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
@@ -218,13 +217,13 @@ std::string CodeGen::GetMakefile() {
     // comment out because <unistd.h> will not include <optarg.h>
     // + "-std=c11 "
     + "main.c "
-    + (Config::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
+    + (HeliumOptions::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
     // gnulib should not be used:
     // 1. Debian can install it in the system header, so no longer need to clone
     // 2. helium-lib already has those needed headers, if installed correctly by instruction
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     +
-    (Config::Instance()->GetBool("gnulib") ?
+    (HeliumOptions::Instance()->GetBool("gnulib") ?
      "-I$(HOME)/github/helium-lib " // config.h
      "-I$(HOME)/github/helium-lib/lib " // gnulib headers
      "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
@@ -243,7 +242,7 @@ std::string CodeGen::GetMakefile() {
 
 
 void CodeGen::resolveSnippet(AST *ast) {
-  print_trace("Context::resolveSnippet");
+  helium_print_trace("Context::resolveSnippet");
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
   // Since I changed the decl mechanism to m_decls, I need to change here
@@ -307,5 +306,5 @@ void CodeGen::resolveSnippet(AST *ast) {
   std::set<int> all_snippet_ids = SnippetDB::Instance()->GetAllDep(snippet_ids);
   all_snippet_ids = SnippetDB::Instance()->RemoveDup(all_snippet_ids);
   m_snippet_ids.insert(all_snippet_ids.begin(), all_snippet_ids.end());
-  print_trace("Context::resolveSnippet end");
+  helium_print_trace("Context::resolveSnippet end");
 }

@@ -1,11 +1,10 @@
 #include "parser/ast_node.h"
 #include "utils/log.h"
 #include <iostream>
-#include "config/options.h"
 
 Function::Function(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
   : ASTNode(xmlnode, ast, parent, prev) {
-  print_trace("Function::Function");
+  helium_print_trace("Function::Function");
   #ifdef DEBUG_AST_NODE_TRACE
   std::cout << "---- Function" << "\n";
   #endif

@@ -6,6 +6,8 @@
 #include "parser/slice_reader.h"
 #include "parser/ast_node.h"
 
+#include "helium_options.h"
+
 #include "resolver/global_variable.h"
 #include "resolver/snippet_db.h"
 
@@ -13,8 +15,6 @@
 #include "analyzer.h"
 #include "tester.h"
 
-#include "config/options.h"
-#include "config/config.h"
 #include "utils/log.h"
 #include <gtest/gtest.h>
 
@@ -32,7 +32,7 @@ using namespace utils;
  * UPDATE: OK, I give up, keep the POI also in the context.
  */
 Context::Context(Segment *seg) : m_seg(seg) {
-  print_trace("Context::Context(Segment *seg)");
+  helium_print_trace("Context::Context(Segment *seg)");
   // this is the beginning.
   // use the POI as the first node.
   SetFirstNode(seg->GetFirstNode());
@@ -49,7 +49,7 @@ Context::Context(Segment *seg) : m_seg(seg) {
  * Maybe the default one already works good.
  */
 Context::Context(const Context &rhs) {
-  print_trace("Context::Context(const Context &rhs)");
+  helium_print_trace("Context::Context(const Context &rhs)");
   m_seg = rhs.m_seg;
   m_nodes = rhs.m_nodes;
   m_first = rhs.m_first;
@@ -140,7 +140,7 @@ void Context::dump() {
  * TODO
  */
 void Context::Resolve() {
-  print_trace("Context::Resolve");
+  helium_print_trace("Context::Resolve");
   // gather ASTs UPDATE already a member field: m_ast_to_node_m
   // resolve for each AST
   AST *first_ast = m_first->GetAST();
@@ -203,7 +203,7 @@ void Context::Resolve() {
  * DEPRECATED Dead code
  */
 void Context::getUndefinedVariables(AST *ast) {
-  print_trace("Context::getUndefinedVariables(AST *ast)");
+  helium_print_trace("Context::getUndefinedVariables(AST *ast)");
   std::set<ASTNode*> sel = m_ast_to_node_m[ast];
   for (ASTNode *node : sel) {
     std::set<std::string> ids = node->GetVarIds();
@@ -244,7 +244,7 @@ void Context::getUndefinedVariables(AST *ast) {
  * @return m_input
  */
 std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
-  print_trace("Context::resolveDecl");
+  helium_print_trace("Context::resolveDecl");
 
   // ast->Visualize();
   std::set<ASTNode*> ret = m_ast_to_node_m[ast];
@@ -315,7 +315,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       }
     }
   }
-  print_trace("Context::resolveDecl empty worklist");
+  helium_print_trace("Context::resolveDecl empty worklist");
   if (first_ast_p) {
     // FIXME Remove root for the outmost AST!
     ret = ast->RemoveRoot(ret);
@@ -369,7 +369,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
       }
     }
   }
-  print_trace("Context::resolveDecl end");
+  helium_print_trace("Context::resolveDecl end");
   // remove duplication of m_decls and m_inputs
   // the duplication is introduced, by the different DEFINITION in the code.
   // So, m_inputs should prominate it.
@@ -380,7 +380,7 @@ std::set<ASTNode*> Context::resolveDecl(AST *ast, bool first_ast_p) {
  * TODO
  */
 void Context::resolveSnippet(AST *ast) {
-  print_trace("Context::resolveSnippet");
+  helium_print_trace("Context::resolveSnippet");
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
   // Since I changed the decl mechanism to m_decls, I need to change here
@@ -451,7 +451,7 @@ void Context::resolveSnippet(AST *ast) {
   std::set<int> all_snippet_ids = SnippetDB::Instance()->GetAllDep(snippet_ids);
   all_snippet_ids = SnippetDB::Instance()->RemoveDup(all_snippet_ids);
   m_snippet_ids.insert(all_snippet_ids.begin(), all_snippet_ids.end());
-  print_trace("Context::resolveSnippet end");
+  helium_print_trace("Context::resolveSnippet end");
 }
 
 /********************************
@@ -468,7 +468,7 @@ std::map<std::string, Type*> Context::GetInputVariables() {
 }
 
 std::string Context::getMain() {
-  print_trace("Context::getMain()");
+  helium_print_trace("Context::getMain()");
   std::string ret;
   ret += get_header();
   std::string main_func;
@@ -501,7 +501,7 @@ std::string Context::getMain() {
         main_func += t->GetInputCode(var);
       }
 
-      if (Config::Instance()->GetBool("test-global-variable")) {
+      if (HeliumOptions::Instance()->GetBool("test-global-variable")) {
         for (auto m : m_globals) {
           std::string var = m.first;
           Type *t = m.second;
@@ -558,7 +558,7 @@ std::string Context::getMain() {
  * FIXME dangerous! will clear the output decoration for all ASTs
  */
 std::string Context::getSigMain() {
-  print_trace("Context::getSigMain()");
+  helium_print_trace("Context::getSigMain()");
   std::string ret;
   ret += get_header();
   std::string main_func;
@@ -749,7 +749,7 @@ std::string Context::getSupportBody() {
 
 std::string Context::getMakefile() {
   std::string makefile;
-  std::string cc = Config::Instance()->GetString("cc");
+  std::string cc = HeliumOptions::Instance()->GetString("cc");
   makefile += "CC:=" + cc + "\n";
   // TODO test if $CC is set correctly
   // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
@@ -759,13 +759,13 @@ std::string Context::getMakefile() {
     // comment out because <unistd.h> will not include <optarg.h>
     // + "-std=c11 "
     + "main.c "
-    + (Config::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
+    + (HeliumOptions::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
     // gnulib should not be used:
     // 1. Debian can install it in the system header, so no longer need to clone
     // 2. helium-lib already has those needed headers, if installed correctly by instruction
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     +
-    (Config::Instance()->GetBool("gnulib") ?
+    (HeliumOptions::Instance()->GetBool("gnulib") ?
      "-I$(HOME)/github/helium-lib " // config.h
      "-I$(HOME)/github/helium-lib/lib " // gnulib headers
      "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
@@ -834,35 +834,35 @@ bool Context::compile() {
 
   
   m_builder->Write();
-  if (PrintOption::Instance()->Has(POK_CodeOutputLocation)) {
+  if (HeliumOptions::Instance()->GetBool("print-output-path")) {
     std::cout << "Code output to "  << m_builder->GetDir() << "\n";
   }
-  if (PrintOption::Instance()->Has(POK_Main)) {
+  if (HeliumOptions::Instance()->GetBool("print-main")) {
     std::cout << code_main  << "\n";
   }
   m_builder->Compile();
   if (m_builder->Success()) {
     g_compile_success_no++;
     helium_dump("compile success\n");
-    if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+    if (HeliumOptions::Instance()->GetBool("print-compile-info")) {
       utils::print("compile success\n", utils::CK_Green);
     }
-    if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
+    if (HeliumOptions::Instance()->GetBool("print-compile-info-dot")) {
       utils::print(".", utils::CK_Green);
       std::cout << std::flush;
     }
     return true;
   } else {
     g_compile_error_no++;
-    if (PrintOption::Instance()->Has(POK_CompileInfo)) {
+    if (HeliumOptions::Instance()->GetBool("print-compile-info")) {
       utils::print("compile error\n", utils::CK_Red);
     }
     helium_dump("compile error\n");
-    if (PrintOption::Instance()->Has(POK_CompileInfoDot)) {
+    if (HeliumOptions::Instance()->GetBool("print-compile-info-dot")) {
       utils::print(".", utils::CK_Red);
       std::cout << std::flush;
     }
-    if (DebugOption::Instance()->Has(DOK_PauseCompileError)) {
+    if (HeliumOptions::Instance()->GetBool("pause-compile-error")) {
       std::cout <<".. print enter to continue .."  << "\n";
       getchar();
     }
@@ -879,12 +879,12 @@ bool Context::compile() {
  * @side m_test_suite get freed and cleared; filled with new test cases
  */
 void Context::createTestCases() {
-  print_trace("Context::createTestCases");
+  helium_print_trace("Context::createTestCases");
   // FIXME this function is too long
-  if (Config::Instance()->GetBool("run-test") == false) {
+  if (!HeliumOptions::Instance()->GetBool("run-test")) {
     return;
   }
-  int test_number = Config::Instance()->GetInt("test-number");
+  int test_number = HeliumOptions::Instance()->GetInt("test-number");
   // std::vector<std::vector<InputSpec*> > test_suite(test_number);
   m_test_suite.clear();
   freeTestSuite();
@@ -894,7 +894,7 @@ void Context::createTestCases() {
   /**
    * Testing!
    */
-  print_trace("preparing inputs ...");
+  helium_print_trace("preparing inputs ...");
   AST *first_ast = m_first->GetAST();
   // FIXME decls or inputs?
   // InputMetrics metrics = m_inputs[first_ast];
@@ -991,7 +991,7 @@ void Context::createTestCases() {
 }
 
 TestResult* Context::test() {
-  print_trace("Context::test");
+  helium_print_trace("Context::test");
   // this is the other use place of test suite other than the execution of the executable itself
   // create the test result!
   // This will supply the input spec for the precondition and transfer function generation
@@ -1045,31 +1045,31 @@ TestResult* Context::test() {
     // FIXME how to safely and consistently identify timeout or not?
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
     if (status == 0) {
-      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
         utils::print("test success\n", utils::CK_Green);
       }
-      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
         utils::print(".", utils::CK_Green);
       }
       ret->AddOutput(output, true);
     } else {
-      if (PrintOption::Instance()->Has(POK_TestInfo)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
         utils::print("test failure\n", utils::CK_Red);
       }
-      if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
         utils::print(".", utils::CK_Red);
       }
       ret->AddOutput(output, false);
     }
   }
-  if (PrintOption::Instance()->Has(POK_TestInfoDot)) {
+  if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
     std::cout << "\n";
   }
   return ret;
 }
 
 void Context::analyze(TestResult *test_result) {
-  print_trace("Context::analyze");
+  helium_print_trace("Context::analyze");
   test_result->PrepareData();
   // HEBI Generating CSV file
   std::string csv = test_result->GenerateCSV();
@@ -1078,7 +1078,7 @@ void Context::analyze(TestResult *test_result) {
   std::string csv_file = m_builder->GetDir() + "/io.csv";
   utils::write_file(csv_file, csv);
   std::cout << "Output to: " << csv_file   << "\n";
-  if (PrintOption::Instance()->Has(POK_CSV)) {
+  if (HeliumOptions::Instance()->GetBool("print-csv")) {
     std::string cmd = "column -s , -t " + csv_file;
     std::string output = utils::exec(cmd.c_str());
     std::cout << output  << "\n";
@@ -1097,7 +1097,7 @@ void Context::analyze(TestResult *test_result) {
   std::vector<std::string> invs = analyzer.GetInvariants();
   std::vector<std::string> pres = analyzer.GetPreConditions();
   std::vector<std::string> trans = analyzer.GetTransferFunctions();
-  if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+  if (HeliumOptions::Instance()->Has("print-analysis-result")) {
     std::cout << "== invariants"  << "\n";
     for (auto &s : invs) {
       std::cout << "\t" << s  << "\n";
@@ -1147,7 +1147,7 @@ void Context::freeTestSuite() {
  * 4. generate dynamic properties
  */
 void Context::Test() {
-  print_trace("Context::Test");
+  helium_print_trace("Context::Test");
   std::cout << "============= Context::Test() ================="  << "\n";
   std::cout << "The size of this context: " << m_nodes.size()  << "\n";
   if (compile()) {

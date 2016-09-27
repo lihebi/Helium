@@ -1,8 +1,8 @@
 #include "ast.h"
 #include "ast_node.h"
-#include "config/options.h"
 #include "utils/utils.h"
 #include "utils/dot.h"
+#include "utils/log.h"
 #include <iostream>
 
 
@@ -26,7 +26,7 @@
  * FIXME This should be the only one constructor used?
  */
 AST::AST(XMLNode node) {
-  print_trace("AST::AST(ast::XMLNode node)");
+  helium_print_trace("AST::AST(ast::XMLNode node)");
   m_xmlnode = node;
   // create root, and the root will create everything else
   m_root = ASTNodeFactory::CreateASTNode(node, this, NULL, NULL);
@@ -97,7 +97,7 @@ size_t AST::leaf_size() {
  * Assertion failure if node is not in this AST
  */
 ASTNode *AST::GetPreviousLeafNode(ASTNode *node) {
-  print_trace("AST::GetPreviousLeafNode()");
+  helium_print_trace("AST::GetPreviousLeafNode()");
   assert(Contains(node));
   int idx = GetIndexByNode(node);
   for (int i=idx-1;i>=0;i--) {
@@ -126,7 +126,7 @@ ASTNode *AST::GetPreviousLeafNodeInSlice(ASTNode *node) {
 
 
 std::string AST::GetFunctionName() {
-  // print_trace("AST::GetFunctionName");
+  // helium_print_trace("AST::GetFunctionName");
   if (m_nodes.size() == 0) return "";
   ASTNode *func_node = m_nodes[0];
   if (func_node->Kind() != ANK_Function) return "";
@@ -334,7 +334,7 @@ std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
 }
 
 std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
-  print_trace("AST::CompleteGene(std::set<ASTNode*> gene)");
+  helium_print_trace("AST::CompleteGene(std::set<ASTNode*> gene)");
   std::set<ASTNode*> ret;
   // FIXME before compute lca, need to patch: continue, break
   gene = patch_syntax(gene);
@@ -349,7 +349,7 @@ std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
 }
 
 std::set<ASTNode*> AST::CompleteGene(Gene *gene) {
-  print_trace("AST::CompleteGene(Gene *gene)");
+  helium_print_trace("AST::CompleteGene(Gene *gene)");
   assert(gene);
   std::set<int> indice = gene->GetIndiceS();
   // back up original nodes
@@ -411,14 +411,14 @@ void AST::ClearSlice() {
 }
 
 ASTNode* AST::GetCallSite(std::string func_name) {
-  print_trace("AST::GetCallSite");
+  helium_print_trace("AST::GetCallSite");
   assert(m_root);
   XMLNode callsite = find_callsite(m_root->GetXMLNode(), func_name);
   return GetEnclosingNodeByXMLNode(callsite);
 }
 
 std::set<ASTNode*> AST::GetCallSites(std::string func_name) {
-  print_trace("AST::GetCallSites");
+  helium_print_trace("AST::GetCallSites");
   assert(m_root);
   // DEBUG
   // XMLNode node = m_root->GetXMLNode();

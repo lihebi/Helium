@@ -1,6 +1,7 @@
 #include "formula.h"
 #include "utils/utils.h"
-#include "config/options.h"
+
+#include "utils/log.h"
 
 
 bool Formula::is_constant(std::string str) {
@@ -18,7 +19,7 @@ bool Formula::is_constant(std::string str) {
 /**
  */
 Formula *FormulaFactory::CreateFormula(std::string str) {
-  print_trace("FormulaFactory::CreateFormula");
+  helium_print_trace("FormulaFactory::CreateFormula");
   std::string delim;
   if (str.find("!=") != std::string::npos) {
     delim = "!=";

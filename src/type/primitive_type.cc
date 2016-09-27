@@ -1,7 +1,7 @@
 #include "type.h"
 #include "type_helper.h"
 #include "utils/utils.h"
-#include "config/config.h"
+#include "helium_options.h"
 #include "corner.h"
 
 /********************************
@@ -35,9 +35,9 @@ std::string IntType::GetOutputCode(std::string var) {
 }
 
 InputSpec *IntType::GenerateInput() {
-  static int int_min = Config::Instance()->GetInt("int-min");
-  static int int_max = Config::Instance()->GetInt("int-max");
-  static int max_array_size = Config::Instance()->GetInt("max-array-size");
+  static int int_min = HeliumOptions::Instance()->GetInt("int-min");
+  static int int_max = HeliumOptions::Instance()->GetInt("int-max");
+  static int max_array_size = HeliumOptions::Instance()->GetInt("max-array-size");
   assert(max_array_size > 0);
 
   int value = utils::rand_int(int_min, int_max);
@@ -124,12 +124,6 @@ std::string BoolType::GetOutputCode(std::string var) {
 }
 
 InputSpec *BoolType::GenerateInput() {
-  // static int int_min = Config::Instance()->GetBool("int-min");
-  // static int int_max = Config::Instance()->GetBool("int-max");
-  // static int max_array_size = Config::Instance()->GetBool("max-array-size");
-  // assert(max_array_size > 0);
-
-  // int value = utils::rand_int(int_min, int_max);
   bool b = utils::rand_bool();
   std::string spec = "{bool: " + std::to_string(b) + "}";
   std::string raw = std::to_string(b);

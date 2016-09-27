@@ -1,6 +1,6 @@
 #include "type.h"
-#include "config/config.h"
 #include "utils/utils.h"
+#include "helium_options.h"
 
 
 ArgCVType::ArgCVType(std::string getopt_str) {
@@ -49,7 +49,7 @@ InputSpec* ArgCVType::GenerateInput() {
   // std::vector<char> m_named_args;
   ArgCVInputSpec *spec = new ArgCVInputSpec();
   // EXE name
-  static int max_argv0_length = Config::Instance()->GetInt("max-argv0-length");
+  static int max_argv0_length = HeliumOptions::Instance()->GetInt("max-argv0-length");
   std::string argv0 = utils::rand_str(utils::rand_int(0, max_argv0_length));
   spec->SetArgv0(argv0);
   // bools

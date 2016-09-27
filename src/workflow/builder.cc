@@ -1,8 +1,7 @@
 #include "builder.h"
 #include <algorithm>
 #include "utils/utils.h"
-#include "config/config.h"
-#include "config/options.h"
+#include "helium_options.h"
 
 #include "utils/log.h"
 #include "parser/xml_doc_reader.h"
@@ -12,26 +11,6 @@ Builder::Builder() {
   m_dir = utils::create_tmp_dir("/tmp/helium-test-tmp.XXXXXX");
 }
 Builder::~Builder() {}
-
-// void
-// Builder::writeMain() {
-//   utils::write_file(Config::Instance()->GetString("output-folder")+"/generate.c", m_main);
-// }
-
-// void Builder::writeSupport() {
-//   utils::write_file(
-//     Config::Instance()->GetString("output-folder")+"/support.h",
-//     m_support
-//   );
-// }
-
-// void
-// Builder::writeMakefile() {
-//   utils::write_file(
-//     Config::Instance()->GetString("output-folder")+"/Makefile",
-//     m_makefile
-//   );
-// }
 
 /**
  * from begin, resolve prev sibling and parent, for DeclStmt.
@@ -224,12 +203,11 @@ Builder::Write() {
   // std::string makefile = m_seg->GetMakefile();
 
   // std::cout <<utils::BLUE <<m_main  << utils::RESET << "\n";
-  if (Config::Instance()->GetString("helium-guard") == "true") {
+  if (HeliumOptions::Instance()->GetBool("instrument-helium-guard")) {
     m_main = add_helium_guard(m_main);
   }
 
   preProcess();
-
 
   utils::write_file(m_dir+"/main.c", m_main);
   utils::write_file(m_dir+"/support.h", m_support);
@@ -343,7 +321,7 @@ Builder::Compile() {
     m_success = false;
     helium_dump_compile_error("error: " + m_dir);
     helium_dump_compile_error(simplify_error_msg(error_msg));
-    if (PrintOption::Instance()->Has(POK_CompileError)) {
+    if (HeliumOptions::Instance()->GetBool("print-compile-error")) {
       utils::print(simplify_error_msg(error_msg), utils::CK_Yellow);
     }
   }

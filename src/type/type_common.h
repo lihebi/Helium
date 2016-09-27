@@ -6,9 +6,6 @@
 
 #include "utils/utils.h"
 
-#include "config/config.h"
-#include "config/options.h"
-
 #include "resolver/resolver.h"
 #include "resolver/snippet_db.h"
 

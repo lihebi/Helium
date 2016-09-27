@@ -6,8 +6,7 @@
 #include "snippet.h"
 #include "utils/utils.h"
 #include "resolver.h"
-#include "config/arg_parser.h"
-#include "config/options.h"
+#include "helium_options.h"
 
 using namespace utils;
 
@@ -189,7 +188,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
   } else {
     // printing out unresolved ones
     // not useful at all. Do not use this.
-    if (PrintOption::Instance()->Has(POK_UnresolvedID)) {
+    if (HeliumOptions::Instance()->GetBool("print-unresolved-id")) {
       utils::print(name, utils::CK_Yellow);
     }
   }
@@ -266,7 +265,8 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
     m_snippets.insert(*it);
     // also take care of m_id_map and m_dependence_map
     std::set<std::string> keys = (*it)->GetSignatureKey();
-    if (PrintOption::Instance()->Has(POK_AddSnippet)) {
+    // TODO DEPRECATED
+    if (HeliumOptions::Instance()->GetBool("print-add-snippet")) {
       std::cout <<"Adding snippet: ";
       std::cout << (*it)->ToString()  << "\n";
       // std::string ss = (*it)->ToString();
@@ -275,7 +275,8 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
       //   std::cout << (*it)->GetCode()  << "\n";
       // }
     }
-    if (PrintOption::Instance()->Has(POK_AddSnippetDot)) {
+    // TODO DEPRECATED
+    if (HeliumOptions::Instance()->GetBool("print-add-snippet-dot")) {
       std::cout <<"." << std::flush;
     }
     for (std::string key : keys) {

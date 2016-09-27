@@ -3,7 +3,6 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
-#include "config/config.h"
 #include "type/type_helper.h"
 
 namespace fs = boost::filesystem;

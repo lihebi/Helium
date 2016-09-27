@@ -9,9 +9,7 @@
 
 
 
-#include "config/options.h"
-#include "config/config.h"
-
+#include "helium_options.h"
 
 
 #include "utils/log.h"
@@ -55,9 +53,9 @@ int Reader::m_cur_seg_no = 0;
  * Process the segment
  */
 void ProcessSeg(Segment *seg) {
-  print_trace("ProcessSeg()");
+  helium_print_trace("ProcessSeg()");
   int count = 0;
-  int limit = Config::Instance()->GetInt("context-search-limit");
+  int limit = HeliumOptions::Instance()->GetInt("context-search-limit");
   // int skip_to_seg = Config::Instance()->GetInt("skip-to-seg");
   while(seg->ContinueNextContext()) {
     // if (skip_to_seg < count) continue;
@@ -71,7 +69,7 @@ void ProcessSeg(Segment *seg) {
  * Get true linum in consideration of line marker
  */
 int get_true_linum(std::string filename, int linum) {
-  print_trace("get_true_linum");
+  helium_print_trace("get_true_linum");
   // std::cout << filename << ':' << linum  << "\n";
   std::string content = utils::read_file(filename);
   std::vector<std::string> sp = utils::split(content, '\n');
@@ -112,7 +110,7 @@ int get_true_linum(std::string filename, int linum) {
   , {NK_Return, ANK_Stmt}
  */
 // Reader::Reader(std::string filename, POISpec poi) {
-//   print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
+//   helium_print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
 //   m_doc = XMLDocReader::Instance()->ReadFile(filename);
 //   int linum = get_true_linum(filename, poi.linum);
 //   std::cout << "true line number: " <<  linum  << "\n";
@@ -149,10 +147,10 @@ int get_true_linum(std::string filename, int linum) {
  * Constructor of Reader should read the filename, and select segments.
  */
 Reader::Reader(const std::string &filename) : m_filename(filename) {
-  print_trace("Reader: " + filename);
+  helium_print_trace("Reader: " + filename);
   // utils::file2xml(filename, m_doc);
   m_doc = XMLDocReader::Instance()->ReadFile(filename);
-  std::string method = Config::Instance()->GetString("code-selection");
+  std::string method = HeliumOptions::Instance()->GetString("code-selection");
   if (method == "annot-loop") {
     Segment *seg = getAnnotLoop();
     if (seg) {
@@ -191,7 +189,7 @@ Reader::Reader(const std::string &filename) : m_filename(filename) {
  * For now, only the first statment marked by @HeliumStmt
  */
 Segment* Reader::getAnnotSeg() {
-  print_trace("Reader::getAnnotSeg");
+  helium_print_trace("Reader::getAnnotSeg");
   XMLNodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumStmt");
   if (comment_nodes.size() != 1) {
     // std::cerr << "Error: Currently only support ONE single statement.";
@@ -211,7 +209,7 @@ Segment* Reader::getAnnotSeg() {
  * This is the pre-condition, otherwise undefined behavior will happen. FIXME
  */
 Segment* Reader::getAnnotLoop() {
-  print_trace("Reader::getAnnotLoop");
+  helium_print_trace("Reader::getAnnotLoop");
   XMLNodeList comment_nodes = find_nodes_containing_str(*m_doc, NK_Comment, "@HeliumLoop");
   if (comment_nodes.size() != 1) {
     return NULL;
@@ -254,7 +252,7 @@ Segment* Reader::getAnnotLoop() {
   , {NK_Return, ANK_Stmt}
  */
 Reader::Reader(std::string filename, POISpec poi) {
-  print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
+  helium_print_trace(std::string("Reader::Reader(std::string filename, POISpec poi)") + " " + filename);
   // poi contains linum
   // read the file, use line marker to get the true linum
   m_doc = XMLDocReader::Instance()->ReadFile(filename);

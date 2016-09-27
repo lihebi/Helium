@@ -1,11 +1,11 @@
 #include "global_variable.h"
-#include "config/options.h"
+#include "utils/log.h"
 #include <iostream>
 
 GlobalVariableRegistry* GlobalVariableRegistry::m_instance = NULL;
 
 GlobalVariableRegistry::GlobalVariableRegistry() {
-  print_trace("GlobalVariableRegistry::GlobalVariableRegistry()");
+  helium_print_trace("GlobalVariableRegistry::GlobalVariableRegistry()");
   // create registry
   // 1. look up the snippet db, get all variables
   // 2. get the code
@@ -33,7 +33,7 @@ GlobalVariableRegistry::GlobalVariableRegistry() {
 }
 
 Type *GlobalVariableRegistry::LookUp(std::string var) {
-  print_trace("GlobalVariableRegistry::LookUp(std::string var)");
+  helium_print_trace("GlobalVariableRegistry::LookUp(std::string var)");
   if (m_variable_m.count(var) == 1) {
     return m_variable_m[var]->GetType();
   }

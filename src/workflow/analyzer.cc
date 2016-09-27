@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 #include "utils/log.h"
-#include "config/options.h"
+#include "helium_options.h"
 
 /********************************
  * Helper functions
@@ -320,7 +320,7 @@ RelKind check_relation_p(std::vector<std::string> d1, std::vector<std::string> d
  * 4. construct data into m_raw_data
  */
 void Analyzer::processCSVFile(std::string csv_file) {
-  print_trace("Analyzer::processCSVFile");
+  helium_print_trace("Analyzer::processCSVFile");
   std::ifstream is;
   is.open(csv_file);
   assert(is.is_open());
@@ -396,7 +396,7 @@ void Analyzer::processCSVFile(std::string csv_file) {
 
   utils::write_file(valid_csv_file, valid_csv);
   // std::cout << "Valid data: " << m_raw_data.size()  << "\n";
-  if (PrintOption::Instance()->Has(POK_CSVSummary)) {
+  if (HeliumOptions::Instance()->GetBool("print-csv-summary")) {
     std::cerr << "------ CSV summary ------" << "\n";
     std::cout << "| total records: " << total  << "\n";
     std::cout << "| reach POI, return zero: " << reach_poi_test_success  << "\n";
@@ -442,7 +442,7 @@ void Analyzer::processCSVFile(std::string csv_file) {
  * - HELIUM_POI: whether the POI right before POI is printed
  */
 Analyzer::Analyzer(std::string csv_file, std::set<std::string> conditions) {
-  print_trace("Analyzer::Analyzer");
+  helium_print_trace("Analyzer::Analyzer");
   processCSVFile(csv_file);
   // process the raw data
   for (int i=0;i<(int)m_header.size();++i) {
@@ -476,7 +476,7 @@ Analyzer::~Analyzer() {
 }
 
 void Analyzer::createSimplifiedHeader() {
-  print_trace("Analyzer::createSimplifiedHeader");
+  helium_print_trace("Analyzer::createSimplifiedHeader");
   // std::map<std::string, std::string> simplified_header;
   for (std::string h : m_header) {
     if (h.size() > 3) {
@@ -502,7 +502,7 @@ void Analyzer::createSimplifiedHeader() {
  * @return a set of string template to check
  */
 void Analyzer::processConditions(std::set<std::string> conditions) {
-  print_trace("Analyzer::processConditions");
+  helium_print_trace("Analyzer::processConditions");
   // std::set<std::string> ret;
   for (std::string condition : conditions) {
     // FIXME formula needs to be free-d
@@ -531,7 +531,7 @@ void Analyzer::processConditions(std::set<std::string> conditions) {
  * 2. relations, e.g. a < b
  */
 std::vector<std::string> Analyzer::GetInvariants() {
-  print_trace("Analyzer::GetInvariants()");
+  helium_print_trace("Analyzer::GetInvariants()");
   std::vector<std::string> ret;
   // invariants cares about the Out variables
   for (int i=0;i<(int)m_o_header.size();++i) {
@@ -570,7 +570,7 @@ std::vector<std::string> Analyzer::GetInvariants() {
  * Transfer functions capture the relation from Input to Output
  */
 std::vector<std::string> Analyzer::GetTransferFunctions() {
-  print_trace("Analyzer::GetTransferFunctions()");
+  helium_print_trace("Analyzer::GetTransferFunctions()");
   std::vector<std::string> ret;
   for (int i=0;i<(int)m_i_header.size();i++) {
     for (int o=0;o<(int)m_o_header.size();o++) {
@@ -587,7 +587,7 @@ std::vector<std::string> Analyzer::GetTransferFunctions() {
  * Pre conditions are invariants for Input variables
  */
 std::vector<std::string> Analyzer::GetPreConditions() {
-  print_trace("Analyzer::GetPreConditions()");
+  helium_print_trace("Analyzer::GetPreConditions()");
   std::vector<std::string> ret;
   // invariants cares about the Out variables
   for (int i=0;i<(int)m_i_header.size();++i) {

@@ -2,14 +2,13 @@
 #include <cstdlib>
 
 #include "workflow/helium.h"
-#include "config/config.h"
 
 #include "resolver/snippet_db.h"
 #include "parser/cfg.h"
 #include "parser/xml_doc_reader.h"
 
-#include "config/options.h"
 #include "failure_point.h"
+#include "helium_options.h"
 
 #include <gtest/gtest.h>
 
@@ -50,12 +49,12 @@ load_helium_home() {
 }
 
 void check_light_utilities() {
-  if (ArgParser::Instance()->Has("print-config")) {
-    std::cout << Config::Instance()->ToString() << "\n";
+  if (HeliumOptions::Instance()->Has("print-config")) {
+    std::cout << "DEPRECATED print-config"  << "\n";
     exit(0);
   }
-  if (ArgParser::Instance()->Has("resolve-system-type")) {
-    std::string type = ArgParser::Instance()->GetString("resolve-system-type");
+  if (HeliumOptions::Instance()->Has("resolve-system-type")) {
+    std::string type = HeliumOptions::Instance()->GetString("resolve-system-type");
     std::string output = SystemResolver::Instance()->ResolveType(type);
     std::cout << output  << "\n";
     exit(0);
@@ -64,7 +63,7 @@ void check_light_utilities() {
 
 void check_target_folder(std::string folder) {
   if (folder.empty()) {
-    ArgParser::Instance()->PrintHelp();
+    HeliumOptions::Instance()->PrintHelp();
     exit(1);
   }
   if (utils::is_dir(folder)) {
@@ -77,22 +76,22 @@ void check_target_folder(std::string folder) {
 }
 
 void create_utilities(std::string folder) {
-  if (ArgParser::Instance()->Has("create-tagfile")) {
-    std::string output_file = ArgParser::Instance()->GetString("output");
+  if (HeliumOptions::Instance()->Has("create-tagfile")) {
+    std::string output_file = HeliumOptions::Instance()->GetString("output");
     if (output_file.empty()) output_file = "tags";
     create_tagfile(folder, output_file);
     exit(0);
   }
 
-  if (ArgParser::Instance()->Has("create-snippet-db")) {
+  if (HeliumOptions::Instance()->Has("create-snippet-db")) {
     std::string output_folder;
-    if (ArgParser::Instance()->Has("output")) {
-      output_folder = ArgParser::Instance()->GetString("output");
+    if (HeliumOptions::Instance()->Has("output")) {
+      output_folder = HeliumOptions::Instance()->GetString("output");
     }
     if (output_folder.empty()) output_folder = "snippets";
     std::string tagfile;
-    if (ArgParser::Instance()->Has("tagfile")) {
-      tagfile = ArgParser::Instance()->GetString("tagfile");
+    if (HeliumOptions::Instance()->Has("tagfile")) {
+      tagfile = HeliumOptions::Instance()->GetString("tagfile");
     }
     std::string tmpdir = utils::create_tmp_dir();
     create_tagfile(folder, tmpdir+"/tags");
@@ -116,7 +115,7 @@ std::vector<std::string> get_c_files(std::string folder) {
 }
 
 void print_utilities(std::string folder) {
-  if (ArgParser::Instance()->Has("print-ast")) {
+  if (HeliumOptions::Instance()->Has("print-ast")) {
     if (!utils::file_exists(folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -130,7 +129,7 @@ void print_utilities(std::string folder) {
     exit(0);
   }
 
-  if (ArgParser::Instance()->Has("print-cfg")) {
+  if (HeliumOptions::Instance()->Has("print-cfg")) {
     if (!utils::file_exists(folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -146,7 +145,7 @@ void print_utilities(std::string folder) {
     }
     exit(0);
   }
-  if (ArgParser::Instance()->Has("print-callgraph")) {
+  if (HeliumOptions::Instance()->Has("print-callgraph")) {
     SnippetDB::Instance()->PrintCG();
     exit(0);
   }
@@ -156,7 +155,7 @@ void print_utilities(std::string folder) {
    * 1. headers used
    * 2. header dependence
    */
-  if (ArgParser::Instance()->Has("print-meta")) {
+  if (HeliumOptions::Instance()->Has("print-meta")) {
     std::cout << "== Helium Meta Data Printer =="  << "\n";
     std::cout << "== Headers"  << "\n";
     // 0
@@ -194,7 +193,7 @@ void print_utilities(std::string folder) {
   std::vector<std::string> files = get_c_files(folder);
 
 
-  if (ArgParser::Instance()->Has("print-segments")) {
+  if (HeliumOptions::Instance()->Has("print-segments")) {
     assert(false);
     for (auto it=files.begin();it!=files.end();it++) {
       Reader reader(*it);
@@ -203,7 +202,7 @@ void print_utilities(std::string folder) {
     }
     exit(0);
   }
-  if (ArgParser::Instance()->Has("print-segment-info")) {
+  if (HeliumOptions::Instance()->Has("print-segment-info")) {
     assert(false);
     for (auto it=files.begin();it!=files.end();it++) {
       Reader reader(*it);
@@ -213,7 +212,7 @@ void print_utilities(std::string folder) {
 }
 
 void load_tagfile(std::string folder) {
-  std::string tagfile = ArgParser::Instance()->GetString("tagfile");
+  std::string tagfile = HeliumOptions::Instance()->GetString("tagfile");
   if (tagfile.empty()) {
     // ctags_load(folder + "/tags");
     // create tagfile
@@ -231,9 +230,9 @@ void load_tagfile(std::string folder) {
 }
 
 void load_snippet_db() {
-  std::string snippet_db_folder = ArgParser::Instance()->GetString("snippet-db-folder");
+  std::string snippet_db_folder = HeliumOptions::Instance()->GetString("snippet-db-folder");
   if (snippet_db_folder.empty()) {
-    if (ArgParser::Instance()->Has("verbose")) {
+    if (HeliumOptions::Instance()->Has("verbose")) {
       std::cout
         << "Using default snippet folder: './snippets/'."
         << "If not desired, set via '-s' option."  << "\n";
@@ -250,9 +249,9 @@ void load_snippet_db() {
 
 void load_header_resolver() {
   // HeaderResolver::Instance()->Load(folder);
-  std::string src_folder = ArgParser::Instance()->GetString("src-folder");
+  std::string src_folder = HeliumOptions::Instance()->GetString("src-folder");
   if (src_folder.empty()) {
-    if (ArgParser::Instance()->Has("verbose")) {
+    if (HeliumOptions::Instance()->Has("verbose")) {
       std::cerr
         << "Using default src folder: 'src'."
         << "If not desired, set via '-c' option."  << "\n";
@@ -267,8 +266,8 @@ void load_header_resolver() {
 }
 
 void load_slice() {
-  if (ArgParser::Instance()->Has("slice-file")) {
-    std::string slice_file = ArgParser::Instance()->GetString("slice-file");
+  if (HeliumOptions::Instance()->Has("slice-file")) {
+    std::string slice_file = HeliumOptions::Instance()->GetString("slice-file");
     SimpleSlice::Instance()->SetSliceFile(slice_file);
   }
 }
@@ -276,9 +275,9 @@ void load_slice() {
 
 
 FailurePoint *load_failure_point() {
-  std::vector<std::string> files = get_c_files(ArgParser::Instance()->GetString("folder"));
-  if (ArgParser::Instance()->Has("poi")) {
-    std::string poi_file = ArgParser::Instance()->GetString("poi");
+  std::vector<std::string> files = get_c_files(HeliumOptions::Instance()->GetString("folder"));
+  if (HeliumOptions::Instance()->Has("poi")) {
+    std::string poi_file = HeliumOptions::Instance()->GetString("poi");
     FailurePoint *fp = FailurePointFactory::CreateFailurePoint(poi_file);
 
     // find this file
@@ -290,14 +289,14 @@ FailurePoint *load_failure_point() {
         return NULL;
       }
     }
-  } else if (ArgParser::Instance()->Has("whole-poi")) {
-    std::string whole_poi_file = ArgParser::Instance()->GetString("whole-poi");
-    if (!ArgParser::Instance()->Has("benchmark")) {
+  } else if (HeliumOptions::Instance()->Has("whole-poi")) {
+    std::string whole_poi_file = HeliumOptions::Instance()->GetString("whole-poi");
+    if (!HeliumOptions::Instance()->Has("benchmark")) {
       std::cerr << "EE: benchmark name must be set (-b)"
                 << "in order to use whole poi" << "\n";
       exit(1);
     }
-    std::string benchmark = ArgParser::Instance()->GetString("benchmark");
+    std::string benchmark = HeliumOptions::Instance()->GetString("benchmark");
     FailurePoint *fp = FailurePointFactory::CreateFailurePoint(whole_poi_file, benchmark);
     for (auto it=files.begin();it!=files.end();it++) {
       std::string filename = *it;
@@ -321,16 +320,13 @@ FailurePoint *load_failure_point() {
 int main(int argc, char* argv[]) {
   utils::seed_rand();
 
-
-
   /* load HELIUM_HOME */
   std::string helium_home = load_helium_home();
   /* parse arguments */
-  ArgParser::Instance()->Set(argc, argv);
-  Config::Instance()->ParseFile(helium_home+"/helium.conf");
-  Config::Instance()->Overwrite();
+  HeliumOptions::Instance()->ParseCommandLine(argc, argv);
+  HeliumOptions::Instance()->ParseConfigFile(helium_home+"/helium.conf");
   // target folder
-  std::string folder = ArgParser::Instance()->GetString("folder");
+  std::string folder = HeliumOptions::Instance()->GetString("folder");
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
 
 

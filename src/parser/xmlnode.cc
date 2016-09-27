@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 #include "utils/utils.h"
-#include "config/arg_parser.h"
-#include "config/options.h"
 #include "parser/xml_doc_reader.h"
+#include "helium_options.h"
+#include "utils/log.h"
 
 #include "xmlnode_helper.h"
 
@@ -183,7 +183,7 @@ XMLNodeKind xmlnode_to_kind(XMLNode node) {
   try {
     return name_to_kind_map.at(name);
   } catch (const std::out_of_range& e) {
-    if (DebugOption::Instance()->Has(DOK_PauseASTUnknownTag)) {
+    if (HeliumOptions::Instance()->GetBool("pause-ast-unkonwn-tag")) {
       std::cerr << "AST node tagname: " << name << " is not handled." << "\n";
       std::cout << "-- text:" << "\n";
       std::cout << get_text(node) << "\n";
@@ -706,7 +706,7 @@ std::string get_function_decl(std::string code) {
       || code.find("(") >= code.find(")")
       || code.find(")") >= code.find("{")
       ) {
-    print_warning("get_function_decl: not a good function");
+    helium_print_warning("get_function_decl: not a good function");
     return "";
   }
   

@@ -1,8 +1,8 @@
 #include "ast_node.h"
 #include <gtest/gtest.h>
 #include "utils/utils.h"
-#include "config/options.h"
 
+#include "utils/log.h"
 #include "resolver/global_variable.h"
 
 
@@ -149,7 +149,7 @@ std::string ASTNode::FreedListCode() {
 
 
 ASTNode* ASTNodeFactory::CreateASTNode(XMLNode xml_node, AST *ast, ASTNode* parent, ASTNode *prev) {
-  print_trace("ASTNodeFactory::CreateASTNode");
+  helium_print_trace("ASTNodeFactory::CreateASTNode");
   XMLNodeKind nk = xmlnode_to_kind(xml_node);
   ASTNode *ret = NULL;
   ASTNodeKind ank;

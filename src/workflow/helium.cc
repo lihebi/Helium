@@ -5,10 +5,7 @@
 #include "reader.h"
 #include "helium_utils.h"
 
-#include "config/arg_parser.h"
-#include "config/config.h"
-#include "config/options.h"
-
+#include "helium_options.h"
 #include "parser/xml_doc_reader.h"
 #include "parser/xmlnode.h"
 #include "parser/ast_node.h"
@@ -24,10 +21,6 @@
 #include "utils/log.h"
 #include "builder.h"
 #include "analyzer.h"
-
-
-
-
 
 #include <gtest/gtest.h>
 
@@ -47,7 +40,7 @@ using namespace utils;
 
 
 Helium::Helium(FailurePoint *fp) {
-  print_trace("hebi");
+  helium_print_trace("hebi");
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(fp->GetPath());
   int linum = get_true_linum(fp->GetPath(), fp->GetLinum());
   std::cout << "true line number: " <<  linum  << "\n";
@@ -271,7 +264,7 @@ std::string Helium::derive_pre_cond(std::vector<std::string> str_invs, std::vect
  * TODO workflow
  */
 void Helium::process(ASTNode *node) {
-  print_trace("process");
+  helium_print_trace("process");
   std::cout << "AST node created!"  << "\n";
 
 
@@ -349,7 +342,7 @@ void Helium::process(ASTNode *node) {
     std::vector<std::string> invs = analyzer.GetInvariants();
     // std::vector<std::string> pres = analyzer.GetPreConditions();
     std::vector<std::string> trans = analyzer.GetTransferFunctions();
-    if (PrintOption::Instance()->Has(POK_AnalysisResult)) {
+    if (HeliumOptions::Instance()->GetBool("print-analysis-result")) {
       std::cout << "== invariants"  << "\n";
       for (auto &s : invs) {
         std::cout << "\t" << s  << "\n";
@@ -435,7 +428,7 @@ bool Helium::pre_entry_point(std::string pre) {
  * , Profile profile
  */
 std::vector<Query*> Helium::select(Query *query) {
-  print_trace("select");
+  helium_print_trace("select");
   std::vector<Query*> ret;
   // TODO hard to reach
   // if (profile.ReachFP()) {
@@ -487,7 +480,7 @@ std::vector<Query*> Helium::select(Query *query) {
 
 
 std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
-  print_trace("find_mergable_query");
+  helium_print_trace("find_mergable_query");
   std::set<Query*> ret;
   if (g_waiting_quries.count(node) == 0) {
     return ret;
