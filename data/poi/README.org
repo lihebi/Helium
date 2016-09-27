@@ -1,0 +1,15 @@
+#+TITLE: Format of Point-Of-Interest file
+
+It is a CSV file.
+The header is /required/.
+
+
+The header will be hard coded inside Helium:
+
+- benchmark :: the name of benchmark.
+  This should be the /exact/ name of the benchmark folder. The version is typically needed.
+- file :: the /single/ file name, e.g. a.c
+- linum :: the line number
+- type :: the type of the selection. The value must be one of the following: /stmt/, /loop/
+- bug type :: the name of bug. Optional, unused.
+- comment :: optional. Record whatever you want. Be careful about the comma
