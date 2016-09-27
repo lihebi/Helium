@@ -342,6 +342,12 @@ int main(int argc, char* argv[]) {
   print_utilities(folder);
 
   FailurePoint *fp = load_failure_point();
+
+
+  // POI:
+  // needs: folder, poi file
+
+  
   if (!fp) {
     std::cerr << "EE: error loading failure point"  << "\n";
     exit(1);

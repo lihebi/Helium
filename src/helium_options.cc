@@ -18,15 +18,17 @@ HeliumOptions::HeliumOptions() {
   general_options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("verbose,v", "verbose mode")
+
     ("config,f", po::value<std::string>(), "config file")
-    ("poi", po::value<std::string>(), "poi file")
-    // The following two must be together
-    ("whole-poi", po::value<std::string>(), "whole poi")
-    ("benchmark,b", po::value<std::string>(), "benchmark name (including version, e.g. gzip-1.2.4, libgd_3_0_33)")
+
     ("tagfile,t", po::value<std::string>(), "tag file")
-    ("snippet-db-folder,s", po::value<std::string>(), "snippet database folder")
-    ("src-folder,c", po::value<std::string>(), "source file folder (not orig)")
+    ("snippet-db-folder,s", po::value<std::string>()->default_value("snippets"), "snippet database folder")
+
+    ("src-folder,c", po::value<std::string>()->default_value("src"), "source file folder (not orig)")
     ("output,o", po::value<std::string>(), "output location")
+
+    // DEPRECATED
+    ("benchmark,b", po::value<std::string>(), "benchmark name (including version, e.g. gzip-1.2.4, libgd_3_0_33)")
     ("print,p", po::value<std::string>()->implicit_value(""), "what to be print")
     ("debug,d", po::value<std::string>()->implicit_value(""), "debugging pause point")
     ("slice", po::value<std::string>(),
@@ -39,45 +41,53 @@ HeliumOptions::HeliumOptions() {
     ("create-tagfile", "create tag file")
     ("create-snippet-db", "create snippet database")
     ("create-header-dep", "create header dependence table")
+    
     ("print-header-dep", "the new dep printing: from the database")
     ("print-callgraph", "print callgraph")
-    // ("create-srcml", "create xml from C source file")
     ("print-config", "print current config")
     ("print-segments", "print segments and exit")
     ("print-segment-info", "print segment count, segment size LOC in total, for every file")
+
     ("print-header-deps", "print header dependencies") // DEPRECATED
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("print-headers", "print header")
     ("print-meta", "print meta data")
     ("resolve-system-type", "Resolve a system type and print out result")
+
     ("print-cfg", "print CFG for each function")
     ("print-ast", "print AST for each function")
     ;
 
   po::options_description print_options("Print Options");
   print_options.add_options()
-    ("print-compile-error", "print out compile error")
-    ("print-trace", "print trace")
-    ("print-warning", "print warning")
-    ("print-output-path", "print output path")
-    ("print-compile-info", "print compile success or error")
-    ("print-compile-info-dot", "print compile success or error by colorred dots")
-    ("print-build-rate", "print build rate")
-    ("print-test-info", "print test success or error information")
-    ("print-test-info-dot", "print test info in colorred dots")
-    ("print-csv", "print csv")
-    ("print-csv-summary", "print csv summary")
-    ("print-io-spec", "print IO spec") // DEPRECATED
-    ("print-analysis-result", "print analysis result")
-    ("print-main", "print main function")
-    ("print-unresolved-id", "print unresolved ID in snippet registry") // DEPRECATED
+    ("print-trace", po::value<bool>()->default_value(false), "print trace")
+    ("print-warning", po::value<bool>()->default_value(false), "print warning")
+
+    ("print-output-path", po::value<bool>()->default_value(false), "print output path")
+
+    ("print-compile-error", po::value<bool>()->default_value(false), "print out compile error")
+    ("print-compile-info", po::value<bool>()->default_value(false), "print compile success or error")
+    ("print-compile-info-dot", po::value<bool>()->default_value(false), "print compile success or error by colorred dots")
+
+    ("print-build-rate", po::value<bool>()->default_value(false), "print build rate")
+
+    ("print-test-info", po::value<bool>()->default_value(false), "print test success or error information")
+    ("print-test-info-dot", po::value<bool>()->default_value(false), "print test info in colorred dots")
+
+    ("print-io-spec", po::value<bool>()->default_value(false), "print IO spec") // DEPRECATED
+    ("print-csv", po::value<bool>()->default_value(false), "print csv")
+    ("print-csv-summary", po::value<bool>()->default_value(false), "print csv summary")
+    ("print-analysis-result", po::value<bool>()->default_value(false), "print analysis result")
+
+    ("print-main", po::value<bool>()->default_value(false), "print main function")
+    ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
     ;
 
   po::options_description debug_options("Debug Options");
   debug_options.add_options()
-    ("pause-compile-error", "pause when compile error happens")
-    ("pause-ast-unkonwn-tag", "pause when encoutner an unknown AST tag")
+    ("pause-compile-error", po::value<bool>()->default_value(false), "pause when compile error happens")
+    ("pause-ast-unkonwn-tag", po::value<bool>()->default_value(false), "pause when encoutner an unknown AST tag")
     ;
     
   /**
@@ -88,27 +98,32 @@ HeliumOptions::HeliumOptions() {
   po::options_description config_options("Config");
   config_options.add_options()
     ("cc", po::value<std::string>(), "c compiler used for compiling generated code")
-    // CONFIRM if the bool here is just enter something
-    ("run-test", po::value<bool>(), "whether to run test or not")
-    // CONFIRM in the case of an int, can I get a string out of it?
+    ("poi-file", po::value<std::string>(), "POI csv file")
+
+    ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
+
+    ("address-sanitizer", po::value<bool>()->default_value(false), "use andress-sanitizer")
+    ("gnulib", po::value<bool>()->default_value(false), "use gnulib in makefile")
+
+    ("run-test", po::value<bool>()->default_value(false), "whether to run test or not")
     ("test-number", po::value<int>(), "Number of test")
-    ("instrument-helium-guard", po::value<bool>(), "turn on helium guard")
-    ("context-search-limit", po::value<int>(), "context search limit") // DEPRECATED
-    ("code-selection", po::value<std::string>(), "code selection method") // DEPRECATED
-    ("procedure-limit", po::value<int>(), "procedure limit for context search") // DEPRECATED
-    ("context-search-only", po::value<bool>(), "Do context search only") // DEPRECATED
-    ("context-search-step", po::value<bool>(), "context search step") // DEPRECATED
-    ("test-global-variable", po::value<bool>(), "test global variable or not")
-    ("address-sanitizer", po::value<bool>(), "use andress-sanitizer")
-    ("gnulib", po::value<bool>(), "use gnulib in makefile")
-    ("instrument-strlen", po::value<bool>(), "instrument strlen")
-    ("instrument-address", po::value<bool>(), "instrument address")
-    ("instrument-null", po::value<bool>(), "instrument null")
+
     ("max-strlen", po::value<int>(), "max strlen for test generation")
     ("int-min", po::value<int>(), "int min")
     ("int-max", po::value<int>(), "int max")
     ("max-array-size", po::value<int>(), "max-array-size")
     ("max-argv0-length", po::value<int>(), "max-argv0-length")
+
+    ("instrument-strlen", po::value<bool>()->default_value(false), "instrument strlen") // DEPRECATED
+    ("instrument-address", po::value<bool>()->default_value(false), "instrument address") // DEPRECATED
+    ("instrument-null", po::value<bool>()->default_value(false), "instrument null") // DEPRECATED
+
+    ("instrument-helium-guard", po::value<bool>()->default_value(false), "turn on helium guard") // DEPRECATED
+    ("context-search-limit", po::value<int>(), "context search limit") // DEPRECATED
+    ("code-selection", po::value<std::string>(), "code selection method") // DEPRECATED
+    ("procedure-limit", po::value<int>(), "procedure limit for context search") // DEPRECATED
+    ("context-search-only", po::value<bool>(), "Do context search only") // DEPRECATED
+    ("context-search-step", po::value<bool>(), "context search step") // DEPRECATED
     ;
   
   po::options_description hidden("Hidden options");
@@ -142,26 +157,141 @@ HeliumOptions::HeliumOptions() {
 
 void HeliumOptions::ParseCommandLine(int argc, char* argv[])
 {
-  /* run parser and store in m_vm */
-  po::store(
-            po::command_line_parser(argc, argv)
-            .options(m_cmdline_options) // add cmdline options
-            .positional(m_positional)     // add positional options
-            .run(),                     // run the parser
-            // store into m_vm
-            m_vm
-            );
-  po::notify(m_vm);
+  try {
+    /* run parser and store in m_vm */
+    po::store(
+              po::command_line_parser(argc, argv)
+              .options(m_cmdline_options) // add cmdline options
+              .positional(m_positional)     // add positional options
+              .run(),                     // run the parser
+              // store into m_vm
+              m_vm
+              );
+    po::notify(m_vm);
+  } catch (po::unknown_option e) {
+    std::cerr << e.what() << "\n";
+    std::cerr << "EE: Unknown option in command line." << "\n";
+    exit(1);
+  }
 }
 
 void HeliumOptions::ParseConfigFile(std::string config_file) {
   std::ifstream ifs(config_file.c_str());
-  po::store(po::parse_config_file(ifs, m_config_options), m_vm);
-  po::notify(m_vm);
+  try {
+    po::store(po::parse_config_file(ifs, m_config_options), m_vm);
+    po::notify(m_vm);
+  } catch (po::unknown_option e) {
+    std::cerr << e.what() << "\n";
+    std::cerr << "EE: Unknown option in config file." << "\n";
+  }
 }
 
 void HeliumOptions::PrintHelp() {
   std::cout<< "Usage: helium [options] <folder>" <<std::endl;
   std::cout<< m_help_options << std::endl;
   std::cout << "Refer to manpage of helium(1) for details."  << "\n";
+}
+
+
+std::string HeliumOptions::GetString(std::string key) {
+  if (m_vm.count(key) == 1) {
+    try {
+      return m_vm[key].as<std::string>();
+    } catch (boost::bad_any_cast) {
+      std::cerr << "EE: Option " << key << " is not a string."  << "\n";
+      exit(1);
+    }
+  } else {
+    std::cerr << "EE: Option " << key << " is not set."  << "\n";
+    exit(1);
+  }
+}
+bool HeliumOptions::GetBool(std::string key) {
+  if (m_vm.count(key) == 1) {
+    try {
+      return m_vm[key].as<bool>();
+    } catch (boost::bad_any_cast) {
+      std::cerr << "EE: Option " << key << " is not a bool."  << "\n";
+      exit(1);
+    }
+  } else {
+    std::cerr << "EE: Option " << key << " is not set."  << "\n";
+    exit(1);
+  }
+}
+int HeliumOptions::GetInt(std::string key) {
+  if (m_vm.count(key) == 1) {
+    try {
+      return m_vm[key].as<int>();
+    } catch (boost::bad_any_cast) {
+      std::cerr << "EE: Option " << key << " is not a int."  << "\n";
+      exit(1);
+    }
+  } else {
+    std::cerr << "EE: Option " << key << " is not set."  << "\n";
+    exit(1);
+  }
+}
+
+int makeargs(const char *args, int *argc, char ***aa) {
+  char *buf = strdup(args);
+  int c = 1;
+  char *delim;
+  char **argv = (char**)calloc(c, sizeof (char *));
+
+  argv[0] = buf;
+
+  while ((delim = strchr(argv[c - 1], ' '))) {
+    argv = (char**)realloc(argv, (c + 1) * sizeof (char *));
+    argv[c] = delim + 1;
+    *delim = 0x00;
+    c++;
+  }
+
+  *argc = c;
+  *aa = argv;
+
+  return c;
+}
+
+TEST(HeliumOptionsTestCase, ProgramOptionsTest) {
+  po::options_description config_options("Config");
+  config_options.add_options()
+    ("string1", po::value<std::string>(), "c compiler used for compiling generated code")
+    ("bool1", po::value<bool>(), "whether to run test or not")
+    ("bool2", po::value<bool>(), "whether to run test or not")
+    ("bool3", po::value<bool>(), "whether to run test or not")
+    ("bool4", po::value<bool>(), "whether to run test or not")
+    ("bool5", po::value<bool>()->default_value(false), "whether to run test or not")
+    ("non1", "bool2 explained")
+    ("non2", "bool2 explained")
+    ("non3", "bool2 explained")
+    ("int1", po::value<int>(), "Number of test")
+    ("int2", po::value<int>(), "Number of test")
+    ;
+
+  int argc;
+  char **argv;
+  makeargs("helium"
+           " --string1 sss"
+           " --bool1 true --bool2 false --bool4 yes" // true, false, yes, no can be used!
+           " --non1"
+           " --int1 10 --int2 20"
+           , &argc, &argv);
+  
+  po::variables_map vm;
+  po::store(po::command_line_parser(argc, argv) .options(config_options) .run(), vm);
+  po::notify(vm);
+  
+  EXPECT_EQ(vm["bool1"].as<bool>(), true);
+  EXPECT_EQ(vm["bool2"].as<bool>(), false);
+  EXPECT_EQ(vm.count("bool3"), 0);
+  EXPECT_EQ(vm["bool4"].as<bool>(), true);
+  EXPECT_EQ(vm["bool5"].as<bool>(), false); // default value will be in vm
+
+  
+  EXPECT_EQ(vm["int1"].as<int>(), 10);
+  EXPECT_THROW(vm["int1"].as<std::string>(), boost::bad_any_cast); // int cannot be convert to string
+
+  EXPECT_THROW(vm["non1"].as<bool>(), boost::bad_any_cast); // non cannot convert to bool
 }

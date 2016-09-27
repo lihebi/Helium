@@ -20,42 +20,12 @@ public:
   void ParseConfigFile(std::string config_file);
   void PrintHelp();
   bool Has(std::string name) {
-    if (m_vm.count(name)) {
-      return true;
-    } else {
-      return false;
-    }
+    return m_vm.count(name) == 1;
   }
 
-  /**
-   * Get content from vm
-   * m_vm["folder"].as<std::string>();
-   * m_vm["include-files"].as< std::vector<std::string> > ();
-   * CONFIRM What will be returned if the value is not a string? e.g. bool
-   */
-  std::string GetString(std::string key) {
-    if (Has(key)) {
-      return m_vm[key].as<std::string>();
-    } else {
-      return "";
-    }
-  }
-  bool GetBool(std::string key) {
-    if (Has(key)) {
-      return m_vm[key].as<bool>();
-    } else {
-      return false;
-    }
-  }
-  int GetInt(std::string key) {
-    if (Has(key)) {
-      return m_vm[key].as<int>();
-    } else {
-      return 0;
-    }
-  }
-
-
+  std::string GetString(std::string key);
+  bool GetBool(std::string key);
+  int GetInt(std::string key);
   
   bool HasCmdUtils();
   bool empty() {
