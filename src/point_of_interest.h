@@ -9,15 +9,12 @@
  */
 class PointOfInterest {
 public:
-  PointOfInterest(std::string folder, std::string file, int linum, std::string type)
-    : m_folder(folder), m_file(file), m_linum(linum), m_type(type) {}
+  PointOfInterest(std::string folder, std::string file, int linum, std::string type);
   ~PointOfInterest() {}
-  std::string GetFolder() {
-    return m_folder;
-  }
-  std::string GetFile() {
-    return m_file;
-  }
+
+  std::string GetFilename();
+  std::string GetPath();
+
   int GetLinum() {
     return m_linum;
   }

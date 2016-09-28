@@ -28,13 +28,13 @@ void helium_dump_compile_error(std::string s) {
 }
 
 void helium_print_trace(std::string s) {
-  if (HeliumOptions::Instance()->Has("print-trace")) {
+  if (HeliumOptions::Instance()->GetBool("print-trace")) {
     std::cout << "[trace] " << s  << "\n";
   }
 }
 
 void helium_print_warning(std::string s) {
-  if (HeliumOptions::Instance()->Has("print-warning")) {
+  if (HeliumOptions::Instance()->GetBool("print-warning")) {
     std::cerr << "[Warning] " << s  << "\n";
   }
 }

@@ -56,7 +56,7 @@ CSV::CSV(std::istream &is, bool header_p) {
   
   for (int i=0;i<(int)m_headers.size();i++) {
     for (int j=0;j<(int)m_data.size();j++) {
-      m_map[m_headers[i]].push_back(m_data[i][j]);
+      m_map[m_headers[i]].push_back(m_data[j][i]);
     }
   }
 

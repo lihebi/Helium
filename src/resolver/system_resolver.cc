@@ -2,7 +2,7 @@
 #include "utils/utils.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
-
+#include "helium_options.h"
 #include "type/type_helper.h"
 
 namespace fs = boost::filesystem;
@@ -23,6 +23,10 @@ static bool header_exists(const std::string header) {
 std::map<std::string, std::string> parse_header_conf(std::string file) {
   std::ifstream is;
   is.open(file);
+  if (!is.is_open()) {
+    std::cerr << "EE: cannot open header conf file " << file << "\n";
+    exit(1);
+  }
   assert(is.is_open());
   std::string line;
   std::string flag;
@@ -62,9 +66,9 @@ void SystemResolver::parseHeaderConf(std::string file) {
 
 
 SystemResolver::SystemResolver() {
-  std::string s = getenv("HELIUM_HOME");
-  parseHeaderConf(s+"/etc/headers.conf.d/third-party.conf");
-  parseHeaderConf(s+"/etc/headers.conf.d/system.conf");
+  std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
+  parseHeaderConf(helium_home+"/etc/headers.conf.d/third-party.conf");
+  parseHeaderConf(helium_home+"/etc/headers.conf.d/system.conf");
 }
 
 /**

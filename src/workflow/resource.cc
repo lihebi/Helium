@@ -22,22 +22,22 @@ AST* Resource::GetAST(std::string function) {
   }
   std::set<int> ids = SnippetDB::Instance()->LookUp(function, {SK_Function});
   if (ids.size() == 0) {
-    helium_log("[WW] Resource::GetAST No snippet for function: " + function);
+    helium_print_warning("[WW] Resource::GetAST No snippet for function: " + function);
     return NULL;
   }
   if (ids.size() > 1) {
-    helium_log("[WW] Resource::GetAST found more than one snippets for function: " + function);
+    helium_print_warning("[WW] Resource::GetAST found more than one snippets for function: " + function);
   }
   int id = *ids.begin();
   XMLDoc *doc = XMLDocReader::Instance()->ReadSnippet(id);
   assert(doc);
   XMLNodeList funcs = find_nodes(doc->document_element(), NK_Function);
   if (funcs.size() == 0) {
-    helium_log("[WW] Resource::GetAST the snippet code for function " + function + " does not contains a function");
+    helium_print_warning("[WW] Resource::GetAST the snippet code for function " + function + " does not contains a function");
     return NULL;
   }
   if (funcs.size() > 1) {
-    helium_log("[WW] Resource::GetAST the snippet code for function " + function + " contains multiple functions");
+    helium_print_warning("[WW] Resource::GetAST the snippet code for function " + function + " contains multiple functions");
   }
   XMLNode func = *funcs.begin();
   AST *ast = new AST(func);

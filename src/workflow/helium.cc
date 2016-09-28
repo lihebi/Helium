@@ -40,8 +40,8 @@ using namespace utils;
 
 
 Helium::Helium(PointOfInterest *poi) {
-  XMLDoc *doc = XMLDocReader::Instance()->ReadFile(poi->GetFolder());
-  int linum = get_true_linum(poi->GetFolder(), poi->GetLinum());
+  XMLDoc *doc = XMLDocReader::Instance()->ReadFile(poi->GetPath());
+  int linum = get_true_linum(poi->GetPath(), poi->GetLinum());
   std::cout << "true line number: " <<  linum  << "\n";
   if (poi->GetType() == "stmt") {
     XMLNode node = find_node_on_line(doc->document_element(),
@@ -53,20 +53,20 @@ Helium::Helium(PointOfInterest *poi) {
     int func_linum = get_node_line(func);
     AST *ast = Resource::Instance()->GetAST(func_name);
     if (!ast) {
-      helium_log("[WW] No AST constructed!");
-      return;
+      std::cerr << "EE: No AST constructed!" << "\n";
+      exit(1);
     }
     ASTNode *root = ast->GetRoot();
     if (!root) {
-      helium_log("[WW] AST root is NULL.");
-      return;
+      std::cerr << "EE: AST root is NULL." << "\n";
+      exit(1);
     }
     int ast_linum = root->GetBeginLinum();
     int target_linum = linum - func_linum + ast_linum;
     ASTNode *target = ast->GetNodeByLinum(target_linum);
     if (!target) {
-      helium_log("[WW] cannot find target AST node");
-      return;
+      std::cerr << "EE: cannot find target AST node" << "\n";
+      exit(1);
     }
     process(target);
   }

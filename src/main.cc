@@ -10,6 +10,7 @@
 #include "failure_point.h"
 #include "helium_options.h"
 #include "point_of_interest.h"
+#include "utils/fs_utils.h"
 
 #include <boost/filesystem.hpp>
 
@@ -35,22 +36,6 @@ create_tagfile(const std::string& folder, const std::string& file) {
     std::cerr << cmd << "\n";
     exit(1);
   }
-}
-/**
- * read env variable HELIUM_HOME
- * @return std::string home folder without trailing '/'
- */
-std::string
-load_helium_home() {
-  /* read HELIUM_HOME env variable */
-  const char *helium_home_env = std::getenv("HELIUM_HOME");
-  if(!helium_home_env) {
-    std::cerr<<"Please set env variable HELIUM_HOME"<<std::endl;
-    exit(1);
-  }
-  std::string helium_home = helium_home_env;
-  while (helium_home.back() == '/') helium_home.pop_back();
-  return helium_home;
 }
 
 // void check_light_utilities() {
@@ -318,19 +303,43 @@ FailurePoint *load_failure_point() {
 
 int main(int argc, char* argv[]) {
   utils::seed_rand();
+  const char *home = getenv("HOME");
+  if (!home) {
+    std::cerr << "EE: HOME env is not set." << "\n";
+    exit(1);
+  }
 
-  /* load HELIUM_HOME */
-  std::string helium_home = load_helium_home();
   /* parse arguments */
   HeliumOptions::Instance()->ParseCommandLine(argc, argv);
-  HeliumOptions::Instance()->ParseConfigFile(helium_home+"/helium.conf");
+  HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
   // target folder
   std::string folder = HeliumOptions::Instance()->GetString("folder");
+  folder = utils::escape_tide(folder);
   if (!fs::exists(folder)) {
     std::cerr << "EE: target folder " << folder << " does not exist." << "\n";
     exit(1);
   }
+  std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
+
+
+  
+  // check_light_utilities();
+  // check_target_folder(cpped.string());
+  if (HeliumOptions::Instance()->Has("create-tagfile")) {
+    create_tagfile(folder, "tags");
+    exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("create-snippet-db")) {
+    std::string tmpdir = utils::create_tmp_dir();
+    std::string tagfile = tmpdir+"/tags";
+    create_tagfile(folder, tmpdir+"/tags");
+    // std::cout << "created tagfile: " << tagfile  << "\n";
+    SnippetDB::Instance()->Create(tagfile, "snippets");
+    exit(0);
+  }
+  // create_utilities(folder);
 
 
   // the folder argument contains:
@@ -346,10 +355,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
     exit(1);
   }
-  
-  // check_light_utilities();
-  // check_target_folder(cpped.string());
-  create_utilities(cpped.string());
 
   load_tagfile(cpped.string());
   load_snippet_db(snippets.string());
@@ -365,7 +370,10 @@ int main(int argc, char* argv[]) {
   // }
   // Helium helium(fp);
   std::string poi_file = HeliumOptions::Instance()->GetString("poi-file");
-  std::vector<PointOfInterest*> pois = create_point_of_interest(cpped.string(), poi_file);
+  std::vector<PointOfInterest*> pois = create_point_of_interest(target.string(), poi_file);
+
+  std::cout << "Number of point of interest: " << pois.size() << "\n";
+
 
   for (PointOfInterest *poi : pois) {
     Helium helium(poi);

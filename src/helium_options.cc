@@ -1,7 +1,12 @@
 #include "helium_options.h"
 #include "utils/utils.h"
+#include "utils/fs_utils.h"
 #include <iostream>
 #include <fstream>
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 #include <gtest/gtest.h>
 
@@ -100,6 +105,8 @@ HeliumOptions::HeliumOptions() {
     ("cc", po::value<std::string>(), "c compiler used for compiling generated code")
     ("poi-file", po::value<std::string>(), "POI csv file")
 
+    ("helium-home", po::value<std::string>(), "Helium home folder")
+
     ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
 
     ("address-sanitizer", po::value<bool>()->default_value(false), "use andress-sanitizer")
@@ -176,7 +183,13 @@ void HeliumOptions::ParseCommandLine(int argc, char* argv[])
 }
 
 void HeliumOptions::ParseConfigFile(std::string config_file) {
-  std::ifstream ifs(config_file.c_str());
+  config_file = utils::escape_tide(config_file);
+  std::ifstream ifs;
+  ifs.open(config_file.c_str());
+  if (!ifs.is_open()) {
+    std::cerr << "EE: Cannot open config file " << config_file << "\n";
+    exit(1);
+  }
   try {
     po::store(po::parse_config_file(ifs, m_config_options), m_vm);
     po::notify(m_vm);
