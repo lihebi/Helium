@@ -39,12 +39,11 @@ using namespace utils;
 
 
 
-Helium::Helium(FailurePoint *fp) {
-  helium_print_trace("hebi");
-  XMLDoc *doc = XMLDocReader::Instance()->ReadFile(fp->GetPath());
-  int linum = get_true_linum(fp->GetPath(), fp->GetLinum());
+Helium::Helium(PointOfInterest *poi) {
+  XMLDoc *doc = XMLDocReader::Instance()->ReadFile(poi->GetFolder());
+  int linum = get_true_linum(poi->GetFolder(), poi->GetLinum());
   std::cout << "true line number: " <<  linum  << "\n";
-  if (fp->GetType() == "stmt") {
+  if (poi->GetType() == "stmt") {
     XMLNode node = find_node_on_line(doc->document_element(),
                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
                                           linum);
@@ -72,6 +71,40 @@ Helium::Helium(FailurePoint *fp) {
     process(target);
   }
 }
+
+// Helium::Helium(FailurePoint *fp) {
+//   helium_print_trace("hebi");
+//   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(fp->GetPath());
+//   int linum = get_true_linum(fp->GetPath(), fp->GetLinum());
+//   std::cout << "true line number: " <<  linum  << "\n";
+//   if (fp->GetType() == "stmt") {
+//     XMLNode node = find_node_on_line(doc->document_element(),
+//                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
+//                                           linum);
+//     assert(node);
+//     XMLNode func = get_function_node(node);
+//     std::string func_name = function_get_name(func);
+//     int func_linum = get_node_line(func);
+//     AST *ast = Resource::Instance()->GetAST(func_name);
+//     if (!ast) {
+//       helium_log("[WW] No AST constructed!");
+//       return;
+//     }
+//     ASTNode *root = ast->GetRoot();
+//     if (!root) {
+//       helium_log("[WW] AST root is NULL.");
+//       return;
+//     }
+//     int ast_linum = root->GetBeginLinum();
+//     int target_linum = linum - func_linum + ast_linum;
+//     ASTNode *target = ast->GetNodeByLinum(target_linum);
+//     if (!target) {
+//       helium_log("[WW] cannot find target AST node");
+//       return;
+//     }
+//     process(target);
+//   }
+// }
 
 
 /**

@@ -6,11 +6,12 @@
 #include "query.h"
 
 #include "failure_point.h"
-
+#include "point_of_interest.h"
 
 class Helium {
 public:
-  Helium(FailurePoint *fp);
+  // Helium(FailurePoint *fp);
+  Helium(PointOfInterest *poi);
   ~Helium() {}
 private:
   void init(ASTNode *node);

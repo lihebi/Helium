@@ -84,7 +84,7 @@ private:
 
 class CSVFactory {
 public:
-  static CSV *CreateCSV(std::string file, bool header);
+  static CSV *CreateCSV(std::string file, bool header=true);
 private:
 };
 

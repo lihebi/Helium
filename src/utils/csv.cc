@@ -2,7 +2,9 @@
 #include "utils/utils.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <gtest/gtest.h>
 
+#include <boost/algorithm/string.hpp>
 namespace fs = boost::filesystem;
 
 CSV *CSVFactory::CreateCSV(std::string file, bool header_p) {
@@ -31,6 +33,7 @@ CSV::CSV(std::istream &is, bool header_p) {
     m_headers = utils::split(header, ',');
     size = m_headers.size();
     if (size == 0) {
+      std::cerr << "WW: CSV file is not valid because header of size 0."  << "\n";
       m_valid = false;
       return;
     }
@@ -42,6 +45,8 @@ CSV::CSV(std::istream &is, bool header_p) {
       size = row.size();
     } else {
       if (size != (int)row.size()) {
+        std::cerr << "WW: CSV file is not valid because row does not match the size of " << size  << ":\n"
+                  << "\t" << line << "\n";
         m_valid = false;
         return;
       }

@@ -9,8 +9,13 @@
 
 #include "failure_point.h"
 #include "helium_options.h"
+#include "point_of_interest.h"
+
+#include <boost/filesystem.hpp>
 
 #include <gtest/gtest.h>
+
+namespace fs = boost::filesystem;
 
 static void
 create_tagfile(const std::string& folder, const std::string& file) {
@@ -48,32 +53,32 @@ load_helium_home() {
   return helium_home;
 }
 
-void check_light_utilities() {
-  if (HeliumOptions::Instance()->Has("print-config")) {
-    std::cout << "DEPRECATED print-config"  << "\n";
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("resolve-system-type")) {
-    std::string type = HeliumOptions::Instance()->GetString("resolve-system-type");
-    std::string output = SystemResolver::Instance()->ResolveType(type);
-    std::cout << output  << "\n";
-    exit(0);
-  }
-}
+// void check_light_utilities() {
+//   if (HeliumOptions::Instance()->Has("print-config")) {
+//     std::cout << "DEPRECATED print-config"  << "\n";
+//     exit(0);
+//   }
+//   if (HeliumOptions::Instance()->Has("resolve-system-type")) {
+//     std::string type = HeliumOptions::Instance()->GetString("resolve-system-type");
+//     std::string output = SystemResolver::Instance()->ResolveType(type);
+//     std::cout << output  << "\n";
+//     exit(0);
+//   }
+// }
 
-void check_target_folder(std::string folder) {
-  if (folder.empty()) {
-    HeliumOptions::Instance()->PrintHelp();
-    exit(1);
-  }
-  if (utils::is_dir(folder)) {
-    while (folder.back() == '/') folder.pop_back();
-  } else if (utils::is_file(folder)) {
-  } else {
-    std::cerr<<"target folder: " << folder << " does not exists." <<'\n';
-    assert(false);
-  }
-}
+// void check_target_folder(std::string folder) {
+//   if (folder.empty()) {
+//     HeliumOptions::Instance()->PrintHelp();
+//     exit(1);
+//   }
+//   if (utils::is_dir(folder)) {
+//     while (folder.back() == '/') folder.pop_back();
+//   } else if (utils::is_file(folder)) {
+//   } else {
+//     std::cerr<<"target folder: " << folder << " does not exists." <<'\n';
+//     assert(false);
+//   }
+// }
 
 void create_utilities(std::string folder) {
   if (HeliumOptions::Instance()->Has("create-tagfile")) {
@@ -212,25 +217,19 @@ void print_utilities(std::string folder) {
 }
 
 void load_tagfile(std::string folder) {
-  std::string tagfile = HeliumOptions::Instance()->GetString("tagfile");
-  if (tagfile.empty()) {
-    // ctags_load(folder + "/tags");
-    // create tagfile
-    // std::cout << "creating tag file ..."  << "\n";
-    std::string tmpdir = utils::create_tmp_dir();
-    create_tagfile(folder, tmpdir+"/tags");
-    tagfile = tmpdir+"/tags";
-    // create_tagfile(folder, "/tmp/helium.tags");
-    // std::cout << "done"  << "\n";
-    // ctags_load("/tmp/helium.tags");
+  if (HeliumOptions::Instance()->Has("tagfile")) {
+    std::string tagfile = HeliumOptions::Instance()->GetString("tagfile");
     ctags_load(tagfile);
   } else {
+    std::string tmpdir = utils::create_tmp_dir();
+    create_tagfile(folder, tmpdir+"/tags");
+    std::string tagfile = tmpdir+"/tags";
     ctags_load(tagfile);
   }
 }
 
-void load_snippet_db() {
-  std::string snippet_db_folder = HeliumOptions::Instance()->GetString("snippet-db-folder");
+void load_snippet_db(std::string snippet_db_folder) {
+  // std::string snippet_db_folder = HeliumOptions::Instance()->GetString("snippet-db-folder");
   if (snippet_db_folder.empty()) {
     if (HeliumOptions::Instance()->Has("verbose")) {
       std::cout
@@ -247,9 +246,9 @@ void load_snippet_db() {
   SnippetDB::Instance()->Load(snippet_db_folder);
 }
 
-void load_header_resolver() {
+void load_header_resolver(std::string src_folder) {
   // HeaderResolver::Instance()->Load(folder);
-  std::string src_folder = HeliumOptions::Instance()->GetString("src-folder");
+  // std::string src_folder = HeliumOptions::Instance()->GetString("src-folder");
   if (src_folder.empty()) {
     if (HeliumOptions::Instance()->Has("verbose")) {
       std::cerr
@@ -327,32 +326,50 @@ int main(int argc, char* argv[]) {
   HeliumOptions::Instance()->ParseConfigFile(helium_home+"/helium.conf");
   // target folder
   std::string folder = HeliumOptions::Instance()->GetString("folder");
+  if (!fs::exists(folder)) {
+    std::cerr << "EE: target folder " << folder << " does not exist." << "\n";
+    exit(1);
+  }
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
 
 
-  check_light_utilities();
-  check_target_folder(folder);
-  create_utilities(folder);
+  // the folder argument contains:
+  // 1. cpped
+  // 2. src
+  // 3. snippets
+  fs::path target(folder);
+  fs::path cpped = target / "cpped";
+  fs::path src = target / "src";
+  fs::path snippets = target / "snippets";
 
-  load_tagfile(folder);
-  load_snippet_db();
-  load_header_resolver();
-  load_slice();
-
-  print_utilities(folder);
-
-  FailurePoint *fp = load_failure_point();
-
-
-  // POI:
-  // needs: folder, poi file
-
-  
-  if (!fp) {
-    std::cerr << "EE: error loading failure point"  << "\n";
+  if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
+    std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
     exit(1);
   }
+  
+  // check_light_utilities();
+  // check_target_folder(cpped.string());
+  create_utilities(cpped.string());
 
-  Helium helium(fp);
+  load_tagfile(cpped.string());
+  load_snippet_db(snippets.string());
+  load_header_resolver(src.string());
+  // load_slice();
+
+  print_utilities(cpped.string());
+
+  // FailurePoint *fp = load_failure_point();
+  // if (!fp) {
+  //   std::cerr << "EE: error loading failure point"  << "\n";
+  //   exit(1);
+  // }
+  // Helium helium(fp);
+  std::string poi_file = HeliumOptions::Instance()->GetString("poi-file");
+  std::vector<PointOfInterest*> pois = create_point_of_interest(cpped.string(), poi_file);
+
+  for (PointOfInterest *poi : pois) {
+    Helium helium(poi);
+  }
+
   return 0;
 }

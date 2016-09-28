@@ -88,7 +88,7 @@ TEST(utils_test_case, split_test) {
   vs = utils::split("hello= ", '=');
   ASSERT_EQ(vs.size(), 2);
   vs = utils::split("hello=", '=');
-  ASSERT_EQ(vs.size(), 1);
+  ASSERT_EQ(vs.size(), 2);
 }
 
 /**
@@ -104,6 +104,11 @@ utils::split(const std::string &s, char delim, std::vector<std::string> &elems) 
   std::string item;
   while (std::getline(ss, item, delim)) {
     elems.push_back(item);
+  }
+  // in the case the last one is the delim, push an empty string.
+  // This is useful for csv file
+  if (!s.empty() && s.back() == delim) {
+    elems.push_back("");
   }
   return elems;
 }

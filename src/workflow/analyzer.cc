@@ -778,21 +778,21 @@ std::string Analyzer::checkTransfer(std::string h1, std::string h2) {
 /**
  * Disabled because has a path
  */
-TEST(AnalyzerTestCase, DISABLED_CSVTest) {
-  Analyzer analyzer("/Users/hebi/tmp/b.csv", {});
-  std::vector<std::string> invs = analyzer.GetInvariants();
-  std::vector<std::string> pres = analyzer.GetPreConditions();
-  std::vector<std::string> trans = analyzer.GetTransferFunctions();
-  std::cout << "invariants:"  << "\n";
-  for (std::string s : invs) {
-    std::cout << s  << "\n";
-  }
-  std::cout << "pre conditions:"  << "\n";
-  for (std::string s : pres) {
-    std::cout << s  << "\n";
-  }
-  std::cout << "transfer functions:"  << "\n";
-  for (std::string s : trans) {
-    std::cout << s  << "\n";
-  }
-}
+// TEST(AnalyzerTestCase, DISABLED_CSVTest) {
+//   Analyzer analyzer("/Users/hebi/tmp/b.csv", {});
+//   std::vector<std::string> invs = analyzer.GetInvariants();
+//   std::vector<std::string> pres = analyzer.GetPreConditions();
+//   std::vector<std::string> trans = analyzer.GetTransferFunctions();
+//   std::cout << "invariants:"  << "\n";
+//   for (std::string s : invs) {
+//     std::cout << s  << "\n";
+//   }
+//   std::cout << "pre conditions:"  << "\n";
+//   for (std::string s : pres) {
+//     std::cout << s  << "\n";
+//   }
+//   std::cout << "transfer functions:"  << "\n";
+//   for (std::string s : trans) {
+//     std::cout << s  << "\n";
+//   }
+// }

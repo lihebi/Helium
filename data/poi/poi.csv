@@ -14,7 +14,7 @@ tcpdump-3.9.1,print-rsvp.c,1406,loop,inf-loop,
 git-1.6.2,daemon.c,417,loop,inf-loop,"https://git.kernel.org/cgit/git/git.git/commit/?id=73bb33a9"
 libssh-0.5.3,buffer.c,125,loop,inf-loop,
 craft-double-free,a.c,14,stmt,2-f,
-craft-infinite-loop,loop.c,69,loop,inf-loop,"Actually overflow, so not good"
+craft-infinite-loop,loop.c,69,loop,inf-loop,"Actually overflow so not good"
 craft-null-deref,a.c,27,stmt,null-deref,
 gzip-1.2.4,gzip.c,828,stmt,,
 ncompress,compress42.c,892,stmt,,
@@ -31,7 +31,7 @@ php-5.5.20,zend_ts_hash.c,142,stmt,double-free,
 krb-1.4.1,recvauth.c,79,stmt,double-free,
 libguestfs-1.20.6,inspect-fs.c,547,stmt,,
 gnutls-3.3.5,common.c,,,double-free,
-libxml-2.5.10,parser.c,,,use-after-free,"Patch large, cannot locate"
+libxml-2.5.10,parser.c,,,use-after-free,"Patch large cannot locate"
 xen,,,,,"Not good"
 wireshark-1.6.0,,,,infinite-loop,
 nghttp2-1.5.0,,,,,"Not good"

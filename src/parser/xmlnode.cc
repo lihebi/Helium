@@ -421,19 +421,19 @@ std::string unit_get_filename(XMLNode node) {
 }
 
 
-TEST(ASTTestCase, UnitGetFilenameTest) {
-  std::string tmp_dir = utils::create_tmp_dir();
-  std::string file = tmp_dir + "/a.c";
-  utils::write_file(file, "");
-  // 1. the name should be absolute path
-  // XMLDoc *doc = XMLDocReader::CreateDocFromFile("/Users/hebi/tmp/a.c");
-  XMLDoc *doc = XMLDocReader::CreateDocFromFile(file);
-  std::string filename = unit_get_filename(doc->document_element());
-  // std::cout << filename  << "\n";
-  // 2. the leading slash is removed by srcml
-  EXPECT_EQ("/" + filename, file);
-  delete doc;
-}
+// TEST(ASTTestCase, UnitGetFilenameTest) {
+//   std::string tmp_dir = utils::create_tmp_dir();
+//   std::string file = tmp_dir + "/a.c";
+//   utils::write_file(file, "");
+//   // 1. the name should be absolute path
+//   // XMLDoc *doc = XMLDocReader::CreateDocFromFile("/Users/hebi/tmp/a.c");
+//   XMLDoc *doc = XMLDocReader::CreateDocFromFile(file);
+//   std::string filename = unit_get_filename(doc->document_element());
+//   // std::cout << filename  << "\n";
+//   // 2. the leading slash is removed by srcml
+//   EXPECT_EQ("/" + filename, file);
+//   delete doc;
+// }
 
 
 /*******************************
