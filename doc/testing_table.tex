@@ -1,0 +1,81 @@
+\documentclass{article}
+\usepackage{fancyvrb}
+\usepackage{tabto}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\graphicspath{ {/Users/davinayu/Desktop} }
+\usepackage{newfloat}
+\usepackage{caption}
+\usepackage{algorithmicx}
+\usepackage[]{algorithm2e}
+\usepackage{cite}
+\usepackage{multirow}
+\usepackage{enumerate,multicol}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{multirow}
+\begin{document}
+\title{Testing table}
+\maketitle
+
+\begin{table}[hb]
+\centering
+\caption{Random Testing}
+\scalebox{0.75}
+{\begin{tabular}{|l|l|l|l|l||l|l||l|l|l|l|l|l|}
+\hline
+
+\multicolumn{5}{|c||}{Segments} &\multicolumn{2}{|c||}{Input Generation} & \multicolumn{6}{|c|}{Testing Results} \\\hline 
+\begin{tabular}[c]{@{}l@{}}benchmark\end{tabular}&\begin{tabular}[c]{@{}l@{}}size of\\ segments\\ (LOC)\end{tabular} & \#proc & \#branches & \#loops & \begin{tabular}[c]{@{}l@{}}\#test \\ inputs\end{tabular} & \begin{tabular}[c]{@{}l@{}}input \\ generation \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}total \\ running \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}statement \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}branch \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}\#of tests that \\ trigger the bugs\end{tabular} &  \begin{tabular}[c]{@{}l@{}}\#of tests that \\ pass\end{tabular}&\begin{tabular}[c]{@{}l@{}}\# of tests \\ that trigger \\ the context \\ failure\end{tabular} \\ \hline
+                                                                   &        &            &         & \multirow{4}{*}{}                                        &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \hline
+\end{tabular}}
+\end{table}
+
+
+
+\begin{table}[hb]
+\centering
+\caption{Pairwise Testing}
+\scalebox{0.75}
+{\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}size of\\ segments\\ (LOC)\end{tabular} & \#Proc & \#branches & \#loops & \begin{tabular}[c]{@{}l@{}}\#test \\ inputs\end{tabular} & \begin{tabular}[c]{@{}l@{}}test \\ generation \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}total \\ running \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}statement \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}branch \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}\#of tests that \\ trigger the bugs\end{tabular} & \begin{tabular}[c]{@{}l@{}}\# of tests \\ that trigger \\ the context \\ failure\end{tabular} \\ \hline
+                                                                   &        &            &         & \multirow{4}{*}{}                                        &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \hline
+\end{tabular}}
+\end{table}
+
+
+
+
+
+\begin{table}[hb]
+\centering
+\caption{Equivalence Partitioning and BAV Testing}
+\scalebox{0.75}
+{\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}size of\\ segments\\ (LOC)\end{tabular} & \#Proc & \#branches & \#loops & \begin{tabular}[c]{@{}l@{}}\#test \\ inputs\end{tabular} & \begin{tabular}[c]{@{}l@{}}test \\ generation \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}total \\ running \\ time\end{tabular} & \begin{tabular}[c]{@{}l@{}}statement \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}branch \\ coverage\end{tabular} & \begin{tabular}[c]{@{}l@{}}\#of tests that \\ trigger the bugs\end{tabular} & \begin{tabular}[c]{@{}l@{}}\# of tests \\ that trigger \\ the context \\ failure\end{tabular} \\ \hline
+                                                                   &        &            &         & \multirow{4}{*}{}                                        &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \cline{1-4} \cline{6-11} 
+                                                                   &        &            &         &                                                          &                                                                    &                                                                  &                                                               &                                                            &                                                                             &                                                                                               \\ \hline
+\end{tabular}}
+\end{table}
+
+
+
+
+\end{document}
