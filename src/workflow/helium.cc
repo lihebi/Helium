@@ -193,7 +193,7 @@ void Helium::process() {
         // }
       }
     } else {
-      utils::print("compile error\n", utils::CK_Red);
+      std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
       // query->Visualize();
       Query::MarkBad(query->New());
       query->Remove(query->New());
