@@ -220,7 +220,7 @@ void CodeTester::Test() {
     std::cout << "\t" << "Test Generation Time: " << boost::timer::format(test_gen_time, 3, "%w seconds") << "\n";
     std::cout << "\t" << "Total Testing Time: " << boost::timer::format(test_total, 3, "%w seconds") << "\n";
     // only calculate coverage if we run some tests
-    if (m_test_suites.empty()) {
+    if (!m_test_suites.empty()) {
       Gcov gcov(m_exe_folder, "main.c");
       std::cout << "\t" << "Stmt Coverage: " << gcov.GetStmtCoverage() << "\n";
       std::cout << "\t" << "Branch Coverage: " << gcov.GetBranchCoverage() << "\n";

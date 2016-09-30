@@ -3,12 +3,12 @@ Number of point of interest: 1
 Starting Helium on point of interest: gzip-1.2.4/cpped/gzip.c:828
 Converted linum after preprocessing: 604
 [1;36mProcessing query with the new node: printf("HE....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 24
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 24
 	Procedure Number: 1
 	Branch Number: 0
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.dQrtrk
+	Code Written to: /tmp/helium-test-tmp.TkdfKh
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -16,17 +16,19 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.081 seconds
+	Total Testing Time: 0.088 seconds
+	Stmt Coverage: 88.89% of 27
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: char *s;
 .0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 25
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 25
 	Procedure Number: 1
 	Branch Number: 0
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.4lS7bM
+	Code Written to: /tmp/helium-test-tmp.VOYijn
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -34,16 +36,18 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.083 seconds
+	Total Testing Time: 0.084 seconds
+	Stmt Coverage: 88.89% of 27
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: char **suf....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 26
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 26
 	Procedure Number: 1
 	Branch Number: 0
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.rQAUJe
+	Code Written to: /tmp/helium-test-tmp.vsH1Ft
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -53,16 +57,18 @@ Input Variables:
 	Number of input variables: 2
 	Number of tests: 400
 	Test Generation Time: 0.001 seconds
-	Total Testing Time: 1.589 seconds
-	Number of Pass Test: 94
-	Number of Fail Test: 306
+	Total Testing Time: 1.731 seconds
+	Stmt Coverage: 88.57% of 35
+	Branch Coverage: 50.00% of 6
+	Number of Pass Test: 100
+	Number of Fail Test: 300
 [1;36mProcessing query with the new node: static cha....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 27
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 27
 	Procedure Number: 1
 	Branch Number: 0
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.Yxxf2M
+	Code Written to: /tmp/helium-test-tmp.hU3imG
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -70,17 +76,19 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.084 seconds
+	Total Testing Time: 0.086 seconds
+	Stmt Coverage: 89.29% of 28
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: int ilen;
 .0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 28
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 28
 	Procedure Number: 1
 	Branch Number: 0
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.3YQObm
+	Code Written to: /tmp/helium-test-tmp.TENGXT
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -88,19 +96,21 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.082 seconds
+	Total Testing Time: 0.096 seconds
+	Stmt Coverage: 89.29% of 28
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: get_istat(....0 remaining in worklist.
 [0mGetting interprocedure predecessor from ICFG, function: get_istat
 Predecessor count: 1
 [1;36mProcessing query with the new node: if (get_is....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 33
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 33
 	Procedure Number: 2
 	Branch Number: 1
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.Q0k5nW
+	Code Written to: /tmp/helium-test-tmp.xGx5H8
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -108,16 +118,18 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.082 seconds
+	Total Testing Time: 0.095 seconds
+	Stmt Coverage: 90.32% of 31
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: if ((strcm....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 36
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 36
 	Procedure Number: 2
 	Branch Number: 2
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.bT2XBx
+	Code Written to: /tmp/helium-test-tmp.DnzFxo
 	Compile: true
 Input Variables:
 	StrType:char* iname
@@ -125,19 +137,21 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 20
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.082 seconds
+	Total Testing Time: 0.094 seconds
+	Stmt Coverage: 90.63% of 32
+	Branch Coverage: 50.00% of 4
 	Number of Pass Test: 10
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: treat_file....0 remaining in worklist.
 [0mGetting interprocedure predecessor from ICFG, function: treat_file
 Predecessor count: 1
 [1;36mProcessing query with the new node: treat_file....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 39
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 39
 	Procedure Number: 3
 	Branch Number: 2
 	Loop Number: 0
-	Code Written to: /tmp/helium-test-tmp.Uzff29
+	Code Written to: /tmp/helium-test-tmp.17ZfEF
 	Compile: true
 Input Variables:
 	PointerType:char** argv
@@ -145,16 +159,18 @@ Input Variables:
 	Number of input variables: 1
 	Number of tests: 10
 	Test Generation Time: 0.000 seconds
-	Total Testing Time: 0.042 seconds
+	Total Testing Time: 0.046 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 10
 [1;36mProcessing query with the new node: while (opt....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 40
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 40
 	Procedure Number: 3
 	Branch Number: 2
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.DD5BvN
+	Code Written to: /tmp/helium-test-tmp.laDQPX
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -164,16 +180,18 @@ Input Variables:
 	Number of input variables: 2
 	Number of tests: 200
 	Test Generation Time: 0.001 seconds
-	Total Testing Time: 0.800 seconds
-	Number of Pass Test: 70
-	Number of Fail Test: 130
+	Total Testing Time: 0.876 seconds
+	Stmt Coverage: 31.71% of 41
+	Branch Coverage: 37.50% of 8
+	Number of Pass Test: 50
+	Number of Fail Test: 150
 [1;36mProcessing query with the new node: if (to_std....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 46
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 46
 	Procedure Number: 3
 	Branch Number: 3
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.W77Bwu
+	Code Written to: /tmp/helium-test-tmp.x72LQj
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -183,16 +201,18 @@ Input Variables:
 	Number of input variables: 2
 	Number of tests: 200
 	Test Generation Time: 0.001 seconds
-	Total Testing Time: 0.809 seconds
-	Number of Pass Test: 60
-	Number of Fail Test: 140
+	Total Testing Time: 0.856 seconds
+	Stmt Coverage: 33.33% of 42
+	Branch Coverage: 25.00% of 16
+	Number of Pass Test: 80
+	Number of Fail Test: 120
 [1;36mProcessing query with the new node: if (file_c....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 46
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 46
 	Procedure Number: 3
 	Branch Number: 4
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.74o3af
+	Code Written to: /tmp/helium-test-tmp.Bj3LFJ
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -204,16 +224,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.158 seconds
+	Total Testing Time: 3.443 seconds
+	Stmt Coverage: 36.36% of 44
+	Branch Coverage: 27.78% of 18
 	Number of Pass Test: 235
 	Number of Fail Test: 565
 [1;36mProcessing query with the new node: if (do_lzw....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 49
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 49
 	Procedure Number: 3
 	Branch Number: 5
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.gtIkab
+	Code Written to: /tmp/helium-test-tmp.VVUqOl
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -225,169 +247,26 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.196 seconds
-	Number of Pass Test: 122
-	Number of Fail Test: 678
+	Total Testing Time: 3.427 seconds
+	Stmt Coverage: 37.78% of 45
+	Branch Coverage: 30.00% of 20
+	Number of Pass Test: 243
+	Number of Fail Test: 557
 [1;36mProcessing query with the new node: work = lzw....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 50
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 50
 	Procedure Number: 3
 	Branch Number: 5
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.dy9gHi
+	Code Written to: /tmp/helium-test-tmp.hvGmja
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: if ((z_len....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 52
-	Procedure Number: 3
-	Branch Number: 6
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.keUxnr
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.221 seconds
-	Number of Pass Test: 120
-	Number of Fail Test: 680
-[1;36mProcessing query with the new node: do_exit(1)....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 53
-	Procedure Number: 3
-	Branch Number: 6
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.vfwEEL
-	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: if (do_lzw....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 49
-	Procedure Number: 3
-	Branch Number: 5
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.SJozU6
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.213 seconds
-	Number of Pass Test: 234
-	Number of Fail Test: 566
-[1;36mProcessing query with the new node: if (ascii ....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 55
-	Procedure Number: 3
-	Branch Number: 7
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.ZH6EJD
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.241 seconds
-	Number of Pass Test: 288
-	Number of Fail Test: 512
-[1;36mProcessing query with the new node: fprintf(st....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 57
-	Procedure Number: 3
-	Branch Number: 7
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.8S6Vfm
-	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: fprintf(st....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 54
-	Procedure Number: 3
-	Branch Number: 6
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.hHT5F5
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.246 seconds
-	Number of Pass Test: 325
-	Number of Fail Test: 475
-[1;36mProcessing query with the new node: file_count....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 56
-	Procedure Number: 3
-	Branch Number: 7
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.i4UpO0
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.260 seconds
-	Number of Pass Test: 199
-	Number of Fail Test: 601
-[1;36mProcessing query with the new node: if (ascii ....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 55
-	Procedure Number: 3
-	Branch Number: 7
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.VXV8G7
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.189 seconds
-	Number of Pass Test: 158
-	Number of Fail Test: 642
 [1;36mProcessing query with the new node: if ((z_len....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 54
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 52
 	Procedure Number: 3
 	Branch Number: 6
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.OQjs6p
+	Code Written to: /tmp/helium-test-tmp.D6Cb1Z
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -399,16 +278,172 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.208 seconds
-	Number of Pass Test: 189
-	Number of Fail Test: 611
+	Total Testing Time: 3.451 seconds
+	Stmt Coverage: 39.13% of 46
+	Branch Coverage: 31.82% of 22
+	Number of Pass Test: 292
+	Number of Fail Test: 508
+[1;36mProcessing query with the new node: do_exit(1)....3 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 53
+	Procedure Number: 3
+	Branch Number: 6
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.t4DG81
+	Compile: false
+[1;36mProcessing query with the new node: if (do_lzw....3 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 49
+	Procedure Number: 3
+	Branch Number: 5
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.DvaKh5
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.440 seconds
+	Stmt Coverage: 37.78% of 45
+	Branch Coverage: 35.00% of 20
+	Number of Pass Test: 290
+	Number of Fail Test: 510
+[1;36mProcessing query with the new node: if (ascii ....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 55
+	Procedure Number: 3
+	Branch Number: 7
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.rUNiSk
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.446 seconds
+	Stmt Coverage: 40.43% of 47
+	Branch Coverage: 33.33% of 24
+	Number of Pass Test: 277
+	Number of Fail Test: 523
+[1;36mProcessing query with the new node: fprintf(st....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 57
+	Procedure Number: 3
+	Branch Number: 7
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.zJX7TM
+	Compile: false
+[1;36mProcessing query with the new node: fprintf(st....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 54
+	Procedure Number: 3
+	Branch Number: 6
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.bnH6Of
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.580 seconds
+	Stmt Coverage: 40.43% of 47
+	Branch Coverage: 30.77% of 26
+	Number of Pass Test: 310
+	Number of Fail Test: 490
+[1;36mProcessing query with the new node: file_count....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 56
+	Procedure Number: 3
+	Branch Number: 7
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.ZacmCV
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.514 seconds
+	Stmt Coverage: 41.67% of 48
+	Branch Coverage: 33.33% of 24
+	Number of Pass Test: 319
+	Number of Fail Test: 481
+[1;36mProcessing query with the new node: if (ascii ....3 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 55
+	Procedure Number: 3
+	Branch Number: 7
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.N5In0N
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.466 seconds
+	Stmt Coverage: 40.43% of 47
+	Branch Coverage: 33.33% of 24
+	Number of Pass Test: 207
+	Number of Fail Test: 593
+[1;36mProcessing query with the new node: if ((z_len....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 54
+	Procedure Number: 3
+	Branch Number: 6
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.LJ23SS
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.462 seconds
+	Stmt Coverage: 40.43% of 47
+	Branch Coverage: 30.77% of 26
+	Number of Pass Test: 273
+	Number of Fail Test: 527
 [1;36mProcessing query with the new node: if (no_nam....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 61
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 61
 	Procedure Number: 3
 	Branch Number: 8
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.vagAaU
+	Code Written to: /tmp/helium-test-tmp.J26Cja
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -420,16 +455,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.213 seconds
-	Number of Pass Test: 156
-	Number of Fail Test: 644
+	Total Testing Time: 3.480 seconds
+	Stmt Coverage: 44.00% of 50
+	Branch Coverage: 32.14% of 28
+	Number of Pass Test: 242
+	Number of Fail Test: 558
 [1;36mProcessing query with the new node: no_name = ....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 62
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 62
 	Procedure Number: 3
 	Branch Number: 8
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.4sunWz
+	Code Written to: /tmp/helium-test-tmp.lcI2oE
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -441,16 +478,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.243 seconds
-	Number of Pass Test: 249
-	Number of Fail Test: 551
+	Total Testing Time: 3.488 seconds
+	Stmt Coverage: 45.10% of 51
+	Branch Coverage: 36.67% of 30
+	Number of Pass Test: 271
+	Number of Fail Test: 529
 [1;36mProcessing query with the new node: if (no_tim....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 64
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 64
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.xMvSxr
+	Code Written to: /tmp/helium-test-tmp.Xeaaal
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -462,37 +501,41 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.287 seconds
-	Number of Pass Test: 164
-	Number of Fail Test: 636
-[1;36mProcessing query with the new node: no_time = ....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 65
-	Procedure Number: 3
-	Branch Number: 9
-	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.4qRQ8u
-	Compile: true
-Input Variables:
-	IntType:int argc
-Input Variables:
-	PointerType:char** argv
-Input Variables:
-	IntType:int file_count
-[1;35mTest Meta:[0m
-	Number of input variables: 3
-	Number of tests: 800
-	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.238 seconds
+	Total Testing Time: 3.470 seconds
+	Stmt Coverage: 45.10% of 51
+	Branch Coverage: 32.14% of 28
 	Number of Pass Test: 282
 	Number of Fail Test: 518
+[1;36mProcessing query with the new node: no_time = ....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 65
+	Procedure Number: 3
+	Branch Number: 9
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.bgqeze
+	Compile: true
+Input Variables:
+	IntType:int argc
+Input Variables:
+	PointerType:char** argv
+Input Variables:
+	IntType:int file_count
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 800
+	Test Generation Time: 0.002 seconds
+	Total Testing Time: 3.451 seconds
+	Stmt Coverage: 46.15% of 52
+	Branch Coverage: 33.33% of 30
+	Number of Pass Test: 203
+	Number of Fail Test: 597
 [1;36mProcessing query with the new node: if (no_nam....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 62
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 62
 	Procedure Number: 3
 	Branch Number: 8
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.JVMPwK
+	Code Written to: /tmp/helium-test-tmp.7XcMwk
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -504,25 +547,26 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.216 seconds
-	Number of Pass Test: 196
-	Number of Fail Test: 604
+	Total Testing Time: 3.485 seconds
+	Stmt Coverage: 45.10% of 51
+	Branch Coverage: 33.33% of 30
+	Number of Pass Test: 228
+	Number of Fail Test: 572
 [1;36mProcessing query with the new node: while ((op....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 67
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 67
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.EjZkIb
+	Code Written to: /tmp/helium-test-tmp.jzjwfD
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: if (no_tim....21 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 66
+[1;36mProcessing query with the new node: if (no_tim....21 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 66
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.ViGgZD
+	Code Written to: /tmp/helium-test-tmp.9Ws16W
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -534,16 +578,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.273 seconds
-	Number of Pass Test: 241
-	Number of Fail Test: 559
+	Total Testing Time: 3.327 seconds
+	Stmt Coverage: 47.17% of 53
+	Branch Coverage: 34.38% of 32
+	Number of Pass Test: 84
+	Number of Fail Test: 716
 [1;36mProcessing query with the new node: z_len = st....20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 67
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 67
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.cDdjgi
+	Code Written to: /tmp/helium-test-tmp.PZONbt
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -555,216 +601,198 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.282 seconds
-	Number of Pass Test: 162
-	Number of Fail Test: 638
+	Total Testing Time: 3.401 seconds
+	Stmt Coverage: 48.15% of 54
+	Branch Coverage: 34.38% of 32
+	Number of Pass Test: 236
+	Number of Fail Test: 564
 [1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.FoFnC8
+	Code Written to: /tmp/helium-test-tmp.dsNxPb
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.EOwI8Z
+	Code Written to: /tmp/helium-test-tmp.DGYAIV
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.1yLHPS
+	Code Written to: /tmp/helium-test-tmp.rGlURG
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.qhK3YM
+	Code Written to: /tmp/helium-test-tmp.PrkLft
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.7D7QiI
+	Code Written to: /tmp/helium-test-tmp.HwbfRg
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.yaDXME
+	Code Written to: /tmp/helium-test-tmp.lCqUF5
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.Hf3lrC
+	Code Written to: /tmp/helium-test-tmp.RHqOJV
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.yz32fB
+	Code Written to: /tmp/helium-test-tmp.dLtd2M
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.PMCZeB
+	Code Written to: /tmp/helium-test-tmp.9Ea3zF
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.Gc9goC
+	Code Written to: /tmp/helium-test-tmp.3tBamz
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.nTlRHE
+	Code Written to: /tmp/helium-test-tmp.T2Vtou
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.CedNbI
+	Code Written to: /tmp/helium-test-tmp.7ePVHq
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.L4HpXM
+	Code Written to: /tmp/helium-test-tmp.L5DPfo
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.cQQkTS
+	Code Written to: /tmp/helium-test-tmp.hirh1m
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.9OGwZZ
+	Code Written to: /tmp/helium-test-tmp.RMyR1m
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.cBL1f8
+	Code Written to: /tmp/helium-test-tmp.3yWtgo
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.7z3OGh
+	Code Written to: /tmp/helium-test-tmp.nNkDPq
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.S2lXis
+	Code Written to: /tmp/helium-test-tmp.ZcXkEu
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.TtBE5D
+	Code Written to: /tmp/helium-test-tmp.VYpmKz
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: break;
+[1;36mProcessing query with the new node: break;
 .20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.GTHE2Q
+	Code Written to: /tmp/helium-test-tmp.bpb05F
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: strncpy(z_....20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 68
+[1;36mProcessing query with the new node: strncpy(z_....20 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 68
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.H2gqb5
+	Code Written to: /tmp/helium-test-tmp.TeEYGN
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -776,197 +804,179 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.275 seconds
-	Number of Pass Test: 284
-	Number of Fail Test: 516
+	Total Testing Time: 3.459 seconds
+	Stmt Coverage: 47.27% of 55
+	Branch Coverage: 37.50% of 32
+	Number of Pass Test: 156
+	Number of Fail Test: 644
 [1;36mProcessing query with the new node: ascii = 1;....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.AE9aov
+	Code Written to: /tmp/helium-test-tmp.fDWr17
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: maxbits = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: maxbits = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.xTEWRW
+	Code Written to: /tmp/helium-test-tmp.BgGvAt
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: to_stdout ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: to_stdout ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.CdPbwp
+	Code Written to: /tmp/helium-test-tmp.xBDfoQ
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: decompress....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: decompress....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.dMwXkT
+	Code Written to: /tmp/helium-test-tmp.Zs5kqe
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: force++;
+[1;36mProcessing query with the new node: force++;
 .22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.o7zako
+	Code Written to: /tmp/helium-test-tmp.vMzOGD
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.RZ4NtU
+	Code Written to: /tmp/helium-test-tmp.LqAgb4
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: list = dec....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: list = dec....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.Wlp1Nr
+	Code Written to: /tmp/helium-test-tmp.XQeTSv
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.fUvEi0
+	Code Written to: /tmp/helium-test-tmp.pov6RY
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: no_time = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: no_time = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.YimNXz
+	Code Written to: /tmp/helium-test-tmp.t3uk7s
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: no_time = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: no_time = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.v8SxNa
+	Code Written to: /tmp/helium-test-tmp.lgQMAY
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: no_name = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: no_name = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.cP4O0M
+	Code Written to: /tmp/helium-test-tmp.libQkv
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: no_name = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: no_name = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.LTNAoq
+	Code Written to: /tmp/helium-test-tmp.fxONj3
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: verbose = ....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: verbose = ....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.q9DVW4
+	Code Written to: /tmp/helium-test-tmp.P8ZIxC
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: do_exit(1)....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: do_exit(1)....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.D0WCFK
+	Code Written to: /tmp/helium-test-tmp.V4czZc
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: strcpy(z_s....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: strcpy(z_s....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.wKpjzr
+	Code Written to: /tmp/helium-test-tmp.z9EfHO
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: test = dec....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: test = dec....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.LcfED9
+	Code Written to: /tmp/helium-test-tmp.tqg5Dr
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: quiet = 0;....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: quiet = 0;....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.K0kySS
+	Code Written to: /tmp/helium-test-tmp.ZU0FO5
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: do_exit(0)....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.bYjShD
+	Code Written to: /tmp/helium-test-tmp.tLyNcL
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: do_exit(1)....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: do_exit(1)....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.0MSERo
+	Code Written to: /tmp/helium-test-tmp.dy8SOr
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: level = op....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: level = op....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.LDR0Bb
+	Code Written to: /tmp/helium-test-tmp.VrBOF9
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: elseif ((s....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 74
+[1;36mProcessing query with the new node: elseif ((s....22 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 74
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.6IZGAZ
+	Code Written to: /tmp/helium-test-tmp.1BgWUS
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -978,16 +988,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.176 seconds
+	Total Testing Time: 3.468 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: decompress....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 73
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 73
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.PqM5oZ
+	Code Written to: /tmp/helium-test-tmp.bsnPZO
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -999,16 +1011,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.174 seconds
+	Total Testing Time: 3.432 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: decompress....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 75
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 75
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.A59y3a
+	Code Written to: /tmp/helium-test-tmp.PNGpQX
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1020,199 +1034,181 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.195 seconds
+	Total Testing Time: 3.411 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: switch (op....22 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.FUCIty
+	Code Written to: /tmp/helium-test-tmp.vy6Zfj
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....21 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....21 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.0XcvcX
+	Code Written to: /tmp/helium-test-tmp.3ulERF
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....20 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....20 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.PKpe6m
+	Code Written to: /tmp/helium-test-tmp.xc27E3
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....19 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....19 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.OqRs8N
+	Code Written to: /tmp/helium-test-tmp.v0PCGs
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....18 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....18 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.VZxdjg
+	Code Written to: /tmp/helium-test-tmp.xxoLTS
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: help();
+[1;36mProcessing query with the new node: help();
 .17 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.k3jsEJ
+	Code Written to: /tmp/helium-test-tmp.RhcIlk
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....16 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....16 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.fpiP8d
+	Code Written to: /tmp/helium-test-tmp.hzV10M
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: license();....15 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: license();....15 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.gHaLNJ
+	Code Written to: /tmp/helium-test-tmp.BPOcUg
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....14 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....14 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.rdvlBg
+	Code Written to: /tmp/helium-test-tmp.52Pt1L
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....13 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....13 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.u2grxO
+	Code Written to: /tmp/helium-test-tmp.DGetoi
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....12 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....12 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.jLzaCn
+	Code Written to: /tmp/helium-test-tmp.XOmEXP
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....11 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....11 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.2TjxPX
+	Code Written to: /tmp/helium-test-tmp.5kdPIo
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: quiet = 1;....10 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: quiet = 1;....10 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.zJPudz
+	Code Written to: /tmp/helium-test-tmp.xiaKJY
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: usage();
+[1;36mProcessing query with the new node: usage();
 .9 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.qmg5Lb
+	Code Written to: /tmp/helium-test-tmp.T50Q1z
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: z_len = st....9 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: z_len = st....9 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.9Fv9uP
+	Code Written to: /tmp/helium-test-tmp.H1GHCc
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....8 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....8 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.k8uQmu
+	Code Written to: /tmp/helium-test-tmp.R35UqQ
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: verbose++;....7 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: verbose++;....7 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.X1LZoa
+	Code Written to: /tmp/helium-test-tmp.1xxRtv
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: version();....6 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[1;36mProcessing query with the new node: version();....6 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.qrl7HR
+	Code Written to: /tmp/helium-test-tmp.1EVyKb
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: usage();
+[1;36mProcessing query with the new node: usage();
 .5 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.BmREbA
+	Code Written to: /tmp/helium-test-tmp.Vb4ggT
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: switch (op....5 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 69
+[1;36mProcessing query with the new node: switch (op....5 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 69
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.Wz6MNj
+	Code Written to: /tmp/helium-test-tmp.tvCvZB
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: if (strncm....4 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 74
+[1;36mProcessing query with the new node: if (strncm....4 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 74
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.vA6bF4
+	Code Written to: /tmp/helium-test-tmp.3sbW1l
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1224,16 +1220,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.201 seconds
+	Total Testing Time: 3.426 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (strncm....5 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 73
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 73
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.kxxKo1
+	Code Written to: /tmp/helium-test-tmp.vRQPPi
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1245,16 +1243,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.213 seconds
+	Total Testing Time: 3.466 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: elseif ((s....4 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 75
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 75
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.VJ9X59
+	Code Written to: /tmp/helium-test-tmp.D71tws
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1266,34 +1266,34 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.198 seconds
+	Total Testing Time: 3.403 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: fprintf(st....4 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 71
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 71
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.CoKlCu
+	Code Written to: /tmp/helium-test-tmp.nfZJMO
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: fprintf(st....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 72
+[1;36mProcessing query with the new node: fprintf(st....3 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 72
 	Procedure Number: 3
 	Branch Number: 9
 	Loop Number: 2
-	Code Written to: /tmp/helium-test-tmp.dsmyjQ
+	Code Written to: /tmp/helium-test-tmp.Bw5Mgc
 	Compile: false
-[31mcompile error
-[0m[1;36mProcessing query with the new node: if (signal....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 78
+[1;36mProcessing query with the new node: if (signal....2 remaining in worklist.
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 78
 	Procedure Number: 3
 	Branch Number: 11
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.QD0bjd
+	Code Written to: /tmp/helium-test-tmp.rUAG7A
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1305,16 +1305,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.253 seconds
+	Total Testing Time: 3.402 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: (void) sig....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 79
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 79
 	Procedure Number: 3
 	Branch Number: 11
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.tiwRsM
+	Code Written to: /tmp/helium-test-tmp.dcIHJc
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1326,16 +1328,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.201 seconds
+	Total Testing Time: 3.425 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (strncm....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 75
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 75
 	Procedure Number: 3
 	Branch Number: 10
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.AGdsyx
+	Code Written to: /tmp/helium-test-tmp.lURb80
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1347,16 +1351,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.243 seconds
+	Total Testing Time: 3.522 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (signal....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 82
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 82
 	Procedure Number: 3
 	Branch Number: 12
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.drUFNu
+	Code Written to: /tmp/helium-test-tmp.zZoXG2
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1368,16 +1374,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.227 seconds
+	Total Testing Time: 3.527 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: (void) sig....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 83
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 83
 	Procedure Number: 3
 	Branch Number: 12
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.GxI0bE
+	Code Written to: /tmp/helium-test-tmp.LWGQuh
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1389,16 +1397,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.199 seconds
+	Total Testing Time: 3.402 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (signal....3 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 80
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 80
 	Procedure Number: 3
 	Branch Number: 11
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.VnsjCZ
+	Code Written to: /tmp/helium-test-tmp.hVJi5I
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1410,16 +1420,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.198 seconds
+	Total Testing Time: 3.326 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (foregr....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 86
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 86
 	Procedure Number: 3
 	Branch Number: 13
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.MOtL8w
+	Code Written to: /tmp/helium-test-tmp.jDs7hn
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1431,16 +1443,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.224 seconds
+	Total Testing Time: 3.401 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: (void) sig....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 87
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 87
 	Procedure Number: 3
 	Branch Number: 13
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.7IAHSg
+	Code Written to: /tmp/helium-test-tmp.nrFnle
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1452,16 +1466,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.218 seconds
+	Total Testing Time: 3.354 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (signal....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 84
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 84
 	Procedure Number: 3
 	Branch Number: 12
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.iliPMc
+	Code Written to: /tmp/helium-test-tmp.7cQj6h
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1473,16 +1489,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.199 seconds
+	Total Testing Time: 3.417 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: foreground....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 88
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 88
 	Procedure Number: 3
 	Branch Number: 13
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.D0JFRk
+	Code Written to: /tmp/helium-test-tmp.nlAgQy
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1494,16 +1512,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.225 seconds
+	Total Testing Time: 3.348 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (foregr....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 88
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 88
 	Procedure Number: 3
 	Branch Number: 13
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.eW3pcF
+	Code Written to: /tmp/helium-test-tmp.RUlno2
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1515,16 +1535,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.221 seconds
+	Total Testing Time: 3.471 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (env !=....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 92
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 92
 	Procedure Number: 3
 	Branch Number: 14
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.hVwyQb
+	Code Written to: /tmp/helium-test-tmp.1OoHaJ
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1536,16 +1558,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.207 seconds
+	Total Testing Time: 3.449 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: args = arg....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 93
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 93
 	Procedure Number: 3
 	Branch Number: 14
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.eY6iNU
+	Code Written to: /tmp/helium-test-tmp.FM2j8C
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1557,16 +1581,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.221 seconds
+	Total Testing Time: 3.384 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: env = add_....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 93
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 93
 	Procedure Number: 3
 	Branch Number: 14
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.ze7E5P
+	Code Written to: /tmp/helium-test-tmp.xnuz4J
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1578,16 +1604,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.217 seconds
+	Total Testing Time: 3.407 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (env !=....2 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 93
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 93
 	Procedure Number: 3
 	Branch Number: 14
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.ADXjLX
+	Code Written to: /tmp/helium-test-tmp.5nFR73
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1599,16 +1627,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.229 seconds
+	Total Testing Time: 3.410 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 800
 [1;36mProcessing query with the new node: if (progle....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 97
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 97
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.97SXSh
+	Code Written to: /tmp/helium-test-tmp.PDKJkB
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1622,16 +1652,18 @@ Input Variables:
 	Number of input variables: 4
 	Number of tests: 1000
 	Test Generation Time: 0.011 seconds
-	Total Testing Time: 4.039 seconds
+	Total Testing Time: 4.255 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 1000
 [1;36mProcessing query with the new node: progname[p....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 98
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 98
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.SvwmbR
+	Code Written to: /tmp/helium-test-tmp.vs9mzo
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1645,16 +1677,18 @@ Input Variables:
 	Number of input variables: 4
 	Number of tests: 1000
 	Test Generation Time: 0.011 seconds
-	Total Testing Time: 4.027 seconds
+	Total Testing Time: 4.268 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 1000
 [1;36mProcessing query with the new node: proglen = ....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 98
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 98
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.tWToCF
+	Code Written to: /tmp/helium-test-tmp.d2gvRr
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1667,17 +1701,19 @@ Input Variables:
 [1;35mTest Meta:[0m
 	Number of input variables: 4
 	Number of tests: 1000
-	Test Generation Time: 0.012 seconds
-	Total Testing Time: 4.029 seconds
+	Test Generation Time: 0.011 seconds
+	Total Testing Time: 4.297 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 1000
 [1;36mProcessing query with the new node: if (progle....1 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 98
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 98
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.02fEcJ
+	Code Written to: /tmp/helium-test-tmp.PnuriL
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1691,16 +1727,18 @@ Input Variables:
 	Number of input variables: 4
 	Number of tests: 1000
 	Test Generation Time: 0.011 seconds
-	Total Testing Time: 4.012 seconds
+	Total Testing Time: 4.390 seconds
+	Stmt Coverage: 
+	Branch Coverage: 
 	Number of Pass Test: 0
 	Number of Fail Test: 1000
 [1;36mProcessing query with the new node: progname =....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 100
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 100
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.bZDgX1
+	Code Written to: /tmp/helium-test-tmp.lfYxfl
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1714,17 +1752,19 @@ Input Variables:
 	Number of input variables: 4
 	Number of tests: 1000
 	Test Generation Time: 0.011 seconds
-	Total Testing Time: 4.180 seconds
-	Number of Pass Test: 398
-	Number of Fail Test: 602
+	Total Testing Time: 4.356 seconds
+	Stmt Coverage: 14.29% of 56
+	Branch Coverage: 5.56% of 36
+	Number of Pass Test: 297
+	Number of Fail Test: 703
 [1;36mProcessing query with the new node: int optc;
 .0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 101
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 101
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.CL7ouA
+	Code Written to: /tmp/helium-test-tmp.vtIiFb
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1738,16 +1778,18 @@ Input Variables:
 	Number of input variables: 4
 	Number of tests: 1000
 	Test Generation Time: 0.011 seconds
-	Total Testing Time: 4.141 seconds
-	Number of Pass Test: 503
-	Number of Fail Test: 497
+	Total Testing Time: 4.320 seconds
+	Stmt Coverage: 14.29% of 56
+	Branch Coverage: 5.56% of 36
+	Number of Pass Test: 357
+	Number of Fail Test: 643
 [1;36mProcessing query with the new node: int progle....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 102
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 102
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.XX5zJo
+	Code Written to: /tmp/helium-test-tmp.XsIvsi
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1759,16 +1801,18 @@ Input Variables:
 	Number of input variables: 3
 	Number of tests: 800
 	Test Generation Time: 0.002 seconds
-	Total Testing Time: 3.311 seconds
-	Number of Pass Test: 280
-	Number of Fail Test: 520
+	Total Testing Time: 3.482 seconds
+	Stmt Coverage: 14.29% of 56
+	Branch Coverage: 5.56% of 36
+	Number of Pass Test: 281
+	Number of Fail Test: 519
 [1;36mProcessing query with the new node: int file_c....0 remaining in worklist.
-[0m[1;35mSegment Meta:
-[0m	Segment Size: 103
+[0m[1;35mSegment Meta:[0m
+	Segment Size: 103
 	Procedure Number: 3
 	Branch Number: 15
 	Loop Number: 1
-	Code Written to: /tmp/helium-test-tmp.MI6tYp
+	Code Written to: /tmp/helium-test-tmp.1H3yWC
 	Compile: true
 Input Variables:
 	IntType:int argc
@@ -1778,9 +1822,11 @@ Input Variables:
 	Number of input variables: 2
 	Number of tests: 200
 	Test Generation Time: 0.001 seconds
-	Total Testing Time: 0.836 seconds
-	Number of Pass Test: 70
-	Number of Fail Test: 130
+	Total Testing Time: 0.870 seconds
+	Stmt Coverage: 14.29% of 56
+	Branch Coverage: 5.56% of 36
+	Number of Pass Test: 80
+	Number of Fail Test: 120
 [1;36mProcessing query with the new node: main(int a....0 remaining in worklist.
 [0mGetting interprocedure predecessor from ICFG, function: main
 Predecessor count: 0

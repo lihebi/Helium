@@ -102,7 +102,7 @@ std::string CodeGen::GetMain() {
       }
       loc += std::count(code.begin(), code.end(), '\n');
     }
-    std::cout << utils::PURPLE << "Segment Meta:" << "\n" << utils::RESET;
+    std::cout << utils::PURPLE << "Segment Meta:" << utils::RESET << "\n";
 
     std::cout << "\t" << "Segment Size: " << loc << "\n";
     std::cout << "\t" << "Procedure Number: " << m_data.size() << "\n";
