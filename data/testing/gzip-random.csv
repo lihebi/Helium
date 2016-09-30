@@ -1,4 +1,4 @@
-seg_size, proc_num, branch_num, loop_num, compiliblevar_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num
 24,1,0,0,True,1,100,0.002 seconds,0.431 seconds,88.89% of 27,50.00% of 4,99,1
 25,1,0,0,True,1,100,0.002 seconds,0.427 seconds,88.89% of 27,50.00% of 4,97,3
 26,1,0,0,True,2,100,0.006 seconds,0.442 seconds,88.57% of 35,50.00% of 6,100,0

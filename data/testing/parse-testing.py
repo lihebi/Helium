@@ -78,7 +78,7 @@ class Data:
         print(self.pass_num, end=",")
         print(self.fail_num)
     def dump_header(self):
-        print("seg_size, proc_num, branch_num, loop_num, compilible", end="")
+        print("seg_size, proc_num, branch_num, loop_num, compilible,", end="")
         print("var_num, test_num, gen_time, total_time,", end="")
         print("stmt_cov, branch_cov,", end="")
         print("pass_num, fail_num")
