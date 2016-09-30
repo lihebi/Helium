@@ -150,8 +150,14 @@ void Helium::process() {
     if (HeliumOptions::Instance()->GetBool("print-code-output-location")) {
       std::cout << "\t" << "Code Written to: " << builder.GetDir()  << "\n";
     }
+    if (HeliumOptions::Instance()->GetBool("print-compile-info")) {
+      std::cout << "\t" << "Compile: " << (builder.Success() ? "true" : "false") << "\n";
+    }
     if (builder.Success()) {
-      utils::print("compile success\n", utils::CK_Green);
+      // utils::print("compile success\n", utils::CK_Green);
+
+      std::cerr << utils::GREEN << "compile success\n" << utils::RESET;
+      
       std::string executable = builder.GetExecutable();
       if (HeliumOptions::Instance()->GetBool("run-test")) {
         CodeTester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());

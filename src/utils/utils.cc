@@ -694,7 +694,12 @@ void utils::seed_rand() {
  * TODO Needs some tests
  */
 int utils::rand_int(int low, int high) {
-  assert(high >= low);
+  if (high <= low) {
+    std::cerr << "EE: rand_int except high > low, but with input: "
+      "[low,high) beging [" << low << "," << high << ")"  << "\n";
+    throw std::runtime_error("RandInt Error");
+  }
+  assert(high > low);
   int a = rand();
   return a % (high - low) + low;
 }
@@ -707,7 +712,7 @@ std::set<int> utils::rand_ints(int low, int high, int num) {
   while (high-- > low) {
     ret.insert(high);
   }
-  int to_remove = num - ret.size();
+  int to_remove = ret.size() - num;
   int r;
   while (to_remove-- > 0) {
     r = rand_int(0, ret.size());

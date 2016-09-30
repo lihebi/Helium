@@ -84,11 +84,14 @@ HeliumOptions::HeliumOptions() {
     ("print-csv", po::value<bool>()->default_value(false), "print csv")
     ("print-csv-summary", po::value<bool>()->default_value(false), "print csv summary")
     ("print-analysis-result", po::value<bool>()->default_value(false), "print analysis result")
+    ("print-input-variables", po::value<bool>()->default_value(false), "print the specification of input variables")
 
     ("print-benchmark-name", po::value<bool>()->default_value(false), "print benchmark running")
-    ("print-segment-meta", po::value<bool>()->default_value(false), "print meta data for segment, including size, #proc, #branch, #loop")
+    ("print-segment-meta", po::value<bool>()->default_value(false),
+     "print meta data for segment, including size, #proc, #branch, #loop")
     ("print-test-meta", po::value<bool>()->default_value(false),
-     "print the testing data, including input number, generation time, total time used, stmt-cov, branch-cov, pass number, failure number")
+     "print the testing data, including input number, generation time, total time used, "
+     "stmt-cov, branch-cov, pass number, failure number")
 
     ("print-main", po::value<bool>()->default_value(false), "print main function")
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
@@ -98,6 +101,7 @@ HeliumOptions::HeliumOptions() {
   debug_options.add_options()
     ("pause-compile-error", po::value<bool>()->default_value(false), "pause when compile error happens")
     ("pause-ast-unkonwn-tag", po::value<bool>()->default_value(false), "pause when encoutner an unknown AST tag")
+    ("pause-no-testcase", po::value<bool>()->default_value(false), "pause when there's no test case generated")
     ;
     
   /**

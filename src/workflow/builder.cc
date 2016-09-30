@@ -203,9 +203,9 @@ Builder::Write() {
   // std::string makefile = m_seg->GetMakefile();
 
   // std::cout <<utils::BLUE <<m_main  << utils::RESET << "\n";
-  if (HeliumOptions::Instance()->GetBool("instrument-helium-guard")) {
-    m_main = add_helium_guard(m_main);
-  }
+  // if (HeliumOptions::Instance()->GetBool("instrument-helium-guard")) {
+  //   m_main = add_helium_guard(m_main);
+  // }
 
   preProcess();
 

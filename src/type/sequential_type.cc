@@ -189,30 +189,24 @@ std::string StrType::GetInputCode(std::string var) {
 std::string StrType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// StrType::GetOutputCode: " + var + "\n";
-  if (HeliumOptions::Instance()->GetBool("instrument-strlen")) {
-    ret += get_strlen_output(var);
-  }
-  if (HeliumOptions::Instance()->GetBool("instrument-address")) {
-    ret += get_addr_output(var);
-  }
-  if (HeliumOptions::Instance()->GetBool("instrument-null")) {
-    ret += get_check_null(var,
-                          get_null_output(var, true),
-                          get_null_output(var, false)
-                          );
-  }
+  ret += get_strlen_output(var);
+  ret += get_addr_output(var);
+  ret += get_check_null(var,
+                        get_null_output(var, true),
+                        get_null_output(var, false)
+                        );
   return ret;
 }
 InputSpec *StrType::GenerateRandomInput() {
   helium_print_trace("StrType::GenerateRandomInput");
   // std::cout << "1"  << "\n";
-  static int max_strlen = HeliumOptions::Instance()->GetInt("max-strlen");
+  static int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
   // TODO at least a string? 0 here?
   int size = utils::rand_int(1, max_strlen);
   // std::cout << "2"  << "\n";
   std::vector<std::string> list;
   list.push_back(std::to_string(size));
-  std::string str = utils::rand_str(utils::rand_int(1, size));
+  std::string str = utils::rand_str(utils::rand_int(0, size));
   // std::cout << "3"  << "\n";
   list.push_back(str);
   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(size) + "}";
@@ -288,9 +282,7 @@ std::string BufType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// BufType::GetOutputCode: " + var = "\n";
   ret += get_sizeof_output(var);
-  if (HeliumOptions::Instance()->GetBool("instrument-address")) {
-    ret += get_addr_output(var);
-  }
+  ret += get_addr_output(var);
   return ret;
 }
 InputSpec *BufType::GenerateRandomInput() {
