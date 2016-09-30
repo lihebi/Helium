@@ -41,19 +41,24 @@ In Helium folder, run
 make
 #+END_EXAMPLE
 
-Set up environment:
+Create system type tagfile:
 #+BEGIN_EXAMPLE
-. env_setup.sh
 make systype.tags
 #+END_EXAMPLE
 
-Additional steps:
+Create local config.h:
 #+BEGIN_EXAMPLE
 cd lib/config
 aclocal
 autoconf
 autoheader
 ./configure
+#+END_EXAMPLE
+
+Add the following lines to your =~/.bashrc=:
+#+BEGIN_EXAMPLE
+export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH
+export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0
 #+END_EXAMPLE
 
 ** Run

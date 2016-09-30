@@ -312,6 +312,14 @@ int main(int argc, char* argv[]) {
   /* parse arguments */
   HeliumOptions::Instance()->ParseCommandLine(argc, argv);
   HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
+
+
+  if (HeliumOptions::Instance()->Has("help")) {
+    HeliumOptions::Instance()->PrintHelp();
+    exit(0);
+  }
+
+  
   // target folder
   std::string folder = HeliumOptions::Instance()->GetString("folder");
   folder = utils::escape_tide(folder);
@@ -354,6 +362,10 @@ int main(int argc, char* argv[]) {
   if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
     std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
     exit(1);
+  }
+
+  if (HeliumOptions::Instance()->GetBool("print-benchmark-name")) {
+    std::cout << "Benchmark Name: " << target.filename().string() << "\n";
   }
 
   load_tagfile(cpped.string());

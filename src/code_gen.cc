@@ -45,18 +45,20 @@ std::string CodeGen::GetMain() {
       main_func += "int helium_size;\n"; // array size of heap
 
       // inputs
-      for (auto m : m_inputs) {
-        std::string var = m.first;
-        Type *t = m.second;
+      for (auto mm : m_inputs) {
+        std::string var = mm.first;
+        Type *t = mm.second;
         main_func += t->GetDeclCode(var);
         // FIXME didn't not use def use analysis result!
         main_func += t->GetInputCode(var);
       }
 
-
-      main_func += "// " + ast->GetFunctionName() + "\n";
+      main_func += "// In function " + ast->GetFunctionName() + "\n";
       main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
+
+      // the code
       std::string code = ast->GetCode(nodes);
+      
       ast->ClearDecl();
       // modify the code, specifically change all return statement to return 35;
       code = replace_return_to_35(code);
@@ -75,6 +77,32 @@ std::string CodeGen::GetMain() {
       other_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
       other_func += code;
       other_func += "\n";
+    }
+
+    if (HeliumOptions::Instance()->GetBool("print-segment-meta")) {
+      int loc = 0;
+      int branch_ct = 0;
+      int loop_ct = 0;
+      for (auto m : m_data) {
+        std::string code = m.first->GetCode(m.second);
+        for (ASTNode *node : m.second) {
+          if (node->Kind() == ANK_If) {
+            branch_ct++;
+          }
+          if (node->Kind() == ANK_While
+              || node->Kind() == ANK_For
+              || node->Kind() == ANK_Do) {
+            loop_ct++;
+          }
+        }
+        loc += std::count(code.begin(), code.end(), '\n');
+      }
+      std::cout << "Segment Size: " << loc << "\n";
+      std::cout << "Procedure Number: " << m_data.size() << "\n";
+      std::cout << "Branch Number: " << branch_ct << "\n";
+      std::cout << "Loop Number: " << loop_ct << "\n";
+    }
+    if (HeliumOptions::Instance()->GetBool("print-segment-branch-number")) {
     }
   }
   

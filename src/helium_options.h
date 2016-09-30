@@ -26,7 +26,7 @@ public:
   std::string GetString(std::string key);
   bool GetBool(std::string key);
   int GetInt(std::string key);
-  
+
   bool HasCmdUtils();
   bool empty() {
     if (m_vm.empty()) return true;

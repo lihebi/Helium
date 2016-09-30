@@ -11,9 +11,6 @@
 
 void CodeTester::genTestSuite() {
   helium_print_trace("CodeTester::genTestSuite");
-  if (!HeliumOptions::Instance()->GetBool("run-test")) {
-    return;
-  }
   int test_number = HeliumOptions::Instance()->GetInt("test-number");
   m_test_suites.clear();
   freeTestSuite();
@@ -34,11 +31,7 @@ void CodeTester::genTestSuite() {
 
 void CodeTester::Test() {
   helium_print_trace("CodeTester::Test");
-  // std::cout << "generate test suite" << "input size: " << m_inputs.size()  << "\n";
   genTestSuite();
-  // TestResult *ret = new TestResult(m_test_suite);
-
-  // std::string test_dir = utils::create_tmp_dir();
   utils::create_folder(m_exe_folder + "/input");
   utils::create_folder(m_exe_folder + "/tests");
     

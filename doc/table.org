@@ -1,0 +1,15 @@
+#+TITLE: Testing table
+
+- Random testing
+- pairwise testing
+- equivalence partitioning
+
+
+
+| meta data |             |       |         |       | tests |          |            |          |            | running results |              |                         |
+|-----------+-------------+-------+---------+-------+-------+----------+------------+----------+------------+-----------------+--------------+-------------------------|
+| benchmark | sizeof(seg) | #proc | #branch | #loop | #test | Gen time | total time | stmt-cov | branch-cov | # tests trigger | # tests pass | # tests invalid context |
+|-----------+-------------+-------+---------+-------+-------+----------+------------+----------+------------+-----------------+--------------+-------------------------|
+| /         |             |       |         |       | <     |          |            |          |            | <               |              |                         |
+|           |             |       |         |       |       |          |            |          |            |                 |              |                         |
+

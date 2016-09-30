@@ -47,21 +47,21 @@ HeliumOptions::HeliumOptions() {
     ("create-snippet-db", "create snippet database")
     ("create-header-dep", "create header dependence table")
     
-    ("print-header-dep", "the new dep printing: from the database")
-    ("print-callgraph", "print callgraph")
-    ("print-config", "print current config")
-    ("print-segments", "print segments and exit")
-    ("print-segment-info", "print segment count, segment size LOC in total, for every file")
+    ("show-header-dep", "the new dep printing: from the database")
+    ("show-callgraph", "print callgraph")
+    ("show-config", "print current config")
+    ("show-segments", "print segments and exit")
+    ("show-segment-info", "print segment count, segment size LOC in total, for every file")
+    ("show-headers", "print header")
+    ("show-meta", "print meta data")
+    ("show-header-deps", "print header dependencies") // DEPRECATED
+    ("show-cfg", "print CFG for each function")
+    ("show-ast", "print AST for each function")
 
-    ("print-header-deps", "print header dependencies") // DEPRECATED
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
-    ("print-headers", "print header")
-    ("print-meta", "print meta data")
     ("resolve-system-type", "Resolve a system type and print out result")
 
-    ("print-cfg", "print CFG for each function")
-    ("print-ast", "print AST for each function")
     ;
 
   po::options_description print_options("Print Options");
@@ -84,6 +84,9 @@ HeliumOptions::HeliumOptions() {
     ("print-csv", po::value<bool>()->default_value(false), "print csv")
     ("print-csv-summary", po::value<bool>()->default_value(false), "print csv summary")
     ("print-analysis-result", po::value<bool>()->default_value(false), "print analysis result")
+
+    ("print-benchmark-name", po::value<bool>()->default_value(false), "print benchmark running")
+    ("print-segment-meta", po::value<bool>()->default_value(false), "print meta data for segment, including size, #proc, #branch, #loop")
 
     ("print-main", po::value<bool>()->default_value(false), "print main function")
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
@@ -141,6 +144,8 @@ HeliumOptions::HeliumOptions() {
     .add(general_options)
     .add(util_options)
     .add(config_options)
+    .add(print_options)
+    .add(debug_options)
     .add(hidden)
     ;
 
