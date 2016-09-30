@@ -1,0 +1,57 @@
+seg_size, proc_num, branch_num, loop_num, compiliblevar_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num
+24,1,0,0,True,1,100,0.002 seconds,0.431 seconds,88.89% of 27,50.00% of 4,99,1
+25,1,0,0,True,1,100,0.002 seconds,0.427 seconds,88.89% of 27,50.00% of 4,97,3
+26,1,0,0,True,2,100,0.006 seconds,0.442 seconds,88.57% of 35,50.00% of 6,100,0
+27,1,0,0,True,1,100,0.002 seconds,0.433 seconds,89.29% of 28,50.00% of 4,99,1
+28,1,0,0,True,1,100,0.002 seconds,0.430 seconds,89.29% of 28,50.00% of 4,100,0
+33,2,1,0,True,1,100,0.001 seconds,0.433 seconds,90.32% of 31,50.00% of 4,100,0
+36,2,2,0,True,1,100,0.001 seconds,0.439 seconds,90.63% of 32,50.00% of 4,98,2
+39,3,2,0,True,1,100,0.001 seconds,0.419 seconds,,,0,100
+40,3,2,1,True,2,100,0.002 seconds,0.433 seconds,31.71% of 41,37.50% of 8,50,50
+46,3,3,1,True,2,100,0.002 seconds,0.431 seconds,33.33% of 42,25.00% of 16,53,47
+46,3,4,1,True,3,100,0.002 seconds,0.437 seconds,36.36% of 44,27.78% of 18,47,53
+49,3,5,1,True,3,100,0.002 seconds,0.436 seconds,37.78% of 45,30.00% of 20,60,40
+52,3,6,1,True,3,100,0.002 seconds,0.440 seconds,39.13% of 46,31.82% of 22,52,48
+49,3,5,1,True,3,100,0.002 seconds,0.439 seconds,37.78% of 45,30.00% of 20,47,53
+55,3,7,1,True,3,100,0.002 seconds,0.439 seconds,40.43% of 47,37.50% of 24,47,53
+54,3,6,1,True,3,100,0.002 seconds,0.441 seconds,40.43% of 47,30.77% of 26,41,59
+56,3,7,1,True,3,100,0.002 seconds,0.447 seconds,41.67% of 48,33.33% of 24,53,47
+55,3,7,1,True,3,100,0.002 seconds,0.448 seconds,40.43% of 47,33.33% of 24,52,48
+54,3,6,1,True,3,100,0.002 seconds,0.459 seconds,40.43% of 47,30.77% of 26,47,53
+61,3,8,1,True,3,100,0.002 seconds,0.448 seconds,44.00% of 50,32.14% of 28,58,42
+62,3,8,1,True,3,100,0.002 seconds,0.442 seconds,45.10% of 51,33.33% of 30,44,56
+64,3,9,1,True,3,100,0.002 seconds,0.439 seconds,45.10% of 51,35.71% of 28,53,47
+65,3,9,1,True,3,100,0.002 seconds,0.453 seconds,46.15% of 52,33.33% of 30,64,36
+62,3,8,1,True,3,100,0.002 seconds,0.450 seconds,45.10% of 51,33.33% of 30,53,47
+66,3,9,1,True,3,100,0.002 seconds,0.432 seconds,47.17% of 53,37.50% of 32,48,52
+67,3,9,1,True,3,100,0.002 seconds,0.430 seconds,48.15% of 54,34.38% of 32,34,66
+68,3,9,1,True,3,100,0.002 seconds,0.435 seconds,47.27% of 55,37.50% of 32,51,49
+74,3,10,1,True,3,100,0.002 seconds,0.437 seconds,,,0,100
+73,3,10,1,True,3,100,0.002 seconds,0.428 seconds,,,0,100
+75,3,10,1,True,3,100,0.002 seconds,0.426 seconds,,,0,100
+74,3,10,1,True,3,100,0.002 seconds,0.429 seconds,,,0,100
+73,3,10,1,True,3,100,0.002 seconds,0.436 seconds,,,0,100
+75,3,10,1,True,3,100,0.002 seconds,0.428 seconds,,,0,100
+78,3,11,1,True,3,100,0.002 seconds,0.433 seconds,,,0,100
+79,3,11,1,True,3,100,0.002 seconds,0.437 seconds,,,0,100
+75,3,10,1,True,3,100,0.002 seconds,0.433 seconds,,,0,100
+82,3,12,1,True,3,100,0.002 seconds,0.434 seconds,,,0,100
+83,3,12,1,True,3,100,0.002 seconds,0.438 seconds,,,0,100
+80,3,11,1,True,3,100,0.002 seconds,0.432 seconds,,,0,100
+86,3,13,1,True,3,100,0.002 seconds,0.430 seconds,,,0,100
+87,3,13,1,True,3,100,0.002 seconds,0.432 seconds,,,0,100
+84,3,12,1,True,3,100,0.002 seconds,0.431 seconds,,,0,100
+88,3,13,1,True,3,100,0.002 seconds,0.438 seconds,,,0,100
+88,3,13,1,True,3,100,0.002 seconds,0.433 seconds,,,0,100
+92,3,14,1,True,3,100,0.002 seconds,0.445 seconds,,,0,100
+93,3,14,1,True,3,100,0.002 seconds,0.450 seconds,,,0,100
+93,3,14,1,True,3,100,0.002 seconds,0.439 seconds,,,0,100
+93,3,14,1,True,3,100,0.002 seconds,0.429 seconds,,,0,100
+97,3,15,1,True,4,100,0.002 seconds,0.445 seconds,,,0,100
+98,3,15,1,True,4,100,0.002 seconds,0.444 seconds,,,0,100
+98,3,15,1,True,4,100,0.002 seconds,0.461 seconds,,,0,100
+98,3,15,1,True,4,100,0.002 seconds,0.443 seconds,,,0,100
+100,3,15,1,True,4,100,0.002 seconds,0.457 seconds,14.29% of 56,5.56% of 36,61,39
+101,3,15,1,True,4,100,0.002 seconds,0.452 seconds,14.29% of 56,5.56% of 36,55,45
+102,3,15,1,True,3,100,0.002 seconds,0.451 seconds,14.29% of 56,5.56% of 36,59,41
+103,3,15,1,True,2,100,0.002 seconds,0.453 seconds,14.29% of 56,5.56% of 36,48,52

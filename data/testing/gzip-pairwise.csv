@@ -1,0 +1,57 @@
+seg_size, proc_num, branch_num, loop_num, compiliblevar_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num
+24,1,0,0,True,1,20,0.000 seconds,0.088 seconds,88.89% of 27,50.00% of 4,10,10
+25,1,0,0,True,1,20,0.000 seconds,0.084 seconds,88.89% of 27,50.00% of 4,10,10
+26,1,0,0,True,2,400,0.001 seconds,1.731 seconds,88.57% of 35,50.00% of 6,100,300
+27,1,0,0,True,1,20,0.000 seconds,0.086 seconds,89.29% of 28,50.00% of 4,10,10
+28,1,0,0,True,1,20,0.000 seconds,0.096 seconds,89.29% of 28,50.00% of 4,10,10
+33,2,1,0,True,1,20,0.000 seconds,0.095 seconds,90.32% of 31,50.00% of 4,10,10
+36,2,2,0,True,1,20,0.000 seconds,0.094 seconds,90.63% of 32,50.00% of 4,10,10
+39,3,2,0,True,1,10,0.000 seconds,0.046 seconds,,,0,10
+40,3,2,1,True,2,200,0.001 seconds,0.876 seconds,31.71% of 41,37.50% of 8,50,150
+46,3,3,1,True,2,200,0.001 seconds,0.856 seconds,33.33% of 42,25.00% of 16,80,120
+46,3,4,1,True,3,800,0.002 seconds,3.443 seconds,36.36% of 44,27.78% of 18,235,565
+49,3,5,1,True,3,800,0.002 seconds,3.427 seconds,37.78% of 45,30.00% of 20,243,557
+52,3,6,1,True,3,800,0.002 seconds,3.451 seconds,39.13% of 46,31.82% of 22,292,508
+49,3,5,1,True,3,800,0.002 seconds,3.440 seconds,37.78% of 45,35.00% of 20,290,510
+55,3,7,1,True,3,800,0.002 seconds,3.446 seconds,40.43% of 47,33.33% of 24,277,523
+54,3,6,1,True,3,800,0.002 seconds,3.580 seconds,40.43% of 47,30.77% of 26,310,490
+56,3,7,1,True,3,800,0.002 seconds,3.514 seconds,41.67% of 48,33.33% of 24,319,481
+55,3,7,1,True,3,800,0.002 seconds,3.466 seconds,40.43% of 47,33.33% of 24,207,593
+54,3,6,1,True,3,800,0.002 seconds,3.462 seconds,40.43% of 47,30.77% of 26,273,527
+61,3,8,1,True,3,800,0.002 seconds,3.480 seconds,44.00% of 50,32.14% of 28,242,558
+62,3,8,1,True,3,800,0.002 seconds,3.488 seconds,45.10% of 51,36.67% of 30,271,529
+64,3,9,1,True,3,800,0.002 seconds,3.470 seconds,45.10% of 51,32.14% of 28,282,518
+65,3,9,1,True,3,800,0.002 seconds,3.451 seconds,46.15% of 52,33.33% of 30,203,597
+62,3,8,1,True,3,800,0.002 seconds,3.485 seconds,45.10% of 51,33.33% of 30,228,572
+66,3,9,1,True,3,800,0.002 seconds,3.327 seconds,47.17% of 53,34.38% of 32,84,716
+67,3,9,1,True,3,800,0.002 seconds,3.401 seconds,48.15% of 54,34.38% of 32,236,564
+68,3,9,1,True,3,800,0.002 seconds,3.459 seconds,47.27% of 55,37.50% of 32,156,644
+74,3,10,1,True,3,800,0.002 seconds,3.468 seconds,,,0,800
+73,3,10,1,True,3,800,0.002 seconds,3.432 seconds,,,0,800
+75,3,10,1,True,3,800,0.002 seconds,3.411 seconds,,,0,800
+74,3,10,1,True,3,800,0.002 seconds,3.426 seconds,,,0,800
+73,3,10,1,True,3,800,0.002 seconds,3.466 seconds,,,0,800
+75,3,10,1,True,3,800,0.002 seconds,3.403 seconds,,,0,800
+78,3,11,1,True,3,800,0.002 seconds,3.402 seconds,,,0,800
+79,3,11,1,True,3,800,0.002 seconds,3.425 seconds,,,0,800
+75,3,10,1,True,3,800,0.002 seconds,3.522 seconds,,,0,800
+82,3,12,1,True,3,800,0.002 seconds,3.527 seconds,,,0,800
+83,3,12,1,True,3,800,0.002 seconds,3.402 seconds,,,0,800
+80,3,11,1,True,3,800,0.002 seconds,3.326 seconds,,,0,800
+86,3,13,1,True,3,800,0.002 seconds,3.401 seconds,,,0,800
+87,3,13,1,True,3,800,0.002 seconds,3.354 seconds,,,0,800
+84,3,12,1,True,3,800,0.002 seconds,3.417 seconds,,,0,800
+88,3,13,1,True,3,800,0.002 seconds,3.348 seconds,,,0,800
+88,3,13,1,True,3,800,0.002 seconds,3.471 seconds,,,0,800
+92,3,14,1,True,3,800,0.002 seconds,3.449 seconds,,,0,800
+93,3,14,1,True,3,800,0.002 seconds,3.384 seconds,,,0,800
+93,3,14,1,True,3,800,0.002 seconds,3.407 seconds,,,0,800
+93,3,14,1,True,3,800,0.002 seconds,3.410 seconds,,,0,800
+97,3,15,1,True,4,1000,0.011 seconds,4.255 seconds,,,0,1000
+98,3,15,1,True,4,1000,0.011 seconds,4.268 seconds,,,0,1000
+98,3,15,1,True,4,1000,0.011 seconds,4.297 seconds,,,0,1000
+98,3,15,1,True,4,1000,0.011 seconds,4.390 seconds,,,0,1000
+100,3,15,1,True,4,1000,0.011 seconds,4.356 seconds,14.29% of 56,5.56% of 36,297,703
+101,3,15,1,True,4,1000,0.011 seconds,4.320 seconds,14.29% of 56,5.56% of 36,357,643
+102,3,15,1,True,3,800,0.002 seconds,3.482 seconds,14.29% of 56,5.56% of 36,281,519
+103,3,15,1,True,2,200,0.001 seconds,0.870 seconds,14.29% of 56,5.56% of 36,80,120

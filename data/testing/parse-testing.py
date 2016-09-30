@@ -78,9 +78,10 @@ class Data:
         print(self.pass_num, end=",")
         print(self.fail_num)
     def dump_header(self):
-        print("seg_size, proc_num, branch_num, loop_num, compilible,\
-        var_num, test_num, gen_time, total_time, stmt_cov, branch_cov,\
-        pass_num, fail_num")
+        print("seg_size, proc_num, branch_num, loop_num, compilible", end="")
+        print("var_num, test_num, gen_time, total_time,", end="")
+        print("stmt_cov, branch_cov,", end="")
+        print("pass_num, fail_num")
 
 data = Data()
 data.dump_header()
@@ -99,7 +100,8 @@ for line in f:
     if line.find("Loop Number") is not -1:
         data.loop_num = int(line.split(':')[1])
     if line.find("Compile") is not -1:
-        if (line.split(':')[1].strip() is "true"):
+        # print (line.split(':')[1].strip())
+        if line.split(':')[1].strip() == "true":
             data.compilible = True
         else:
             data.compilible = False
