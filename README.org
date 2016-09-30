@@ -44,6 +44,7 @@ make
 Create system type tagfile:
 #+BEGIN_EXAMPLE
 make systype.tags
+./setup.sh
 #+END_EXAMPLE
 
 Create local config.h:

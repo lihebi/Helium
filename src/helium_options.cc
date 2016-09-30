@@ -87,6 +87,8 @@ HeliumOptions::HeliumOptions() {
 
     ("print-benchmark-name", po::value<bool>()->default_value(false), "print benchmark running")
     ("print-segment-meta", po::value<bool>()->default_value(false), "print meta data for segment, including size, #proc, #branch, #loop")
+    ("print-test-meta", po::value<bool>()->default_value(false),
+     "print the testing data, including input number, generation time, total time used, stmt-cov, branch-cov, pass number, failure number")
 
     ("print-main", po::value<bool>()->default_value(false), "print main function")
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED

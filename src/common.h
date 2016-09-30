@@ -12,6 +12,9 @@
 
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 extern const std::set<std::string> c_common_keywords;
 extern const std::set<std::string> c_extend_keywords;

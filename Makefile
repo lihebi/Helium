@@ -68,7 +68,7 @@ CFLAGS := -g -Wall --std=c++11 # -fsanitize=address
 C_INCLUDE := -Isrc
 C_LIB := -pthread
 # C_LIB += -L/usr/lib -L/usr/local/lib
-C_LIB += -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex # other boost libraries used in Helium
+C_LIB += -lboost_program_options -lboost_system -lboost_filesystem -lboost_regex -lboost_timer # other boost libraries used in Helium
 C_LIB += -lpugixml
 C_LIB += -lctags # 3rd party library, shipped with source code
 C_LIB += -lgtest -lgtest_main

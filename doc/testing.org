@@ -1,0 +1,28 @@
+#+TITLE: Testing Design document
+
+Oh, by the way, I want to do research independent because:
+- I can write down document the way I like, in the format I want, place them at the place I prefer.
+- I can do really fast forward and change document accordingly.
+- After I feel everything is ready, I can gather all the documents and write a paper.
+
+I have plenty of time to follow this.
+
+The testing part has:
+- random testing, basically give the number
+- pairwise testing: given the pool of possible inputs for the variables (types), there will be a fixed number of tests
+- equivalent partition?
+- symbolic execution?
+
+
+Stack:
+- make the random testing goes through every step: coverage, testing results
+- go to swim
+- implement pairwise
+- research into equivalent partition
+
+- 342 homework 5
+- 572 lab 2
+
+- write up the risks!
+
+Today's work done!

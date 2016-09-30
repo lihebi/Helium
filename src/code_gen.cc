@@ -257,6 +257,7 @@ std::string CodeGen::GetMakefile() {
      "-L$(HOME)/github/helium-lib/lib -lgnu " // gnulib library
      : "")
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
+    + "-fprofile-arcs -ftest-coverage " // gcov coverage
     + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
     + "\trm -rf *.out\n"

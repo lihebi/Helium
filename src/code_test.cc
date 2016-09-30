@@ -5,8 +5,18 @@
 #include "utils/utils.h"
 #include "helium_options.h"
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 
 #include <iostream>
+#include <boost/timer/timer.hpp>
+using boost::timer::cpu_timer;
+using boost::timer::cpu_times;
+CodeTester::CodeTester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs)
+  : m_exe_folder(exe_folder), m_exe(exe), m_inputs(inputs) {
+}
 
 
 void CodeTester::genTestSuite() {
@@ -14,6 +24,8 @@ void CodeTester::genTestSuite() {
   int test_number = HeliumOptions::Instance()->GetInt("test-number");
   m_test_suites.clear();
   freeTestSuite();
+  cpu_timer timer;
+  timer.start();
   m_test_suites.resize(test_number);
   for (auto input : m_inputs) {
     std::string var = input.first;
@@ -26,17 +38,30 @@ void CodeTester::genTestSuite() {
       m_test_suites[i].Add(var, spec);
     }
   }
+
+  if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
+    std::cout << "Test Input Number: " << m_test_suites.size() << "\n";
+    cpu_times time = timer.elapsed();
+    std::cout << "Test Generation Time: " << time.wall << "\n";
+  }
+  
   helium_print_trace("End of CodeTester::genTestSuite");
 }
 
 void CodeTester::Test() {
   helium_print_trace("CodeTester::Test");
   genTestSuite();
-  utils::create_folder(m_exe_folder + "/input");
-  utils::create_folder(m_exe_folder + "/tests");
-    
+  utils::create_folder((m_exe_folder / "input").string());
+  utils::create_folder((m_exe_folder / "tests").string());
+
+  cpu_timer timer;
+  timer.start();
+
+  // TODO in analyzer, calculate failure due to context
+  int pass_ct=0;
+  int fail_ct=0;
   for (int i=0;i<(int)m_test_suites.size();i++) {
-    std::string cmd = m_exe;
+    std::string cmd = (m_exe_folder / m_exe).string();
     int status;
     TestSuite suite = m_test_suites[i];
 
@@ -47,7 +72,7 @@ void CodeTester::Test() {
     std::string input = suite.GetInput();
     // Run the program
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
-    utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt", input);
+    utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);
 
     if (status == 0) {
       if (HeliumOptions::Instance()->GetBool("print-test-info")) {
@@ -56,9 +81,11 @@ void CodeTester::Test() {
       if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
         utils::print(".", utils::CK_Green);
       }
+      pass_ct++;
       // ret->AddOutput(output, true);
       output += "HELIUM_TEST_SUCCESS = true\n";
     } else {
+      fail_ct++;
       if (HeliumOptions::Instance()->GetBool("print-test-info")) {
         utils::print("test failure\n", utils::CK_Red);
       }
@@ -70,15 +97,34 @@ void CodeTester::Test() {
     }
 
     // For input, and output, log them out only
-    std::string in_file = m_exe_folder + "/tests/in-" + std::to_string(i) + ".txt";
-    std::string out_file = m_exe_folder + "/tests/out-" + std::to_string(i) + ".txt";
-    utils::write_file(in_file, suite.GetSpec());
-    utils::write_file(out_file, output);
+    fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");
+    fs::path out_file = m_exe_folder / "tests" / ("out-" + std::to_string(i) + ".txt");
+    utils::write_file(in_file.string(), suite.GetSpec());
+    utils::write_file(out_file.string(), output);
 
   }
   if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
     std::cout << "\n";
   }
+
+  if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
+    cpu_times t = timer.elapsed();
+    std::cout << "Testing Time: " << t.wall << "\n";
+
+    // TODO coverage
+    std::string cmd;
+    cmd = "cd " + m_exe_folder.string() + " && gcov main.c";
+    std::string out = utils::new_exec(cmd.c_str());
+    fs::path gcov_file = m_exe_folder / "main.c.gcov";
+    // TODO read gcov_file to get more information
+    std::cout << "Coverage (gcov) Information: " << "\n";
+    std::cout << out << "\n";
+
+    std::cout << "Number of Pass Test: " << pass_ct << "\n";
+    std::cout << "Number of Fail Test: " << fail_ct << "\n";
+
+  }
+  
   // return ret;
 }
 
@@ -94,66 +140,66 @@ void CodeTester::freeTestSuite() {
 
 
 
-void CodeTester::Analyze(TestResult *test_result) {
-  helium_print_trace("CodeTester::Analyze");
-  test_result->PrepareData();
-  // HEBI Generating CSV file
-  std::string csv = test_result->GenerateCSV();
-  // This is The whole IO file
-  // I also want to write the valid IO file
-  std::string csv_file = m_exe_folder + "/io.csv";
-  utils::write_file(csv_file, csv);
-  std::cout << "Output to: " << csv_file   << "\n";
-  if (HeliumOptions::Instance()->Has("print-csv")) {
-    std::string cmd = "column -s , -t " + csv_file;
-    std::string output = utils::exec(cmd.c_str());
-    std::cout << output  << "\n";
-  }
-  test_result->GetInvariants();
-  test_result->GetPreconditions();
-  test_result->GetTransferFunctions();
+// void CodeTester::Analyze(TestResult *test_result) {
+//   helium_print_trace("CodeTester::Analyze");
+//   test_result->PrepareData();
+//   // HEBI Generating CSV file
+//   std::string csv = test_result->GenerateCSV();
+//   // This is The whole IO file
+//   // I also want to write the valid IO file
+//   fs::path csv_file = m_exe_folder / "io.csv";
+//   utils::write_file(csv_file.string(), csv);
+//   std::cout << "Output to: " << csv_file.string()   << "\n";
+//   if (HeliumOptions::Instance()->Has("print-csv")) {
+//     std::string cmd = "column -s , -t " + csv_file.string();
+//     std::string output = utils::exec(cmd.c_str());
+//     std::cout << output  << "\n";
+//   }
+//   test_result->GetInvariants();
+//   test_result->GetPreconditions();
+//   test_result->GetTransferFunctions();
   
-  // Analyzer analyzer(csv_file, m_seg->GetConditions());
-  Analyzer analyzer(csv_file, {});
-  // TODO NOW
-  // TestSummary summary = analyzer.GetSummary();
-  // if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
-  //   // hard to trigger, go to simplify approach
-  //   simplify();
-  // }
-  std::vector<std::string> invs = analyzer.GetInvariants();
-  std::vector<std::string> pres = analyzer.GetPreConditions();
-  std::vector<std::string> trans = analyzer.GetTransferFunctions();
-  if (HeliumOptions::Instance()->Has("print-analysis-result")) {
-    std::cout << "== invariants"  << "\n";
-    for (auto &s : invs) {
-      std::cout << "\t" << s  << "\n";
-    }
-    std::cout << "== pre condtions"  << "\n";
-    for (auto &s : pres) {
-      std::cout << "\t" << s  << "\n";
-    }
-    std::cout << "== transfer functions ------"  << "\n";
-    for (auto &s : trans) {
-      std::cout << "\t" << s  << "\n";
-    }
+//   // Analyzer analyzer(csv_file, m_seg->GetConditions());
+//   Analyzer analyzer(csv_file.string(), {});
+//   // TODO NOW
+//   // TestSummary summary = analyzer.GetSummary();
+//   // if ((double)(summary.reach_poi_test_success + summary.reach_poi_test_success) / summary.total_test < 0.1) {
+//   //   // hard to trigger, go to simplify approach
+//   //   simplify();
+//   // }
+//   std::vector<std::string> invs = analyzer.GetInvariants();
+//   std::vector<std::string> pres = analyzer.GetPreConditions();
+//   std::vector<std::string> trans = analyzer.GetTransferFunctions();
+//   if (HeliumOptions::Instance()->Has("print-analysis-result")) {
+//     std::cout << "== invariants"  << "\n";
+//     for (auto &s : invs) {
+//       std::cout << "\t" << s  << "\n";
+//     }
+//     std::cout << "== pre condtions"  << "\n";
+//     for (auto &s : pres) {
+//       std::cout << "\t" << s  << "\n";
+//     }
+//     std::cout << "== transfer functions ------"  << "\n";
+//     for (auto &s : trans) {
+//       std::cout << "\t" << s  << "\n";
+//     }
 
-    // std::string cmd = "compare.py -f " + csv_file;
-    // std::string inv = utils::exec(cmd.c_str());
-    // std::cout << inv  << "\n";
-  }
+//     // std::string cmd = "compare.py -f " + csv_file;
+//     // std::string inv = utils::exec(cmd.c_str());
+//     // std::cout << inv  << "\n";
+//   }
 
 
-  // std::cout << "---- resolveQuery -----"  << "\n";
-  // m_query_resolved = resolveQuery(invs, pres, trans);
-  // if (m_query_resolved) {
-  //   std::cout << "== Query resolved!"  << "\n";
-  //   // output some information to use in paper
-  //   std::cout << "\t sig dir: " << m_sig_dir  << "\n";
-  //   std::cout << "\t search time: " << m_search_time  << "\n";
-  // }
-  // std::cout << "------ end of query resolving -----"  << "\n";
-}
+//   // std::cout << "---- resolveQuery -----"  << "\n";
+//   // m_query_resolved = resolveQuery(invs, pres, trans);
+//   // if (m_query_resolved) {
+//   //   std::cout << "== Query resolved!"  << "\n";
+//   //   // output some information to use in paper
+//   //   std::cout << "\t sig dir: " << m_sig_dir  << "\n";
+//   //   std::cout << "\t search time: " << m_search_time  << "\n";
+//   // }
+//   // std::cout << "------ end of query resolving -----"  << "\n";
+// }
 
 
 // bool CodeTester::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {

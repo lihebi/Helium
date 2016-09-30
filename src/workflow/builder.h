@@ -39,6 +39,9 @@ public:
   bool Success() {return m_success;}
   std::string GetExecutable();
   std::string GetDir() {return m_dir;}
+  std::string GetExecutableName() {
+    return "a.out";
+  }
 private:
   void preProcess();
   void postProcess();
