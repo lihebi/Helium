@@ -67,8 +67,8 @@ std::string ArrayType::GetOutputCode(std::string var) {
   return ret;
 }
 
-InputSpec *ArrayType::GenerateInput() {
-  helium_print_trace("ArrayType::GenerateInput");
+InputSpec *ArrayType::GenerateRandomInput() {
+  helium_print_trace("ArrayType::GenerateRandomInput");
   InputSpec *spec = NULL;
   if (!m_contained_type) {
     helium_log_warning("ArrayType::GetOutputCode with no contained type");
@@ -79,7 +79,7 @@ InputSpec *ArrayType::GenerateInput() {
     return NULL;
   }
   spec = new ArrayInputSpec();
-  InputSpec *tmp_spec = m_contained_type->GenerateInput();
+  InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
   spec->Add(tmp_spec);
   return spec;
 }
@@ -138,14 +138,14 @@ std::string PointerType::GetOutputCode(std::string var) {
   return ret;
 }
 
-InputSpec *PointerType::GenerateInput() {
-  helium_print_trace("PointerType::GenerateInput");
+InputSpec *PointerType::GenerateRandomInput() {
+  helium_print_trace("PointerType::GenerateRandomInput");
   if (!m_contained_type) {
-    helium_log_warning("PointerType::GenerateInput with no contained type");
+    helium_log_warning("PointerType::GenerateRandomInput with no contained type");
     return NULL;
   }
   InputSpec *spec = new PointerInputSpec();
-  InputSpec *tmp_spec = m_contained_type->GenerateInput();
+  InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
   spec->Add(tmp_spec);
   return spec;
 }
@@ -159,7 +159,13 @@ InputSpec *PointerType::GenerateInput() {
  */
 
 
-StrType::StrType() : PointerType("char") {}
+StrType::StrType() : PointerType("char") {
+  std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
+  for (int len : strlen_corners) {
+    std::string str = utils::rand_str(len);
+    m_corners.push_back(wrap(str));
+  }
+}
 
 StrType::~StrType() {}
 
@@ -197,8 +203,8 @@ std::string StrType::GetOutputCode(std::string var) {
   }
   return ret;
 }
-InputSpec *StrType::GenerateInput() {
-  helium_print_trace("StrType::GenerateInput");
+InputSpec *StrType::GenerateRandomInput() {
+  helium_print_trace("StrType::GenerateRandomInput");
   // std::cout << "1"  << "\n";
   static int max_strlen = HeliumOptions::Instance()->GetInt("max-strlen");
   // TODO at least a string? 0 here?
@@ -216,21 +222,21 @@ InputSpec *StrType::GenerateInput() {
   return new InputSpec(spec, raw);
 }
 
-std::string StrType::corner() {
-  std::set<int> strlen_choices = {1024, BUFSIZ};
-  std::set<int> additional;
-  for (int len : strlen_choices) {
-    additional.insert(len-2);
-    additional.insert(len-1);
-    additional.insert(len+1);
-    additional.insert(len+2);
-  }
-  strlen_choices.insert(additional.begin(), additional.end());
-  std::vector<int> v(strlen_choices.begin(), strlen_choices.end());
-  int r = utils::rand_int(0, v.size()-1);
-  std::string ret = utils::rand_str(v[r]);
-  return ret;
-}
+// std::string StrType::corner() {
+//   std::set<int> strlen_choices = {1024, BUFSIZ};
+//   std::set<int> additional;
+//   for (int len : strlen_choices) {
+//     additional.insert(len-2);
+//     additional.insert(len-1);
+//     additional.insert(len+1);
+//     additional.insert(len+2);
+//   }
+//   strlen_choices.insert(additional.begin(), additional.end());
+//   std::vector<int> v(strlen_choices.begin(), strlen_choices.end());
+//   int r = utils::rand_int(0, v.size()-1);
+//   std::string ret = utils::rand_str(v[r]);
+//   return ret;
+// }
 
 InputSpec *StrType::wrap(std::string str) {
   std::vector<std::string> list;
@@ -250,7 +256,7 @@ std::vector<InputSpec*> StrType::GeneratePairInput() {
     ret.push_back(wrap(str));
   }
   for (int i=0;i<5;i++) {
-    ret.push_back(GenerateInput());
+    ret.push_back(GenerateRandomInput());
   }
   return ret;
 }
@@ -287,8 +293,8 @@ std::string BufType::GetOutputCode(std::string var) {
   }
   return ret;
 }
-InputSpec *BufType::GenerateInput() {
-  helium_print_trace("BufType::GenerateInput");
+InputSpec *BufType::GenerateRandomInput() {
+  helium_print_trace("BufType::GenerateRandomInput");
   // TODO
   return NULL;
 }

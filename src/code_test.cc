@@ -4,6 +4,7 @@
 #include "utils/log.h"
 #include "utils/utils.h"
 #include "helium_options.h"
+#include "helper.h"
 
 #include <boost/filesystem.hpp>
 
@@ -19,43 +20,112 @@ CodeTester::CodeTester(std::string exe_folder, std::string exe, std::map<std::st
 }
 
 
-void CodeTester::genTestSuite() {
-  helium_print_trace("CodeTester::genTestSuite");
-  int test_number = HeliumOptions::Instance()->GetInt("test-number");
-  m_test_suites.clear();
-  freeTestSuite();
-  cpu_timer timer;
-  timer.start();
-  m_test_suites.resize(test_number);
-  for (auto input : m_inputs) {
-    std::string var = input.first;
-    Type *type = input.second;
-    if (!type) continue;
-    
-    for (int i=0;i<test_number;i++) {
-      InputSpec *spec = type->GenerateInput();
-      m_specs.insert(spec);
-      m_test_suites[i].Add(var, spec);
+std::vector<std::pair<InputSpec*, InputSpec*> > gen_pair(std::vector<InputSpec*> v1, std::vector<InputSpec*> v2) {
+  std::vector<std::pair<InputSpec*, InputSpec*> > ret;
+  for (int i=0;i<(int)v1.size();i++) {
+    for (int j=0;j<(int)v2.size();j++) {
+      ret.push_back({v1[i], v2[j]});
     }
   }
+  return ret;
+}
 
-  if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
-    std::cout << "Test Input Number: " << m_test_suites.size() << "\n";
-    cpu_times time = timer.elapsed();
-    std::cout << "Test Generation Time: " << time.wall << "\n";
+InputSpec *random_select(std::vector<InputSpec*> v) {
+  int r = utils::rand_int(0, v.size());
+  // should not have the following two cases
+  if (r == (int)v.size()) r--;
+  assert(r < (int)v.size());
+  return v[r];
+}
+
+void CodeTester::genTestSuite() {
+  helium_print_trace("CodeTester::genTestSuite");
+  freeTestSuite();
+  m_test_suites.clear();
+
+  std::string method = HeliumOptions::Instance()->GetString("test-generation-method");
+  if (method == "random") {
+    int test_number = HeliumOptions::Instance()->GetInt("random-test-number");
+    m_test_suites.resize(test_number);
+    for (auto input : m_inputs) {
+      std::string var = input.first;
+      Type *type = input.second;
+      if (!type) {
+        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
+        exit(1);
+      }
+      for (int i=0;i<test_number;i++) {
+        InputSpec *spec = type->GenerateRandomInput();
+        m_specs.insert(spec);
+        m_test_suites[i].Add(var, spec);
+      }
+    }
+  } else if (method == "pairwise") {
+    // for each input, generate a lot of tests by their GenPair method
+    // Haha
+    int corner_number = HeliumOptions::Instance()->GetInt("pairwise-corner-number");
+    int random_number = HeliumOptions::Instance()->GetInt("pairwise-random-number");
+    std::vector<std::vector<InputSpec*> > pairpool;
+    std::vector<std::string> varnames;
+    for (auto input : m_inputs) {
+      std::string var = input.first;
+      varnames.push_back(var);
+      Type *type = input.second;
+      if (!type) {
+        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
+        exit(1);
+      }
+
+      std::vector<InputSpec*> corner_inputs = type->GenerateCornerInputs(corner_number);
+      std::vector<InputSpec*> random_inputs = type->GenerateRandomInputs(random_number);
+      std::vector<InputSpec*> inputs;
+      inputs.insert(inputs.end(), corner_inputs.begin(), corner_inputs.end());
+      inputs.insert(inputs.end(), random_inputs.begin(), random_inputs.end());
+      pairpool.push_back(inputs);
+    }
+    // then, for every combination of any two variable, get a combination of them, and random choose for the rest of inputs
+    std::vector<TestSuite> test_suite_pool;
+    for (int i=0;i<(int)m_inputs.size();i++) {
+      for (int j=i+1;j<(int)m_inputs.size();j++) {
+        // pairwise i and j
+        std::vector<std::pair<InputSpec*, InputSpec*> > pairs = gen_pair(pairpool[i], pairpool[j]);
+        for (int m=0;m<(int)pairs.size();m++) {
+          std::pair<InputSpec*, InputSpec*> p = pairs[m];
+          TestSuite suite;
+          for (int n=0;n<(int)m_inputs.size();n++) {
+            if (n == i) {
+              suite.Add(varnames[n], p.first);
+            } else if (n == j) {
+              suite.Add(varnames[n], p.second);
+            } else {
+              suite.Add(varnames[n], random_select(pairpool[n]));
+            }
+          }
+          test_suite_pool.push_back(suite);
+        }
+      }
+    }
+    // select from the pool
+    int pairwise_test_number = HeliumOptions::Instance()->GetInt("pairwise-test-number");
+    if (pairwise_test_number < (int)test_suite_pool.size()) {
+      std::set<int> rv = utils::rand_ints(0, test_suite_pool.size(), pairwise_test_number);
+      for (int r : rv) {
+        m_test_suites.push_back(test_suite_pool[r]);
+      }
+    }
+  } else {
+    std::cerr << "EE: unsupported test generation method: " << method << "\n";
   }
-  
-  helium_print_trace("End of CodeTester::genTestSuite");
 }
 
 void CodeTester::Test() {
   helium_print_trace("CodeTester::Test");
-  genTestSuite();
-  utils::create_folder((m_exe_folder / "input").string());
-  utils::create_folder((m_exe_folder / "tests").string());
-
   cpu_timer timer;
   timer.start();
+  genTestSuite();
+  cpu_times test_gen_time = timer.elapsed();
+  utils::create_folder((m_exe_folder / "input").string());
+  utils::create_folder((m_exe_folder / "tests").string());
 
   // TODO in analyzer, calculate failure due to context
   int pass_ct=0;
@@ -106,22 +176,19 @@ void CodeTester::Test() {
   if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
     std::cout << "\n";
   }
+  cpu_times test_total = timer.elapsed();
 
   if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
-    cpu_times t = timer.elapsed();
-    std::cout << "Testing Time: " << t.wall << "\n";
+    std::cout << utils::PURPLE << "Test Meta:" << utils::RESET << "\n";
+    std::cout << "\t" << "Number of tests: " << m_test_suites.size() << "\n";
+    std::cout << "\t" << "Test Generation Time: " << boost::timer::format(test_gen_time, 3, "%w seconds") << "\n";
+    std::cout << "\t" << "Total Testing Time: " << boost::timer::format(test_total, 3, "%w seconds") << "\n";
+    Gcov gcov(m_exe_folder, "main.c");
+    std::cout << "\t" << "Stmt Coverage: " << gcov.GetStmtCoverage() << "\n";
+    std::cout << "\t" << "Branch Coverage: " << gcov.GetBranchCoverage() << "\n";
 
-    // TODO coverage
-    std::string cmd;
-    cmd = "cd " + m_exe_folder.string() + " && gcov main.c";
-    std::string out = utils::new_exec(cmd.c_str());
-    fs::path gcov_file = m_exe_folder / "main.c.gcov";
-    // TODO read gcov_file to get more information
-    std::cout << "Coverage (gcov) Information: " << "\n";
-    std::cout << out << "\n";
-
-    std::cout << "Number of Pass Test: " << pass_ct << "\n";
-    std::cout << "Number of Fail Test: " << fail_ct << "\n";
+    std::cout << "\t" << "Number of Pass Test: " << pass_ct << "\n";
+    std::cout << "\t" << "Number of Fail Test: " << fail_ct << "\n";
 
   }
   

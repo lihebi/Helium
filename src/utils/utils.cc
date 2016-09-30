@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <iterator>
 #include <fstream>
 
 namespace fs = boost::filesystem;
@@ -688,10 +689,33 @@ void utils::seed_rand() {
   srand(time(0));
 }
 
+/**
+ * Return a random integer that is in range [low, high)
+ * TODO Needs some tests
+ */
 int utils::rand_int(int low, int high) {
   assert(high >= low);
   int a = rand();
-  return a % (high - low + 1) + low;
+  return a % (high - low) + low;
+}
+
+/**
+ * Generate [num] number of random int, in [low, high), without duplication
+ */
+std::set<int> utils::rand_ints(int low, int high, int num) {
+  std::set<int> ret;
+  while (high-- > low) {
+    ret.insert(high);
+  }
+  int to_remove = num - ret.size();
+  int r;
+  while (to_remove-- > 0) {
+    r = rand_int(0, ret.size());
+    auto it = ret.begin();
+    std::advance(it, r);
+    ret.erase(it);
+  }
+  return ret;
 }
 
 TEST(UtilsTestCase, RandIntTest) {

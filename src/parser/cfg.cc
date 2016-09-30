@@ -492,10 +492,14 @@ std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
     return m_back_edges[node];
   }
   // ICFG
-  std::cout << "ICFG"  << "\n";
   ASTNode *astnode = node->GetASTNode();
-  assert(astnode->Kind() == ANK_Function);
+  // assert(astnode->Kind() == ANK_Function);
+  if (astnode->Kind() != ANK_Function) {
+    std::cerr << "EE: the CFG node is not a function, but has no predecessor." << "\n";
+    return ret;
+  }
   std::string func = astnode->GetAST()->GetFunctionName();
+  std::cout << "Getting interprocedure predecessor from ICFG, function: " << func  << "\n";
   std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
   for (std::string caller_func : caller_funcs) {
     AST *ast = Resource::Instance()->GetAST(caller_func);
@@ -507,6 +511,7 @@ std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
       ret.insert(cfgnode);
     }
   }
+  std::cout << "Predecessor count: " << ret.size() << "\n";
   return ret;
 }
 

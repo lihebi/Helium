@@ -8,7 +8,14 @@
  * IntType
  *******************************/
 
-IntType::IntType() {}
+IntType::IntType() {
+  // construct InputSpec for all of the corners
+  // put them into m_corners
+  std::vector<int> corners = Corner::Instance()->GetIntCorner();
+  for (int corner : corners) {
+    m_corners.push_back(wrap(corner));
+  }
+}
 
 IntType::~IntType() {}
 
@@ -34,7 +41,7 @@ std::string IntType::GetOutputCode(std::string var) {
   return ret;
 }
 
-InputSpec *IntType::GenerateInput() {
+InputSpec *IntType::GenerateRandomInput() {
   static int int_min = HeliumOptions::Instance()->GetInt("int-min");
   static int int_max = HeliumOptions::Instance()->GetInt("int-max");
   static int max_array_size = HeliumOptions::Instance()->GetInt("max-array-size");
@@ -51,29 +58,6 @@ InputSpec *IntType::wrap(int value) {
   std::string raw = std::to_string(value);
   return new InputSpec(spec, raw);
 }
-
-int IntType::corner() {
-  std::set<int> choices = {-2, -1, 0, 1, 2, 10, 100, 100};
-  for (int i=0;i<10;i++) {
-    choices.insert(pow(2, i));
-  }
-  choices.insert(BUFSIZ);
-  // TODO literal values from program
-  std::set<int> additional;
-  for (int a : choices) {
-    additional.insert(a-2);
-    additional.insert(a-1);
-    additional.insert(a+1);
-    additional.insert(a+2);
-  }
-  choices.insert(additional.begin(), additional.end());
-  std::vector<int> v(choices.begin(), choices.end());
-  // choose from choices
-  int r = utils::rand_int(0, v.size()-1);
-  return v[r];
-}
-
-
 /**
  * Generate all the inputs used for pairwise testing
  * 1. some corner cases
@@ -82,13 +66,12 @@ int IntType::corner() {
 std::vector<InputSpec*> IntType::GeneratePairInput() {
   std::vector<InputSpec*> ret;
   std::vector<int> corners = Corner::Instance()->GetIntCorner();
-  ret.push_back(GenerateInput());
+  ret.push_back(GenerateRandomInput());
   for (int corner : corners) {
     ret.push_back(wrap(corner));
   }
   return ret;
 }
-
 
 /**
  * Bool
@@ -123,7 +106,7 @@ std::string BoolType::GetOutputCode(std::string var) {
   return ret;
 }
 
-InputSpec *BoolType::GenerateInput() {
+InputSpec *BoolType::GenerateRandomInput() {
   bool b = utils::rand_bool();
   std::string spec = "{bool: " + std::to_string(b) + "}";
   std::string raw = std::to_string(b);
@@ -136,7 +119,12 @@ InputSpec *BoolType::GenerateInput() {
  * CharType
  *******************************/
 
-CharType::CharType() {}
+CharType::CharType() {
+  std::vector<char> corners = Corner::Instance()->GetCharCorner();
+  for (char c : corners) {
+    m_corners.push_back(wrap(c));
+  }
+}
 
 CharType::~CharType() {}
 
@@ -160,17 +148,11 @@ std::string CharType::GetOutputCode(std::string var) {
   return ret;
 }
 
-InputSpec *CharType::GenerateInput() {
+InputSpec *CharType::GenerateRandomInput() {
   char c = utils::rand_char();
   std::string spec = "{char: " + std::to_string(c) + "}";
   std::string raw = std::to_string(c);
   return new InputSpec(spec, raw);
-}
-
-char CharType::corner() {
-  std::vector<char> choices = {'\0', '\t', '\v', '\n'};
-  int r = utils::rand_int(0, choices.size()-1);
-  return choices[r];
 }
 
 InputSpec *CharType::wrap(char c) {
@@ -186,7 +168,7 @@ std::vector<InputSpec*> CharType::GeneratePairInput() {
     ret.push_back(wrap(c));
   }
   for (int i=0;i<5;i++) {
-    ret.push_back(GenerateInput());
+    ret.push_back(GenerateRandomInput());
   }
   return ret;
 }

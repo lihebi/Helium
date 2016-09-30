@@ -44,7 +44,7 @@ std::string ArgCVType::GetOutputCode(std::string var) {
   ret += m_argc->GetOutputCode("argc");
   return ret;
 }
-InputSpec* ArgCVType::GenerateInput() {
+InputSpec* ArgCVType::GenerateRandomInput() {
   // std::vector<char> m_bools;
   // std::vector<char> m_named_args;
   ArgCVInputSpec *spec = new ArgCVInputSpec();
@@ -59,13 +59,13 @@ InputSpec* ArgCVType::GenerateInput() {
   // named_args
   static Type *char_type = TypeFactory::CreateType("char*");
   for (char c : m_named_args) {
-    InputSpec *tmp_spec = char_type->GenerateInput();
+    InputSpec *tmp_spec = char_type->GenerateRandomInput();
     spec->AddNamedArg(std::to_string(c), tmp_spec);
   }
   // other args
   int other_arg_count = utils::rand_int(0, 3);
   for (int i=0;i<other_arg_count;i++) {
-    InputSpec *tmp_spec = char_type->GenerateInput();
+    InputSpec *tmp_spec = char_type->GenerateRandomInput();
     spec->AddArg(tmp_spec);
   }
   return spec;

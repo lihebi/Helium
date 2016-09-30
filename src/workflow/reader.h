@@ -51,7 +51,5 @@ private:
   static int m_cur_seg_no; // statically +1 to record current segment
 };
 
-int get_true_linum(std::string filename, int linum);
-
 
 #endif /* READER_H */

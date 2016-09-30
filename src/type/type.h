@@ -43,17 +43,25 @@ class Type {
 public:
   Type() {}
   virtual ~Type() {}
-  virtual InputSpec* GenerateInput() = 0;
+  virtual InputSpec* GenerateRandomInput() = 0;
+  std::vector<InputSpec*> GenerateRandomInputs(int num=1) {
+    std::vector<InputSpec*> ret;
+    while (num-- > 0) {
+      ret.push_back(GenerateRandomInput());
+    }
+    return ret;
+  }
   virtual std::string GetDeclCode(std::string var) = 0;
   virtual std::string GetInputCode(std::string var) = 0;
   virtual std::string GetOutputCode(std::string var) = 0;
+  virtual std::vector<InputSpec*> GenerateCornerInputs(int limit=-1);
   // overwrite when possible!
   // The default implementaiton is just generate multiple times
   virtual std::vector<InputSpec*> GeneratePairInput() {
     std::vector<InputSpec*> ret;
     // TODO magic number
     for (int i=0;i<10;i++) {
-      InputSpec *spec = GenerateInput();
+      InputSpec *spec = GenerateRandomInput();
       ret.push_back(spec);
     }
     return ret;
@@ -66,6 +74,7 @@ public:
   virtual std::string GetRaw() = 0;
   virtual std::string ToString() = 0;
 protected:
+  std::vector<InputSpec*> m_corners;
 private:
 };
 
@@ -108,7 +117,7 @@ class UnknownType : public Type {
 public:
   UnknownType(std::string str) : m_raw(str) {}
   virtual ~UnknownType() {}
-  virtual InputSpec* GenerateInput() { return NULL;}
+  virtual InputSpec* GenerateRandomInput() { return NULL;}
   virtual std::string GetDeclCode(std::string var) {
     std::string ret;
     ret += "// UnknownType::GetDeclCode: " + var + ";\n";
@@ -174,7 +183,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {
     std::string ret;
     if (m_contained_type) {
@@ -200,7 +209,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {
     std::string ret;
     if (m_contained_type) {
@@ -229,14 +238,13 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {
     return "StrType";
   }
 protected:
 private:
-  std::string corner();
   InputSpec* wrap(std::string s);
 };
 
@@ -247,7 +255,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string ToString() override {return "BufType";}
 protected:
 private:
@@ -265,13 +273,12 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "int";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "IntType";}
 protected:
 private:
-  int corner();
   // wrap value into a InputSpec
   InputSpec *wrap(int value);
 };
@@ -280,7 +287,7 @@ class CharType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "char";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "CharType";}
@@ -288,7 +295,6 @@ public:
   CharType();
   virtual ~CharType();
 private:
-  char corner();
   InputSpec* wrap(char c);
 };
 
@@ -296,7 +302,7 @@ class BoolType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "bool";}
   virtual std::string ToString() override {return "BoolType";}
 public:
@@ -317,7 +323,7 @@ public:
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateInput() override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {
     return "";
   }

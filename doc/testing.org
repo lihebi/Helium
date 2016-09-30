@@ -16,7 +16,6 @@ The testing part has:
 
 Stack:
 - make the random testing goes through every step: coverage, testing results
-- go to swim
 - implement pairwise
 - research into equivalent partition
 

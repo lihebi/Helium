@@ -4,6 +4,7 @@
 #include "resolver/snippet_db.h"
 #include "utils/log.h"
 #include "helium_options.h"
+#include "utils/utils.h"
 
 #include <iostream>
 
@@ -78,36 +79,36 @@ std::string CodeGen::GetMain() {
       other_func += code;
       other_func += "\n";
     }
-
-    if (HeliumOptions::Instance()->GetBool("print-segment-meta")) {
-      int loc = 0;
-      int branch_ct = 0;
-      int loop_ct = 0;
-      for (auto m : m_data) {
-        std::string code = m.first->GetCode(m.second);
-        for (ASTNode *node : m.second) {
-          if (node->Kind() == ANK_If) {
-            branch_ct++;
-          }
-          if (node->Kind() == ANK_While
-              || node->Kind() == ANK_For
-              || node->Kind() == ANK_Do) {
-            loop_ct++;
-          }
-        }
-        loc += std::count(code.begin(), code.end(), '\n');
-      }
-      std::cout << "Segment Size: " << loc << "\n";
-      std::cout << "Procedure Number: " << m_data.size() << "\n";
-      std::cout << "Branch Number: " << branch_ct << "\n";
-      std::cout << "Loop Number: " << loop_ct << "\n";
-    }
-    if (HeliumOptions::Instance()->GetBool("print-segment-branch-number")) {
-    }
   }
   
   ret += other_func;
   ret += main_func;
+
+  if (HeliumOptions::Instance()->GetBool("print-segment-meta")) {
+    int loc = 0;
+    int branch_ct = 0;
+    int loop_ct = 0;
+    for (auto m : m_data) {
+      std::string code = m.first->GetCode(m.second);
+      for (ASTNode *node : m.second) {
+        if (node->Kind() == ANK_If) {
+          branch_ct++;
+        }
+        if (node->Kind() == ANK_While
+            || node->Kind() == ANK_For
+            || node->Kind() == ANK_Do) {
+          loop_ct++;
+        }
+      }
+      loc += std::count(code.begin(), code.end(), '\n');
+    }
+    std::cout << utils::PURPLE << "Segment Meta:" << "\n" << utils::RESET;
+
+    std::cout << "\t" << "Segment Size: " << loc << "\n";
+    std::cout << "\t" << "Procedure Number: " << m_data.size() << "\n";
+    std::cout << "\t" << "Branch Number: " << branch_ct << "\n";
+    std::cout << "\t" << "Loop Number: " << loop_ct << "\n";
+  }
   return ret;
 }
 std::string CodeGen::GetSupport() {
@@ -260,7 +261,7 @@ std::string CodeGen::GetMakefile() {
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
     + SystemResolver::Instance()->GetLibs() + "\n"
     + "clean:\n"
-    + "\trm -rf *.out\n"
+    + "\trm -rf *.out *.gcda *.gcno\n"
     + "test:\n"
     + "\tbash test.sh";
     

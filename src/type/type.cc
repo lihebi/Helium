@@ -3,6 +3,21 @@
 #include "utils/log.h"
 #include "resolver/snippet_db.h"
 
+/**
+ * select from the corner cases
+ * @param limit return up to this number of inputs. -1 means no limit, return all corner cases
+ */
+std::vector<InputSpec*> Type::GenerateCornerInputs(int limit) {
+  if (limit == -1) return m_corners;
+  std::set<int> idxes = utils::rand_ints(0, m_corners.size(), limit);
+  std::vector<InputSpec*> ret;
+  for (int idx : idxes) {
+    ret.push_back(m_corners[idx]);
+  }
+  return ret;
+}
+
+
 
 bool type_has_word(std::string type, std::string word) {
   boost::regex reg("\\b" + word + "\\b");

@@ -31,6 +31,7 @@
 #include "code_test.h"
 #include "code_gen.h"
 #include "code_analyze.h"
+#include "helper.h"
 
 namespace fs = boost::filesystem;
 
@@ -40,14 +41,21 @@ using namespace utils;
 
 
 Helium::Helium(PointOfInterest *poi) {
+  std::cout << "Starting Helium on point of interest: " << poi->GetPath() << ":" << poi->GetLinum() << "\n";
+
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(poi->GetPath());
   int linum = get_true_linum(poi->GetPath(), poi->GetLinum());
-  std::cout << "true line number: " <<  linum  << "\n";
+  std::cout << "Converted linum after preprocessing: " << linum << "\n";
+  
   if (poi->GetType() == "stmt") {
     XMLNode node = find_node_on_line(doc->document_element(),
-                                          {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
-                                          linum);
-    assert(node);
+                                     {NK_Stmt, NK_ExprStmt, NK_DeclStmt,
+                                         NK_Return, NK_Break, NK_Continue},
+                                     linum);
+    if (!node) {
+      std::cerr << "EE: Cannot find SrcML node based on POI." << "\n";
+      exit(1);
+    }
     XMLNode func = get_function_node(node);
     std::string func_name = function_get_name(func);
     int func_linum = get_node_line(func);
@@ -113,6 +121,15 @@ void Helium::process() {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
     Query *query = m_worklist.front();
     m_worklist.pop_front();
+    std::string label = query->New()->GetLabel();
+    if (label.size() > 10) {
+      label = label.substr(0,10);
+      label += "...";
+    }
+    std::cout << CYAN << "Processing query with the new node: "
+              << label << "."
+              << m_worklist.size() << " remaining in worklist.""\n"
+              << RESET;
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     // FIXME how to supply testing profile?
@@ -130,7 +147,9 @@ void Helium::process() {
     builder.SetMakefile(query->GetMakefile());
     builder.Write();
     builder.Compile();
-    std::cout << "Code Written to: " << builder.GetDir()  << "\n";
+    if (HeliumOptions::Instance()->GetBool("print-code-output-location")) {
+      std::cout << "\t" << "Code Written to: " << builder.GetDir()  << "\n";
+    }
     if (builder.Success()) {
       utils::print("compile success\n", utils::CK_Green);
       std::string executable = builder.GetExecutable();

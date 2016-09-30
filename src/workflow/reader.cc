@@ -65,39 +65,6 @@ void ProcessSeg(Segment *seg) {
   }
 }
 
-/**
- * Get true linum in consideration of line marker
- */
-int get_true_linum(std::string filename, int linum) {
-  helium_print_trace("get_true_linum");
-  // std::cout << filename << ':' << linum  << "\n";
-  std::string content = utils::read_file(filename);
-  std::vector<std::string> sp = utils::split(content, '\n');
-  int ret = linum;
-  for (int idx=0;idx<(int)sp.size();idx++) {
-    std::string line = sp[idx];
-    if (line.length() > 0 && line[0] == '#') {
-      std::vector<std::string> line_marker = utils::split(line);
-      if (line_marker.size() > 2) {
-        std::string linum_str = line_marker[1];
-        assert(utils::is_number(linum_str));
-        int marker_linum = std::stoi(linum_str);
-        if (marker_linum <= linum) {
-          // update ret
-          ret = idx + linum - marker_linum + 2;
-          std::cout << "marker: " << marker_linum << " linum: " << linum << " current: " << idx  << "\n";
-        } else {
-          return ret;
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-
-
-
 
 /**
  * 

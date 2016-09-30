@@ -105,7 +105,7 @@ std::vector<std::string> get_c_files(std::string folder) {
 }
 
 void print_utilities(std::string folder) {
-  if (HeliumOptions::Instance()->Has("print-ast")) {
+  if (HeliumOptions::Instance()->Has("show-ast")) {
     if (!utils::file_exists(folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -119,7 +119,7 @@ void print_utilities(std::string folder) {
     exit(0);
   }
 
-  if (HeliumOptions::Instance()->Has("print-cfg")) {
+  if (HeliumOptions::Instance()->Has("show-cfg")) {
     if (!utils::file_exists(folder)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
@@ -135,7 +135,7 @@ void print_utilities(std::string folder) {
     }
     exit(0);
   }
-  if (HeliumOptions::Instance()->Has("print-callgraph")) {
+  if (HeliumOptions::Instance()->Has("show-callgraph")) {
     SnippetDB::Instance()->PrintCG();
     exit(0);
   }
@@ -145,7 +145,7 @@ void print_utilities(std::string folder) {
    * 1. headers used
    * 2. header dependence
    */
-  if (HeliumOptions::Instance()->Has("print-meta")) {
+  if (HeliumOptions::Instance()->Has("show-meta")) {
     std::cout << "== Helium Meta Data Printer =="  << "\n";
     std::cout << "== Headers"  << "\n";
     // 0
@@ -183,7 +183,7 @@ void print_utilities(std::string folder) {
   std::vector<std::string> files = get_c_files(folder);
 
 
-  if (HeliumOptions::Instance()->Has("print-segments")) {
+  if (HeliumOptions::Instance()->Has("show-segments")) {
     assert(false);
     for (auto it=files.begin();it!=files.end();it++) {
       Reader reader(*it);
@@ -192,7 +192,7 @@ void print_utilities(std::string folder) {
     }
     exit(0);
   }
-  if (HeliumOptions::Instance()->Has("print-segment-info")) {
+  if (HeliumOptions::Instance()->Has("show-segment-info")) {
     assert(false);
     for (auto it=files.begin();it!=files.end();it++) {
       Reader reader(*it);
@@ -390,6 +390,9 @@ int main(int argc, char* argv[]) {
   for (PointOfInterest *poi : pois) {
     Helium helium(poi);
   }
+
+  std::cout << "End of Helium" << "\n";
+
 
   return 0;
 }

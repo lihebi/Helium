@@ -69,7 +69,7 @@ HeliumOptions::HeliumOptions() {
     ("print-trace", po::value<bool>()->default_value(false), "print trace")
     ("print-warning", po::value<bool>()->default_value(false), "print warning")
 
-    ("print-output-path", po::value<bool>()->default_value(false), "print output path")
+    ("print-code-output-location", po::value<bool>()->default_value(false), "print output path")
 
     ("print-compile-error", po::value<bool>()->default_value(false), "print out compile error")
     ("print-compile-info", po::value<bool>()->default_value(false), "print compile success or error")
@@ -112,30 +112,26 @@ HeliumOptions::HeliumOptions() {
 
     ("helium-home", po::value<std::string>(), "Helium home folder")
 
-    ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
 
     ("address-sanitizer", po::value<bool>()->default_value(false), "use andress-sanitizer")
     ("gnulib", po::value<bool>()->default_value(false), "use gnulib in makefile")
 
     ("run-test", po::value<bool>()->default_value(false), "whether to run test or not")
-    ("test-number", po::value<int>(), "Number of test")
+    ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
+    ("test-generation-method", po::value<std::string>(), "test generation method")
+    ("random-test-number", po::value<int>(), "Number of test")
+    ("pairwise-test-number", po::value<int>(), "randomly select up to this number of tests from the pool of pairwise")
+    ("pairwise-corner-number", po::value<int>(), "up to how many corner cases are used in pairwise")
+    ("pairwise-random-number", po::value<int>(), "how many random values added to pairwise pool")
+    ("test-timeout", po::value<int>(), "timeout for a test")
 
-    ("max-strlen", po::value<int>(), "max strlen for test generation")
-    ("int-min", po::value<int>(), "int min")
-    ("int-max", po::value<int>(), "int max")
-    ("max-array-size", po::value<int>(), "max-array-size")
-    ("max-argv0-length", po::value<int>(), "max-argv0-length")
+    ("test-input-max-strlen", po::value<int>(), "max strlen for test generation")
+    ("test-input-min-int", po::value<int>(), "int min")
+    ("test-input-max-int", po::value<int>(), "int max")
+    ("test-input-max-array-size", po::value<int>(), "max-array-size")
+    ("test-input-max-argv0-strlen", po::value<int>(), "max-argv0-length")
 
-    ("instrument-strlen", po::value<bool>()->default_value(false), "instrument strlen") // DEPRECATED
-    ("instrument-address", po::value<bool>()->default_value(false), "instrument address") // DEPRECATED
-    ("instrument-null", po::value<bool>()->default_value(false), "instrument null") // DEPRECATED
-
-    ("instrument-helium-guard", po::value<bool>()->default_value(false), "turn on helium guard") // DEPRECATED
-    ("context-search-limit", po::value<int>(), "context search limit") // DEPRECATED
-    ("code-selection", po::value<std::string>(), "code selection method") // DEPRECATED
-    ("procedure-limit", po::value<int>(), "procedure limit for context search") // DEPRECATED
-    ("context-search-only", po::value<bool>(), "Do context search only") // DEPRECATED
-    ("context-search-step", po::value<bool>(), "context search step") // DEPRECATED
+    ("procedure-limit", po::value<int>(), "procedure limit for context search")
     ;
   
   po::options_description hidden("Hidden options");

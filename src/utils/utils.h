@@ -172,6 +172,7 @@ namespace utils {
    * [low, high], inclusive
    */
   int rand_int(int low, int high);
+  std::set<int> rand_ints(int low, int high, int num);
   char rand_char();
   std::string rand_str(int size);
   bool rand_bool();

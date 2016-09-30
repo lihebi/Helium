@@ -1,5 +1,6 @@
 #include "query.h"
 #include "workflow/resource.h"
+#include "utils/log.h"
 #include <iostream>
 
 std::set<CFGNode*> Query::m_bad = {};
@@ -25,7 +26,7 @@ void Query::Visualize(bool open) {
 
 
 void Query::ResolveInput() {
-  std::cout << "Query::ResolveInput"  << "\n";
+  helium_print_trace("Query::ResolveInput");
   // for all the ASTs, resolve input
   // TODO should we supply input when necessary? Based on the output instrumentation during run time?
   m_inputs.clear();
