@@ -47,17 +47,18 @@ make systype.tags
 ./setup.sh
 #+END_EXAMPLE
 
-Create local config.h:
-#+BEGIN_EXAMPLE
-cd lib/config
-aclocal
-autoconf
-autoheader
-./configure
-#+END_EXAMPLE
+# Create local config.h:
+# #+BEGIN_EXAMPLE
+# cd lib/config
+# aclocal
+# autoconf
+# autoheader
+# ./configure
+# #+END_EXAMPLE
 
 Add the following lines to your =~/.bashrc=:
 #+BEGIN_EXAMPLE
+export HELIUM_HOME=/path/to/helium/folder
 export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH
 export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0
 #+END_EXAMPLE
