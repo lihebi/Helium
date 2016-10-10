@@ -10,12 +10,20 @@ This file helps to examine the database file.
 #+header: :db index.db
 #+BEGIN_SRC sqlite :colnames yes
   select keyword,kind from signature where snippet_id=242;
+  select * from signature where keyword="main"; -- 165 - 169
+  select * from callgraph where from_snippet_id>=161 and from_snippet_id <= 165;
 #+END_SRC
 
 #+RESULTS:
-| keyword    | kind |
-|------------+------|
-| treat_file | f    |
+| keyword | kind    |      |            |
+|---------+---------+------+------------|
+|   valid | v       |      |            |
+|      ID | keyword | kind | snippet_id |
+|     165 | main    | f    |        161 |
+|     166 | main    | f    |        162 |
+|     167 | main    | f    |        163 |
+|     168 | main    | f    |        164 |
+|     169 | main    | f    |        165 |
 
 #+BEGIN_QUOTE
 CREATE TABLE callgraph (

@@ -82,13 +82,13 @@ private:
   /**
    * Customized queries
    */
-  std::map<std::string, int> queryFunctions();
+  std::map<std::string, std::set<int> > queryFunctions();
 
   int insertSnippet(Snippet *s);
   void createTable();
   void createDep();
   void createCG();
-  std::map<std::string, std::set<std::string> > constructCG(std::map<std::string, int> &all_functions);
+  std::map<std::string, std::set<std::string> > constructCG(std::map<std::string, std::set<int> > &all_functions);
 
   void loadCG();
 

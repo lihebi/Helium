@@ -79,6 +79,13 @@ void create_utilities(std::string folder) {
       output_folder = HeliumOptions::Instance()->GetString("output");
     }
     if (output_folder.empty()) output_folder = "snippets";
+
+    if (fs::exists(output_folder)) {
+      std::cerr << "Folder " << output_folder << " exists. Remove it before this command." << "\n";
+      exit(1);
+    }
+
+    
     std::string tagfile;
     if (HeliumOptions::Instance()->Has("tagfile")) {
       tagfile = HeliumOptions::Instance()->GetString("tagfile");

@@ -114,19 +114,22 @@ std::vector<std::pair<std::string, std::string> > SnippetDB::GetHeaderDep() {
 
 /**
  * Call Graph Construction
+ * TODO change the CG signature to mapping from ID to IDs, to support finer granularity of duplication of names
  */
-std::map<std::string, std::set<std::string> > SnippetDB::constructCG(std::map<std::string, int> &all_functions) {
+std::map<std::string, std::set<std::string> > SnippetDB::constructCG(std::map<std::string, std::set<int> > &all_functions) {
   std::map<std::string, std::set<std::string> > cg;
   for (auto m : all_functions) {
     // get code for m.first
     std::string func_name = m.first;
-    int snippet_id = m.second;
-    std::string code = GetCode(snippet_id);
-    // ast::XMLDoc *doc = XMLDocReader::Instance()->ReadString(code);
-    std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
-    for (std::string call : calls) {
-      if (all_functions.count(call) == 1) {
-        cg[func_name].insert(call);
+    std::set<int> snippet_ids = m.second;
+    for (int snippet_id : snippet_ids) {
+      std::string code = GetCode(snippet_id);
+      // ast::XMLDoc *doc = XMLDocReader::Instance()->ReadString(code);
+      std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
+      for (std::string call : calls) {
+        if (all_functions.count(call) == 1) {
+          cg[func_name].insert(call);
+        }
       }
     }
   }
@@ -151,7 +154,7 @@ void SnippetDB::createCG() {
   /**
    * Process all functions
    */
-  std::map<std::string, int> all_functions = queryFunctions();
+  std::map<std::string, std::set<int> > all_functions = queryFunctions();
   std::map<std::string, std::set<std::string> > cg = constructCG(all_functions);
   /**
    * Insert into db
@@ -162,12 +165,19 @@ void SnippetDB::createCG() {
   for (auto m : cg) {
     std::string from_func = m.first;
     assert(all_functions.count(from_func) == 1);
-    int from_id = all_functions[from_func];
+    std::set<int> from_ids = all_functions[from_func];
     for (const std::string &to_func : m.second) {
       assert(all_functions.count(to_func) == 1);
-      int to_id = all_functions[to_func];
-      snprintf(buf, BUFSIZ, format, id, from_id, to_id);
-      id++;
+      std::set<int> to_ids = all_functions[to_func];
+
+      // TODO support duplication of function name
+      for (int id1 : from_ids) {
+        for (int id2 : to_ids) {
+          snprintf(buf, BUFSIZ, format, id, id1, id2);
+          id++;
+        }
+      }
+      
       char *errmsg = NULL;
       int rc = sqlite3_exec(db, buf, NULL, NULL, &errmsg);
       if (rc != SQLITE_OK) {
@@ -809,7 +819,13 @@ std::vector<std::pair<std::string, std::string> > SnippetDB::queryStrStr(const c
 }
 
 
-std::map<std::string, int> SnippetDB::queryFunctions() {
+/**
+ * Get information of all functions.
+ * @return the mapping from function name to the set of IDs
+ * The "set of ids" enables the duplication of function name
+ */
+std::map<std::string, std::set<int> > SnippetDB::queryFunctions() {
+  std::map<std::string, std::set<int> > ret;
   const char *query = "select keyword, snippet_id from signature where kind='f'";
   sqlite3_stmt *stmt;
   int rc = sqlite3_prepare_v2(m_db, query, -1, &stmt, NULL);
@@ -817,7 +833,6 @@ std::map<std::string, int> SnippetDB::queryFunctions() {
   // all functions, functionname -> snippet id
   // FIXME would there be same function name? Yes, static functions.
   // But I will not consider it ^_^
-  std::map<std::string, int> all_functions;
   while(true) {
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
@@ -826,7 +841,7 @@ std::map<std::string, int> SnippetDB::queryFunctions() {
       const char *name = (char*)sqlite3_column_text(stmt, 0);
       assert(name);
       std::string name_str(name);
-      all_functions[name] = snippet_id;
+      ret[name].insert(snippet_id);
     } else if (rc == SQLITE_DONE) {
       break;
     } else {
@@ -834,7 +849,7 @@ std::map<std::string, int> SnippetDB::queryFunctions() {
     }
   }
   sqlite3_finalize(stmt);
-  return all_functions;
+  return ret;
 }
 
 /*******************************
