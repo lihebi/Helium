@@ -11,6 +11,7 @@
 #include "helium_options.h"
 #include "point_of_interest.h"
 #include "utils/fs_utils.h"
+#include "utils/utils.h"
 
 #include <boost/filesystem.hpp>
 
@@ -188,24 +189,6 @@ void print_utilities(std::string folder) {
   }
 
   std::vector<std::string> files = get_c_files(folder);
-
-
-  if (HeliumOptions::Instance()->Has("show-segments")) {
-    assert(false);
-    for (auto it=files.begin();it!=files.end();it++) {
-      Reader reader(*it);
-      // std::cout << "Segment count: " << reader.GetSegmentCount() << "\n";
-      reader.PrintSegments();
-    }
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("show-segment-info")) {
-    assert(false);
-    for (auto it=files.begin();it!=files.end();it++) {
-      Reader reader(*it);
-    }
-    exit(0);
-  }
 }
 
 void load_tagfile(std::string folder) {

@@ -1,5 +1,5 @@
 #include "query.h"
-#include "workflow/resource.h"
+#include "resource.h"
 #include "utils/log.h"
 #include <iostream>
 #include "code_gen.h"

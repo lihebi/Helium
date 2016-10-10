@@ -4,7 +4,7 @@
 #include "utils/dot.h"
 #include "utils/utils.h"
 #include "resolver/snippet_db.h"
-#include "workflow/resource.h"
+#include "resource.h"
 
 #include "utils/log.h"
 
@@ -508,10 +508,19 @@ std::set<CFGNode*> CFG::GetInterPredecessors(CFGNode *node) {
   }
   std::string func = astnode->GetAST()->GetFunctionName();
   std::cout << "Getting interprocedure predecessor from ICFG, function: " << func  << "\n";
-  std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
-  for (std::string caller_func : caller_funcs) {
-    AST *ast = Resource::Instance()->GetAST(caller_func);
-    CFG *cfg = Resource::Instance()->GetCFG(caller_func);
+
+
+  AST *ast = astnode->GetAST();
+  int id = Resource::Instance()->GetASTID(ast);
+  if (id == -1) {
+    std::cerr << "Cannot find AST for func " << func << "\n";
+    exit(1);
+  }
+
+  std::set<int> caller_ids = SnippetDB::Instance()->QueryCallers(id);
+  for (int caller_id : caller_ids) {
+    AST *ast = Resource::Instance()->GetAST(caller_id);
+    CFG *cfg = Resource::Instance()->GetCFG(caller_id);
     if (!ast) continue;
     std::set<ASTNode*> callsites = ast->GetCallSites(func);
     for (ASTNode * callsite : callsites) {

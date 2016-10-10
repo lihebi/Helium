@@ -325,25 +325,25 @@ void Segment::extractJumpOutCondition() {
  */
 XMLNodeList get_caller_nodes(std::string func) {
   helium_print_trace("get_caller_nodes");
-  std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
   XMLNodeList ret;
-  for (std::string caller : caller_funcs) {
-    std::set<int> ids = SnippetDB::Instance()->LookUp(caller, {SK_Function});
-    for (int id : ids) {
-      // FIXME use this file name, VERY BUGGY
-      // Going to let XMLDocReader maintain a separate storage for Doc in SnippetDB.
-      // TODO FIXME NOW the slice will be completely wrong unless I use a "offset" for snippet
-      XMLDoc *doc = XMLDocReader::Instance()->ReadSnippet(id);
-      // std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
-      // XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
-      XMLNodeList funcs = find_nodes(doc->document_element(), NK_Function);
-      for (XMLNode func : funcs) {
-        if (function_get_name(func) == caller) {
-          ret.push_back(func);
-        }
-      }
-    }
-  }
+  // std::set<std::string> caller_funcs = SnippetDB::Instance()->QueryCallers(func);
+  // for (std::string caller : caller_funcs) {
+  //   std::set<int> ids = SnippetDB::Instance()->LookUp(caller, {SK_Function});
+  //   for (int id : ids) {
+  //     // FIXME use this file name, VERY BUGGY
+  //     // Going to let XMLDocReader maintain a separate storage for Doc in SnippetDB.
+  //     // TODO FIXME NOW the slice will be completely wrong unless I use a "offset" for snippet
+  //     XMLDoc *doc = XMLDocReader::Instance()->ReadSnippet(id);
+  //     // std::string filename = SnippetDB::Instance()->GetMeta(id).filename;
+  //     // XMLDoc *doc = XMLDocReader::Instance()->ReadFile(filename);
+  //     XMLNodeList funcs = find_nodes(doc->document_element(), NK_Function);
+  //     for (XMLNode func : funcs) {
+  //       if (function_get_name(func) == caller) {
+  //         ret.push_back(func);
+  //       }
+  //     }
+  //   }
+  // }
   return ret;
 }
 

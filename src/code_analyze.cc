@@ -1,7 +1,36 @@
 #include "code_analyze.h"
 #include "utils/utils.h"
-#include "workflow/tester.h"
 #include <iostream>
+
+/**
+ * @pram [in] output lines representing output. The format is xxx=yyy.
+ * @return xxx:yyy maps
+ */
+std::map<std::string, std::string> get_header_value_map(std::string output) {
+  std::map<std::string, std::string> ret;
+  std::vector<std::string> lines = utils::split(output, '\n');
+  for (std::string line : lines) {
+    if (line.empty()) continue;
+    // std::cout << line  << "\n";
+    // assert(line.find("=") != std::string::npos);
+    if (line.find("=") == std::string::npos) {
+      // std::cerr << "The Line does not contain a =" << "\n";
+      // std::cerr << line  << "\n";
+      // assert(false);
+      // FIXME sometimes the code we included from the program has output statements
+      // So I just ignore such case
+      // But, this may cause some hard to debug bugs
+      // maybe it is a good idea to write this information to a log file for debugging
+      continue;
+    }
+    std::string header = line.substr(0, line.find("="));
+    utils::trim(header);
+    std::string value = line.substr(line.find("=") + 1);
+    utils::trim(value);
+    ret[header] = value;
+  }
+  return ret;
+}
 
 
 void CodeAnalyzer::Compute() {

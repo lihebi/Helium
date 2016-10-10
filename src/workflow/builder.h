@@ -1,6 +1,7 @@
 #ifndef __BUILDER_H__
 #define __BUILDER_H__
-#include "segment.h"
+
+#include "common.h"
 
 class Builder {
 public:

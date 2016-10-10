@@ -50,8 +50,6 @@ HeliumOptions::HeliumOptions() {
     ("show-header-dep", "the new dep printing: from the database")
     ("show-callgraph", "print callgraph")
     ("show-config", "print current config")
-    ("show-segments", "print segments and exit")
-    ("show-segment-info", "print segment count, segment size LOC in total, for every file")
     ("show-headers", "print header")
     ("show-meta", "print meta data")
     ("show-header-deps", "print header dependencies") // DEPRECATED
@@ -173,6 +171,12 @@ HeliumOptions::HeliumOptions() {
 
 void HeliumOptions::ParseCommandLine(int argc, char* argv[])
 {
+
+  if (argc==1) {
+    PrintHelp();
+    exit(0);
+  }
+  
   try {
     /* run parser and store in m_vm */
     po::store(

@@ -3,8 +3,11 @@
 #include "utils/utils.h"
 #include "helium_options.h"
 
+#include "resolver/system_resolver.h"
+
 #include "utils/log.h"
 #include "parser/xml_doc_reader.h"
+#include "parser/xmlnode_helper.h"
 #include <gtest/gtest.h>
 
 Builder::Builder() {

@@ -1,12 +1,99 @@
 #include "code_gen.h"
-#include "workflow/segment.h"
 
 #include "resolver/snippet_db.h"
 #include "utils/log.h"
 #include "helium_options.h"
 #include "utils/utils.h"
+#include "parser/xml_doc_reader.h"
+
 
 #include <iostream>
+
+
+
+std::string
+get_head() {
+  return
+    "#ifndef __SUPPORT_H__\n"
+    "#define __SUPPORT_H__\n"
+
+    // suppress the warning
+    // "typedef int bool;\n"
+    "#define true 1\n"
+    "#define false 0\n"
+    // some code will config to have this variable.
+    // Should not just define it randomly, but this is the best I can do to make it compile ...
+    "#define VERSION \"1\"\n"
+    "#define PACKAGE \"helium\"\n"
+    // GNU Standard
+    "#define PACKAGE_NAME \"helium\"\n"
+    "#define PACKAGE_BUGREPORT \"xxx@xxx.com\"\n"
+    "#define PACKAGE_STRING \"helium 0.1\"\n"
+    "#define PACKAGE_TARNAME \"helium\"\n"
+    "#define PACKAGE_URL \"\"\n"
+    "#define PACKAGE_VERSION \"0.1\"\n"
+    // unstandard primitive typedefs, such as u_char
+    "typedef unsigned char u_char;\n"
+    "typedef unsigned int u_int;\n"
+
+    // FIXME why I need these?
+    "typedef unsigned char uchar;\n"
+    "typedef unsigned int uint;\n"
+
+    "#define HELIUM_ASSERT(cond) if (!(cond)) exit(1)\n"
+    ;
+}
+
+std::string
+get_foot() {
+  return std::string()
+    + "\n#endif\n";
+}
+
+std::string get_header() {
+  std::string s;
+  std::vector<std::string> system_headers;
+  std::vector<std::string> local_headers;
+  system_headers.push_back("stdio.h");
+  local_headers.push_back("support.h");
+  for (auto it=system_headers.begin();it!=system_headers.end();it++) {
+    s += "#include <" + *it + ">\n";
+  }
+  for (auto it=local_headers.begin();it!=local_headers.end();it++) {
+    s += "#include \"" + *it + "\"\n";
+  }
+  return s;
+}
+
+
+/**
+ * On xml node (pugixml), remove node, add a new node with tag name "tagname", and pure text value content
+ * The node should NOT be the root node, otherwise assertion failure will occur.
+ */
+static void replace_xml_node(XMLNode node, std::string tagname, std::string content) {
+  assert(node.parent());
+  XMLNode new_node = node.parent().insert_child_before(tagname.c_str(), node);
+  new_node.append_child(pugi::node_pcdata).set_value(content.c_str());
+  node.parent().remove_child(node);
+}
+
+/**
+ * Replace all the return xxx; statement to return 35;
+ */
+std::string replace_return_to_35(const std::string &code) {
+  // TODO pattern matching or using paser?
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  XMLNode root = doc->document_element();
+  XMLNodeList nodes = find_nodes(root, NK_Return);
+  for (XMLNode node : nodes) {
+    // not sure if I need to add 
+    replace_xml_node(node, "return", "return 35;");
+  }
+  std::string ret = get_text(root);
+  delete doc;
+  return ret;
+}
+
 
 void CodeGen::Compute() {
   std::map<AST*, std::set<ASTNode*> > ret;

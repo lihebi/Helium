@@ -116,19 +116,18 @@ std::vector<std::pair<std::string, std::string> > SnippetDB::GetHeaderDep() {
  * Call Graph Construction
  * TODO change the CG signature to mapping from ID to IDs, to support finer granularity of duplication of names
  */
-std::map<std::string, std::set<std::string> > SnippetDB::constructCG(std::map<std::string, std::set<int> > &all_functions) {
-  std::map<std::string, std::set<std::string> > cg;
+std::map<int, std::set<int> > SnippetDB::constructCG(std::map<std::string, std::set<int> > &all_functions) {
+  std::map<int, std::set<int> > cg;
   for (auto m : all_functions) {
     // get code for m.first
     std::string func_name = m.first;
     std::set<int> snippet_ids = m.second;
     for (int snippet_id : snippet_ids) {
       std::string code = GetCode(snippet_id);
-      // ast::XMLDoc *doc = XMLDocReader::Instance()->ReadString(code);
       std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
       for (std::string call : calls) {
         if (all_functions.count(call) == 1) {
-          cg[func_name].insert(call);
+          cg[snippet_id].insert(all_functions[call].begin(), all_functions[call].end());
         }
       }
     }
@@ -146,6 +145,7 @@ std::map<std::string, std::set<std::string> > SnippetDB::constructCG(std::map<st
  * 4. for all the records:
  *    query database for the called fucntion name
  *    add entry for each such record
+ * @return insert into database
  */
 void SnippetDB::createCG() {
   sqlite3 *db = m_db;
@@ -155,7 +155,7 @@ void SnippetDB::createCG() {
    * Process all functions
    */
   std::map<std::string, std::set<int> > all_functions = queryFunctions();
-  std::map<std::string, std::set<std::string> > cg = constructCG(all_functions);
+  std::map<int, std::set<int> > cg = constructCG(all_functions);
   /**
    * Insert into db
    */
@@ -163,21 +163,11 @@ void SnippetDB::createCG() {
   char buf[BUFSIZ];
   int id=0;
   for (auto m : cg) {
-    std::string from_func = m.first;
-    assert(all_functions.count(from_func) == 1);
-    std::set<int> from_ids = all_functions[from_func];
-    for (const std::string &to_func : m.second) {
-      assert(all_functions.count(to_func) == 1);
-      std::set<int> to_ids = all_functions[to_func];
-
-      // TODO support duplication of function name
-      for (int id1 : from_ids) {
-        for (int id2 : to_ids) {
-          snprintf(buf, BUFSIZ, format, id, id1, id2);
-          id++;
-        }
-      }
-      
+    int from_id = m.first;
+    std::set<int> to_ids = m.second;
+    for (int to_id : to_ids) {
+      snprintf(buf, BUFSIZ, format, id, from_id, to_id);
+      id++;
       char *errmsg = NULL;
       int rc = sqlite3_exec(db, buf, NULL, NULL, &errmsg);
       if (rc != SQLITE_OK) {
@@ -456,29 +446,21 @@ void SnippetDB::loadCG() {
   for (auto m : res) {
     int from_id = m.first;
     int to_id = m.second;
-    std::string from_name = GetMeta(from_id).GetKey();
-    std::string to_name = GetMeta(to_id).GetKey();
-    m_cg[from_name].insert(to_name);
-    m_reverse_cg[to_name].insert(from_name);
+    // std::string from_name = GetMeta(from_id).GetKey();
+    // std::string to_name = GetMeta(to_id).GetKey();
+    m_cg[from_id].insert(to_id);
+    m_reverse_cg[to_id].insert(from_id);
   }
 }
 
 /**
  * return all the callers on the call graph
  */
-std::set<std::string> SnippetDB::QueryCallers(std::string func_name) {
-  std::set<std::string> ret;
-  if (m_reverse_cg.count(func_name) == 0) return ret;
-  ret = m_reverse_cg[func_name];
+std::set<int> SnippetDB::QueryCallers(int id) {
+  std::set<int> ret;
+  if (m_reverse_cg.count(id) == 0) return ret;
+  ret = m_reverse_cg[id];
   return ret;
-}
-/**
- * Return one caller (the first one in the set)
- */
-std::string SnippetDB::QueryCaller(std::string func_name) {
-  std::set<std::string> callers = QueryCallers(func_name);
-  if (callers.empty()) return "";
-  else return *callers.begin();
 }
 
 std::set<int> SnippetDB::LookUp(SnippetKind kind) {

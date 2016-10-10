@@ -24,17 +24,24 @@ public:
   }
 
   XMLDoc *GetXMLDoc(std::string filename);
-  AST *GetAST(std::string function);
-  CFG *GetCFG(std::string function);
-  CFG *GetCFG(AST *ast);
+  AST* GetAST(int snippet_id);
+  CFG* GetCFG(int snippet_id);
+  CFG* GetCFG(AST* ast);
+  int GetASTID(AST *ast) {
+    if (ast && m_ast_ids.count(ast) == 1) {
+      return m_ast_ids[ast];
+    }
+    return -1;
+  }
 private:
   Resource() {}
   ~Resource() {}
   static Resource* m_instance;
   
-  std::map<std::string, XMLDoc*> m_xmldocs;
-  std::map<std::string, AST*> m_asts;
-  std::map<std::string, CFG*> m_cfgs;
+  std::map<std::string, XMLDoc*> m_xmldocs; // from filename to XMLDoc
+  std::map<int, AST*> m_asts;
+  std::map<AST*, int> m_ast_ids;
+  std::map<AST*, CFG*> m_cfgs;
 };
 
 #endif /* RESOURCE_H */

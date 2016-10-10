@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 
-#include "reader.h"
 #include "helium_utils.h"
 
 #include "helium_options.h"
@@ -19,8 +18,9 @@
 #include "resolver/snippet_db.h"
 #include "resource.h"
 #include "utils/log.h"
-#include "builder.h"
 #include "analyzer.h"
+
+#include "builder.h"
 
 #include <gtest/gtest.h>
 
@@ -59,28 +59,32 @@ Helium::Helium(PointOfInterest *poi) {
     XMLNode func = get_function_node(node);
     std::string func_name = function_get_name(func);
     int func_linum = get_node_line(func);
-    AST *ast = Resource::Instance()->GetAST(func_name);
-    if (!ast) {
-      std::cerr << "EE: No AST constructed!" << "\n";
+    std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
+    for (int id : ids) {
+      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
+      std::string filename = fs::path(meta.filename).filename().string();
+      if (filename == poi->GetFilename()) {
+        // construct
+        AST *ast = Resource::Instance()->GetAST(id);
+        if (ast) {
+          ASTNode *root = ast->GetRoot();
+          if (root) {
+            int ast_linum = root->GetBeginLinum();
+            int target_linum = linum - func_linum + ast_linum;
+            ASTNode *target = ast->GetNodeByLinum(target_linum);
+            if (target) {
+              target->SetFailurePoint();
+              Query *init_query = new Query(target);
+              m_worklist.push_back(init_query);
+            }
+          }
+        }
+      }
+    }
+    if (m_worklist.empty()) {
+      std::cerr << "Cannot construct the initial query." << "\n";
       exit(1);
     }
-    ASTNode *root = ast->GetRoot();
-    if (!root) {
-      std::cerr << "EE: AST root is NULL." << "\n";
-      exit(1);
-    }
-    int ast_linum = root->GetBeginLinum();
-    int target_linum = linum - func_linum + ast_linum;
-    ASTNode *target = ast->GetNodeByLinum(target_linum);
-    if (!target) {
-      std::cerr << "EE: cannot find target AST node" << "\n";
-      exit(1);
-    }
-    // process(target);
-    target->SetFailurePoint();
-    Query *init_query = new Query(target);
-    m_worklist.push_back(init_query);
-
     process();
   }
 }
@@ -341,181 +345,6 @@ std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
 
 
 #if 0
-int Helium::countFunction() {
-  int ret=0;
-  for (std::string file : m_files) {
-    XMLDoc doc;
-    utils::file2xml(file, doc);
-    XMLNodeList nodes = find_nodes(doc, NK_Function);
-    ret += nodes.size();
-  }
-  return ret;
-}
-
-void
-Helium::Run() {
-  /**
-   * Print some meta data for the benchmark project.
-   */
-  std::cerr << "***** Helium Benchmark Meta *****"  << "\n";
-  std::cerr << "** total file: " << m_files.size()  << "\n";
-  // int func_count = countFunction();
-  // std::cerr << "** totla function: " << func_count  << "\n";
-  std::cerr << "*********************************" << "\n";
-  // ExpASTDump::Instance()->file_count = m_files.size();
-  // ExpASTDump::Instance()->func_count = func_count;
-  // ExpASTDump::Instance()->benchmark = m_folder;
-  // double t1 = utils::get_time();
-
-  // double t2 = utils::get_time();
-  std::cerr << "********** End of Helium **********"  << "\n";
-  // if (PrintOption::Instance()->Has(POK_BuildRate)) {
-  //   std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";
-  //   std::cerr << "Compile Error Count: " << g_compile_error_no  << "\n";
-  //   std::cerr << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
-  // }
-  // ExpASTDump::Instance()->time = t2 - t1;
-
-  /**
-   * Now its time to dump the *Dump clases
-   */
-  // std::cout << "====DUMP START========="  << "\n";
-  // std::cout << ExpASTDump::Instance()->GetHeader()  << "\n";
-  // std::cout << ExpASTDump::Instance()->dump() << "\n";
-  // std::cout << "====DUMP STOP========="  << "\n";
-
-  /**
-   * Also, store one version to the file.
-   */
-  // utils::append_file("dump_out.txt", ExpASTDump::Instance()->dump() + "\n");
-  // ExpASTDump::Instance()->AppendData();
-  // std::cout << BuildRatePlotDump::Instance()->dump()  << "\n";
-}
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Deprecated code
- */
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Get segments based on config file.
- * this should be a config file with the filename:line_number format
- * the detailed formats:
- * a.c:504
- * TODO a.c:504-510
- * TODO to support function name
- * @return a.c -> 102,208
- */
-// std::map<std::string, std::vector<int> > parse_selection_conf(const std::string& file) {
-//   std::map<std::string, std::vector<int> > result;
-//   std::string content = utils::read_file(file);
-//   // delimiter by *space*
-//   std::vector<std::string> lines = utils::split(content);
-//   for (std::string &line : lines) {
-//     std::vector<std::string> tmp = utils::split(line, ':');
-//     assert(tmp.size() == 2 && "Config file error for code selection.");
-//     std::string f = tmp[0];
-//     std::string l_str = tmp[1];
-//     utils::trim(f);
-//     utils::trim(l_str);
-//     int l = atoi(l_str.c_str());
-//     if (result.find(f) == result.end()) {
-//       result[f] = std::vector<int>();
-//     }
-//     // FIXME value or reference?
-//     result[f].push_back(l);
-//   }
-//   return result;
-// }
-
-// TEST(helium_test_case, parse_selection_conf_test) {
-//   char tmp_dir[] = "/tmp/helium-test-temp.XXXXXX";
-//   char *result = mkdtemp(tmp_dir);
-//   ASSERT_TRUE(result != NULL);
-//   std::string dir = tmp_dir;
-//   std::string filename = dir+"/a.c";
-//   const char *code = R"prefix(
-
-// a.c:100
-// a.c:235
-// sub/dir/b.cpp:364
-
-// )prefix";
-//   utils::write_file(filename, code);
-
-//   std::map<std::string, std::vector<int> > m = parse_selection_conf(filename);
-//   ASSERT_EQ(m.size(), 2);
-//   std::vector<int> a = m["a.c"];
-//   ASSERT_EQ(a.size(), 2);
-//   EXPECT_EQ(a[0], 100);
-//   EXPECT_EQ(a[1], 235);
-//   std::vector<int> b = m["sub/dir/b.cpp"];
-//   ASSERT_EQ(b.size(), 1);
-//   EXPECT_EQ(b[0], 364);
-// }
-
-
-
-
-
-
-
-
-
-// Helium::Helium(FailurePoint *fp) {
-//   helium_print_trace("hebi");
-//   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(fp->GetPath());
-//   int linum = get_true_linum(fp->GetPath(), fp->GetLinum());
-//   std::cout << "true line number: " <<  linum  << "\n";
-//   if (fp->GetType() == "stmt") {
-//     XMLNode node = find_node_on_line(doc->document_element(),
-//                                           {NK_Stmt, NK_ExprStmt, NK_DeclStmt, NK_Return, NK_Break, NK_Continue, NK_Return},
-//                                           linum);
-//     assert(node);
-//     XMLNode func = get_function_node(node);
-//     std::string func_name = function_get_name(func);
-//     int func_linum = get_node_line(func);
-//     AST *ast = Resource::Instance()->GetAST(func_name);
-//     if (!ast) {
-//       helium_log("[WW] No AST constructed!");
-//       return;
-//     }
-//     ASTNode *root = ast->GetRoot();
-//     if (!root) {
-//       helium_log("[WW] AST root is NULL.");
-//       return;
-//     }
-//     int ast_linum = root->GetBeginLinum();
-//     int target_linum = linum - func_linum + ast_linum;
-//     ASTNode *target = ast->GetNodeByLinum(target_linum);
-//     if (!target) {
-//       helium_log("[WW] cannot find target AST node");
-//       return;
-//     }
-//     process(target);
-//   }
-// }
-
 /**
  * 
  * Build a single segment to get the error condition.

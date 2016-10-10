@@ -2,7 +2,6 @@
 #define __HELIUM_H__
 
 #include "common.h"
-#include "reader.h"
 #include "query.h"
 
 #include "failure_point.h"
