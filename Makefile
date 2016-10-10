@@ -73,6 +73,7 @@ C_LIB += -lpugixml
 C_LIB += -lctags # 3rd party library, shipped with source code
 C_LIB += -lgtest -lgtest_main
 C_LIB += -lsqlite3
+# C_LIB += -pg # gprof profile. Will make the program run slower
 
 ##############################
 ## Targets
@@ -151,7 +152,7 @@ $(TEST_TARGET): $(TEST_MAIN) $(OBJECTS)
 # compile it into the target
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	$(CC) $(C_INCLUDE) $(CFLAGS) -MMD -c -o $@ $<
+	$(CC) $(C_INCLUDE) $(CFLAGS) $(C_LIB) -MMD -c -o $@ $<
 
 
 # %.d: %.cc ${SOURCES}

@@ -154,10 +154,11 @@ public:
   int GetLineNumber() const {return m_line_number;}
   std::string GetFileName() const {return m_filename;}
   int GetLOC() const {return m_loc;}
-  bool IsValid() const {return !m_code.empty();}
+  bool IsValid() const;
 
   std::string ToString() const;
 private:
+  CtagsEntry m_entry;
   SnippetSignature m_sig;
   std::string m_main_name;
   SnippetKind m_main_kind;

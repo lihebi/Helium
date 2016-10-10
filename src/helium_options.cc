@@ -92,6 +92,8 @@ HeliumOptions::HeliumOptions() {
     ("print-test-meta", po::value<bool>()->default_value(false),
      "print the testing data, including input number, generation time, total time used, "
      "stmt-cov, branch-cov, pass number, failure number")
+    ("print-segment-peek", po::value<bool>()->default_value(false), "Peek the head of the segment")
+    ("segment-peek-loc", po::value<int>()->default_value(3), "How many lines to peek")
 
     ("print-main", po::value<bool>()->default_value(false), "print main function")
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED

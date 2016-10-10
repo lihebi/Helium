@@ -1,0 +1,46 @@
+#+TITLE: SQLite helper file
+
+
+
+
+This file helps to examine the database file.
+
+
+#+header: :dir ~/github/benchmark/helium/gzip-1.2.4/snippets
+#+header: :db index.db
+#+BEGIN_SRC sqlite :colnames yes
+  select keyword,kind from signature where snippet_id=242;
+#+END_SRC
+
+#+RESULTS:
+| keyword    | kind |
+|------------+------|
+| treat_file | f    |
+
+#+BEGIN_QUOTE
+CREATE TABLE callgraph (
+    ID int, from_snippet_id int, to_snippet_id int,
+    primary key (ID),
+    foreign key (from_snippet_id) references snippet(ID),
+    foreign key (to_snippet_id) references snippet(ID)
+    );
+CREATE TABLE dependence (
+    ID int, from_snippet_id int, to_snippet_id int,
+    primary key (ID),
+    foreign key (from_snippet_id) references snippet(ID),
+    foreign key (to_snippet_id) references snippet(ID)
+    );
+CREATE TABLE header_dep (
+    ID int, from_file VARCHAR(100), to_file VARCHAR(100),
+    primary key(ID)
+    );
+CREATE TABLE signature (
+    ID INT, keyword VARCHAR(100), kind VARCHAR(1), snippet_id int,
+    PRIMARY KEY (ID),
+    FOREIGN KEY (snippet_id) REFERENCES snippet(ID)
+    );
+CREATE TABLE snippet (
+    ID INT, filename VARCHAR(500), linum INT,
+    PRIMARY KEY (ID)
+    );
+#+END_QUOTE

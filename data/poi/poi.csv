@@ -16,7 +16,7 @@ libssh-0.5.3,buffer.c,125,loop,inf-loop,
 craft-double-free,a.c,14,stmt,2-f,
 craft-infinite-loop,loop.c,69,loop,inf-loop,"Actually overflow so not good"
 craft-null-deref,a.c,27,stmt,null-deref,
-gzip-1.2.4,gzip.c,828,stmt,,
+gzip-1.2.4,gzip.c,1009,stmt,,
 ncompress,compress42.c,892,stmt,,
 polymorph-0.4.0,polymorph.c,120,stmt,,
 cyrus-sasl-2.1.23,pwcheck_getpwnam.c,44,stmt,,

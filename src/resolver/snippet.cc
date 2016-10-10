@@ -6,6 +6,7 @@
 
 #include "parser/xmlnode.h"
 #include "parser/xmlnode_helper.h"
+#include "system_resolver.h"
 
 
 using namespace utils;
@@ -174,7 +175,7 @@ std::vector<std::string> query_code(const std::string& code, const std::string& 
   return result;
 }
 
-Snippet::Snippet(const CtagsEntry& entry) {
+Snippet::Snippet(const CtagsEntry& entry) : m_entry(entry) {
   helium_print_trace("Snippet::Snippet");
   /**
    * 1. get code
@@ -592,4 +593,28 @@ std::string get_var_code(const CtagsEntry& entry) {
     ret = get_code_enclosing_line(filename, line_number, "function_decl");
   }
   return ret;
+}
+
+
+
+
+
+// TODO NOW Additional check
+// if the snippet redefine a system level structure or function that we use, in the header files
+// we do not create it here
+// Because that will cause the conflict type if this snippet is used
+// The reason why this may appear is that, for instance,
+// the gzip-1.2.4, there's a sysStat.h file that emulate the Unix sys/stat.h for PRIMOS,
+// but this file is not included in any files ... Holy shit.
+bool Snippet::IsValid() const {
+  if (m_code.empty()) return false;
+  std::vector<CtagsEntry> entries = SystemResolver::Instance()->Parse(m_main_name);
+  for (CtagsEntry entry : entries) {
+    if (entry.GetName() == m_entry.GetName() && entry.GetType() == m_entry.GetType()) {
+      // this is not good
+      std::cerr << "Snippet duplicate with a system one: " << entry.GetName() << " of type " << entry.GetType() << ". Skipped.\n";
+      return false;
+    }
+  }
+  return true;
 }

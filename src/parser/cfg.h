@@ -91,6 +91,7 @@ public:
    * get predecessor cfg nodes
    */
   std::set<CFGNode*> GetPredecessors(CFGNode *node);
+  std::set<CFGNode*> GetInterPredecessors(CFGNode *node);
   CFGNode *ASTNodeToCFGNode(ASTNode *astnode) {
     // check if all m_nodes are in m_ast_to_cfg mapping
     // FIXME performance

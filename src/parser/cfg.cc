@@ -491,6 +491,14 @@ std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
   if (m_back_edges.count(node) == 1) {
     return m_back_edges[node];
   }
+  return ret;
+}
+
+std::set<CFGNode*> CFG::GetInterPredecessors(CFGNode *node) {
+  std::set<CFGNode*> ret;
+  if (m_back_edges.count(node) == 1) {
+    return ret;
+  }
   // ICFG
   ASTNode *astnode = node->GetASTNode();
   // assert(astnode->Kind() == ANK_Function);
@@ -512,9 +520,11 @@ std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
     }
   }
   std::cout << "Predecessor count: " << ret.size() << "\n";
+  // predecessor line
+  for (CFGNode *node : ret) {
+    std::cout << node->GetLabel() << "\n";
+  }
   return ret;
 }
-
-
 
 

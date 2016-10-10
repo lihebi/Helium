@@ -87,23 +87,6 @@ Helium::Helium(PointOfInterest *poi) {
 
 
 
-/**
- * Generate main, support, makefile, scripts
- */
-void Query::GenCode() {
-  CodeGen generator;
-  generator.SetFirstAST(m_new->GetASTNode()->GetAST());
-  for (CFGNode *cfgnode : m_nodes) {
-    generator.AddNode(cfgnode->GetASTNode());
-  }
-  generator.SetInput(m_inputs);
-  generator.Compute();
-  m_main = generator.GetMain();
-  m_support = generator.GetSupport();
-  m_makefile = generator.GetMakefile();
-}
-
-
 
 /**
  * Initialize the query as the segment, into worklist
@@ -156,7 +139,7 @@ void Helium::process() {
     if (builder.Success()) {
       // utils::print("compile success\n", utils::CK_Green);
 
-      std::cerr << utils::GREEN << "compile success\n" << utils::RESET;
+      std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
       
       std::string executable = builder.GetExecutable();
       if (HeliumOptions::Instance()->GetBool("run-test")) {
@@ -195,8 +178,16 @@ void Helium::process() {
     } else {
       std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
       // query->Visualize();
-      Query::MarkBad(query->New());
-      query->Remove(query->New());
+      // compile error, skip this statement, and mark it as bad
+      // however, if the "New" node is from interprocedure, we cannot remove it, but stop this line
+      // That is because we need this callsite after all
+      if (query->IsInter()) {
+        std::cerr << "Inter procedure search, but the callsite is not compilible, stop this query." << "\n";
+        continue;
+      } else {
+        Query::MarkBad(query->New());
+        query->Remove(query->New());
+      }
     }
 
     // TODO get test profile
@@ -247,15 +238,30 @@ std::vector<Query*> Helium::select(Query *query) {
   // predecessor
   CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
   if (!cfg) return ret;
+  // FIXME if the predecessor is interprocedure, and the compile failed,
+  // should not continue this line because the callsite has to be removed.
   std::set<CFGNode*> preds = cfg->GetPredecessors(cfgnode);
-  for (CFGNode *pred : preds) {
-    // FIXME this will not work on loops
-    if (query->ContainNode(pred)) continue;
-    // continue here, easier..
-    if (Query::IsBad(pred)) continue;
-    Query *q = new Query(*query);
-    q->Add(pred);
-    ret.push_back(q);
+  if (!preds.empty()) {
+    for (CFGNode *pred : preds) {
+      // FIXME this will not work on loops
+      if (query->ContainNode(pred)) continue;
+      // continue here, easier..
+      // UPDATE I don't really need to check this here, the compilation will tell this is bad.
+      // if (Query::IsBad(pred)) continue;
+      Query *q = new Query(*query);
+      q->Add(pred);
+      ret.push_back(q);
+    }
+  } else {
+    // inter procedure
+    preds = cfg->GetInterPredecessors(cfgnode);
+    for (CFGNode *pred : preds) {
+      if (query->ContainNode(pred)) continue;
+      Query *q = new Query(*query);
+      // add and MARK as inter procedure
+      q->Add(pred, true);
+      ret.push_back(q);
+    }
   }
 
   // update g_propagating_queries
@@ -363,11 +369,11 @@ Helium::Run() {
 
   // double t2 = utils::get_time();
   std::cerr << "********** End of Helium **********"  << "\n";
-  if (PrintOption::Instance()->Has(POK_BuildRate)) {
-    std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";
-    std::cerr << "Compile Error Count: " << g_compile_error_no  << "\n";
-    std::cerr << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
-  }
+  // if (PrintOption::Instance()->Has(POK_BuildRate)) {
+  //   std::cerr << "Compile Success Count: " << g_compile_success_no  << "\n";
+  //   std::cerr << "Compile Error Count: " << g_compile_error_no  << "\n";
+  //   std::cerr << "Buildrate: " << (double)g_compile_success_no / (double)(g_compile_success_no + g_compile_error_no)  << "\n";
+  // }
   // ExpASTDump::Instance()->time = t2 - t1;
 
   /**

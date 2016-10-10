@@ -27,10 +27,15 @@ public:
     std::set<CFGNode*> nodes = q->GetNodes();
     m_nodes.insert(nodes.begin(), nodes.end());
   }
-  void Add(CFGNode *node) {
+  void Add(CFGNode *node, bool inter=false) {
     assert(node);
     m_nodes.insert(node);
     m_new = node;
+    m_inter = inter;
+  }
+
+  bool IsInter() {
+    return m_inter;
   }
 
   /**
@@ -74,7 +79,6 @@ public:
     return m_inputs;
   }
 
-
   static void MarkBad(CFGNode *node) {
     m_bad.insert(node);
   }
@@ -89,6 +93,7 @@ public:
 private:
   std::set<CFGNode*> m_nodes;
   CFGNode *m_new = NULL;
+  bool m_inter = false; // whether the new node is the result from inter-procedure or not
   // std::map<AST*, std::vector<Variable> > m_inputs;
   std::map<std::string, Type*> m_inputs;
 

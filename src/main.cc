@@ -328,6 +328,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
   std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
+  helium_home = utils::escape_tide(helium_home);
   SystemResolver::Instance()->Load(helium_home + "/systype.tags");
 
 
@@ -361,6 +362,9 @@ int main(int argc, char* argv[]) {
 
   if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
     std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
+    std::cout << cpped << "\n";
+    std::cout << src << "\n";
+    std::cout << snippets << "\n";
     exit(1);
   }
 
@@ -382,6 +386,7 @@ int main(int argc, char* argv[]) {
   // }
   // Helium helium(fp);
   std::string poi_file = HeliumOptions::Instance()->GetString("poi-file");
+  poi_file = utils::escape_tide(poi_file);
   std::vector<PointOfInterest*> pois = create_point_of_interest(target.string(), poi_file);
 
   std::cout << "Number of point of interest: " << pois.size() << "\n";

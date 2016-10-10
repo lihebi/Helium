@@ -59,6 +59,24 @@ std::string CodeGen::GetMain() {
 
       // the code
       std::string code = ast->GetCode(nodes);
+      if (HeliumOptions::Instance()->GetBool("print-segment-peek")) {
+        std::cout << "-- Segment Peek:" << "\n";
+        // print up to 3 lines
+        int loc = HeliumOptions::Instance()->GetInt("segment-peek-loc");
+        if (std::count(code.begin(), code.end(), '\n') <= loc) {
+          std::cout << code << "\n";
+        } else {
+          int idx = 0;
+          while (loc-- > 0) {
+            int idx_new = code.find('\n', idx);
+            std::string tmp = code.substr(idx, idx_new);
+            std::cout << tmp << "\n";
+            idx = idx_new+1;
+          }
+        }
+        std::cout << "-- Segment Peek end" << "\n";
+
+      }
       
       ast->ClearDecl();
       // modify the code, specifically change all return statement to return 35;
@@ -88,9 +106,11 @@ std::string CodeGen::GetMain() {
     int loc = 0;
     int branch_ct = 0;
     int loop_ct = 0;
+    int ast_node_ct = 0;
     for (auto m : m_data) {
       std::string code = m.first->GetCode(m.second);
       for (ASTNode *node : m.second) {
+        ast_node_ct++;
         if (node->Kind() == ANK_If) {
           branch_ct++;
         }
@@ -103,8 +123,8 @@ std::string CodeGen::GetMain() {
       loc += std::count(code.begin(), code.end(), '\n');
     }
     std::cout << utils::PURPLE << "Segment Meta:" << utils::RESET << "\n";
-
-    std::cout << "\t" << "Segment Size: " << loc << "\n";
+    std::cout << "\t" << "AST Node Number: " << ast_node_ct << "\n";
+    std::cout << "\t" << "Segment Size (LOC): " << loc << "\n";
     std::cout << "\t" << "Procedure Number: " << m_data.size() << "\n";
     std::cout << "\t" << "Branch Number: " << branch_ct << "\n";
     std::cout << "\t" << "Loop Number: " << loop_ct << "\n";

@@ -4,6 +4,7 @@
 #include <iostream>
 #include "helium_options.h"
 #include "type/type_helper.h"
+#include "utils/fs_utils.h"
 
 namespace fs = boost::filesystem;
 using namespace utils;
@@ -67,6 +68,7 @@ void SystemResolver::parseHeaderConf(std::string file) {
 
 SystemResolver::SystemResolver() {
   std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
+  helium_home = utils::escape_tide(helium_home);
   parseHeaderConf(helium_home+"/etc/headers.conf.d/third-party.conf");
   parseHeaderConf(helium_home+"/etc/headers.conf.d/system.conf");
 }
@@ -76,10 +78,11 @@ SystemResolver::SystemResolver() {
  * Print out!
  */
 void SystemResolver::check_headers() {
-  std::string s = getenv("HELIUM_HOME");
+  std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
+  helium_home = utils::escape_tide(helium_home);
   std::ifstream is;
-  std::map<std::string, std::string> m1 = parse_header_conf(s+"/etc/headers.conf.d/system.conf");
-  std::map<std::string, std::string> m2 = parse_header_conf(s+"/etc/headers.conf.d/third-party.conf");
+  std::map<std::string, std::string> m1 = parse_header_conf(helium_home+"/etc/headers.conf.d/system.conf");
+  std::map<std::string, std::string> m2 = parse_header_conf(helium_home+"/etc/headers.conf.d/third-party.conf");
   std::vector<std::string> system_suc;
   std::vector<std::string> system_err;
   std::vector<std::string> third_suc;

@@ -2,6 +2,7 @@
 #include "workflow/resource.h"
 #include "utils/log.h"
 #include <iostream>
+#include "code_gen.h"
 
 std::set<CFGNode*> Query::m_bad = {};
 
@@ -78,3 +79,22 @@ void Query::ResolveInput() {
     }
   }
 }
+
+
+/**
+ * Generate main, support, makefile, scripts
+ */
+void Query::GenCode() {
+  CodeGen generator;
+  // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
+  generator.SetFirstNode(m_new->GetASTNode());
+  for (CFGNode *cfgnode : m_nodes) {
+    generator.AddNode(cfgnode->GetASTNode());
+  }
+  generator.SetInput(m_inputs);
+  generator.Compute();
+  m_main = generator.GetMain();
+  m_support = generator.GetSupport();
+  m_makefile = generator.GetMakefile();
+}
+

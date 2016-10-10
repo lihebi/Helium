@@ -101,7 +101,7 @@ std::string utils::exec(const char* cmd, int *status, double timeout_d) {
       if (status != NULL) {
         if (WIFEXITED(_status)) {
           *status = WEXITSTATUS(_status);
-        } else if (WIFSIGNALED(status)) {
+        } else if (WIFSIGNALED(*status)) {
           *status = TIMEOUT_RET_CODE;
           // result += "\nHELIUM_TEST_SIGNAL\n";
         }
@@ -178,7 +178,7 @@ std::string utils::exec_in(const char* cmd, const char* input, int *status, doub
   if (status != NULL) {
     if (WIFEXITED(_status)) {
       *status = WEXITSTATUS(_status);
-    } else if (WIFSIGNALED(status)) {
+    } else if (WIFSIGNALED(*status)) {
       *status = TIMEOUT_RET_CODE;
       // result += "\nHELIUM_TEST_SIGNAL\n";
     }
@@ -263,7 +263,7 @@ std::string utils::exec_sh(const char* cmd, int *status, double timeout_d) {
       if (status != NULL) {
         if (WIFEXITED(_status)) {
           *status = WEXITSTATUS(_status);
-        } else if (WIFSIGNALED(status)) {
+        } else if (WIFSIGNALED(*status)) {
           *status = TIMEOUT_RET_CODE;
           // result += "\nHELIUM_TEST_SIGNAL\n";
         }
