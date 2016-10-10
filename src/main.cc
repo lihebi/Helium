@@ -7,9 +7,8 @@
 #include "parser/cfg.h"
 #include "parser/xml_doc_reader.h"
 
-#include "failure_point.h"
 #include "helium_options.h"
-#include "point_of_interest.h"
+#include "parser/point_of_interest.h"
 #include "utils/fs_utils.h"
 #include "utils/utils.h"
 
@@ -245,51 +244,6 @@ void load_slice() {
     SimpleSlice::Instance()->SetSliceFile(slice_file);
   }
 }
-
-
-
-FailurePoint *load_failure_point() {
-  std::vector<std::string> files = get_c_files(HeliumOptions::Instance()->GetString("folder"));
-  if (HeliumOptions::Instance()->Has("poi")) {
-    std::string poi_file = HeliumOptions::Instance()->GetString("poi");
-    FailurePoint *fp = FailurePointFactory::CreateFailurePoint(poi_file);
-
-    // find this file
-    for (auto it=files.begin();it!=files.end();it++) {
-      std::string filename = *it;
-      if (filename.find(fp->GetFilename()) != std::string::npos) {
-        return fp;
-      } else {
-        return NULL;
-      }
-    }
-  } else if (HeliumOptions::Instance()->Has("whole-poi")) {
-    std::string whole_poi_file = HeliumOptions::Instance()->GetString("whole-poi");
-    if (!HeliumOptions::Instance()->Has("benchmark")) {
-      std::cerr << "EE: benchmark name must be set (-b)"
-                << "in order to use whole poi" << "\n";
-      exit(1);
-    }
-    std::string benchmark = HeliumOptions::Instance()->GetString("benchmark");
-    FailurePoint *fp = FailurePointFactory::CreateFailurePoint(whole_poi_file, benchmark);
-    for (auto it=files.begin();it!=files.end();it++) {
-      std::string filename = *it;
-      if (filename.find(fp->GetFilename()) != std::string::npos) {
-        return fp;
-      } else {
-        return NULL;
-      }
-    }
-  }
-  std::cerr << "EE: You should provide POI file."  << "\n";
-  return NULL;
-}
-
-
-
-
-
-
 
 int main(int argc, char* argv[]) {
   utils::seed_rand();

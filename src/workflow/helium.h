@@ -4,8 +4,7 @@
 #include "common.h"
 #include "query.h"
 
-#include "failure_point.h"
-#include "point_of_interest.h"
+#include "parser/point_of_interest.h"
 
 class Helium {
 public:

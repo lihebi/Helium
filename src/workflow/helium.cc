@@ -16,7 +16,7 @@
 #include "resolver/snippet.h"
 #include "resolver/resolver.h"
 #include "resolver/snippet_db.h"
-#include "resource.h"
+#include "parser/resource.h"
 #include "utils/log.h"
 #include "analyzer.h"
 

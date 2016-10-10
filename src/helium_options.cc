@@ -31,9 +31,6 @@ HeliumOptions::HeliumOptions() {
 
     ("src-folder,c", po::value<std::string>()->default_value("src"), "source file folder (not orig)")
     ("output,o", po::value<std::string>(), "output location")
-
-    // DEPRECATED
-    ("benchmark,b", po::value<std::string>(), "benchmark name (including version, e.g. gzip-1.2.4, libgd_3_0_33)")
     ("print,p", po::value<std::string>()->implicit_value(""), "what to be print")
     ("debug,d", po::value<std::string>()->implicit_value(""), "debugging pause point")
     ("slice", po::value<std::string>(),
@@ -52,7 +49,6 @@ HeliumOptions::HeliumOptions() {
     ("show-config", "print current config")
     ("show-headers", "print header")
     ("show-meta", "print meta data")
-    ("show-header-deps", "print header dependencies") // DEPRECATED
     ("show-cfg", "print CFG for each function")
     ("show-ast", "print AST for each function")
 

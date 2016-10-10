@@ -1,5 +1,5 @@
 #include "query.h"
-#include "resource.h"
+#include "parser/resource.h"
 #include "utils/log.h"
 #include <iostream>
 #include "code_gen.h"
