@@ -26,6 +26,7 @@
 #include <boost/foreach.hpp>
 #include "helper.h"
 #include "tester.h"
+#include "analyzer.h"
 
 namespace fs = boost::filesystem;
 
@@ -143,6 +144,9 @@ void Helium::process() {
       if (HeliumOptions::Instance()->GetBool("run-test")) {
         Tester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());
         tester.Test();
+
+        Analyzer analyzer(builder.GetDir());
+        analyzer.GetCSV();
         // CodeAnalyzer new_analyzer(builder.GetDir());
         // new_analyzer.Compute();
 

@@ -16,7 +16,7 @@ addr_iname = 0x61300000de80
 isnull_iname = 0
 HELIUM_POI_INSTRUMENT_END
 HELIUM_AFTER_POI
-HELIUM_TEST_SUCCESS = true
+HELIUM_TEST_SUCCESS
 #+END_EXAMPLE
 
 I'm going to write a script to parse this output file, and generate a CSV file.
@@ -24,13 +24,13 @@ The CSV file will look like:
 
 
 
-|       | input  |        |        | output  |         |         | status |
-|-------+--------+--------+--------+---------+---------+---------+--------|
-|       | input1 | input2 | input3 | output1 | output2 | output3 |        |
-|-------+--------+--------+--------+---------+---------+---------+--------|
-| test1 |        |        |        |         |         |         |        |
-| test2 |        |        |        |         |         |         |        |
-| test3 |        |        |        |         |         |         |        |
+|       | input  |        |        | output  |         |         | code |
+|-------+--------+--------+--------+---------+---------+---------+------|
+|       | input1 | input2 | input3 | output1 | output2 | output3 |      |
+|-------+--------+--------+--------+---------+---------+---------+------|
+| test1 |        |        |        |         |         |         |      |
+| test2 |        |        |        |         |         |         |      |
+| test3 |        |        |        |         |         |         |      |
 
 status code:
 #+BEGIN_EXAMPLE

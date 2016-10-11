@@ -164,6 +164,10 @@ void Tester::Test() {
   // TODO in analyzer, calculate failure due to context
   int pass_ct=0;
   int fail_ct=0;
+
+  
+  fs::path test_result_file = m_exe_folder / "result.txt";
+  
   for (int i=0;i<(int)m_test_suites.size();i++) {
     std::string cmd = (m_exe_folder / m_exe).string();
     int status;
@@ -194,7 +198,7 @@ void Tester::Test() {
       }
       pass_ct++;
       // ret->AddOutput(output, true);
-      output += "HELIUM_TEST_SUCCESS = true\n";
+      output += "HELIUM_TEST_SUCCESS\n";
     } else {
       fail_ct++;
       if (HeliumOptions::Instance()->GetBool("print-test-info")) {
@@ -204,20 +208,21 @@ void Tester::Test() {
         utils::print(".", utils::CK_Red);
       }
       // ret->AddOutput(output, false);
-      output += "HELIUM_TEST_SUCCESS = false\n";
+      output += "HELIUM_TEST_FAILURE\n";
     }
 
 
     // DEBUG
     // std::cout << output << "\n";
 
-
     // For input, and output, log them out only
-    fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");
-    fs::path out_file = m_exe_folder / "tests" / ("out-" + std::to_string(i) + ".txt");
-    utils::write_file(in_file.string(), suite.GetSpec());
-    utils::write_file(out_file.string(), output);
+    // fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");
+    // fs::path out_file = m_exe_folder / "tests" / ("out-" + std::to_string(i) + ".txt");
+    // utils::write_file(in_file.string(), suite.GetSpec());
+    // utils::write_file(out_file.string(), output);
 
+    utils::append_file(test_result_file.string(), output);
+ 
   }
   if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
     std::cout << "\n";
