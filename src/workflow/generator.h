@@ -1,5 +1,8 @@
-#ifndef CODE_GEN_H
-#define CODE_GEN_H
+#ifndef GENERATOR_H
+#define GENERATOR_H
+
+
+
 
 #include "common.h"
 #include "parser/ast.h"
@@ -20,7 +23,7 @@ public:
     if (!astnode) return;
     m_data[astnode->GetAST()].insert(astnode);
   }
-  void SetInput(std::map<std::string, Type*> inputs) {m_inputs = inputs;}
+  void SetInput(std::map<std::string, Type*> inputs);
   void Compute();
   std::string GetMain();
   std::string GetSupport();
@@ -38,4 +41,4 @@ private:
 
 
 
-#endif /* CODE_GEN_H */
+#endif /* GENERATOR_H */

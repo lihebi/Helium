@@ -36,7 +36,7 @@ std::string IntType::GetInputCode(std::string var) {
 std::string IntType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// IntType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"Od_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
+  ret += "printf(\"int_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
   ret += flush_output;
   return ret;
 }
@@ -101,7 +101,7 @@ std::string BoolType::GetInputCode(std::string var) {
 std::string BoolType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// BoolType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"Ob_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
+  ret += "printf(\"bool_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
   ret += flush_output;
   return ret;
 }
@@ -144,7 +144,7 @@ std::string CharType::GetInputCode(std::string var) {
 std::string CharType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// CharType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"Oc_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
+  ret += "printf(\"char_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
   return ret;
 }
 

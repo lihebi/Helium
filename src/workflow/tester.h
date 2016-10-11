@@ -1,5 +1,7 @@
-#ifndef CODE_TEST_H
-#define CODE_TEST_H
+#ifndef TESTER_H
+#define TESTER_H
+
+
 
 #include "common.h"
 #include "type/type.h"
@@ -92,10 +94,10 @@ private:
   std::vector<std::pair<std::string, InputSpec*> > m_data;
 };
 
-class CodeTester {
+class Tester {
 public:
-  CodeTester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs);
-  ~CodeTester() {}
+  Tester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs);
+  ~Tester() {}
   void Test();
   void Analyze(TestResult *result);
   
@@ -112,4 +114,4 @@ private:
   std::set<InputSpec*> m_specs;
 };
 
-#endif /* CODE_TEST_H */
+#endif /* TESTER_H */

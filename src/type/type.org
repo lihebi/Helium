@@ -1,5 +1,55 @@
 #+TITLE: Design the Type System
 
+
+<2016-10-10 Mon>
+#+BEGIN_EXAMPLE
+HELIUM_INPUT_SPEC
+int_iname.strlen = 151
+addr_iname = 0x61300000de80
+isnull_iname = 0
+HELIUM_INPUT_SPEC_END
+HELIUM_POI_INSTRUMENT
+int_ifname.size = 1024
+addr_ifname = 0x6059e0
+int_iname.strlen = 151
+addr_iname = 0x61300000de80
+isnull_iname = 0
+HELIUM_POI_INSTRUMENT_END
+HELIUM_AFTER_POI
+HELIUM_TEST_SUCCESS = true
+#+END_EXAMPLE
+
+I'm going to write a script to parse this output file, and generate a CSV file.
+The CSV file will look like:
+
+
+
+|       | input  |        |        | output  |         |         | status |
+|-------+--------+--------+--------+---------+---------+---------+--------|
+|       | input1 | input2 | input3 | output1 | output2 | output3 |        |
+|-------+--------+--------+--------+---------+---------+---------+--------|
+| test1 |        |        |        |         |         |         |        |
+| test2 |        |        |        |         |         |         |        |
+| test3 |        |        |        |         |         |         |        |
+
+status code:
+#+BEGIN_EXAMPLE
+1 :: fail before input spec
+2 :: fail before input spec end
+3 :: fail before poi instrument
+4 :: fail before poi instrument end
+5 :: fail before "after poi"
+6 :: fail after poi
+7 :: success
+#+END_EXAMPLE
+
+After that, I'm ready to write an R script to compute the transfer functions.
+I will only use the tests that have a status code of 5, in which the tests failed at exactly POI.
+Later I might use
+1. the tests that follow the same path, or
+2. the tests that didn't follow the exactly same path,
+   but have the same transfer function in terms of the variables in the failure condition.
+
 * Input Spec
 - Raw Input
 - Json specification

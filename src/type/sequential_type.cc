@@ -130,9 +130,8 @@ std::string PointerType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// PointerType::GetOutputCode: " + var + "\n";
   ret += get_check_null(var,
-                        get_null_output(var, true),
-                        
-                        get_null_output(var, false)
+                        get_isnull_printf_code(var, true),
+                        get_isnull_printf_code(var, false)
                         + m_contained_type->GetOutputCode("*" + var)
                         );
   return ret;
@@ -179,7 +178,7 @@ std::string StrType::GetInputCode(std::string var) {
   std::string ret;
   ret += "// StrType::GetInputCode: " + var + "\n";
   ret += get_str_input_code(var);
-  ret += get_addr_input(var);
+  // ret += get_addr_printf_code(var);
 
   // FIXME
   // ret += get_strlen_input_output(var);
@@ -189,11 +188,11 @@ std::string StrType::GetInputCode(std::string var) {
 std::string StrType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// StrType::GetOutputCode: " + var + "\n";
-  ret += get_strlen_output(var);
-  ret += get_addr_output(var);
+  ret += get_strlen_printf_code(var);
+  ret += get_addr_printf_code(var);
   ret += get_check_null(var,
-                        get_null_output(var, true),
-                        get_null_output(var, false)
+                        get_isnull_printf_code(var, true),
+                        get_isnull_printf_code(var, false)
                         );
   return ret;
 }
@@ -281,8 +280,8 @@ std::string BufType::GetInputCode(std::string var) {
 std::string BufType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// BufType::GetOutputCode: " + var = "\n";
-  ret += get_sizeof_output(var);
-  ret += get_addr_output(var);
+  ret += get_sizeof_printf_code(var);
+  ret += get_addr_printf_code(var);
   return ret;
 }
 InputSpec *BufType::GenerateRandomInput() {

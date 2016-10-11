@@ -1,5 +1,5 @@
-#ifndef QUERY_H
-#define QUERY_H
+#ifndef SEGMENT_H
+#define SEGMENT_H
 
 #include "common.h"
 #include "parser/ast.h"
@@ -9,21 +9,21 @@ class Selection {
 };
 
 
-class Query {
+class Segment {
 public:
-  Query() {}
-  ~Query() {}
-  Query(const Query &q) {
+  Segment() {}
+  ~Segment() {}
+  Segment(const Segment &q) {
     m_nodes = q.m_nodes;
     m_new = q.m_new;
   }
-  Query(ASTNode *astnode);
-  Query(CFGNode *cfgnode) {
+  Segment(ASTNode *astnode);
+  Segment(CFGNode *cfgnode) {
     // TODO ensure this is not already in m_nodes, otherwise the m_new will not be ideal
     m_nodes.insert(cfgnode);
     m_new = cfgnode;
   }
-  void Merge(Query *q) {
+  void Merge(Segment *q) {
     std::set<CFGNode*> nodes = q->GetNodes();
     m_nodes.insert(nodes.begin(), nodes.end());
   }
@@ -105,4 +105,4 @@ private:
 };
 
 
-#endif /* QUERY_H */
+#endif /* SEGMENT_H */

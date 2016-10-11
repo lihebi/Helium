@@ -18,20 +18,14 @@
 #include "resolver/snippet_db.h"
 #include "parser/resource.h"
 #include "utils/log.h"
-#include "analyzer.h"
-
 #include "builder.h"
 
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-
-
-#include "code_test.h"
-#include "code_gen.h"
-#include "code_analyze.h"
 #include "helper.h"
+#include "tester.h"
 
 namespace fs = boost::filesystem;
 
@@ -74,7 +68,7 @@ Helium::Helium(PointOfInterest *poi) {
             ASTNode *target = ast->GetNodeByLinum(target_linum);
             if (target) {
               target->SetFailurePoint();
-              Query *init_query = new Query(target);
+              Segment *init_query = new Segment(target);
               m_worklist.push_back(init_query);
             }
           }
@@ -106,7 +100,7 @@ void Helium::process() {
   helium_print_trace("process");
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
-    Query *query = m_worklist.front();
+    Segment *query = m_worklist.front();
     m_worklist.pop_front();
     std::string label = query->New()->GetLabel();
     if (label.size() > 10) {
@@ -121,7 +115,7 @@ void Helium::process() {
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     // FIXME how to supply testing profile?
     if (query->New()->GetASTNode()->Kind() == ANK_Function) {
-      std::vector<Query*> queries = select(query);
+      std::vector<Segment*> queries = select(query);
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
       continue;
     }
@@ -147,7 +141,7 @@ void Helium::process() {
       
       std::string executable = builder.GetExecutable();
       if (HeliumOptions::Instance()->GetBool("run-test")) {
-        CodeTester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());
+        Tester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());
         tester.Test();
         // CodeAnalyzer new_analyzer(builder.GetDir());
         // new_analyzer.Compute();
@@ -189,7 +183,7 @@ void Helium::process() {
         std::cerr << "Inter procedure search, but the callsite is not compilible, stop this query." << "\n";
         continue;
       } else {
-        Query::MarkBad(query->New());
+        Segment::MarkBad(query->New());
         query->Remove(query->New());
       }
     }
@@ -197,7 +191,7 @@ void Helium::process() {
     // TODO get test profile
     // TODO oracle for bug signature
     // TODO merge bug signature
-    std::vector<Query*> queries = select(query);
+    std::vector<Segment*> queries = select(query);
     m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
   }
 }
@@ -207,9 +201,9 @@ void Helium::process() {
 /**
  * context search
  */
-std::vector<Query*> Helium::select(Query *query) {
+std::vector<Segment*> Helium::select(Segment *query) {
   helium_print_trace("select");
-  std::vector<Query*> ret;
+  std::vector<Segment*> ret;
   // TODO hard to reach
   // if (profile.ReachFP()) {
   //   query->RemoveNew();
@@ -220,13 +214,13 @@ std::vector<Query*> Helium::select(Query *query) {
   CFGNode *cfgnode = query->New();
   ASTNode *astnode = cfgnode->GetASTNode();
   if (astnode->Kind() == ANK_If) {
-    std::set<Query*> queries = find_mergable_query(cfgnode, query);
+    std::set<Segment*> queries = find_mergable_query(cfgnode, query);
 
     // std::cout << "For node: " << astnode->GetLabel()  << "\n";
     // std::cout << "mergable query no. " << queries.size()  << "\n";
     
     if (!queries.empty()) {
-      for (Query *q : queries) {
+      for (Segment *q : queries) {
         // modify in place
         // std::cout << "merging: "  << q->GetNodes().size() << "\n";
         q->Merge(query);
@@ -251,8 +245,8 @@ std::vector<Query*> Helium::select(Query *query) {
       if (query->ContainNode(pred)) continue;
       // continue here, easier..
       // UPDATE I don't really need to check this here, the compilation will tell this is bad.
-      // if (Query::IsBad(pred)) continue;
-      Query *q = new Query(*query);
+      // if (Segment::IsBad(pred)) continue;
+      Segment *q = new Segment(*query);
       q->Add(pred);
       ret.push_back(q);
     }
@@ -261,7 +255,7 @@ std::vector<Query*> Helium::select(Query *query) {
     preds = cfg->GetInterPredecessors(cfgnode);
     for (CFGNode *pred : preds) {
       if (query->ContainNode(pred)) continue;
-      Query *q = new Query(*query);
+      Segment *q = new Segment(*query);
       // add and MARK as inter procedure
       q->Add(pred, true);
       ret.push_back(q);
@@ -274,19 +268,19 @@ std::vector<Query*> Helium::select(Query *query) {
 }
 
 
-std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
+std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_query) {
   helium_print_trace("find_mergable_query");
-  std::set<Query*> ret;
+  std::set<Segment*> ret;
   if (m_waiting_quries.count(node) == 0) {
     return ret;
   }
-  std::set<Query*> queries = m_waiting_quries[node];
+  std::set<Segment*> queries = m_waiting_quries[node];
   // follow propagation path for the most recent position
-  std::set<Query*> worklist;
+  std::set<Segment*> worklist;
   worklist.insert(queries.begin(), queries.end());
-  std::set<Query*> candidates;
+  std::set<Segment*> candidates;
   while (!worklist.empty()) {
-    Query *q = *worklist.begin();
+    Segment *q = *worklist.begin();
     worklist.erase(q);
     if (m_propagating_queries.count(q) == 1) {
       worklist.insert(m_propagating_queries[q].begin(), m_propagating_queries[q].end());
@@ -295,7 +289,7 @@ std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
     }
   }
   // for all the candidates that have same transfer function as orig_query
-  for (Query *q : candidates) {
+  for (Segment *q : candidates) {
     // use random here
     // if (utils::rand_bool()) {
     //   ret.insert(q);
@@ -304,232 +298,3 @@ std::set<Query*> Helium::find_mergable_query(CFGNode *node, Query *orig_query) {
   }
   return ret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-/**
- * 
- * Build a single segment to get the error condition.
- * - Build the query
- * - GenerateInput
- * - Test
- * - Oracle infer failure condition
- * This will fill failure condition
- */
-void Helium::init(ASTNode *node) {
-  Query *query = new Query(node);
-
-  query->ResolveInput();
-  query->GenCode();
-  Builder builder;
-  builder.SetMain(query->GetMain());
-  builder.SetSupport(query->GetSupport());
-  builder.SetMakefile(query->GetMakefile());
-  builder.Write();
-  builder.Compile();
-  std::cout << "Code Written to: " << builder.GetDir()  << "\n";
-  if (builder.Success()) {
-    utils::print("compile success\n", utils::CK_Green);
-    std::string executable = builder.GetExecutable();
-  } else {
-    utils::print("compile error\n", utils::CK_Red);
-    std::cerr << "EE: The selected Failure Point is not able to compile"  << "\n";
-    exit(1);
-  }
-  CodeTester tester(builder.GetDir(), builder.GetExecutable(), query->GetInputs());
-  tester.Test();
-  CodeAnalyzer new_analyzer(builder.GetDir());
-  new_analyzer.Compute();
-
-  Analyzer analyzer(builder.GetDir() + "/io.csv", {});
-  std::vector<std::string> invs = analyzer.GetInvariants();
-  // invs
-  std::cout << "Failure invariants:"  << "\n";
-  // merge
-  for (std::string inv : invs) {
-    // TODO many?
-    std::cout << inv  << "\n";
-  }
-  if (invs.empty()) {
-    std::cerr << "EE: Failed to infer failure condition."  << "\n";
-    exit(1);
-  }
-
-  m_failure_condition = merge_failure_condition(invs);
-  std::cout << "******************************"  << "\n";
-  std::cout << "selected failure condition:"  << "\n";
-  std::cout << "\t" << m_failure_condition  << "\n";
-  std::cout << "******************************"  << "\n";
-  if (m_failure_condition.empty()) {
-    std::cerr << "EE: Failure condition empty."  << "\n";
-    exit(1);
-  }
-}
-
-
-std::string Helium::merge_failure_condition(std::vector<std::string> str_invs) {
-  if (str_invs.size() == 1) return str_invs[0];
-  std::vector<BinaryFormula*> invs;
-  BinaryFormula *base = NULL;
-  std::vector<BinaryFormula*> assignments;
-  for (std::string str : str_invs) {
-    BinaryFormula *fm = new BinaryFormula(str);
-    invs.push_back(fm);
-  }
-
-  for (BinaryFormula *fm : invs) {
-    if (fm->GetOP() == "=" && !fm->IsRightVar()) {
-      assignments.push_back(fm);
-    } else {
-      if (!base) {
-        base = fm;
-      }
-    }
-  }
-  
-  for (BinaryFormula *assign : assignments) {
-    base->Update(assign->GetLHS(), assign->GetRHS());
-  }
-
-  std::string ret = base->ToString();
-  for (BinaryFormula *fm : invs) {
-    delete fm;
-  }
-  return ret;
-}
-
-std::string Helium::derive_pre_cond(std::vector<std::string> str_invs, std::vector<std::string> str_trans) {
-  std::string ret;
-  // TODO select some, combine, get pre cond
-
-  // std::string str_inv = merge_failure_condition(str_invs);
-  // std::cout << "\t ********* " << str_inv  << "\n";
-  // BinaryFormula *inv = new BinaryFormula(str_inv);
-
-  // std::vector<BinaryFormula*> invs;
-  // std::vector<BinaryFormula*> pres;
-  std::vector<BinaryFormula*> trans;
-  // create BinaryFormula here. CAUTION need to free them
-  // for (std::string &s : str_invs) {
-  //   invs.push_back(new BinaryFormula(s));
-  // }
-  for (std::string &s : str_trans) {
-    trans.push_back(new BinaryFormula(s));
-  }
-
-  // TODO NOW Replace with failure condition in "init"
-  // BinaryFormula *key_inv = get_key_inv(invs);
-  BinaryFormula *key_inv = new BinaryFormula(m_failure_condition);
-  // FIXME not guranteed
-  if (!key_inv->IsLeftVar()) {
-    key_inv->Inverse();
-  }
-
-  std::vector<BinaryFormula*> related_trans; // = get_related_trans(trans, vars);
-  // for (BinaryFormula *bf : trans) {
-  //   std::string item = bf->GetLHS();
-  //   if (item == key_inv->GetLHS() || item == key_inv->GetRHS()) {
-  //     related_trans.push_back(bf);
-  //   }
-  // }
-
-  for (BinaryFormula *fm : trans) {
-    std::cout << "using: " << fm->ToString()  << "\n";
-    key_inv->Update(fm->GetLHS(), fm->GetRHS());
-    std::cout << "Got: " << key_inv->ToString()  << "\n";
-  }
-
-  // input varaible name is special
-
-  // for (BinaryFormula *tran : trans) {
-  //   BinaryFormula *tmp = new BinaryFormula(*key_inv);
-  //   if (tran->GetLHS() == tmp->GetLHS()) {
-  //     tmp->UpdateLHS(tran->GetRHS());
-  //   }
-  //   if (tran->GetLHS() == tmp->GetRHS()) {
-  //     tmp->UpdateRHS(tran->GetRHS());
-  //   }
-
-
-  //   // if contains no output variable, add it to ret
-  //   std::string lhs = tmp->GetLHS();
-  //   std::string rhs = tmp->GetRHS();
-  //   if (!lhs.empty() && lhs[0] != 'O'
-  //       && !rhs.empty() && rhs[0] != 'O') {
-  //     ret.push_back(tmp->ToString());
-  //   }
-  //   delete tmp;
-  // }
-  // FIXME delete formulas
-  ret = key_inv->ToString();
-  delete key_inv;
-  
-  return ret;
-}
-
-
-bool Helium::pre_entry_point(std::string pre) {
-  BinaryFormula *formula = new BinaryFormula(pre);
-  std::set<std::string> vars = formula->GetVars();
-  for (std::string var : vars) {
-    std::cout << "| " << var  << "\n";
-    // this is argv:f!
-    if (var.find(':') != std::string::npos) {
-      var = var.substr(0, var.find(':'));
-    }
-    if (var != "argv" && var != "argc" && var != "optarg") {
-      delete formula;
-      return false;
-    }
-    if (var == "argv" || var == "argc") {
-      // the argv should come from main
-      // if (m_first->GetAST()->GetFunctionName() != "main") {
-      //   return false;
-      // }
-    }
-  }
-  delete formula;
-  return true;
-}
-
-#endif
-
-

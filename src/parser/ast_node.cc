@@ -93,6 +93,10 @@ std::vector<Variable> ASTNode::GetVariables() {
 
 
 
+/**
+ * (HEBI: This is where the output instrumentation happens)
+ * It is used in the detailed models
+ */
 std::string ASTNode::POIOutputCode() {
   std::string ret;
   // std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
@@ -109,13 +113,13 @@ std::string ASTNode::POIOutputCode() {
 
 
   if (m_ast->IsFailurePoint(this)) {
-    ret += "printf(\"HELIUM_POI = true\\n\");\n";
+    ret += "printf(\"HELIUM_POI_INSTRUMENT\\n\");\n";
     ret += "fflush(stdout);\n";
     std::vector<Variable> vars = GetVariables();
     for (Variable var : vars) {
       ret += var.GetType()->GetOutputCode(var.GetName());
     }
-    ret += "printf(\"HELIUM_POI_OUT_END = true\\n\");\n";
+    ret += "printf(\"HELIUM_POI_INSTRUMENT_END\\n\");\n";
     ret += "fflush(stdout);\n";
     ret += "// @HeliumSegmentBegin\n";
   }
@@ -127,10 +131,13 @@ std::string ASTNode::POIOutputCode() {
  */
 std::string ASTNode::POIAfterCode() {
   std::string ret;
-  std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
-  if (vars.size() > 0) {
-    ret += "// @HeliumSegmentEnd\n";
+  if (m_ast->IsFailurePoint(this)) {
+    ret += "printf(\"HELIUM_AFTER_POI\\n\");\n";
   }
+  // std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
+  // if (vars.size() > 0) {
+  //   ret += "// @HeliumSegmentEnd\n";
+  // }
   return ret;
 }
 

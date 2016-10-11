@@ -1,4 +1,4 @@
-#include "code_gen.h"
+#include "generator.h"
 
 #include "resolver/snippet_db.h"
 #include "utils/log.h"
@@ -106,13 +106,23 @@ void CodeGen::Compute() {
     // comparing
     // m.first->VisualizeN(m.second, ret[m.first]);
   }
-
-
-  
-
-  
   m_data = ret;
 }
+
+void CodeGen::SetInput(std::map<std::string, Type*> inputs) {
+  for (auto mm : inputs) {
+    std::string var = mm.first;
+    Type *t = mm.second;
+    if (!t) {
+      std::cerr << "EE: the type of input variable: " << var <<  " is NULL."
+                << " This will typically results in compilation failure." << "\n";
+      continue;
+    } else {
+      m_inputs[var] = t;
+    }
+  }
+}
+
 
 std::string CodeGen::GetMain() {
   std::string ret;
@@ -137,9 +147,19 @@ std::string CodeGen::GetMain() {
         std::string var = mm.first;
         Type *t = mm.second;
         main_func += t->GetDeclCode(var);
-        // FIXME didn't not use def use analysis result!
+        // FIXME did not use def use analysis result!
         main_func += t->GetInputCode(var);
       }
+
+
+      main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n";
+      for (auto mm : m_inputs) {
+        std::string var = mm.first;
+        Type *t = mm.second;
+        main_func += t->GetOutputCode(var);
+      }
+      main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n";
+      
 
       main_func += "// In function " + ast->GetFunctionName() + "\n";
       main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";

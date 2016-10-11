@@ -1,5 +1,4 @@
-#include "code_test.h"
-#include "workflow/analyzer.h"
+#include "tester.h"
 
 #include "utils/log.h"
 #include "utils/utils.h"
@@ -15,7 +14,7 @@ namespace fs = boost::filesystem;
 #include <boost/timer/timer.hpp>
 using boost::timer::cpu_timer;
 using boost::timer::cpu_times;
-CodeTester::CodeTester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs)
+Tester::Tester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs)
   : m_exe_folder(exe_folder), m_exe(exe), m_inputs(inputs) {
 }
 
@@ -38,8 +37,8 @@ InputSpec *random_select(std::vector<InputSpec*> v) {
   return v[r];
 }
 
-void CodeTester::genTestSuite() {
-  helium_print_trace("CodeTester::genTestSuite");
+void Tester::genTestSuite() {
+  helium_print_trace("Tester::genTestSuite");
   freeTestSuite();
   m_test_suites.clear();
   if (m_inputs.size() == 0) {
@@ -146,8 +145,8 @@ void CodeTester::genTestSuite() {
   }
 }
 
-void CodeTester::Test() {
-  helium_print_trace("CodeTester::Test");
+void Tester::Test() {
+  helium_print_trace("Tester::Test");
   cpu_timer timer;
   timer.start();
   genTestSuite();
@@ -175,8 +174,15 @@ void CodeTester::Test() {
     // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
     // I'm also going to write the input file in the executable directory
     std::string input = suite.GetInput();
-    // Run the program
+
+
+    // DEPRECATED no longer use the spec, instrument in the code instead
+    // std::cout << suite.GetSpec() << "\n";
+
+
+    // (HEBI: Run the program)
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+
     utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);
 
     if (status == 0) {
@@ -200,6 +206,11 @@ void CodeTester::Test() {
       // ret->AddOutput(output, false);
       output += "HELIUM_TEST_SUCCESS = false\n";
     }
+
+
+    // DEBUG
+    // std::cout << output << "\n";
+
 
     // For input, and output, log them out only
     fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");
@@ -234,20 +245,20 @@ void CodeTester::Test() {
   // return ret;
 }
 
-void CodeTester::freeTestSuite() {
-  helium_print_trace("CodeTester::freeTestSuite");
+void Tester::freeTestSuite() {
+  helium_print_trace("Tester::freeTestSuite");
   m_test_suites.clear();
   for (InputSpec *spec : m_specs) {
     delete spec;
   }
   m_specs.clear();
-  helium_print_trace("End of CodeTester::freeTestSuite");
+  helium_print_trace("End of Tester::freeTestSuite");
 }
 
 
 
-// void CodeTester::Analyze(TestResult *test_result) {
-//   helium_print_trace("CodeTester::Analyze");
+// void Tester::Analyze(TestResult *test_result) {
+//   helium_print_trace("Tester::Analyze");
 //   test_result->PrepareData();
 //   // HEBI Generating CSV file
 //   std::string csv = test_result->GenerateCSV();
@@ -308,7 +319,7 @@ void CodeTester::freeTestSuite() {
 // }
 
 
-// bool CodeTester::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {
+// bool Tester::resolveQuery(std::vector<std::string> str_invs, std::vector<std::string> str_pres, std::vector<std::string> str_trans) {
 //   // Construct binary forumlas
 //   std::vector<BinaryFormula*> invs;
 //   std::vector<BinaryFormula*> pres;

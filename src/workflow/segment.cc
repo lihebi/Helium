@@ -1,12 +1,12 @@
-#include "query.h"
+#include "segment.h"
 #include "parser/resource.h"
 #include "utils/log.h"
 #include <iostream>
-#include "code_gen.h"
+#include "generator.h"
 
-std::set<CFGNode*> Query::m_bad = {};
+std::set<CFGNode*> Segment::m_bad = {};
 
-Query::Query(ASTNode *astnode) {
+Segment::Segment(ASTNode *astnode) {
   assert(astnode);
   CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
   CFGNode *cfgnode = cfg->ASTNodeToCFGNode(astnode);
@@ -18,7 +18,7 @@ Query::Query(ASTNode *astnode) {
  * Visualize on CFG.
  * Only display the first CFG for now.
  */
-void Query::Visualize(bool open) {
+void Segment::Visualize(bool open) {
   ASTNode *astnode = m_new->GetASTNode();
   CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
   // these nodes may not belong to this cfg
@@ -26,8 +26,8 @@ void Query::Visualize(bool open) {
 }
 
 
-void Query::ResolveInput() {
-  helium_print_trace("Query::ResolveInput");
+void Segment::ResolveInput() {
+  helium_print_trace("Segment::ResolveInput");
   // for all the ASTs, resolve input
   // TODO should we supply input when necessary? Based on the output instrumentation during run time?
   m_inputs.clear();
@@ -84,7 +84,7 @@ void Query::ResolveInput() {
 /**
  * Generate main, support, makefile, scripts
  */
-void Query::GenCode() {
+void Segment::GenCode() {
   CodeGen generator;
   // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
   generator.SetFirstNode(m_new->GetASTNode());

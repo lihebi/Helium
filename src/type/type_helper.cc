@@ -83,37 +83,15 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
  *   + x: an arbitrary string
  */
 
-std::string get_sizeof_output(std::string var) {
-  return "printf(\"Od_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n" + flush_output;
+std::string get_sizeof_printf_code(std::string var) {
+  return "printf(\"int_" + var + ".size = %d\\n\", sizeof(" + var + "));\n" + flush_output;
 }
-std::string get_strlen_output(std::string var) {
-  return "printf(\"Od_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
-}
-
-
-
-std::string get_sizeof_input_output(std::string var) {
-  return "printf(\"Id_sizeof(" + var + ") = %d\\n\", sizeof(" + var + "));\n" + flush_output;
-}
-std::string get_strlen_input_output(std::string var) {
-  return "printf(\"Id_strlen(" + var + ") = %d\\n\", strlen(" + var + "));\n" + flush_output;
+std::string get_strlen_printf_code(std::string var) {
+  return "printf(\"int_" + var + ".strlen = %d\\n\", strlen(" + var + "));\n" + flush_output;
 }
 
-std::string get_addr_output(std::string var) {
-  return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  // if (Config::Instance()->GetString("use-address") == "true") {
-  //   return "printf(\"Op_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  // } else {
-  //   return "";
-  // }
-}
-std::string get_addr_input(std::string var) {
-  return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  // if (Config::Instance()->GetString("use-address") == "true") {
-  //   return "printf(\"Ip_addr(" + var + ") = %p\\n\", (void*)" + var + ");\n" + flush_output;
-  // } else {
-  //   return "";
-  // }
+std::string get_addr_printf_code(std::string var) {
+  return "printf(\"addr_" + var + " = %p\\n\", (void*)" + var + ");\n" + flush_output;
 }
 std::string get_check_null_if(std::string var) {
   return "if (" + var + " == NULL) {\n";
@@ -128,21 +106,12 @@ std::string get_check_null_fi() {
 /**
  * print it is equal to null, even based on the parameters, not the runtime value.
  */
-std::string get_null_output(std::string var, bool is_null) {
+std::string get_isnull_printf_code(std::string var, bool is_null) {
   if (is_null) {
-    return "printf(\"On_" + var + " = NULL\\n\");\n" + flush_output;
+    return "printf(\"isnull_" + var + " = 1\\n\");\n" + flush_output;
   } else {
-    return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
+    return "printf(\"isnull_" + var + " = 0\\n\");\n" + flush_output;
   }
-  // if (Config::Instance()->GetString("null-output") == "true") {
-  //   if (is_null) {
-  //     return "printf(\"On_" + var + " == NULL\\n\");\n" + flush_output;
-  //   } else {
-  //     return "printf(\"On_" + var + " = !NULL\\n\");\n" + flush_output;
-  //   }
-  // } else {
-  //   return "";
-  // }
 }
 
 /**

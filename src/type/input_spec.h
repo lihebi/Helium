@@ -4,6 +4,14 @@
 #include "common.h"
 
 /**
+ * The format of spec.
+
+ Wait, this is very hard to be consistent.
+ I'd rather print out the input spec as well.
+ 
+ */
+
+/**
  * The spec for a chain of type is hard. But I have solution.
  * The spec format is a like-"json" format: use {} for the level.
  */
