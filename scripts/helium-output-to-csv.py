@@ -123,21 +123,21 @@ def parse(filename):
 
     f = open(filename)
     for line in f:
-        if line.find("HELIUM_INPUT_SPEC") is not -1:
+        if line.find("HELIUM_INPUT_SPEC_END") is not -1:
+            # end of input spec
+            data.SetCode(3);
+        elif line.find("HELIUM_INPUT_SPEC") is not -1:
             # start of input spec
             data.StartInput();
             data.SetCode(2);
-        elif line.find("HELIUM_INPUT_SPEC_END") is not -1:
-            # end of input spec
-            data.SetCode(3);
-        elif line.find("HELIUM_POI_INSTRUMENT") is not -1:
-            # start of output instrument
-            data.StartOutput()
-            data.SetCode(4)
         elif line.find("HELIUM_POI_INSTRUMENT_END") is not -1:
             # end of output instrument
             # start of POI
             data.SetCode(5);
+        elif line.find("HELIUM_POI_INSTRUMENT") is not -1:
+            # start of output instrument
+            data.StartOutput()
+            data.SetCode(4)
         elif line.find("HELIUM_AFTER_POI") is not -1:
             # POI has passed peacefully
             data.SetCode(6);

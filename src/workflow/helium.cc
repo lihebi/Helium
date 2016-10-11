@@ -147,6 +147,7 @@ void Helium::process() {
 
         Analyzer analyzer(builder.GetDir());
         analyzer.GetCSV();
+        analyzer.AnalyzeCSV();
         // CodeAnalyzer new_analyzer(builder.GetDir());
         // new_analyzer.Compute();
 
