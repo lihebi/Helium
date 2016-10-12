@@ -104,7 +104,10 @@ std::string PointerType::GetDeclCode(std::string var) {
     helium_log_warning("PointerType::GetDeclCode with no contained type");
     return "";
   }
-  return m_contained_type->GetDeclCode("*" + var);
+  std::string ret;
+  ret += "// PointerType::GetDeclCode: " + var + "\n";
+  ret += m_contained_type->GetDeclCode("*" + var);
+  return ret;
 }
 
 std::string PointerType::GetInputCode(std::string var) {
@@ -113,6 +116,7 @@ std::string PointerType::GetInputCode(std::string var) {
     return "";
   }
   std::string ret;
+  ret += "// PointerType::GetInputCode: " + var + "\n";
   ret += get_scanf_code("%d", "&helium_size");
   ret += get_helium_size_branch(
                                 // false branch, helium_size == 0

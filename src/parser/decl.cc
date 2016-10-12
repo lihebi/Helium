@@ -13,8 +13,10 @@ Decl* DeclFactory::CreateDecl(XMLNode decl_node) {
   std::string type = decl_get_type(decl_node);
   std::vector<std::string> dims = decl_get_dimension(decl_node);
   std::string name = decl_get_name(decl_node);
+  // FIXME NOW dims (HEBI: dims char*argv[])
   // Will be free-d in ~Decl
-  Type *t = TypeFactory::CreateType(type);
+  // Type *t = TypeFactory::CreateType(type);
+  Type *t = TypeFactory::CreateType(decl_node);
   if (t) {
     return new Decl(t, name, decl_node);
   } else {

@@ -3,6 +3,7 @@
 #include "utils/log.h"
 #include <iostream>
 #include "generator.h"
+#include "utils/utils.h"
 
 std::set<CFGNode*> Segment::m_bad = {};
 
@@ -96,5 +97,23 @@ void Segment::GenCode() {
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();
+
+  // getopt
+  if (m_main.find("getopt") != std::string::npos) {
+    std::string opt = m_main.substr(m_main.find("getopt"));
+    std::vector<std::string> lines = utils::split(opt, '\n');
+    assert(lines.size() > 0);
+    opt = lines[0];
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(opt.find("\"")+1);
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(0, opt.find("\""));
+    assert(opt.find("\"") == std::string::npos);
+    // print out the opt
+    utils::print(opt, utils::CK_Cyan);
+    // set the opt
+    m_opt = opt;
+  }
+
 }
 

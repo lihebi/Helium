@@ -145,9 +145,11 @@ void Helium::process() {
         Tester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());
         tester.Test();
 
-        Analyzer analyzer(builder.GetDir());
-        analyzer.GetCSV();
-        analyzer.AnalyzeCSV();
+        if (fs::exists(builder.GetDir() + "/result.txt")) {
+          Analyzer analyzer(builder.GetDir());
+          analyzer.GetCSV();
+          analyzer.AnalyzeCSV();
+        }
         // CodeAnalyzer new_analyzer(builder.GetDir());
         // new_analyzer.Compute();
 

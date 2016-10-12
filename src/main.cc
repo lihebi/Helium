@@ -112,19 +112,6 @@ std::vector<std::string> get_c_files(std::string folder) {
 }
 
 void print_utilities(std::string folder) {
-  if (HeliumOptions::Instance()->Has("show-ast")) {
-    if (!utils::file_exists(folder)) {
-      std::cerr << "only works for a single file.\n";
-      exit(1);
-    }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
-    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
-    for (XMLNode func : func_nodes) {
-      AST ast(func);
-      ast.Visualize2();
-    }
-    exit(0);
-  }
 
   if (HeliumOptions::Instance()->Has("show-cfg")) {
     if (!utils::file_exists(folder)) {
@@ -303,6 +290,22 @@ int main(int argc, char* argv[]) {
   fs::path cpped = target / "cpped";
   fs::path src = target / "src";
   fs::path snippets = target / "snippets";
+
+
+  if (HeliumOptions::Instance()->Has("show-ast")) {
+    if (!utils::file_exists(folder)) {
+      std::cerr << "only works for a single file.\n";
+      exit(1);
+    }
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
+    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
+    for (XMLNode func : func_nodes) {
+      AST ast(func);
+      ast.Visualize2();
+    }
+    exit(0);
+  }
+  
 
   if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
     std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";

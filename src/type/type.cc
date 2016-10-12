@@ -2,6 +2,7 @@
 #include "utils/utils.h"
 #include "utils/log.h"
 #include "resolver/snippet_db.h"
+#include <iostream>
 
 /**
  * select from the corner cases
@@ -149,14 +150,20 @@ Type *TypeFactory::CreateType(std::string str) {
     str.pop_back();
     std::string numstr = str.substr(str.find_last_of('[')+1);
     str = str.substr(0, str.find_last_of('['));
-    int num = 0;
-    try {
-      num = stoi(numstr);
-    } catch (std::exception e) {
-      helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
+    if (numstr.empty()) {
+      // [], should be the argument, treat as double pointer
+      return new PointerType(str);
+    } else {
+      int num = 0;
+      try {
+        num = stoi(numstr);
+      } catch (std::exception e) {
+        // helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
+        std::cerr << "Exception in TypeFactory::CreateType: "  << std::string(e.what()) << "\n";
+      }
+      type = new ArrayType(str, num);
+      return type;
     }
-    type = new ArrayType(str, num);
-    return type;
   }
   
   // Simple Type

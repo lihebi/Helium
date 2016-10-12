@@ -11,7 +11,7 @@ void Analyzer::GetCSV() {
   // DEBUG print out the csv file
   cmd = "cat " + m_dir + "/result.csv";
   std::string output = utils::new_exec(cmd.c_str());
-  std::cout << output << "\n";
+  // std::cout << output << "\n";
 
 
   

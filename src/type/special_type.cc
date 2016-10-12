@@ -1,6 +1,7 @@
 #include "type.h"
 #include "utils/utils.h"
 #include "helium_options.h"
+#include <iostream>
 
 
 ArgCVType::ArgCVType(std::string getopt_str) {
@@ -45,6 +46,8 @@ std::string ArgCVType::GetOutputCode(std::string var) {
   return ret;
 }
 InputSpec* ArgCVType::GenerateRandomInput() {
+  std::cout << "ArgCVType::GenerateRandomInput" << "\n";
+
   // std::vector<char> m_bools;
   // std::vector<char> m_named_args;
   ArgCVInputSpec *spec = new ArgCVInputSpec();
@@ -68,6 +71,8 @@ InputSpec* ArgCVType::GenerateRandomInput() {
     InputSpec *tmp_spec = char_type->GenerateRandomInput();
     spec->AddArg(tmp_spec);
   }
+  std::cout << "ArgCVType::GenerateRandomInput end" << "\n";
+
   return spec;
 }
 

@@ -102,6 +102,9 @@ private:
   std::string m_makefile;
 
   static std::set<CFGNode*> m_bad;
+
+  // FIXME should not be copied when the query propagate?
+  std::string m_opt;
 };
 
 

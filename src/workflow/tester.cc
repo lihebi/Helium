@@ -167,6 +167,7 @@ void Tester::Test() {
 
   
   fs::path test_result_file = m_exe_folder / "result.txt";
+  fs::path test_input_file = m_exe_folder / "input.txt";
   
   for (int i=0;i<(int)m_test_suites.size();i++) {
     std::string cmd = (m_exe_folder / m_exe).string();
@@ -222,6 +223,7 @@ void Tester::Test() {
     // utils::write_file(out_file.string(), output);
 
     utils::append_file(test_result_file.string(), output);
+    utils::append_file(test_input_file.string(), "-----\n" + suite.GetSpec());
  
   }
   if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
