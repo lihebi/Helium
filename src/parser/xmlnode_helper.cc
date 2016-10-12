@@ -1,5 +1,6 @@
 #include "xmlnode_helper.h"
 #include "xmlnode.h"
+#include <deque>
 
 #include "utils/utils.h"
 
@@ -441,6 +442,26 @@ int a[3][8];
  ** Find nodes
  *******************************/
 
+
+// find the outmost nodes
+// this doesnot use the select_nodes API
+// instead, it manually go through the structure in breadth first search
+XMLNode find_first_node_bfs(XMLNode node, std::string tag) {
+  std::deque<XMLNode> worklist;
+  if (tag == node.name()) return node;
+  worklist.push_back(node);
+  while (!worklist.empty()) {
+    node = worklist.front();
+    worklist.pop_front();
+    for (XMLNode child : node.children()) {
+      worklist.push_back(child);
+      if (tag == child.name()) {
+        return child;
+      }
+    }
+  }
+  return XMLNode();
+}
 /**
  * Find the children of node of kind "kind".
  * It doesn't need to be direct child.
@@ -704,12 +725,3 @@ TEST(ASTHelperCase, DISABLED_GetCodeEnclosingLine) {
   std::string code = get_code_enclosing_line("/Users/hebi/github/Helium/benchmark/real-programs/bugbench/gzip-1.2.4/src/gzip.c", 1556, "function");
   std::cout << code  << "\n";
 }
-
-
-
-
-
-
-
-
-

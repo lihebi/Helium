@@ -42,6 +42,33 @@ private:
   std::map<int, AST*> m_asts;
   std::map<AST*, int> m_ast_ids;
   std::map<AST*, CFG*> m_cfgs;
+
+
+};
+
+class StructClass {
+public:
+  StructClass(std::string code);
+  ~StructClass() {}
+  std::vector<Decl*> Fields() {return m_fields;}
+private:
+  std::vector<Decl*> m_fields;
+};
+
+class StructResource {
+public:
+  static StructResource* Instance() {
+    if (!m_instance) {
+      m_instance = new StructResource();
+    }
+    return m_instance;
+  }
+  StructClass *GetStruct(std::string name);
+  StructClass *GetStruct(int snippet_id);
+private:
+  static StructResource *m_instance;
+  std::map<int, StructClass*> m_iddata;
+  std::map<std::string, StructClass*> m_namedata;
 };
 
 #endif /* RESOURCE_H */

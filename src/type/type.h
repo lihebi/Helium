@@ -161,12 +161,17 @@ private:
 
 class StructType : public CompositeType {
 public:
-  StructType() {}
+  StructType(int id);
   virtual ~StructType() {}
-  virtual std::string ToString() {return "SturctType";}
+  virtual std::string GetDeclCode(std::string var) override;
+  virtual std::string ToString() override {return "SturctType";}
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetRaw() override;
 protected:
 private:
-  // int m_snippet_id = -1;
+  int m_snippet_id = -1;
 };
 
 /**

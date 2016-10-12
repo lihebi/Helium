@@ -55,6 +55,10 @@ int get_node_last_line(pugi::xml_node node);
 /*******************************
  ** find nodes
  *******************************/
+
+XMLNode find_first_node_bfs(XMLNode node, std::string tag);
+
+
 // by kind
 XMLNodeList find_nodes(XMLNode node, XMLNodeKind kind);
 XMLNodeList find_nodes(const XMLDoc& doc, XMLNodeKind kind);

@@ -101,9 +101,9 @@ void Helium::process() {
   helium_print_trace("process");
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
-    Segment *query = m_worklist.front();
+    Segment *segment = m_worklist.front();
     m_worklist.pop_front();
-    std::string label = query->New()->GetLabel();
+    std::string label = segment->New()->GetLabel();
     if (label.size() > 10) {
       label = label.substr(0,10);
       label += "...";
@@ -115,18 +115,18 @@ void Helium::process() {
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     // FIXME how to supply testing profile?
-    if (query->New()->GetASTNode()->Kind() == ANK_Function) {
-      std::vector<Segment*> queries = select(query);
+    if (segment->New()->GetASTNode()->Kind() == ANK_Function) {
+      std::vector<Segment*> queries = select(segment);
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
       continue;
     }
-    query->ResolveInput();
-    query->GenCode();
+    segment->ResolveInput();
+    segment->GenCode();
     
     Builder builder;
-    builder.SetMain(query->GetMain());
-    builder.SetSupport(query->GetSupport());
-    builder.SetMakefile(query->GetMakefile());
+    builder.SetMain(segment->GetMain());
+    builder.SetSupport(segment->GetSupport());
+    builder.SetMakefile(segment->GetMakefile());
     builder.Write();
     builder.Compile();
     if (HeliumOptions::Instance()->GetBool("print-code-output-location")) {
@@ -142,7 +142,7 @@ void Helium::process() {
       
       std::string executable = builder.GetExecutable();
       if (HeliumOptions::Instance()->GetBool("run-test")) {
-        Tester tester(builder.GetDir(), builder.GetExecutableName(), query->GetInputs());
+        Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
         tester.Test();
 
         if (fs::exists(builder.GetDir() + "/result.txt")) {
@@ -150,6 +150,12 @@ void Helium::process() {
           analyzer.GetCSV();
           analyzer.AnalyzeCSV();
         }
+
+
+        // (HEBI: remove branch if not covered)
+
+
+        
         // CodeAnalyzer new_analyzer(builder.GetDir());
         // new_analyzer.Compute();
 
@@ -186,19 +192,19 @@ void Helium::process() {
       // compile error, skip this statement, and mark it as bad
       // however, if the "New" node is from interprocedure, we cannot remove it, but stop this line
       // That is because we need this callsite after all
-      if (query->IsInter()) {
+      if (segment->IsInter()) {
         std::cerr << "Inter procedure search, but the callsite is not compilible, stop this query." << "\n";
         continue;
       } else {
-        Segment::MarkBad(query->New());
-        query->Remove(query->New());
+        Segment::MarkBad(segment->New());
+        segment->Remove(segment->New());
       }
     }
 
     // TODO get test profile
     // TODO oracle for bug signature
     // TODO merge bug signature
-    std::vector<Segment*> queries = select(query);
+    std::vector<Segment*> queries = select(segment);
     m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
   }
 }

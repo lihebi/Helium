@@ -174,6 +174,17 @@ Type *TypeFactory::CreateType(std::string str) {
   } else if (type_has_word(str, "bool") || type_has_word(str, "_Bool")) {
     return new BoolType();
   }
+  // structure
+  // FIXME the struct keyword?
+  // now str should contain only the type name, e.g. structure name
+  // std::set<int> ids = SnippetDB::Instance()->LookUp(str, {SK_Structure});
+  // if (!ids.empty()) {
+  //   // TODO typedef? duplicate? enumerator?
+  //   int id = *ids.begin();
+  //   return new StructType(id);
+  // }
+  // TODO system type?
+  
   return new UnknownType(str);
   return NULL;
 }

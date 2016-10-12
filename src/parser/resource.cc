@@ -1,6 +1,8 @@
 #include "resource.h"
 #include "resolver/snippet_db.h"
 #include "utils/log.h"
+#include "parser/xmlnode_helper.h"
+#include "ast_node.h"
 #include <iostream>
 
 Resource* Resource::m_instance = 0;
@@ -62,4 +64,52 @@ CFG* Resource::GetCFG(AST *ast) {
     m_cfgs[ast] = cfg;
   }
   return cfg;
+}
+
+
+
+
+StructClass::StructClass(std::string code) {
+  // fill in this:
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  // get the fields
+  XMLNode node = find_first_node_bfs(*doc, "struct");
+  assert(node);
+  for (XMLNode decl_stmt_node : node.child("block").children("decl_stmt")) {
+    for (XMLNode decl_node : decl_stmt_node.children("decl")) {
+      Decl *decl = DeclFactory::CreateDecl(decl_node);
+      m_fields.push_back(decl);
+    }
+  }
+}
+
+
+StructResource* StructResource::m_instance = NULL;
+StructClass* StructResource::GetStruct(std::string name) {
+  // TODO FIXME typedef? duplicate? enumerator?
+  if (m_namedata.count(name) == 1) {
+    return m_namedata[name];
+  } else {
+    std::set<int> ids = SnippetDB::Instance()->LookUp(name, {SK_Structure});
+    for (int id : ids) {
+      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
+    }
+    int id = *ids.begin();
+    return GetStruct(id);
+  }
+}
+StructClass* StructResource::GetStruct(int snippet_id) {
+  if (m_iddata.count(snippet_id) == 1) {
+    return m_iddata[snippet_id];
+  } else {
+    std::string code = SnippetDB::Instance()->GetCode(snippet_id);
+    SnippetMeta meta = SnippetDB::Instance()->GetMeta(snippet_id);
+    StructClass *sc = new StructClass(code);
+    if (sc) {
+      std::string name = meta.GetKey();
+      m_namedata[name] = sc;
+      m_iddata[snippet_id] = sc;
+    }
+    return sc;
+  }
 }

@@ -272,9 +272,9 @@ private:
  ** Subclass snipet
  *******************************/
 
-class FunctionSnippet : public Snippet {
-public:
-  std::string GetDecl() const;
-};
+// class FunctionSnippet : public Snippet {
+// public:
+//   std::string GetDecl() const;
+// };
 
 #endif

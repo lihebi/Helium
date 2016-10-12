@@ -1,5 +1,27 @@
 #include "type.h"
 
+StructType::StructType(int snippet_id) : m_snippet_id(snippet_id) {
+}
+std::string StructType::GetDeclCode(std::string var) {
+  // Decl code
+  return "";
+}
+std::string StructType::GetInputCode(std::string var) {
+  // the input code should initiate all the fields
+  return "";
+}
+std::string StructType::GetOutputCode(std::string var) {
+  // output each field
+  return "";
+}
+InputSpec* StructType::GenerateRandomInput() {
+  return NULL;
+}
+std::string StructType::GetRaw() {
+  return "";
+}
+
+
 std::string StructInputSpec::GetRaw() {
   std::string ret;
   std::vector<std::string> list;
