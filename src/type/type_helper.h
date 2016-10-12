@@ -58,6 +58,7 @@ std::string get_check_null(std::string var, std::string true_branch, std::string
 
 std::string get_helium_size_branch(std::string true_branch, std::string false_branch);
 std::string get_helium_size_loop(std::string body);
+std::string get_helium_heap_code(std::string var, std::string body);
 
 std::string get_id(std::string raw_type);
 

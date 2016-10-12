@@ -55,6 +55,7 @@ public:
   virtual std::string GetInputCode(std::string var) = 0;
   virtual std::string GetOutputCode(std::string var) = 0;
   virtual std::vector<InputSpec*> GenerateCornerInputs(int limit=-1);
+  static std::string GetHeader();
   // overwrite when possible!
   // The default implementaiton is just generate multiple times
   virtual std::vector<InputSpec*> GeneratePairInput() {

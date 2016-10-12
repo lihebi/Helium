@@ -139,8 +139,17 @@ std::string CodeGen::GetMain() {
     AST *ast = m.first;
     std::set<ASTNode*> nodes = m.second;
     if (ast == m_first_ast) {
-      main_func += "int main() {\n";
-      main_func += "int helium_size;\n"; // array size of heap
+      main_func += "\n";
+      main_func += "\n"; // array size of heap
+
+
+      // heap address
+
+      main_func += R"(
+int main() {
+  int helium_size;
+)";
+      main_func += Type::GetHeader();
 
       // inputs
       for (auto mm : m_inputs) {

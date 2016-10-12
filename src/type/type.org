@@ -117,6 +117,57 @@ HELIUM_PROG -a -f fdsj 0123456789ab 0123456789abcdefgh
 #+END_EXAMPLE
 
 * TODO write down the strategy I use the for the current new type system! It is excellent!
+
+** PointerType
+
+#+BEGIN_SRC c
+void *helium_heap_addr[BUFSIZ];
+int helium_heap_size[BUFSIZ];
+int helium_heap_top = 0;
+
+MyStruct **pointer = (MyStruct**)malloc(helium_size);
+
+helium_heap_addr[helium_heap_top]=pointer;
+helium_heap_size[helium_heap_top]=helium_size;
+helium_heap_top++;
+
+
+// output code for a variable var
+// previous:
+// -- char*
+  // isnull
+  // strlen
+  // addr
+
+// now
+// -- char*
+  // isnull
+  // strlen
+  // addr
+  // ** size
+// -- other*
+  // isnull
+  // size
+  // addr
+  // for each: use contained type's output
+
+helium_heap_target_size=-1;
+for (int i=0;i<helium_heap_top;i++) {
+  if (var == helium_heap_addr[i]) {
+    helium_heap_target_size = helium_heap_addr[i];
+    break;
+  }
+}
+if (helium_heap_index != -1) {
+  printf("size = %d\n", helium_heap_target_size);
+  for (int i=0;i<helium_heap_target_size;i++) {
+    contained_type->GetInput(var + "[" + i + "]");
+  }
+}
+
+
+#+END_SRC
+
 * About argc and argv
 
 I will not create a new Type class for it anymore.

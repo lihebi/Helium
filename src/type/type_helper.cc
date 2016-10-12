@@ -152,6 +152,27 @@ std::string get_helium_size_loop(std::string body) {
 }
 
 /**
+ * Heap Address Size recorder
+ */
+std::string get_helium_heap_code(std::string var, std::string body) {
+  std::string ret;
+  ret += "helium_heap_target_size = -1;\n";
+  ret += "for (int i=0;i<helium_heap_top;i++) {\n";
+  ret += "  if (" + var + " == helium_heap_addr[i]) {\n";
+  ret += "    helium_heap_target_size = helium_heap_addr[i];\n";
+  ret += "    break;\n";
+  ret += "  }\n";
+  ret += "}\n";
+  ret += "if (helium_heap_index != -1) {\n";
+  ret += "  printf(\"int_" + var + "_heapsize = %d\n\", helium_heap_target_size);\n";
+  ret += "  for (int i=0;i<helium_heap_target_size;i++) {\n";
+  ret += body;
+  ret += " }\n";
+  ret += "}";
+  return ret;
+}
+
+/**
  * Get the raw ID of the type
  */
 std::string get_id(std::string raw_type) {

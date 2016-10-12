@@ -119,6 +119,16 @@ std::string PointerType::GetDeclCode(std::string var) {
 }
 
 
+std::string Type::GetHeader() {
+  return R"(
+  void *helium_heap_addr[BUFSIZ];
+  int helium_heap_size[BUFSIZ];
+  int helium_heap_top = 0;
+  // the size of the found address. Should reset everytime before checking.
+  int helium_heap_target_size=-1;
+)";
+}
+
 /**
  *
 
@@ -139,6 +149,14 @@ std::string PointerType::GetInputCode(std::string var) {
   ret += get_scanf_code("%d", "&helium_size");
   std::string inner;
   inner += get_malloc_code(var, m_contained_type->GetRaw(), "helium_size");
+
+  // record the size malloc-ed
+  inner += "printf(\"malloc size for addr: %p is %d\\n\", (void*)" + var + ", helium_size);\n";
+  // also store in the generated program, for later output instrumentation purpose
+  inner += "helium_heap_addr[helium_heap_top]=" + var + ";\n";
+  inner += "helium_heap_size[helium_heap_top]=helium_size;\n";
+  inner += "helium_heap_top++;\n";
+  
   if (dynamic_cast<CharType*>(m_contained_type)) {
     // string inptu code
     inner += get_scanf_code("%s", var);
@@ -159,25 +177,16 @@ std::string PointerType::GetInputCode(std::string var) {
 std::string PointerType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// PointerType::GetOutputCode: " + var + "\n";
-  // TODO FIXME the output should output all the contained type
-  // but I need to know the size first
-  // how to know that?
-  // 1. compare the address with whatever recorded in the malloc
-  // 2. if match, use that size
-  // This means:
-  // each time we malloc a input variable, we store a map:
-  // {address: size}
-  // then here, we query the map, and retrieve the size
-  // output according to the size
-
   std::string inner;
   inner += get_isnull_printf_code(var, false);
   if (dynamic_cast<CharType*>(m_contained_type)) {
     ret += get_strlen_printf_code(var);
     ret += get_addr_printf_code(var);
+    // for a string, only output the size, no individual ones
+    ret += get_helium_heap_code(var, "");
   } else {
-    // TODO FIXME
-    // m_contained_type->GetOutputCode("*" + var);
+    // but for other types, output every contained type
+    ret += get_helium_heap_code(var, m_contained_type->GetOutputCode(var + "[i]"));
   }
   ret += get_check_null(var, get_isnull_printf_code(var, true), inner);
   return ret;
