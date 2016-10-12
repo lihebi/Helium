@@ -121,22 +121,22 @@ Type *TypeFactory::CreateType(std::string str) {
   // }
 
   // 4. check if char*
-  if (type_is_str(str)) {
-    return new StrType();
-  }
+  // if (type_is_str(str)) {
+  //   return new StrType();
+  // }
 
   // 3. check if char[]
-  if (type_is_buf(str)) {
-    std::string numstr = str.substr(str.find('[')+1, str.find(']'));
-    int num = 0;
-    try {
-      num = stoi(numstr);
-    } catch (std::exception e) {
-      helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
-    }
-    type = new BufType(num);
-    return type;
-  }
+  // if (type_is_buf(str)) {
+  //   std::string numstr = str.substr(str.find('[')+1, str.find(']'));
+  //   int num = 0;
+  //   try {
+  //     num = stoi(numstr);
+  //   } catch (std::exception e) {
+  //     helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
+  //   }
+  //   type = new BufType(num);
+  //   return type;
+  // }
 
   // Pointer
   if (str.back() == '*') {
@@ -154,18 +154,18 @@ Type *TypeFactory::CreateType(std::string str) {
       // [], should be the argument, treat as double pointer
       return new PointerType(str);
     } else {
-      int num = 0;
+      // magic number, if the array size is unknown, maybe an expression, use 10 as the size
+      int num = 10;
       try {
         num = stoi(numstr);
       } catch (std::exception e) {
         // helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
-        std::cerr << "Exception in TypeFactory::CreateType: "  << std::string(e.what()) << "\n";
+        std::cerr << "Array size not a number: "  << std::string(e.what()) << ". Using magic number 10.\n";
       }
       type = new ArrayType(str, num);
       return type;
     }
   }
-  
   // Simple Type
   if (type_has_word(str, "char")) {
     return new CharType();
@@ -182,15 +182,15 @@ Type *TypeFactory::CreateType(std::string str) {
 /**
  * FIXME need smart pointer!
  */
-std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b) {
-  std::vector<std::pair<InputSpec*, InputSpec*> > ret;
-  std::vector<InputSpec*> apair = a->GeneratePairInput();
-  std::vector<InputSpec*> bpair = b->GeneratePairInput();
-  // combine
-  for (InputSpec* ain : apair) {
-    for (InputSpec *bin : bpair) {
-      ret.push_back({ain, bin});
-    }
-  }
-  return ret;
-}
+// std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b) {
+//   std::vector<std::pair<InputSpec*, InputSpec*> > ret;
+//   std::vector<InputSpec*> apair = a->GeneratePairInput();
+//   std::vector<InputSpec*> bpair = b->GeneratePairInput();
+//   // combine
+//   for (InputSpec* ain : apair) {
+//     for (InputSpec *bin : bpair) {
+//       ret.push_back({ain, bin});
+//     }
+//   }
+//   return ret;
+// }

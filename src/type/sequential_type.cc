@@ -49,7 +49,9 @@ std::string ArrayType::GetInputCode(std::string var) {
     helium_log_warning("ArrayType::GetInputCode array size is 0");
     return "";
   }
-  ret += m_contained_type->GetInputCode(var + "[0]");
+  for (int i=0;i<m_num;i++) {
+    ret += m_contained_type->GetInputCode(var + "[" + std::to_string(i) + "]");
+  }
   return ret;
 }
 
@@ -63,7 +65,11 @@ std::string ArrayType::GetOutputCode(std::string var) {
     helium_log_warning("ArrayType::GetOutputCode array size is 0");
     return "";
   }
-  ret += m_contained_type->GetOutputCode(var + "[0]");
+  ret += get_sizeof_printf_code(var);
+  ret += get_addr_printf_code(var);
+  for (int i=0;i<m_num;i++) {
+    ret += m_contained_type->GetOutputCode(var + "[" + std::to_string(i) + "]");
+  }
   return ret;
 }
 
@@ -79,8 +85,10 @@ InputSpec *ArrayType::GenerateRandomInput() {
     return NULL;
   }
   spec = new ArrayInputSpec();
-  InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
-  spec->Add(tmp_spec);
+  for (int i=0;i<m_num;i++) {
+    InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
+    spec->Add(tmp_spec);
+  }
   return spec;
 }
 
@@ -110,6 +118,17 @@ std::string PointerType::GetDeclCode(std::string var) {
   return ret;
 }
 
+
+/**
+ *
+
+ scanf(helium_size);
+ var = malloc(helium_size);
+ for (int i=0;i<helium_size;i++) {
+   input(var[i]);
+ }
+ 
+ */
 std::string PointerType::GetInputCode(std::string var) {
   if (!m_contained_type) {
     helium_log_warning("PointerType::GetInputCode with no contained type");
@@ -118,14 +137,21 @@ std::string PointerType::GetInputCode(std::string var) {
   std::string ret;
   ret += "// PointerType::GetInputCode: " + var + "\n";
   ret += get_scanf_code("%d", "&helium_size");
-  ret += get_helium_size_branch(
-                                // false branch, helium_size == 0
-                                var + " = NULL;\n",
-                                // get_malloc_code(var, m_raw_without_pointer, "1")
-                                // GetValue() ?
-                                get_malloc_code(var, m_contained_type->GetRaw(), "helium_size")
-                                + m_contained_type->GetInputCode("*" + var)
-                                );
+  std::string inner;
+  inner += get_malloc_code(var, m_contained_type->GetRaw(), "helium_size");
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    // string inptu code
+    inner += get_scanf_code("%s", var);
+  } else {
+    inner += "for (int i=0;i<helium_size;i++) {\n";
+    inner +=   m_contained_type->GetInputCode(var + "[i]");
+    inner += "}\n";
+  }
+  // also I want to record the address, and the helium_size value, so that I can know the size of the buffer
+  // But how to generate input?
+  // It's easy: I generate the size, than generate that many input
+  ret += get_helium_size_branch(var + " = NULL;\n", // false branch, helium_size == 0
+                                inner);
   return ret;
 }
 
@@ -133,11 +159,27 @@ std::string PointerType::GetInputCode(std::string var) {
 std::string PointerType::GetOutputCode(std::string var) {
   std::string ret;
   ret += "// PointerType::GetOutputCode: " + var + "\n";
-  ret += get_check_null(var,
-                        get_isnull_printf_code(var, true),
-                        get_isnull_printf_code(var, false)
-                        + m_contained_type->GetOutputCode("*" + var)
-                        );
+  // TODO FIXME the output should output all the contained type
+  // but I need to know the size first
+  // how to know that?
+  // 1. compare the address with whatever recorded in the malloc
+  // 2. if match, use that size
+  // This means:
+  // each time we malloc a input variable, we store a map:
+  // {address: size}
+  // then here, we query the map, and retrieve the size
+  // output according to the size
+
+  std::string inner;
+  inner += get_isnull_printf_code(var, false);
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    ret += get_strlen_printf_code(var);
+    ret += get_addr_printf_code(var);
+  } else {
+    // TODO FIXME
+    // m_contained_type->GetOutputCode("*" + var);
+  }
+  ret += get_check_null(var, get_isnull_printf_code(var, true), inner);
   return ret;
 }
 
@@ -147,197 +189,174 @@ InputSpec *PointerType::GenerateRandomInput() {
     helium_log_warning("PointerType::GenerateRandomInput with no contained type");
     return NULL;
   }
-  InputSpec *spec = new PointerInputSpec();
-  InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
-  spec->Add(tmp_spec);
-  return spec;
-}
 
-
-
-
-
-/**
- * StrType
- */
-
-
-StrType::StrType() : PointerType("char") {
-  std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
-  for (int len : strlen_corners) {
-    std::string str = utils::rand_str(len);
-    m_corners.push_back(wrap(str));
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
+    int helium_size = utils::rand_int(0, max_strlen+1);
+    std::string str;
+    if (helium_size == 0) {
+      str="";
+    } else {
+      str = utils::rand_str(helium_size);
+    }
+    std::string raw = std::to_string(helium_size) + " " + str;
+    std::string spec = "{strlen: " + std::to_string(str.length()) + ", size: " + std::to_string(helium_size) + "}";
+    return new InputSpec(spec, raw);
+  } else {
+    InputSpec *ret = new PointerInputSpec();
+    int max_pointer_size = HeliumOptions::Instance()->GetInt("test-input-max-pointer-size");
+    int helium_size = utils::rand_int(0, max_pointer_size+1);
+    for (int i=0;i<helium_size;i++) {
+      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
+      ret->Add(tmp_spec);
+    }
+    return ret;
   }
+  return NULL;
 }
 
-StrType::~StrType() {}
-
-std::string StrType::GetDeclCode(std::string var) {
-  std::string ret;
-  ret += "// StrType::GetDeclCode: " + var + "\n";
-  ret += "char *" + var + ";\n";
+std::vector<InputSpec*> PointerType::GeneratePairInput() {
+  std::vector<InputSpec*> ret;
+  // TODO
   return ret;
 }
-std::string StrType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// StrType::GetInputCode: " + var + "\n";
-  ret += get_str_input_code(var);
-  // ret += get_addr_printf_code(var);
 
-  // FIXME
-  // ret += get_strlen_input_output(var);
-  
-  return ret;
-}
-std::string StrType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// StrType::GetOutputCode: " + var + "\n";
-  ret += get_strlen_printf_code(var);
-  ret += get_addr_printf_code(var);
-  ret += get_check_null(var,
-                        get_isnull_printf_code(var, true),
-                        get_isnull_printf_code(var, false)
-                        );
-  return ret;
-}
-InputSpec *StrType::GenerateRandomInput() {
-  helium_print_trace("StrType::GenerateRandomInput");
-  // std::cout << "1"  << "\n";
-  static int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
-  // TODO at least a string? 0 here?
-  int size = utils::rand_int(1, max_strlen);
-  // std::cout << "2"  << "\n";
-  std::vector<std::string> list;
-  list.push_back(std::to_string(size));
-  std::string str = utils::rand_str(utils::rand_int(0, size));
-  // std::cout << "3"  << "\n";
-  list.push_back(str);
-  std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(size) + "}";
-  std::string joined = boost::algorithm::join(list, " ");
-  // std::cout << "4"  << "\n";
-  std::string raw = joined;
-  return new InputSpec(spec, raw);
-}
 
-// std::string StrType::corner() {
-//   std::set<int> strlen_choices = {1024, BUFSIZ};
-//   std::set<int> additional;
-//   for (int len : strlen_choices) {
-//     additional.insert(len-2);
-//     additional.insert(len-1);
-//     additional.insert(len+1);
-//     additional.insert(len+2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// /**
+//  * StrType
+//  */
+
+
+// StrType::StrType() : PointerType("char") {
+//   std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
+//   for (int len : strlen_corners) {
+//     std::string str = utils::rand_str(len);
+//     m_corners.push_back(wrap(str));
 //   }
-//   strlen_choices.insert(additional.begin(), additional.end());
-//   std::vector<int> v(strlen_choices.begin(), strlen_choices.end());
-//   int r = utils::rand_int(0, v.size()-1);
-//   std::string ret = utils::rand_str(v[r]);
-//   return ret;
 // }
 
-InputSpec *StrType::wrap(std::string str) {
-  std::vector<std::string> list;
-  list.push_back(std::to_string(str.size()));
-  list.push_back(str);
-  std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(str.size()) + "}";
-  std::string joined = boost::algorithm::join(list, " ");
-  std::string raw = joined;
-  return new InputSpec(spec, raw);
-}
+// StrType::~StrType() {}
 
-std::vector<InputSpec*> StrType::GeneratePairInput() {
-  std::vector<InputSpec*> ret;
-  std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
-  for (int len : strlen_corners) {
-    std::string str = utils::rand_str(len);
-    ret.push_back(wrap(str));
-  }
-  for (int i=0;i<5;i++) {
-    ret.push_back(GenerateRandomInput());
-  }
-  return ret;
-}
+// std::string StrType::GetDeclCode(std::string var) {
+//   std::string ret;
+//   ret += "// StrType::GetDeclCode: " + var + "\n";
+//   ret += "char *" + var + ";\n";
+//   return ret;
+// }
+// std::string StrType::GetInputCode(std::string var) {
+
+//   std::string ret;
+//   ret += "// StrType::GetInputCode: " + var + "\n";
+//   ret += get_scanf_code("%d", "&helium_size");
+//   ret += get_malloc_code(var, "char", "helium_size");
+//   ret += get_helium_size_branch(var + " = NULL;\n",
+//                                 get_scanf_code("%s", var)
+//                                 );
+//   return ret;
+// }
+// std::string StrType::GetOutputCode(std::string var) {
+//   std::string ret;
+//   ret += "// StrType::GetOutputCode: " + var + "\n";
+//   ret += get_strlen_printf_code(var);
+//   ret += get_addr_printf_code(var);
+//   ret += get_check_null(var,
+//                         get_isnull_printf_code(var, true),
+//                         get_isnull_printf_code(var, false)
+//                         );
+//   return ret;
+// }
+// InputSpec *StrType::GenerateRandomInput() {
+//   helium_print_trace("StrType::GenerateRandomInput");
+//   static int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
+//   // TODO at least a string? 0 here?
+//   int size = utils::rand_int(1, max_strlen);
+//   std::vector<std::string> list;
+//   list.push_back(std::to_string(size));
+//   std::string str = utils::rand_str(utils::rand_int(0, size));
+//   list.push_back(str);
+//   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(size) + "}";
+//   std::string joined = boost::algorithm::join(list, " ");
+//   std::string raw = joined;
+//   return new InputSpec(spec, raw);
+// }
+
+// InputSpec *StrType::wrap(std::string str) {
+//   std::vector<std::string> list;
+//   list.push_back(std::to_string(str.size()));
+//   list.push_back(str);
+//   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(str.size()) + "}";
+//   std::string joined = boost::algorithm::join(list, " ");
+//   std::string raw = joined;
+//   return new InputSpec(spec, raw);
+// }
+
+// std::vector<InputSpec*> StrType::GeneratePairInput() {
+//   std::vector<InputSpec*> ret;
+//   std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
+//   for (int len : strlen_corners) {
+//     std::string str = utils::rand_str(len);
+//     ret.push_back(wrap(str));
+//   }
+//   for (int i=0;i<5;i++) {
+//     ret.push_back(GenerateRandomInput());
+//   }
+//   return ret;
+// }
 
 
 /**
  * BufType
  */
-BufType::BufType(int num) : ArrayType("char", num) {}
+// BufType::BufType(int num) : ArrayType("char", num) {}
 
-BufType::~BufType() {}
+// BufType::~BufType() {}
 
-std::string BufType::GetDeclCode(std::string var) {
-  std::string ret;
-  ret += "// BufType::GetDeclCode: " + var + ";\n";
-  ret += "char " + var + "[" + std::to_string(m_num) + "];\n";
-  return ret;
-}
-std::string BufType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// BufType::GetInputCode: " + var + ";\n";
-  ret += "// HELIUM_TODO\n";
+// std::string BufType::GetDeclCode(std::string var) {
+//   std::string ret;
+//   ret += "// BufType::GetDeclCode: " + var + ";\n";
+//   ret += "char " + var + "[" + std::to_string(m_num) + "];\n";
+//   return ret;
+// }
+// std::string BufType::GetInputCode(std::string var) {
+//   std::string ret;
+//   ret += "// BufType::GetInputCode: " + var + ";\n";
+//   ret += "// HELIUM_TODO\n";
 
-  // FIXME
-  // ret += get_sizeof_input_output(var);
-  return ret;
-}
-std::string BufType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// BufType::GetOutputCode: " + var = "\n";
-  ret += get_sizeof_printf_code(var);
-  ret += get_addr_printf_code(var);
-  return ret;
-}
-InputSpec *BufType::GenerateRandomInput() {
-  helium_print_trace("BufType::GenerateRandomInput");
-  // TODO
-  return NULL;
-}
-
-
-
-
-/**
- * Spec
- */
-
-
-
-std::string ArrayInputSpec::GetSpec() {
-  std::string ret;
-  ret += "[";
-  std::vector<std::string> list;
-  for (InputSpec *spec : m_specs) {
-    list.push_back(spec->GetSpec());
-  }
-  std::string joined = boost::algorithm::join(list, ", ");
-  ret += joined;
-  ret += "]";
-  return ret;
-}
-
-
-std::string ArrayInputSpec::GetRaw() {
-  std::string ret;
-  std::vector<std::string> list;
-  for (InputSpec *spec : m_specs) {
-    list.push_back(spec->GetRaw());
-  }
-  std::string joined = boost::algorithm::join(list, " ");
-  ret += joined;
-  return ret;
-}
-
-
-std::string PointerInputSpec::GetSpec() {
-  std::string ret;
-  ret += "{HELIUM_POINTER: ";
-  if (m_to) {
-    ret += m_to->GetSpec();
-  } else {
-    ret += "NULL";
-  }
-  ret += "}";
-  return ret;
-}
-
+//   // FIXME
+//   // ret += get_sizeof_input_output(var);
+//   return ret;
+// }
+// std::string BufType::GetOutputCode(std::string var) {
+//   std::string ret;
+//   ret += "// BufType::GetOutputCode: " + var = "\n";
+//   ret += get_sizeof_printf_code(var);
+//   ret += get_addr_printf_code(var);
+//   return ret;
+// }
+// InputSpec *BufType::GenerateRandomInput() {
+//   helium_print_trace("BufType::GenerateRandomInput");
+//   // TODO
+//   return NULL;
+// }

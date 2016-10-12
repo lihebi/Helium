@@ -105,13 +105,13 @@ protected:
 private:
 };
 
-class SpecialType : public Type {
-public:
-  SpecialType() {}
-  virtual ~SpecialType() {}
-protected:
-private:
-};
+// class SpecialType : public Type {
+// public:
+//   SpecialType() {}
+//   virtual ~SpecialType() {}
+// protected:
+// private:
+// };
 
 class UnknownType : public Type {
 public:
@@ -210,6 +210,7 @@ public:
   virtual std::string GetInputCode(std::string var) override;
   virtual std::string GetOutputCode(std::string var) override;
   virtual InputSpec *GenerateRandomInput() override;
+  virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string GetRaw() override {
     std::string ret;
     if (m_contained_type) {
@@ -223,43 +224,35 @@ private:
   Type *m_contained_type = NULL;
 };
 
-/**
- * StrType, aka char* and char[].
- * Not sure if I need a "buffer type" for char[]
- * This is created when construct Type.
- * I.e. the char* should NOT be recognized as PointerType, but StrType
- * Super clean!
- * I'm genius.
- */
-class StrType : public PointerType {
-public:
-  StrType();
-  virtual ~StrType();
-  virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
-  virtual std::vector<InputSpec*> GeneratePairInput() override;
-  virtual std::string ToString() override {
-    return "StrType";
-  }
-protected:
-private:
-  InputSpec* wrap(std::string s);
-};
+// class StrType : public PointerType {
+// public:
+//   StrType();
+//   virtual ~StrType();
+//   virtual std::string GetDeclCode(std::string var) override;
+//   virtual std::string GetInputCode(std::string var) override;
+//   virtual std::string GetOutputCode(std::string var) override;
+//   virtual InputSpec *GenerateRandomInput() override;
+//   virtual std::vector<InputSpec*> GeneratePairInput() override;
+//   virtual std::string ToString() override {
+//     return "StrType";
+//   }
+// protected:
+// private:
+//   InputSpec* wrap(std::string s);
+// };
 
-class BufType : public ArrayType {
-public:
-  BufType(int num);
-  virtual ~BufType();
-  virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
-  virtual std::string ToString() override {return "BufType";}
-protected:
-private:
-};
+// class BufType : public ArrayType {
+// public:
+//   BufType(int num);
+//   virtual ~BufType();
+//   virtual std::string GetDeclCode(std::string var) override;
+//   virtual std::string GetInputCode(std::string var) override;
+//   virtual std::string GetOutputCode(std::string var) override;
+//   virtual InputSpec *GenerateRandomInput() override;
+//   virtual std::string ToString() override {return "BufType";}
+// protected:
+// private:
+// };
 
 
 
@@ -316,27 +309,27 @@ private:
  * Special type
  */
 
-class ArgCVType : public SpecialType {
-public:
-  ArgCVType(std::string getopt_str="");
-  virtual ~ArgCVType();
-  virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
-  virtual std::string GetRaw() override {
-    return "";
-  }
-  virtual std::string ToString() override {
-    return "ArgCVType";
-  }
-private:
-  std::vector<char> m_bools;
-  std::vector<char> m_named_args;
-  Type *m_argv;
-  Type *m_argc;
-};
+// class ArgCVType : public SpecialType {
+// public:
+//   ArgCVType(std::string getopt_str="");
+//   virtual ~ArgCVType();
+//   virtual std::string GetDeclCode(std::string var) override;
+//   virtual std::string GetInputCode(std::string var) override;
+//   virtual std::string GetOutputCode(std::string var) override;
+//   virtual InputSpec *GenerateRandomInput() override;
+//   virtual std::string GetRaw() override {
+//     return "";
+//   }
+//   virtual std::string ToString() override {
+//     return "ArgCVType";
+//   }
+// private:
+//   std::vector<char> m_bools;
+//   std::vector<char> m_named_args;
+//   Type *m_argv;
+//   Type *m_argc;
+// };
 
-std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b);
+// std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b);
 
 #endif /* TYPE_H */

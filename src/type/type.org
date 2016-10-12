@@ -115,3 +115,31 @@ The raw:
 9
 HELIUM_PROG -a -f fdsj 0123456789ab 0123456789abcdefgh
 #+END_EXAMPLE
+
+* TODO write down the strategy I use the for the current new type system! It is excellent!
+* About argc and argv
+
+I will not create a new Type class for it anymore.
+That is hard because:
+- they are essentially int and char**
+- I need to judge based on the name, but the input generation code does not need to know the name of the variable, not to say the name itself is not precise.
+
+Instead, the new strategy is that, when generating the code for an input /variable/, we know the name and type at that time.
+If the variable is =argv= (with some checking for the environment besides the name), we call the same function to generate /decl/ and /input/ code, but use another function to output the metrics for it.
+- this function will not only report the size of the heap and each individual component;
+- instead, it examines the components, and output the specific:
+  - argv_a?
+  - argv_f : strlen
+  - argv_1: strlen
+  - argc: 6
+
+Also, when generating the input test suite, we know the name and the type.
+So, it is easy: check if it is argv, if yes, /generate special input/ instead of standard.
+
+What about the generating of output instrumentation? At that time, we also know the name and type! So no problem.
+
+One last thing: how to relate argc and argv? Or do we need to relate them?
+We can easily check whether they are both there. It should be rare if not. So, let's assume they are and deal with it if later we found this is not true.
+So, just generate them together? how about the order of the input? It seems that no need to worry the order.
+
+HaHa, good right?

@@ -103,6 +103,8 @@ public:
   
 private:
   void genTestSuite();
+  void genRandom();
+  void genPairwise();
   void freeTestSuite();
 
   fs::path m_exe_folder;

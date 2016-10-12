@@ -4,6 +4,7 @@
 #include "utils/utils.h"
 #include "helium_options.h"
 #include "helper.h"
+#include "type/argv.h"
 
 #include <boost/filesystem.hpp>
 
@@ -37,15 +38,130 @@ InputSpec *random_select(std::vector<InputSpec*> v) {
   return v[r];
 }
 
+static void setopt(std::string file) {
+  std::string code = utils::read_file(file);
+  if (code.find("getopt") != std::string::npos) {
+    std::string opt = code.substr(code.find("getopt"));
+    std::vector<std::string> lines = utils::split(opt, '\n');
+    assert(lines.size() > 0);
+    opt = lines[0];
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(opt.find("\"")+1);
+    assert(opt.find("\"") != std::string::npos);
+    opt = opt.substr(0, opt.find("\""));
+    assert(opt.find("\"") == std::string::npos);
+    // print out the opt
+    utils::print(opt, utils::CK_Cyan);
+    // set the opt
+    ArgV::Instance()->SetOpt(opt);
+  }
+}
+
+static void clearopt() {
+  ArgV::Instance()->ClearOpt();
+}
+
+void Tester::genRandom() {
+  int test_number = HeliumOptions::Instance()->GetInt("random-test-number");
+  m_test_suites.clear();
+  for (int i=0;i<test_number;i++) {
+    TestSuite suite;
+    ArgV::Instance()->clear();
+    for (auto input : m_inputs) {
+      std::string var = input.first;
+      if (var == "argc") {
+        InputSpec *spec = ArgV::Instance()->GetArgCInput();
+        suite.Add(var, spec);
+      } else if (var == "argv") {
+        InputSpec *spec = ArgV::Instance()->GetArgVInput();
+        suite.Add(var, spec);
+      } else {
+        Type *type = input.second;
+        if (!type) {
+          std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
+          exit(1);
+        }
+        InputSpec *spec = type->GenerateRandomInput();
+        suite.Add(var, spec);
+      }
+    }
+    m_test_suites.push_back(suite);
+  }
+}
+
+void Tester::genPairwise() {
+  // for each input, generate a lot of tests by their GenPair method
+  // Haha
+  int corner_number = HeliumOptions::Instance()->GetInt("pairwise-corner-number");
+  int random_number = HeliumOptions::Instance()->GetInt("pairwise-random-number");
+  std::vector<std::vector<InputSpec*> > pairpool;
+  std::vector<std::string> varnames;
+  for (auto input : m_inputs) {
+    std::string var = input.first;
+    varnames.push_back(var);
+    Type *type = input.second;
+    if (!type) {
+      std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
+      exit(1);
+    }
+
+    std::vector<InputSpec*> corner_inputs = type->GenerateCornerInputs(corner_number);
+    std::vector<InputSpec*> random_inputs = type->GenerateRandomInputs(random_number);
+    std::vector<InputSpec*> inputs;
+    inputs.insert(inputs.end(), corner_inputs.begin(), corner_inputs.end());
+    inputs.insert(inputs.end(), random_inputs.begin(), random_inputs.end());
+    pairpool.push_back(inputs);
+  }
+  // then, for every combination of any two variable, get a combination of them, and random choose for the rest of inputs
+  std::vector<TestSuite> test_suite_pool;
+  if (m_inputs.size() == 1) {
+    std::vector<InputSpec*> v = pairpool[0];
+    for (int i=0;i<(int)v.size();i++) {
+      TestSuite suite;
+      suite.Add(varnames[0], v[i]);
+      m_test_suites.push_back(suite);
+    }
+  } else {
+    for (int i=0;i<(int)m_inputs.size();i++) {
+      for (int j=i+1;j<(int)m_inputs.size();j++) {
+        // pairwise i and j
+        std::vector<std::pair<InputSpec*, InputSpec*> > pairs = gen_pair(pairpool[i], pairpool[j]);
+        for (int m=0;m<(int)pairs.size();m++) {
+          std::pair<InputSpec*, InputSpec*> p = pairs[m];
+          TestSuite suite;
+          for (int n=0;n<(int)m_inputs.size();n++) {
+            if (n == i) {
+              suite.Add(varnames[n], p.first);
+            } else if (n == j) {
+              suite.Add(varnames[n], p.second);
+            } else {
+              suite.Add(varnames[n], random_select(pairpool[n]));
+            }
+          }
+          test_suite_pool.push_back(suite);
+        }
+      }
+    }
+  }
+  // select from the pool
+  int pairwise_test_number = HeliumOptions::Instance()->GetInt("pairwise-test-number");
+  if (pairwise_test_number < (int)test_suite_pool.size()) {
+    std::set<int> rv = utils::rand_ints(0, test_suite_pool.size(), pairwise_test_number);
+    for (int r : rv) {
+      m_test_suites.push_back(test_suite_pool[r]);
+    }
+  } else {
+    m_test_suites.insert(m_test_suites.end(), test_suite_pool.begin(), test_suite_pool.end());
+  }
+}
+
 void Tester::genTestSuite() {
   helium_print_trace("Tester::genTestSuite");
-  freeTestSuite();
-  m_test_suites.clear();
   if (m_inputs.size() == 0) {
     return;
   }
-
-
+  freeTestSuite();
+  m_test_suites.clear();
   if (HeliumOptions::Instance()->GetBool("print-input-variables")) {
     for (auto input : m_inputs) {
       std::string var = input.first;
@@ -54,95 +170,24 @@ void Tester::genTestSuite() {
         std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
         exit(1);
       }
-      std::cout << "Input Variables:" << "\n";
-      std::cout << "\t" << type->ToString() << ":" << type->GetRaw() << " " << var << "\n";
+      std::cout << "Input Variables: " << "\t"
+                << type->ToString() << ":" << type->GetRaw() << " " << var << "\n";
     }
   }
 
   std::string method = HeliumOptions::Instance()->GetString("test-generation-method");
+  
+  // scan the code and set opt
+  setopt((m_exe_folder / "main.c").string());
+  // (HEBI: generate input)
   if (method == "random") {
-    int test_number = HeliumOptions::Instance()->GetInt("random-test-number");
-    m_test_suites.resize(test_number);
-    for (auto input : m_inputs) {
-      std::string var = input.first;
-      Type *type = input.second;
-      if (!type) {
-        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
-        exit(1);
-      }
-      for (int i=0;i<test_number;i++) {
-        InputSpec *spec = type->GenerateRandomInput();
-        m_specs.insert(spec);
-        m_test_suites[i].Add(var, spec);
-      }
-    }
+    genRandom();
   } else if (method == "pairwise") {
-    // for each input, generate a lot of tests by their GenPair method
-    // Haha
-    int corner_number = HeliumOptions::Instance()->GetInt("pairwise-corner-number");
-    int random_number = HeliumOptions::Instance()->GetInt("pairwise-random-number");
-    std::vector<std::vector<InputSpec*> > pairpool;
-    std::vector<std::string> varnames;
-    for (auto input : m_inputs) {
-      std::string var = input.first;
-      varnames.push_back(var);
-      Type *type = input.second;
-      if (!type) {
-        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
-        exit(1);
-      }
-
-      std::vector<InputSpec*> corner_inputs = type->GenerateCornerInputs(corner_number);
-      std::vector<InputSpec*> random_inputs = type->GenerateRandomInputs(random_number);
-      std::vector<InputSpec*> inputs;
-      inputs.insert(inputs.end(), corner_inputs.begin(), corner_inputs.end());
-      inputs.insert(inputs.end(), random_inputs.begin(), random_inputs.end());
-      pairpool.push_back(inputs);
-    }
-    // then, for every combination of any two variable, get a combination of them, and random choose for the rest of inputs
-    std::vector<TestSuite> test_suite_pool;
-    if (m_inputs.size() == 1) {
-      std::vector<InputSpec*> v = pairpool[0];
-      for (int i=0;i<(int)v.size();i++) {
-        TestSuite suite;
-        suite.Add(varnames[0], v[i]);
-        m_test_suites.push_back(suite);
-      }
-    } else {
-      for (int i=0;i<(int)m_inputs.size();i++) {
-        for (int j=i+1;j<(int)m_inputs.size();j++) {
-          // pairwise i and j
-          std::vector<std::pair<InputSpec*, InputSpec*> > pairs = gen_pair(pairpool[i], pairpool[j]);
-          for (int m=0;m<(int)pairs.size();m++) {
-            std::pair<InputSpec*, InputSpec*> p = pairs[m];
-            TestSuite suite;
-            for (int n=0;n<(int)m_inputs.size();n++) {
-              if (n == i) {
-                suite.Add(varnames[n], p.first);
-              } else if (n == j) {
-                suite.Add(varnames[n], p.second);
-              } else {
-                suite.Add(varnames[n], random_select(pairpool[n]));
-              }
-            }
-            test_suite_pool.push_back(suite);
-          }
-        }
-      }
-    }
-    // select from the pool
-    int pairwise_test_number = HeliumOptions::Instance()->GetInt("pairwise-test-number");
-    if (pairwise_test_number < (int)test_suite_pool.size()) {
-      std::set<int> rv = utils::rand_ints(0, test_suite_pool.size(), pairwise_test_number);
-      for (int r : rv) {
-        m_test_suites.push_back(test_suite_pool[r]);
-      }
-    } else {
-      m_test_suites.insert(m_test_suites.end(), test_suite_pool.begin(), test_suite_pool.end());
-    }
+    genPairwise();
   } else {
     std::cerr << "EE: unsupported test generation method: " << method << "\n";
   }
+  clearopt();
 }
 
 void Tester::Test() {

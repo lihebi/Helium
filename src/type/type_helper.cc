@@ -152,19 +152,6 @@ std::string get_helium_size_loop(std::string body) {
 }
 
 /**
- * generate code for a string scanf
- */
-std::string get_str_input_code(std::string name) {
-  std::string ret;
-  ret += get_scanf_code("%d", "&helium_size");
-  ret += get_malloc_code(name, "char", "helium_size");
-  ret += get_helium_size_branch(name + " = NULL;\n",
-                                get_scanf_code("%s", name)
-                                );
-  return ret;
-}
-
-/**
  * Get the raw ID of the type
  */
 std::string get_id(std::string raw_type) {
