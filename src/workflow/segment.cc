@@ -4,6 +4,7 @@
 #include <iostream>
 #include "generator.h"
 #include "utils/utils.h"
+#include "resolver/global_variable.h"
 
 Segment::Segment(ASTNode *astnode) {
   assert(astnode);
@@ -127,7 +128,10 @@ void Segment::ResolveInput() {
         }
       } else {
         // TODO global
-        // Type *type = GlobalVariableRegistry::Instance()->LookUp(id);
+        Type *type = GlobalVariableRegistry::Instance()->LookUp(id);
+        if (type) {
+          m_inputs[id] = type;
+        }
       }
     }
   }

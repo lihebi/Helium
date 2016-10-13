@@ -113,22 +113,6 @@ std::vector<std::string> get_c_files(std::string folder) {
 
 void print_utilities(std::string folder) {
 
-  if (HeliumOptions::Instance()->Has("show-cfg")) {
-    if (!utils::file_exists(folder)) {
-      std::cerr << "only works for a single file.\n";
-      exit(1);
-    }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
-    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
-    for (XMLNode func : func_nodes) {
-      AST ast(func);
-      ASTNode *root = ast.GetRoot(); 
-      CFG *cfg = CFGFactory::CreateCFG(root);
-      cfg->Visualize();
-      delete cfg;
-    }
-    exit(0);
-  }
   if (HeliumOptions::Instance()->Has("show-callgraph")) {
     SnippetDB::Instance()->PrintCG();
     exit(0);
@@ -305,6 +289,24 @@ int main(int argc, char* argv[]) {
     }
     exit(0);
   }
+
+  if (HeliumOptions::Instance()->Has("show-cfg")) {
+    if (!utils::file_exists(folder)) {
+      std::cerr << "only works for a single file.\n";
+      exit(1);
+    }
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
+    XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
+    for (XMLNode func : func_nodes) {
+      AST ast(func);
+      ASTNode *root = ast.GetRoot(); 
+      CFG *cfg = CFGFactory::CreateCFG(root);
+      cfg->Visualize();
+      delete cfg;
+    }
+    exit(0);
+  }
+
   
 
   if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {

@@ -150,7 +150,6 @@ void Helium::process() {
     if (HeliumOptions::Instance()->GetBool("run-test")) {
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
-
       if (fs::exists(builder.GetDir() + "/result.txt")) {
         Analyzer analyzer(builder.GetDir());
         analyzer.GetCSV();
