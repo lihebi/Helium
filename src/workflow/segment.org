@@ -1,0 +1,6 @@
+#+TITLE: Segment Design Document
+
+The segment should have the following abilities:
+1. selection of node
+2. current head
+3. most recent added node

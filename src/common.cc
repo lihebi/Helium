@@ -37,3 +37,4 @@ is_c_keyword(const std::string& s) {
   return false;
 }
 
+const std::string flush_output = "fflush(stdout);\n";

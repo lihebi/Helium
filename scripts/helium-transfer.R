@@ -82,8 +82,35 @@ csv = read.csv(csvfile, header=TRUE)
 ## print("Inside the file:")
 ## print(csv)
 
-## print("Computing ...")
-funcs = TransferFunction(csv);
+
+##############################
+## Some small analysis
+##############################
+
+## How many tests in total:
+total_test <- dim(csv)[[1]]
+sub = subset(csv, reach_code>=5)
+total_reach_poi <- dim(sub)[[1]]
+sub = subset(csv, reach_code==5 & status_code == 1)
+total_fail_poi <- dim(sub)[[1]]
+
+cat("Total test: ", total_test, "\n")
+cat("Total reach poi: ", total_reach_poi, "\n")
+cat("Total fail poi: ", total_fail_poi, "\n")
+
+
+## remove last two columns: (code)
+sub <- sub[1:(length(csv)-2)]
+funcs = TransferFunction(sub);
+
+
+
+## print out result
+cat("Transfer functions:\n")
+for (func in funcs) {
+    cat(func, "\n")
+}
+
 ## print("Transfer functions:")
 ## print("")
-print(funcs)
+## print(funcs)

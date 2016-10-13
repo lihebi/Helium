@@ -57,12 +57,67 @@ std::string get_isnull_printf_code(std::string var, bool is_null);
 std::string get_check_null(std::string var, std::string true_branch, std::string false_branch);
 
 std::string get_helium_size_branch(std::string true_branch, std::string false_branch);
-std::string get_helium_size_loop(std::string body);
-std::string get_helium_heap_code(std::string var, std::string body);
 
 std::string get_id(std::string raw_type);
 
 bool is_primitive(std::string s);
+
+class LoopHelper {
+public:
+  static LoopHelper* Instance() {
+    if (!m_instance) {
+      m_instance = new LoopHelper();
+    }
+    return m_instance;
+  }
+  std::string GetCurrentIndexVar() {
+    return std::string(m_level, 'i');
+  }
+  void IncLevel() {
+    m_level++;
+  }
+  void DecLevel() {
+    m_level--;
+  }
+  /**
+   * loop by helium_size. The index is "i"
+   */
+  std::string GetHeliumSizeLoop(std::string body) {
+    std::string ret;
+    std::string var = GetCurrentIndexVar();
+    // Use helium_size_tmp because the body might overwrite helium_size
+    ret += "for (int " + var + "=0,helium_size_tmp=helium_size;" + var + "<helium_size_tmp;" + var + "++) {\n";
+    ret += body;
+    ret += "}\n";
+    return ret;
+  }
+  /**
+   * Heap Address Size recorder
+   */
+  std::string GetHeliumHeapCode(std::string var, std::string body) {
+    std::string ret;
+    std::string idxvar = GetCurrentIndexVar();
+    ret += "helium_heap_target_size = -1;\n";
+    ret += "for (int " + idxvar + "=0;" + idxvar + "<helium_heap_top;" + idxvar + "++) {\n";
+    ret += "  if (" + var + " == helium_heap_addr[" + idxvar + "]) {\n";
+    ret += "    helium_heap_target_size = helium_heap_size[" + idxvar + "];\n";
+    ret += "    break;\n";
+    ret += "  }\n";
+    ret += "}\n";
+    ret += "if (helium_heap_target_size != -1) {\n";
+    ret += "  printf(\"int_" + var + "_heapsize = %d\\n\", helium_heap_target_size);\n";
+    ret += flush_output;
+    ret += "  for (int " + idxvar + "=0,helium_heap_target_size_tmp=helium_heap_target_size;"
+      + idxvar + "<helium_heap_target_size_tmp;" + idxvar + "++) {\n";
+    ret += body;
+    ret += " }\n";
+    ret += "}";
+    return ret;
+  }
+private:
+  static LoopHelper *m_instance;
+  int m_level=1;
+};
 
 
 #endif /* TYPE_HELPER_H */

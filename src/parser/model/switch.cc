@@ -52,12 +52,14 @@ void Switch::GetCode(std::set<ASTNode*> nodes,
     ret += get_text(m_cond);
     ret += ")";
     ret += "{\n";
-    for (Case *c : m_cases) {
-      c->GetCode(nodes, ret, all);
-    }
-    if (m_default) {
-      m_default->GetCode(nodes, ret, all);
-    }
+  }
+  for (Case *c : m_cases) {
+    c->GetCode(nodes, ret, all);
+  }
+  if (m_default) {
+    m_default->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     // add break at the end. It will not influence the result, but a label without statement is not syntax correct
     ret += "break;";
     ret += "}";
@@ -115,9 +117,9 @@ void Case::GetCode(std::set<ASTNode*> nodes,
     ret += "case ";
     ret += get_text(m_cond);
     ret += ":\n";
-    for (ASTNode *child : m_children) {
-      child->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *child : m_children) {
+    child->GetCode(nodes, ret, all);
   }
 }
 
@@ -144,18 +146,9 @@ void Default::GetCode(std::set<ASTNode*> nodes, std::string &ret, bool all) {
   selected |= all;
   if (selected) {
     ret += "default: ";
-    for (ASTNode *child : m_children) {
-      child->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *child : m_children) {
+    child->GetCode(nodes, ret, all);
   }
 }
 
-
-// void Default::CreateSymbolTable() {
-//   if (m_parent == NULL) {
-//     // this is root, create the default symbol table.
-//     m_sym_tbl = m_ast->CreateSymTbl(NULL);
-//   } else {
-//     m_sym_tbl = m_parent->GetSymbolTable();
-//   }
-// }

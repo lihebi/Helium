@@ -87,34 +87,12 @@ void Function::GetCode(std::set<ASTNode*> nodes,
     }
     ret += ")";
     ret += "{\n";
-
-    // FIXME for now, function will never be returned by the GetCode
-    // This is because I only care about intraprocedure for now, and the function definition inside main is not valid.
-    for (ASTNode *node : m_children) {
-      node->GetCode(nodes, ret, all);
-    }
-    // m_blk->GetCode(nodes, ret, all);
+  }
+  for (ASTNode *node : m_children) {
+    node->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     ret += "}";
-  } else {
-    // decl
-    // THIS is how to use the decls
-    // the decls mean the declaration of a variable needs to be added to this node
-    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
-    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
-    for (Decl *param: m_params) {
-      std::string name = param->GetName();
-      if (inputed_decls.count(name) == 1) {
-        // TODO NOW inputed_decl need input statements
-        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        // ret += param->GetType() + " " + param->GetName() + ";\n";
-        ret += param->GetType()->GetDeclCode(param->GetName());
-        ret += param->GetType()->GetInputCode(param->GetName());
-      } else if (decls.count(name) == 1) {
-        // ret += "/*HELIUM_DECL*/";
-        // ret += param->GetType() + " " + param->GetName() + ";\n";
-        ret += param->GetType()->GetDeclCode(param->GetName());
-      }
-    }
   }
 }
 

@@ -17,6 +17,7 @@
  */
 class InputSpec {
 public:
+  // FIXME This is very bad practice: the accept two strings, it is easy to confuse the position.
   InputSpec(std::string spec="", std::string raw="") : m_spec(spec), m_raw(raw) {}
   virtual ~InputSpec() {}
   virtual void Add(InputSpec *spec) {

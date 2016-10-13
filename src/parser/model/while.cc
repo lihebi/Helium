@@ -32,9 +32,11 @@ void While::GetCode(std::set<ASTNode*> nodes,
     ret += get_text(m_cond);
     ret += ")";
     ret += "{\n";
-    for (ASTNode *child: m_children) {
-      child->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *child: m_children) {
+    child->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     ret += "}";
     ret += POIAfterCode();
   }

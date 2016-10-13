@@ -49,9 +49,15 @@ std::string ArrayType::GetInputCode(std::string var) {
     helium_log_warning("ArrayType::GetInputCode array size is 0");
     return "";
   }
-  for (int i=0;i<m_num;i++) {
-    ret += m_contained_type->GetInputCode(var + "[" + std::to_string(i) + "]");
+
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    ret += get_scanf_code("%s", var);
+  } else {
+    for (int i=0;i<m_num;i++) {
+      ret += m_contained_type->GetInputCode(var + "[" + std::to_string(i) + "]");
+    }
   }
+  
   return ret;
 }
 
@@ -67,8 +73,12 @@ std::string ArrayType::GetOutputCode(std::string var) {
   }
   ret += get_sizeof_printf_code(var);
   ret += get_addr_printf_code(var);
-  for (int i=0;i<m_num;i++) {
-    ret += m_contained_type->GetOutputCode(var + "[" + std::to_string(i) + "]");
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    ret += get_strlen_printf_code(var);
+  } else {
+    for (int i=0;i<m_num;i++) {
+      ret += m_contained_type->GetOutputCode(var + "[" + std::to_string(i) + "]");
+    }
   }
   return ret;
 }
@@ -84,10 +94,16 @@ InputSpec *ArrayType::GenerateRandomInput() {
     helium_log_warning("ArrayType::GetOutputCode array size is 0");
     return NULL;
   }
-  spec = new ArrayInputSpec();
-  for (int i=0;i<m_num;i++) {
-    InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
-    spec->Add(tmp_spec);
+  if (dynamic_cast<CharType*>(m_contained_type)) {
+    int len = utils::rand_int(0, m_num);
+    std::string str = utils::rand_str(len);
+    spec = new InputSpec("", str);
+  } else {
+    spec = new ArrayInputSpec();
+    for (int i=0;i<m_num;i++) {
+      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
+      spec->Add(tmp_spec);
+    }
   }
   return spec;
 }
@@ -119,6 +135,9 @@ std::string PointerType::GetDeclCode(std::string var) {
 }
 
 
+/**
+ * These are global variables
+ */
 std::string Type::GetHeader() {
   return R"(
   void *helium_heap_addr[BUFSIZ];
@@ -161,9 +180,11 @@ std::string PointerType::GetInputCode(std::string var) {
     // string inptu code
     inner += get_scanf_code("%s", var);
   } else {
-    inner += "for (int i=0;i<helium_size;i++) {\n";
-    inner +=   m_contained_type->GetInputCode(var + "[i]");
-    inner += "}\n";
+    std::string idxvar = LoopHelper::Instance()->GetCurrentIndexVar();
+    LoopHelper::Instance()->IncLevel();
+    std::string innerinner = m_contained_type->GetInputCode(var + "[" + idxvar + "]");
+    LoopHelper::Instance()->DecLevel();
+    inner += LoopHelper::Instance()->GetHeliumSizeLoop(innerinner);
   }
   // also I want to record the address, and the helium_size value, so that I can know the size of the buffer
   // But how to generate input?
@@ -183,10 +204,14 @@ std::string PointerType::GetOutputCode(std::string var) {
     ret += get_strlen_printf_code(var);
     ret += get_addr_printf_code(var);
     // for a string, only output the size, no individual ones
-    ret += get_helium_heap_code(var, "");
+    ret += LoopHelper::Instance()->GetHeliumHeapCode(var, "");
   } else {
     // but for other types, output every contained type
-    ret += get_helium_heap_code(var, m_contained_type->GetOutputCode(var + "[i]"));
+    std::string idxvar = LoopHelper::Instance()->GetCurrentIndexVar();
+    LoopHelper::Instance()->IncLevel();
+    std::string innerinner = m_contained_type->GetOutputCode(var + "[" + idxvar + "]");
+    LoopHelper::Instance()->DecLevel();
+    ret += LoopHelper::Instance()->GetHeliumHeapCode(var, innerinner);
   }
   ret += get_check_null(var, get_isnull_printf_code(var, true), inner);
   return ret;
@@ -206,7 +231,8 @@ InputSpec *PointerType::GenerateRandomInput() {
     if (helium_size == 0) {
       str="";
     } else {
-      str = utils::rand_str(helium_size);
+      int len = utils::rand_int(0, helium_size);
+      str = utils::rand_str(len);
     }
     std::string raw = std::to_string(helium_size) + " " + str;
     std::string spec = "{strlen: " + std::to_string(str.length()) + ", size: " + std::to_string(helium_size) + "}";

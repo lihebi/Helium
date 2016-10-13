@@ -22,6 +22,8 @@ extern int global_seg_no;
 extern int g_compile_success_no;
 extern int g_compile_error_no;
 
+extern const std::string flush_output;
+
 bool
 is_c_keyword(const std::string& s);
 

@@ -77,31 +77,16 @@ void For::GetCode(std::set<ASTNode*> nodes,
     ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
     // m_blk->GetCode(nodes, ret, all, selected);
     ret += "{\n";
-    for (ASTNode *child : m_children) {
-      child->GetCode(nodes, ret, all);
-    }
+  }
+
+  
+  for (ASTNode *child : m_children) {
+    child->GetCode(nodes, ret, all);
+  }
+
+  if (selected) {
     ret += "}";
     ret += POIAfterCode();
-  } else {
-    std::set<std::string> decls = m_ast->GetRequiredDecl(this);
-    std::set<std::string> inputed_decls = m_ast->GetRequiredDeclWithInput(this);
-    for (std::string decl : decls) {
-      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
-      if (val) {
-        // ret += "/*HELIUM_DECL*/";
-        // ret += val->GetType() + " " + val->GetName() + ";\n";
-        ret += val->GetType()->GetDeclCode(val->GetName());
-      }
-    }
-    for (std::string decl : inputed_decls) {
-      SymbolTableValue *val = m_sym_tbl->LookUp(decl);
-      if (val) {
-        // ret += "/*HELIUM_DECL_WITH_INPUT*/";
-        // ret += val->GetType() + " " + val->GetName() + ";\n";
-        ret += val->GetType()->GetDeclCode(val->GetName());
-        ret += val->GetType()->GetInputCode(val->GetName());
-      }
-    }
   }
 }
 

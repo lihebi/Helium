@@ -13,58 +13,33 @@ class Segment {
 public:
   Segment() {}
   ~Segment() {}
-  Segment(const Segment &q) {
-    m_nodes = q.m_nodes;
-    m_new = q.m_new;
-  }
+  Segment(const Segment &q);
   Segment(ASTNode *astnode);
-  Segment(CFGNode *cfgnode) {
-    // TODO ensure this is not already in m_nodes, otherwise the m_new will not be ideal
-    m_nodes.insert(cfgnode);
-    m_new = cfgnode;
-  }
-  void Merge(Segment *q) {
-    std::set<CFGNode*> nodes = q->GetNodes();
-    m_nodes.insert(nodes.begin(), nodes.end());
-  }
-  void Add(CFGNode *node, bool inter=false) {
-    assert(node);
-    m_nodes.insert(node);
-    m_new = node;
-    m_inter = inter;
-  }
-
-  bool IsInter() {
-    return m_inter;
-  }
+  Segment(CFGNode *cfgnode);
 
   /**
-   * Remove a node.
-   * This node is typically marked as "bad".
-   * This node is typically m_new;
-   * But I will not change m_new to something else, because I need to do context search from there.
+   * Modification
    */
-  void Remove(CFGNode *node) {
-    if (m_nodes.count(node) == 1) {
-      m_nodes.erase(node);
-    }
-  }
-  CFGNode* New() {
-    return m_new;
-  }
-  std::set<CFGNode*> GetNodes() {
-    return m_nodes;
-  }
+  void Merge(Segment *s);
+  void Add(CFGNode *node, bool inter=false);
+  void Remove(CFGNode *node);
+  void Remove(std::set<CFGNode*> nodes);
+  // if the "new" set contains a branch, remove it
+  // return true if removed
+  bool RemoveNewBranch();
+  // TODO remove branch based on the problematic one
+  void SetHead(CFGNode *head);
+  CFGNode* Head() {return m_head;}
+  std::set<CFGNode*> New() {return m_new;}
+  /**
+   * Retrieve information
+   */
+  std::set<CFGNode*> GetSelection() {return m_selection;}
 
   // TODO nodes in the CFG that contains m_new
   std::set<CFGNode*> GetNodesForNewFunction();
-  bool ContainNode(CFGNode *node) {
-    if (m_nodes.count(node) == 1) return true;
-    else return false;
-  }
-
-  void Visualize(bool open=true);
-
+  bool ContainNode(CFGNode *node);
+  // void Visualize(bool open=true);
 
   /**
    * Code generating
@@ -74,37 +49,29 @@ public:
   std::string GetMain() {return m_main;}
   std::string GetSupport() {return m_support;}
   std::string GetMakefile() {return m_makefile;}
-  
-  std::map<std::string, Type*> GetInputs() {
-    return m_inputs;
-  }
-
-  static void MarkBad(CFGNode *node) {
-    m_bad.insert(node);
-  }
-  static bool IsBad(CFGNode *node) {
-    if (m_bad.count(node) == 1) return true;
-    return false;
-  }
-
-
-  // void GenTestSuite();
-  // void Test();
+  std::map<std::string, Type*> GetInputs() {return m_inputs;}
+  // getopt specification string
+  std::string GetOpt();
+  bool IsValid() {return m_valid;}
 private:
-  std::set<CFGNode*> m_nodes;
-  CFGNode *m_new = NULL;
-  bool m_inter = false; // whether the new node is the result from inter-procedure or not
-  // std::map<AST*, std::vector<Variable> > m_inputs;
+
+  bool m_valid = true;
+
+  std::set<CFGNode*> m_selection;
+  // the head should always be a single node
+  CFGNode *m_head = NULL;
+  // the new nodes should be a lot due to:
+  // 1. the grammar completion process might add more
+  // 2. the merge might bring more
+  std::set<CFGNode*> m_new;
+  // the callsite nodes. These nodes cannot be removed, otherwise resulting invalid segment.
+  std::set<CFGNode*> m_callsites;
+  
   std::map<std::string, Type*> m_inputs;
 
   std::string m_main;
   std::string m_support;
   std::string m_makefile;
-
-  static std::set<CFGNode*> m_bad;
-
-  // FIXME should not be copied when the query propagate?
-  std::string m_opt;
 };
 
 

@@ -1,0 +1,11 @@
+input_int_argv[i]_heapsize,input_int_argv[i].strlen,input_isnull_argv[i],input_addr_argv[i],input_isnull_argv,input_int_argv_heapsize,output_int_iname.strlen,output_addr_iname,output_int_iname_heapsize,output_addr_ifname,output_isnull_iname,output_int_ifname.strlen,output_int_ifname.size,reach_code,status_code
+12,11,0,0x60200000efd0,0,2,11,0x60200000efd0,12,0x607260,0,0,1024,6,0
+787,786,0,0x61800000fc80,0,1,NA,NA,NA,NA,NA,NA,NA,3,1
+12,11,0,0x60200000efd0,0,3,11,0x60200000eff0,12,0x607260,0,0,1024,6,0
+12,11,0,0x60200000efd0,0,2,11,0x60200000efd0,12,0x607260,0,0,1024,6,0
+12,11,0,0x60200000efd0,0,2,11,0x60200000efd0,12,0x607260,0,0,1024,6,0
+437,436,0,0x61400000fe40,0,1,NA,NA,NA,NA,NA,NA,NA,3,1
+12,11,0,0x60200000efd0,0,3,11,0x60200000eff0,12,0x607260,0,0,1024,6,0
+770,769,0,0x61800000fc80,0,1,NA,NA,NA,NA,NA,NA,NA,3,1
+12,11,0,0x60200000efd0,0,3,11,0x60200000eff0,12,0x607260,0,0,1024,6,0
+12,11,0,0x60200000efb0,0,3,11,0x60200000efd0,12,0x607260,0,0,1024,6,0

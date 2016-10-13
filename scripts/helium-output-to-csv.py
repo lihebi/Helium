@@ -29,18 +29,20 @@
 
 
 import sys
-import os
 
-
-class Data:
-    stage=0
-    output_dict=dict()
-    input_dict=dict()
-    code=1
+class Data(object):
+    "Data"
+    stage = 0
+    output_dict = dict()
+    input_dict = dict()
+    status_code = 0
+    reach_code = 1
     def __init__(self):
-        self.output_dict=dict()
-        self.input_dict=dict()
-    def Add(self, key, value):
+        # (HEBI: 1. self 2. reinit the dict)
+        self.output_dict = dict()
+        self.input_dict = dict()
+    def add(self, key, value):
+        "Add key and value pair"
         if self.stage == 1:
             # input
             self.input_dict[key] = value
@@ -48,128 +50,137 @@ class Data:
             self.output_dict[key] = value
         else:
             pass
-    def StartInput(self):
+    def start_input(self):
+        "set the stage to input"
         self.stage = 1
-    def StartOutput(self):
+    def start_output(self):
+        "Set the stage to output"
         self.stage = 2
-    def ClearOutput(self):
-        output_dict.clear()
-    def SetCode(self, code):
-        self.code = code
+    def clear_output(self):
+        "Clear the output dictionary"
+        self.output_dict.clear()
+    def set_status_code(self, code):
+        "Set status code"
+        self.status_code = code
+    def set_reach_code(self, code):
+        "set reach code"
+        self.reach_code = code
     def clear(self):
+        "clear all dictionary"
         self.input_dict.clear()
         self.output_dict.clear()
 
-class Table:
-    rows=[]
-    def AddRow(self, row):
+def get_header(inputs, outputs):
+    "get the header of the table"
+    lst = []
+    # the input_ and output_ prefix will be added
+    for i in inputs:
+        lst.append('input_' + i)
+    for output in outputs:
+        lst.append('output_' + output)
+    lst.append("reach_code")
+    lst.append("status_code")
+    return ",".join(lst)
+
+def get_row(row, inputs, outputs):
+    "get the row in string"
+    i_d = row.input_dict
+    o_d = row.output_dict
+    lst = []
+    for i in inputs:
+        if i in i_d:
+            lst.append(i_d[i])
+        else:
+            lst.append("NA")
+    for output in outputs:
+        if output in o_d:
+            lst.append(o_d[output])
+        else:
+            lst.append("NA")
+    lst.append(str(row.reach_code))
+    lst.append(str(row.status_code))
+    return ",".join(lst)
+class Table(object):
+    "Table"
+    rows = []
+    def add_row(self, row):
+        "Add one row of data"
         self.rows.append(row)
     def gather_all_input(self):
-        inputs=set()
+        "Gather all inputs"
+        inputs = set()
         for row in self.rows:
             keys = row.input_dict.keys()
             for key in keys:
                 inputs.add(key)
         return inputs
     def gather_all_output(self):
-        outputs=set()
+        "Gather all outputs"
+        outputs = set()
         for row in self.rows:
             keys = row.output_dict.keys()
             for key in keys:
                 outputs.add(key)
         return outputs
-    def get_header(inputs, outputs):
-        lst=[]
-        # the input_ and output_ prefix will be added
-        for i in inputs:
-            lst.append('input_' + i)
-        for o in outputs:
-            lst.append('output_' + o)
-        lst.append("code")
-        return ",".join(lst);
-    def get_row(row, inputs, outputs):
-        i_d=row.input_dict
-        o_d=row.output_dict
-        lst=[]
-        for i in inputs:
-            if i in i_d:
-                lst.append(i_d[i])
-            else:
-                lst.append("NA")
-        for o in outputs:
-            if o in o_d:
-                lst.append(o_d[o])
-            else:
-                lst.append("NA")
-        lst.append(str(row.code))
-        return ",".join(lst)
-    def ToCSV(self):
+    def to_csv(self):
+        "Output To CSV"
         # gather all the input and output of rows
         # if a field is not there, put NA
         # output CSV File
         inputs = self.gather_all_input()
         outputs = self.gather_all_output()
-        ret=""
-        ret+=Table.get_header(inputs, outputs)
+        ret = ""
+        ret += get_header(inputs, outputs)
         for row in self.rows:
             ret += "\n"
-            ret+=Table.get_row(row, inputs, outputs)
+            ret += get_row(row, inputs, outputs)
         return ret
-    
 
 def parse(filename):
+    "parse the file"
     data = Data()
     table = Table()
 
-    f = open(filename)
-    for line in f:
+    for line in open(filename):
         if line.find("HELIUM_INPUT_SPEC_END") is not -1:
             # end of input spec
-            data.SetCode(3);
+            data.set_reach_code(3)
         elif line.find("HELIUM_INPUT_SPEC") is not -1:
             # start of input spec
-            data.StartInput();
-            data.SetCode(2);
+            data.start_input()
+            data.set_reach_code(2)
         elif line.find("HELIUM_POI_INSTRUMENT_END") is not -1:
             # end of output instrument
             # start of POI
-            data.SetCode(5);
+            data.set_reach_code(5)
         elif line.find("HELIUM_POI_INSTRUMENT") is not -1:
             # start of output instrument
-            data.StartOutput()
-            data.SetCode(4)
+            data.start_output()
+            data.set_reach_code(4)
         elif line.find("HELIUM_AFTER_POI") is not -1:
             # POI has passed peacefully
-            data.SetCode(6);
+            data.set_reach_code(6)
         elif line.find("HELIUM_TEST_SUCCESS") is not -1:
             # record the return code
-            data.SetCode(7)
-            table.AddRow(data)
+            data.set_status_code(0)
+            table.add_row(data)
             # start new row
             data = Data()
         elif line.find("HELIUM_TEST_FAILURE") is not -1:
-            table.AddRow(data)
+            data.set_status_code(1)
+            table.add_row(data)
             data = Data()
         elif line.find("=") is not -1:
-            key=line.split('=')[0].strip();
-            value=line.split('=')[1].strip();
-            data.Add(key, value);
+            key = line.split('=')[0].strip()
+            value = line.split('=')[1].strip()
+            data.add(key, value)
     return table
 
-if (len(sys.argv) == 1):
-    print("Provide a file to parse")
-    sys.exit(0)
-    
-filename=sys.argv[1]
-# if (os.path.exists(filename)):
-#     print("file " + filename + " does not exist.")
-#     sys.exit(0)
-table=parse(filename)
-
-
-
-csv=table.ToCSV()
-print(csv)
-        
-
-
+if __name__ == "__main__":
+    if len(sys.argv) is 1:
+        print("Provide a file to parse")
+        sys.exit(0)
+    FILENAME = sys.argv[1]
+    TABLE = parse(FILENAME)
+    CSV = TABLE.to_csv()
+    print(CSV)

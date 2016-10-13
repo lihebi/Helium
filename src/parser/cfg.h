@@ -27,6 +27,20 @@ public:
     }
     return "";
   }
+
+  bool IsBranch() {
+    if (!m_astnode) return false;
+    switch(m_astnode->Kind()) {
+    case ANK_If:
+    case ANK_ElseIf:
+    case ANK_Switch:
+    case ANK_While:
+    case ANK_For:
+    case ANK_Do:
+      return true;
+    default: return false;
+    }
+  }
   // void AddPredecessor(CFGNode *node) {
   //   if (node) {
   //     m_predecessors.insert(node);

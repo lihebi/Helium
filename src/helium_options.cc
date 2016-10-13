@@ -91,6 +91,7 @@ HeliumOptions::HeliumOptions() {
 
     ("print-main", po::value<bool>()->default_value(false), "print main function")
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
+    ("print-analyze-result", po::value<bool>()->default_value(false), "print the analyze result")
     ;
 
   po::options_description debug_options("Debug Options");

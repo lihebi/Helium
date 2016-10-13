@@ -95,19 +95,19 @@ std::string replace_return_to_35(const std::string &code) {
 }
 
 
-void CodeGen::Compute() {
-  std::map<AST*, std::set<ASTNode*> > ret;
-  for (auto m : m_data) {
-    ret[m.first] = m.first->CompleteGene(m.second);
-    if (m.first == m_first_ast) {
-      // std::cout << "remove root"  << "\n";
-      ret[m.first] = m.first->RemoveRoot(ret[m.first]);
-    }
-    // comparing
-    // m.first->VisualizeN(m.second, ret[m.first]);
-  }
-  m_data = ret;
-}
+// void CodeGen::Compute() {
+//   std::map<AST*, std::set<ASTNode*> > ret;
+//   for (auto m : m_data) {
+//     ret[m.first] = m.first->CompleteGene(m.second);
+//     if (m.first == m_first_ast) {
+//       // std::cout << "remove root"  << "\n";
+//       ret[m.first] = m.first->RemoveRoot(ret[m.first]);
+//     }
+//     // comparing
+//     // m.first->VisualizeN(m.second, ret[m.first]);
+//   }
+//   m_data = ret;
+// }
 
 void CodeGen::SetInput(std::map<std::string, Type*> inputs) {
   for (auto mm : inputs) {
@@ -127,6 +127,7 @@ void CodeGen::SetInput(std::map<std::string, Type*> inputs) {
 std::string CodeGen::GetMain() {
   std::string ret;
   ret += get_header();
+  ret += Type::GetHeader();
   std::string main_func;
   std::string other_func;
   /**
@@ -144,13 +145,15 @@ std::string CodeGen::GetMain() {
 
 
       // heap address
+      // global variable
 
       main_func += R"(
 int main() {
   int helium_size;
 )";
-      main_func += Type::GetHeader();
 
+
+      main_func += "printf(\"HELIUM_INPUT_CODE\\n\");\n" + flush_output;
       // inputs
       for (auto mm : m_inputs) {
         std::string var = mm.first;
@@ -161,13 +164,13 @@ int main() {
       }
 
 
-      main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n";
+      main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n" + flush_output;
       for (auto mm : m_inputs) {
         std::string var = mm.first;
         Type *t = mm.second;
         main_func += t->GetOutputCode(var);
       }
-      main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n";
+      main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
       
 
       main_func += "// In function " + ast->GetFunctionName() + "\n";

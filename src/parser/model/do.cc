@@ -27,10 +27,11 @@ void Do::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "do {\n";
-    // m_blk->GetCode(nodes, ret, all, selected);
-    for (ASTNode *child : m_children) {
-      child->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *child : m_children) {
+    child->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     ret += "} ";
     ret += "while (";
     ret += get_text(m_cond);

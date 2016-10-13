@@ -24,7 +24,6 @@ public:
     m_data[astnode->GetAST()].insert(astnode);
   }
   void SetInput(std::map<std::string, Type*> inputs);
-  void Compute();
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();

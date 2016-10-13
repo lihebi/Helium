@@ -259,7 +259,9 @@ void Tester::Test() {
 
 
     // DEBUG
-    // std::cout << output << "\n";
+    // if (HeliumOptions::Instance()->Has("verbose")) {
+    //   std::cout << output << "\n";
+    // }
 
     // For input, and output, log them out only
     // fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");

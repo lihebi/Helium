@@ -38,17 +38,22 @@ void If::GetCode(std::set<ASTNode*> nodes,
     ret += POIOutputCode();
     ret += "if (";
     ret += get_text(m_cond);
-    ret += ")";
-    assert(m_then); // then clause for a if must exist
-    m_then->GetCode(nodes, ret, all);
-    for (ElseIf *ei : m_elseifs) {
-      ei->GetCode(nodes, ret, all);
-    }
-    if (m_else) {
-      m_else->GetCode(nodes, ret, all);
-    }
-    // FIXME the "after" point of a "branch POI" should be only surround condition?
-    ret += POIAfterCode();
+    ret += ") {";
+  }
+  
+  assert(m_then); // then clause for a if must exist
+  m_then->GetCode(nodes, ret, all);
+  for (ElseIf *ei : m_elseifs) {
+    ei->GetCode(nodes, ret, all);
+  }
+  if (m_else) {
+    m_else->GetCode(nodes, ret, all);
+  }
+  // FIXME the "after" point of a "branch POI" should be only surround condition?
+  ret += POIAfterCode();
+
+  if (selected) {
+    ret += "}\n";
   }
 }
 
@@ -84,17 +89,16 @@ void Then::GetCode(std::set<ASTNode*> nodes,
                    std::string &ret, bool all) {
   bool selected = nodes.count(this) == 1;
   selected |= all;
-  // For a then block, even if it is not selected, we need to have braces to make it compile
-  ret += "{\n";
-  ret += "// then block\n";
-  // if (selected) {
-    // ret += "// selected\n";
-    for (ASTNode *n : m_children) {
-      // ret += "// child\n";
-      n->GetCode(nodes, ret, all);
-    }
-  // }
-  ret += "}\n";
+  if (selected) {
+    ret += "{\n";
+    ret += "// then block\n";
+  }
+  for (ASTNode *n : m_children) {
+    n->GetCode(nodes, ret, all);
+  }
+  if (selected) {
+    ret += "}\n";
+  }
 }
 
 Else::Else(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
@@ -121,9 +125,11 @@ void Else::GetCode(std::set<ASTNode*> nodes,
   if (selected) {
     ret += "else";
     ret += "{\n";
-    for (ASTNode *n : m_children) {
-      n->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *n : m_children) {
+    n->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     ret += "}";
   }
 }
@@ -153,12 +159,12 @@ void ElseIf::GetCode(std::set<ASTNode*> nodes,
   if (selected) {
     ret += "else if(" + get_text(m_cond) + ")";
     ret += "{\n";
-    for (ASTNode *n : m_children) {
-      n->GetCode(nodes, ret, all);
-    }
-    if (selected) {
-      ret += "}";
-    }
+  }
+  for (ASTNode *n : m_children) {
+    n->GetCode(nodes, ret, all);
+  }
+  if (selected) {
+    ret += "}";
   }
 }
 

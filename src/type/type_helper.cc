@@ -3,6 +3,8 @@
 
 using namespace utils;
 
+LoopHelper* LoopHelper::m_instance = NULL;
+
 
 bool search_and_remove(std::string &s, boost::regex reg) {
   if (boost::regex_search(s, reg)) {
@@ -59,7 +61,7 @@ void fill_struct_specifier(std::string& name, struct struct_specifier& specifier
 /********************************
  * Helper functions
  *******************************/
-const std::string flush_output = "fflush(stdout);\n";
+
 /**
  * Usage:
  * - get_scanf_code("%c", "&" + var);
@@ -137,38 +139,6 @@ std::string get_helium_size_branch(std::string true_branch, std::string false_br
   ret += "} else {\n";
   ret += false_branch;
   ret += "}\n";
-  return ret;
-}
-
-/**
- * loop by helium_size. The index is "i"
- */
-std::string get_helium_size_loop(std::string body) {
-  std::string ret;
-  ret += "for (int i=0;i<helium_size;i++) {\n";
-  ret += body;
-  ret += "}\n";
-  return ret;
-}
-
-/**
- * Heap Address Size recorder
- */
-std::string get_helium_heap_code(std::string var, std::string body) {
-  std::string ret;
-  ret += "helium_heap_target_size = -1;\n";
-  ret += "for (int i=0;i<helium_heap_top;i++) {\n";
-  ret += "  if (" + var + " == helium_heap_addr[i]) {\n";
-  ret += "    helium_heap_target_size = helium_heap_addr[i];\n";
-  ret += "    break;\n";
-  ret += "  }\n";
-  ret += "}\n";
-  ret += "if (helium_heap_index != -1) {\n";
-  ret += "  printf(\"int_" + var + "_heapsize = %d\n\", helium_heap_target_size);\n";
-  ret += "  for (int i=0;i<helium_heap_target_size;i++) {\n";
-  ret += body;
-  ret += " }\n";
-  ret += "}";
   return ret;
 }
 

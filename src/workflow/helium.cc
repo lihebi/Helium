@@ -103,19 +103,23 @@ void Helium::process() {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
     Segment *segment = m_worklist.front();
     m_worklist.pop_front();
-    std::string label = segment->New()->GetLabel();
+    if (!segment->IsValid()) {
+      std::cout << "Segment Invalid due to removing of callsite." << "\n";
+      continue;
+    }
+    std::string label = segment->Head()->GetLabel();
     if (label.size() > 10) {
       label = label.substr(0,10);
       label += "...";
     }
-    std::cout << CYAN << "Processing query with the new node: "
+    std::cout << CYAN << "Processing query with the head node: "
               << label << "."
               << m_worklist.size() << " remaining in worklist.""\n"
               << RESET;
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     // FIXME how to supply testing profile?
-    if (segment->New()->GetASTNode()->Kind() == ANK_Function) {
+    if (segment->Head()->GetASTNode()->Kind() == ANK_Function) {
       std::vector<Segment*> queries = select(segment);
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
       continue;
@@ -135,77 +139,34 @@ void Helium::process() {
     if (HeliumOptions::Instance()->GetBool("print-compile-info")) {
       std::cout << "\t" << "Compile: " << (builder.Success() ? "true" : "false") << "\n";
     }
-    if (builder.Success()) {
-      // utils::print("compile success\n", utils::CK_Green);
-
-      std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
-      
-      std::string executable = builder.GetExecutable();
-      if (HeliumOptions::Instance()->GetBool("run-test")) {
-        Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
-        tester.Test();
-
-        if (fs::exists(builder.GetDir() + "/result.txt")) {
-          Analyzer analyzer(builder.GetDir());
-          analyzer.GetCSV();
-          analyzer.AnalyzeCSV();
-        }
-
-
-        // (HEBI: remove branch if not covered)
-
-
-        
-        // CodeAnalyzer new_analyzer(builder.GetDir());
-        // new_analyzer.Compute();
-
-        // Analyzer analyzer(builder.GetDir() + "/io.csv", {});
-        // std::vector<std::string> invs = analyzer.GetInvariants();
-        // // std::vector<std::string> pres = analyzer.GetPreConditions();
-        // std::vector<std::string> trans = analyzer.GetTransferFunctions();
-        // if (HeliumOptions::Instance()->GetBool("print-analysis-result")) {
-        //   std::cout << "== invariants"  << "\n";
-        //   for (auto &s : invs) {
-        //     std::cout << "\t" << s  << "\n";
-        //   }
-        //   // std::cout << "== pre condtions"  << "\n";
-        //   // for (auto &s : pres) {
-        //   //   std::cout << "\t" << s  << "\n";
-        //   // }
-        //   std::cout << "== transfer functions ------"  << "\n";
-        //   for (auto &s : trans) {
-        //     std::cout << "\t" << s  << "\n";
-        //   }
-        // }
-
-        // std::string pre = derive_pre_cond(invs, trans);
-        // if (!pre.empty()) {
-        //   if (pre_entry_point(pre)) {
-        //     std::cout << "RESOLVED!!"  << "\n";
-        //     exit(0);
-        //   }
-        // }
-      }
-    } else {
+    if (!builder.Success()) {
       std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
-      // query->Visualize();
-      // compile error, skip this statement, and mark it as bad
-      // however, if the "New" node is from interprocedure, we cannot remove it, but stop this line
-      // That is because we need this callsite after all
-      if (segment->IsInter()) {
-        std::cerr << "Inter procedure search, but the callsite is not compilible, stop this query." << "\n";
-        continue;
-      } else {
-        Segment::MarkBad(segment->New());
-        segment->Remove(segment->New());
+      segment->Remove(segment->New());
+      m_worklist.push_back(segment);
+      continue;
+    }
+    std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
+    std::string executable = builder.GetExecutable();
+    if (HeliumOptions::Instance()->GetBool("run-test")) {
+      Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
+      tester.Test();
+
+      if (fs::exists(builder.GetDir() + "/result.txt")) {
+        Analyzer analyzer(builder.GetDir());
+        analyzer.GetCSV();
+        analyzer.AnalyzeCSV();
+        // (HEBI: remove branch if not covered)
+        if (!analyzer.IsCovered()) {
+          std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
+          segment->RemoveNewBranch();
+          m_worklist.push_back(segment);
+        } else {
+          std::cout << utils::GREEN << "POI is covered" << utils::RESET << "\n";
+          std::vector<Segment*> queries = select(segment);
+          m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+        }
       }
     }
-
-    // TODO get test profile
-    // TODO oracle for bug signature
-    // TODO merge bug signature
-    std::vector<Segment*> queries = select(segment);
-    m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
   }
 }
 
@@ -217,27 +178,16 @@ void Helium::process() {
 std::vector<Segment*> Helium::select(Segment *query) {
   helium_print_trace("select");
   std::vector<Segment*> ret;
-  // TODO hard to reach
-  // if (profile.ReachFP()) {
-  //   query->RemoveNew();
-  // }
-
   // branch
   // TODO merge paths
-  CFGNode *cfgnode = query->New();
+  CFGNode *cfgnode = query->Head();
   ASTNode *astnode = cfgnode->GetASTNode();
   if (astnode->Kind() == ANK_If) {
     std::set<Segment*> queries = find_mergable_query(cfgnode, query);
-
-    // std::cout << "For node: " << astnode->GetLabel()  << "\n";
-    // std::cout << "mergable query no. " << queries.size()  << "\n";
-    
     if (!queries.empty()) {
       for (Segment *q : queries) {
         // modify in place
-        // std::cout << "merging: "  << q->GetNodes().size() << "\n";
         q->Merge(query);
-        // std::cout << "After merge: " << q->GetNodes().size()  << "\n";
       }
       return ret;
     } else {

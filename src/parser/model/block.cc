@@ -28,9 +28,11 @@ void Block::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "{\n";
-    for (ASTNode *n : m_children) {
-      n->GetCode(nodes, ret, all);
-    }
+  }
+  for (ASTNode *n : m_children) {
+    n->GetCode(nodes, ret, all);
+  }
+  if (selected) {
     ret += "}";
   }
 }
