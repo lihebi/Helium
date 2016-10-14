@@ -59,6 +59,31 @@ private:
   // std::set<CFGNode*> m_successors;
 };
 
+class CFGEdge {
+public:
+  CFGEdge(CFGNode *from, CFGNode *to) : m_from(from), m_to(to) {}
+  CFGEdge(CFGNode *from, CFGNode *to, std::string label) : m_from(from), m_to(to), m_label(label) {}
+  void AddCase(ASTNode *case_node) {
+    m_cases.push_back(case_node);
+  }
+  CFGNode* From() {return m_from;}
+  CFGNode* To() {return m_to;}
+
+  std::string Label() {
+    if (m_label.empty() && !m_cases.empty()) {
+      for (ASTNode *c : m_cases) {
+        m_label += c->GetLabel() + ", ";
+      }
+    }
+    return m_label;
+  }
+private:
+  CFGNode *m_from=NULL;
+  CFGNode *m_to=NULL;
+  std::string m_label;
+  std::vector<ASTNode*> m_cases;
+};
+
 /**
  * TODO free so many CFGs
  */
@@ -70,7 +95,8 @@ public:
   void AddNode(CFGNode *node);
   void Merge(CFG* cfg);
   void MergeBranch(CFG *cfg, bool b);
-  void MergeCase(CFG *cfg);
+  void MergeCase(CFG *cfg, Case *c);
+  void MergeDefault(CFG *cfg, Default *def);
 
   int GetBranchNum() {return m_branch_num;}
   void RemoveOut(CFGNode *node) {
@@ -84,7 +110,14 @@ public:
    */
   void SetCond(CFGNode *node) {m_cond = node;}
 
-  void CreateEdge(CFGNode *from, CFGNode *to, std::string label="");
+  // void CreateEdge(CFGNode *from, CFGNode *to, std::string label="");
+  void AddEdge(CFGEdge *edge) {
+    if (edge) {
+      m_edges.insert(edge);
+      m_edge_idx[edge->From()].insert(edge);
+      m_edge_back_idx[edge->To()].insert(edge);
+    }
+  }
 
   void AddIn(CFGNode *node) {
     if (node) m_ins.insert(node);
@@ -130,6 +163,7 @@ public:
   void AdjustBreak();
   void AdjustContinue();
   void AdjustReturn();
+  std::set<CFGEdge*> Edges() {return m_edges;}
 
   bool Contains(CFGNode* cfgnode) {
     return m_nodes.count(cfgnode) == 1;
@@ -142,17 +176,25 @@ private:
   std::set<CFGNode*> m_ins;
   std::set<CFGNode*> m_outs;
 
+  std::set<CFGNode*> m_last_case_outs;
+  std::vector<Case*> m_pending_cases;
+
   std::set<CFGNode*> m_breaks;
   std::set<CFGNode*> m_continues;
   std::set<CFGNode*> m_returns;
 
   std::map<ASTNode*, CFGNode*> m_ast_to_cfg;
   std::map<CFGNode*, ASTNode*> m_cfg_to_ast;
-  
-  std::map<CFGNode*, std::set<CFGNode*> > m_edges;
-  std::map<std::pair<CFGNode*, CFGNode*>, std::string> m_labels;
 
-  std::map<CFGNode*, std::set<CFGNode*> > m_back_edges;
+  std::set<CFGEdge*> m_edges;
+
+  std::map<CFGNode*, std::set<CFGEdge*> > m_edge_idx;
+  std::map<CFGNode*, std::set<CFGEdge*> > m_edge_back_idx;
+
+  // std::map<CFGNode*, std::set<CFGNode*> > m_edges;
+  // std::map<std::pair<CFGNode*, CFGNode*>, std::string> m_labels;
+
+  // std::map<CFGNode*, std::set<CFGNode*> > m_back_edges;
 
   // sub graph utility
   CFGNode *m_cond = NULL;

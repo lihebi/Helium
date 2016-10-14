@@ -22,7 +22,7 @@ void CFG::AddNode(CFGNode *node) {
   if (!node) return;
   m_nodes.insert(node);
   for (CFGNode *out : m_outs) {
-    CreateEdge(out, node);
+    AddEdge(new CFGEdge(out, node));
   }
   m_outs.clear();
   m_outs.insert(node);
@@ -44,7 +44,7 @@ void CFG::Merge(CFG *cfg) {
   // connect this.out to cfg->in, then clear this->out
   for (CFGNode *in : m_outs) {
     for (CFGNode *cfg_in : cfg->GetIns()) {
-      CreateEdge(in, cfg_in);
+      AddEdge(new CFGEdge(in, cfg_in));
     }
   }
   m_outs.clear();
@@ -54,14 +54,8 @@ void CFG::Merge(CFG *cfg) {
 
 void CFG::copyEdge(CFG *cfg) {
   helium_print_trace("CFG::copyEdge");
-  for (auto m : cfg->m_edges) {
-    CFGNode *from = m.first;
-    for (CFGNode *to : m.second) {
-      CreateEdge(from, to);
-    }
-  }
-  for (auto m : cfg->m_labels) {
-    m_labels[m.first] = m.second;
+  for (CFGEdge *edge : cfg->Edges()) {
+    AddEdge(edge);
   }
   // try to copy m_breaks, m_continues, m_returns here
   for (CFGNode *node : cfg->m_breaks) {
@@ -103,7 +97,7 @@ void CFG::AdjustContinue() {
   for (CFGNode *node : m_continues) {
     assert(m_ins.size() == 1);
     CFGNode *in = *m_ins.begin();
-    CreateEdge(node, in);
+    AddEdge(new CFGEdge(node, in));
   }
   m_continues.clear();
 }
@@ -121,40 +115,98 @@ void CFG::MergeBranch(CFG *cfg, bool b) {
   // connect this->cond to cfg->in
   if (m_cond) {
     for (CFGNode *in : cfg->GetIns()) {
-      CreateEdge(m_cond, in, (b?"true":"false"));
+      AddEdge(new CFGEdge(m_cond, in, (b?"true":"false")));
     }
   }
   m_branch_num++;
 }
 
 // TODO case condition as label
-void CFG::MergeCase(CFG *cfg) {
+void CFG::MergeCase(CFG *cfg, Case *c) {
   helium_print_trace("CFG::MergeCase");
   for (CFGNode *node : cfg->GetNodes()) {
     m_nodes.insert(node);
   }
-  for (CFGNode *out : cfg->GetOuts()) {
-    m_outs.insert(out);
-  }
-  if (m_cond) {
-    for (CFGNode *in : cfg->GetIns()) {
-      CreateEdge(m_cond, in, "case: TODO");
+  // this cond is actually the switch node
+  // this is not a good name
+  assert(m_cond);
+  std::set<CFGNode*> ins = cfg->GetIns();
+  if (ins.empty()) {
+    m_pending_cases.push_back(c);
+  } else {
+    assert(ins.size()==1);
+    CFGNode *in = *ins.begin();
+
+    // This edge should come with the Case* class
+    CFGEdge *edge = new CFGEdge(m_cond, in);
+    for (ASTNode *cc : m_pending_cases) {
+      edge->AddCase(cc);
     }
+    m_pending_cases.clear();
+    edge->AddCase(c);
+    AddEdge(edge);
+    // CreateEdge(m_cond, in, "case: TODO");
+    
+    for (CFGNode *out : m_last_case_outs) {
+      AddEdge(new CFGEdge(out, in));
+    }
+    m_last_case_outs.clear();
+    for (CFGNode *out : cfg->GetOuts()) {
+      m_last_case_outs.insert(out);
+    }
+    copyEdge(cfg);
   }
-  copyEdge(cfg);
 }
 
-void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
-  helium_print_trace("CFG::CreateEdge");
-  if (!from || !to) return;
-  m_edges[from].insert(to);
-  if (!label.empty()) {
-    m_labels[std::make_pair(from, to)] = label;
+void CFG::MergeDefault(CFG *cfg, Default *def) {
+  if (!cfg) {
+    // connect last case to the out
+    for (CFGNode *out : m_last_case_outs) {
+      m_outs.insert(out);
+    }
+  } else {
+    for (CFGNode *node : cfg->GetNodes()) {
+      m_nodes.insert(node);
+    }
+    // connect switch and default
+    std::set<CFGNode*> ins = cfg->GetIns();
+    assert(ins.size()==1);
+    CFGNode *in = *ins.begin();
+
+    
+    CFGEdge *edge = new CFGEdge(m_cond, in);
+    for (ASTNode *cc : m_pending_cases) {
+      edge->AddCase(cc);
+    }
+    edge->AddCase(def);
+    m_pending_cases.clear();
+    AddEdge(edge);
+
+    
+    // CreateEdge(m_cond, in, "default");
+    // connect last case to default in
+    for (CFGNode *out : m_last_case_outs) {
+      AddEdge(new CFGEdge(out, in));
+    }
+    // then connect out of default to outs
+    for (CFGNode *out : cfg->GetOuts()) {
+      m_outs.insert(out);
+    }
+    copyEdge(cfg);
   }
-  // also keep the back edge
-  m_back_edges[to].insert(from);
-  helium_print_trace("CFG::CreateEdge end");
 }
+
+// void CFG::CreateEdge(CFGNode *from, CFGNode *to, std::string label) {
+//   helium_print_trace("CFG::CreateEdge");
+//   if (!from || !to) return;
+//   m_edges[from].insert(to);
+//   if (!label.empty()) {
+//     m_labels[std::make_pair(from, to)] = label;
+//   }
+//   // also keep the back edge
+//   m_back_edges[to].insert(from);
+//   helium_print_trace("CFG::CreateEdge end");
+// }
 
 
 void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool open) {
@@ -171,16 +223,19 @@ void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool o
     dot.ColorNode(b->GetID(), DNCK_Cyan);
   }
   // Add edge for the nodes
-  for (auto m : m_edges) {
-    CFGNode *from = m.first;
-    for (CFGNode *to : m.second) {
-      std::string label;
-      if (m_labels.count({from, to}) == 1) {
-        label = m_labels[{from, to}];
-      }
-      dot.AddEdge(from->GetID(), to->GetID(), label);
-    }
+  for (CFGEdge *edge : m_edges) {
+    dot.AddEdge(edge->From()->GetID(), edge->To()->GetID(), edge->Label());
   }
+  // for (auto m : m_edges) {
+  //   CFGNode *from = m.first;
+  //   for (CFGNode *to : m.second) {
+  //     std::string label;
+  //     if (m_labels.count({from, to}) == 1) {
+  //       label = m_labels[{from, to}];
+  //     }
+  //     dot.AddEdge(from->GetID(), to->GetID(), label);
+  //   }
+  // }
   // Add mark for "in" and "out"
   for (CFGNode *in : m_ins) {
     dot.AddText(in->GetID(), "IN");
@@ -352,7 +407,15 @@ CFG *CFGFactory::CreateCFGFromElseIf(ElseIf *astnode) {
 
 
 
-// switch
+/**
+ * switch
+ *
+ * (HEBI: Switch Control Flow)
+ * Connect all the case clauses, tail to head
+ * Then adjust break and continue.
+ * Record the condition on the edge.
+ * If there may be multiple conditions for a case clause.
+ */
 CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
   helium_print_trace("CFGFactory::CreateCFGFromSwitch");
   CFG *cfg = new CFG();
@@ -362,18 +425,28 @@ CFG *CFGFactory::CreateCFGFromSwitch(Switch *astnode) {
   cfg->SetCond(node);
   cfg->RemoveOut(node); // switch itself should not be in outs
   std::vector<Case*> cases = astnode->GetCases();
+  std::vector<CFG*> case_cfgs;
   for (Case *c : cases) {
     CFG *case_cfg = new CFG();
     for (ASTNode *child : c->Children()) {
       CFG *child_cfg = CreateCFG(child);
       case_cfg->Merge(child_cfg);
     }
-    cfg->MergeCase(case_cfg);
+    case_cfgs.push_back(case_cfg);
+    cfg->MergeCase(case_cfg, c);
   }
-  // TODO default
-
+  Default *def = astnode->GetDefault();
+  if (!def) {
+    cfg->MergeDefault(NULL, NULL);
+  } else {
+    CFG *def_cfg = new CFG();
+    for (ASTNode *child : def->Children()) {
+      CFG *child_cfg = CreateCFG(child);
+      def_cfg->Merge(child_cfg);
+    }
+    cfg->MergeDefault(def_cfg, def);
+  }
   cfg->AdjustBreak();
-  
   return cfg;
 }
 
@@ -393,7 +466,8 @@ CFG *CFGFactory::CreateCFGFromWhile(While *astnode) {
 
   cfg->Merge(body_cfg);
   for (CFGNode *out : body_cfg->GetOuts()) {
-    cfg->CreateEdge(out, node, "B");
+    // cfg->CreateEdge(out, node, "B");
+    cfg->AddEdge(new CFGEdge(out, node, "B"));
     cfg->RemoveOut(out);
   }
   cfg->AddOut(node);
@@ -424,7 +498,8 @@ CFG *CFGFactory::CreateCFGFromFor(For *astnode) {
   
   cfg->Merge(body_cfg);
   for (CFGNode *out : body_cfg->GetOuts()) {
-    cfg->CreateEdge(out, node, "B");
+    cfg->AddEdge(new CFGEdge(out, node, "B"));
+    // cfg->CreateEdge(out, node, "B");
     cfg->RemoveOut(out);
   }
   cfg->AddOut(node);
@@ -459,7 +534,7 @@ CFG *CFGFactory::CreateCFGFromDo(Do *astnode) {
   cfg->AddOut(node);
 
   for (CFGNode *in : body_cfg->GetIns()) {
-    cfg->CreateEdge(node, in, "B");
+    cfg->AddEdge(new CFGEdge(node, in, "B"));
   }
 
   cfg->AdjustBreak();
@@ -482,21 +557,19 @@ CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
 
 
 
-
-
-
-
 std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
   std::set<CFGNode*> ret;
-  if (m_back_edges.count(node) == 1) {
-    return m_back_edges[node];
+  if (m_edge_back_idx.count(node)==1) {
+    for (CFGEdge *edge : m_edge_back_idx[node]) {
+      ret.insert(edge->From());
+    }
   }
   return ret;
 }
 
 std::set<CFGNode*> CFG::GetInterPredecessors(CFGNode *node) {
   std::set<CFGNode*> ret;
-  if (m_back_edges.count(node) == 1) {
+  if (m_edge_back_idx.count(node) == 1) {
     return ret;
   }
   // ICFG
