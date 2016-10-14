@@ -3,6 +3,9 @@
 #include "helium_options.h"
 #include <iostream>
 
+static const std::string TRANSFER_SCRIPT = "helium-analyze-transfer.R";
+static const std::string META_SCRIPT = "helium-analyze-meta.R";
+
 void Analyzer::GetCSV() {
   // call the script helium-output-to-csv.py
   std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
@@ -22,23 +25,46 @@ void Analyzer::GetCSV() {
 }
 
 void Analyzer::AnalyzeCSV() {
-  // call the R script to analyze the transfer function
-  std::string cmd = "helium-transfer.R " + m_dir + "/result.csv";
-  std::cout << "Analyzing using linear regression .." << "\n";
-  std::cout << cmd << "\n";
-  m_output = utils::new_exec(cmd.c_str());
+  std::string result_csv = m_dir + "/result.csv";
+  std::string cmd;
+  // transfer function
+  cmd = TRANSFER_SCRIPT + " " + result_csv;
+  // std::cout << "Analyzing using linear regression .." << "\n";
+  // std::cout << cmd << "\n";
+  m_transfer_output = utils::new_exec(cmd.c_str());
+
+  cmd = META_SCRIPT + " " + result_csv;
+  m_meta_output = utils::new_exec(cmd.c_str());
+
+  
   // std::cout << "Transfer functions:" << "\n";
-  if (HeliumOptions::Instance()->GetBool("print-analyze-result")) {
-    std::cout << "Analyze result: " << "\n";
-    std::cout << m_output << "\n";
+  if (HeliumOptions::Instance()->GetBool("print-analyze-result-transfer")) {
+    std::cout << "Result Transfer Function: " << "\n";
+    std::cout << m_transfer_output << "\n";
+  }
+
+  if (HeliumOptions::Instance()->GetBool("print-analyze-result-meta")) {
+    std::cout << "Result Meta: " << "\n";
+    std::cout << m_meta_output << "\n";
   }
 }
 
 bool Analyzer::IsCovered() {
-  // TODO NOW
-  std::vector<std::string> lines = utils::split(m_output, '\n');
+  std::vector<std::string> lines = utils::split(m_meta_output, '\n');
   for (std::string line : lines) {
     if (line.find("Total reach poi") != std::string::npos) {
+      int reached_count = std::stoi(utils::split(line, ':')[1]);
+      if (reached_count > 0) return true;
+      else return false;
+    }
+  }
+  return false;
+}
+
+bool Analyzer::IsBugTriggered() {
+  std::vector<std::string> lines = utils::split(m_meta_output, '\n');
+  for (std::string line : lines) {
+    if (line.find("Total fail poi") != std::string::npos) {
       int reached_count = std::stoi(utils::split(line, ':')[1]);
       if (reached_count > 0) return true;
       else return false;

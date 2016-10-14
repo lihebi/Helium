@@ -157,6 +157,7 @@ void Helium::process() {
         Analyzer analyzer(builder.GetDir());
         analyzer.GetCSV();
         analyzer.AnalyzeCSV();
+
         // (HEBI: remove branch if not covered)
         if (!analyzer.IsCovered()) {
           std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
@@ -172,6 +173,13 @@ void Helium::process() {
           std::cout << utils::GREEN << "POI is covered" << utils::RESET << "\n";
           std::vector<Segment*> queries = select(segment);
           m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+        }
+
+        
+        if (analyzer.IsBugTriggered()) {
+          std::cout << utils::GREEN << "Bug is triggered." << utils::RESET << "\n";
+        } else {
+          std::cout << utils::RED << "Bug is not triggered." << utils::RESET << "\n";
         }
       }
     }

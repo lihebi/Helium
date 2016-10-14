@@ -3,15 +3,18 @@
 
 #include "common.h"
 
+
 class Analyzer {
 public:
   Analyzer(std::string dir) : m_dir(dir) {}
   void GetCSV();
   void AnalyzeCSV();
   bool IsCovered();
+  bool IsBugTriggered();
 private:
   std::string m_dir;
-  std::string m_output;
+  std::string m_transfer_output;
+  std::string m_meta_output;
 };
 
 #endif /* ANALYZER_H */

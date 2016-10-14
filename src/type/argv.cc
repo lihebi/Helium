@@ -55,9 +55,12 @@ void ArgV::generate() {
     if (utils::rand_bool()) {
       m_argv.push_back("-" + std::string(1, c));
       // the string for the argument
-      InputSpec *spec = strtype->GenerateRandomInput();
-      m_argv.push_back(spec->GetRaw());
-      delete spec;
+      // InputSpec *spec = strtype->GenerateRandomInput();
+      // m_argv.push_back(spec->GetRaw());
+      // delete spec;
+      int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
+      int len = utils::rand_int(0, max_strlen);
+      m_argv.push_back(utils::rand_str(len));
     }
   }
   // MAGIC number 3
