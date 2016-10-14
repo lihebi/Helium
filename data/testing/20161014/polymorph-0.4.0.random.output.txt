@@ -1,0 +1,885 @@
+Benchmark Name: polymorph-0.4.0
+Number of point of interest: 1
+Starting Helium on point of interest: ./polymorph-0.4.0/cpped/polymorph.c:118
+Converted linum after preprocessing: 105
+[1;36mProcessing query with the head node: printf("HE....0 remaining in worklist.
+[0mInput Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 1
+	Segment Size (LOC): 38
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 0
+	Code Written to: /tmp/helium-test-tmp.ZtrcpR
+	Compile: true
+[1;35mTest Meta:[0m
+	Number of input variables: 2
+	Number of tests: 100
+	Test Generation Time: 0.013 seconds
+	Total Testing Time: 0.614 seconds
+	Stmt Coverage: 93.06% of 72
+	Branch Coverage: 59.09% of 22
+	Number of Pass Test: 57
+	Number of Fail Test: 43
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  100 
+Total fail poi:  43 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: switch (o).0 remaining in worklist.
+[0mInput Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 3
+	Segment Size (LOC): 40
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 0
+	Code Written to: /tmp/helium-test-tmp.WpRf15
+	Compile: true
+[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 100
+	Test Generation Time: 0.014 seconds
+	Total Testing Time: 0.537 seconds
+	Stmt Coverage: 55.26% of 76
+	Branch Coverage: 33.33% of 24
+	Number of Pass Test: 100
+	Number of Fail Test: 0
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  0 
+Total fail poi:  0 
+
+[31mPOI is not covered[0m
+[31mBug is not triggered.[0m
+[1;36mProcessing query with the head node: while (( o....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 4
+	Segment Size (LOC): 41
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.1v0vvn
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.034 seconds
+	Total Testing Time: 0.665 seconds
+	Stmt Coverage: 91.54% of 130
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 58
+	Number of Fail Test: 42
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  51 
+Total fail poi:  39 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: int o;
+.5 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.o8m9fJ
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 4
+	Number of tests: 100
+	Test Generation Time: 0.036 seconds
+	Total Testing Time: 0.682 seconds
+	Stmt Coverage: 91.34% of 127
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 53
+	Number of Fail Test: 47
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  36 
+Total fail poi:  26 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: break;
+.5 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.D4q3l9
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.038 seconds
+	Total Testing Time: 0.792 seconds
+	Stmt Coverage: 91.54% of 130
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 51
+	Number of Fail Test: 49
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  52 
+Total fail poi:  44 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: break;
+.5 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.sWwh7D
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.037 seconds
+	Total Testing Time: 0.449 seconds
+	Stmt Coverage: 91.54% of 130
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 53
+	Number of Fail Test: 47
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  52 
+Total fail poi:  45 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: break;
+.5 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.p8PClc
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.034 seconds
+	Total Testing Time: 0.621 seconds
+	Stmt Coverage: 91.60% of 131
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 61
+	Number of Fail Test: 39
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  46 
+Total fail poi:  37 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: break;
+.4 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.IwmdDO
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.521 seconds
+	Stmt Coverage: 91.60% of 131
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 66
+	Number of Fail Test: 34
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  37 
+Total fail poi:  31 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: exit( 0 );....4 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 5
+	Segment Size (LOC): 42
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.Z1TjCu
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.037 seconds
+	Total Testing Time: 0.626 seconds
+	Stmt Coverage: 91.60% of 131
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 55
+	Number of Fail Test: 45
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  46 
+Total fail poi:  40 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: grok_comma....4 remaining in worklist.
+[0mGetting interprocedure predecessor from ICFG, function: grok_commandLine
+Predecessor count: 1
+grok_commandLine( argc, argv );
+
+[1;36mProcessing query with the head node: hidden = 1....4 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	IntType:int hidden
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 7
+	Segment Size (LOC): 44
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.WlNzKe
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.041 seconds
+	Total Testing Time: 0.795 seconds
+	Stmt Coverage: 91.85% of 135
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 40
+	Number of Fail Test: 60
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  53 
+Total fail poi:  44 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: clean = 1;....3 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	IntType:int clean
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 7
+	Segment Size (LOC): 44
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.JNpcJ3
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.729 seconds
+	Stmt Coverage: 91.85% of 135
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 54
+	Number of Fail Test: 46
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  38 
+Total fail poi:  27 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: track = 1;....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 7
+	Segment Size (LOC): 44
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.6rq4kX
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.037 seconds
+	Total Testing Time: 0.812 seconds
+	Stmt Coverage: 91.85% of 135
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 60
+	Number of Fail Test: 40
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  45 
+Total fail poi:  37 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 6
+	Segment Size (LOC): 43
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.HS73TV
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.581 seconds
+	Stmt Coverage: 91.67% of 132
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 67
+	Number of Fail Test: 33
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  49 
+Total fail poi:  33 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: grok_comma....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+[1;35mSegment Meta:[0m
+	AST Node Number: 7
+	Segment Size (LOC): 45
+	Procedure Number: 2
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.WBdSBY
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 2
+	Number of tests: 100
+	Test Generation Time: 0.024 seconds
+	Total Testing Time: 0.563 seconds
+	Stmt Coverage: 91.67% of 96
+	Branch Coverage: 70.00% of 40
+	Number of Pass Test: 59
+	Number of Fail Test: 41
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  46 
+Total fail poi:  37 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: exit( 0 );....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 8
+	Segment Size (LOC): 45
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.h5YNP4
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.036 seconds
+	Total Testing Time: 0.517 seconds
+	Stmt Coverage: 91.91% of 136
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 61
+	Number of Fail Test: 39
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  42 
+Total fail poi:  37 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 8
+	Segment Size (LOC): 44
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.IifQVe
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.039 seconds
+	Total Testing Time: 0.792 seconds
+	Stmt Coverage: 70.68% of 133
+	Branch Coverage: 53.85% of 52
+	Number of Pass Test: 95
+	Number of Fail Test: 5
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  0 
+Total fail poi:  0 
+
+[31mPOI is not covered[0m
+[31mBug is not triggered.[0m
+[1;36mProcessing query with the head node: strcpy( ta....2 remaining in worklist.
+[0mInput Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+[1;35mSegment Meta:[0m
+	AST Node Number: 8
+	Segment Size (LOC): 46
+	Procedure Number: 2
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.3hYvbt
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 100
+	Test Generation Time: 0.026 seconds
+	Total Testing Time: 0.816 seconds
+	Stmt Coverage: 92.31% of 104
+	Branch Coverage: 70.00% of 40
+	Number of Pass Test: 55
+	Number of Fail Test: 45
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  50 
+Total fail poi:  42 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 9
+	Segment Size (LOC): 46
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.ijrG8L
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.601 seconds
+	Stmt Coverage: 91.97% of 137
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 60
+	Number of Fail Test: 40
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  46 
+Total fail poi:  36 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: exit( 0 );....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 9
+	Segment Size (LOC): 45
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.FHRYi9
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 5
+	Number of tests: 100
+	Test Generation Time: 0.034 seconds
+	Total Testing Time: 0.741 seconds
+	Stmt Coverage: 91.79% of 134
+	Branch Coverage: 69.23% of 52
+	Number of Pass Test: 94
+	Number of Fail Test: 6
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  4 
+Total fail poi:  3 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: char filen....2 remaining in worklist.
+[0mInput Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+[1;35mSegment Meta:[0m
+	AST Node Number: 9
+	Segment Size (LOC): 47
+	Procedure Number: 2
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.iYBKhB
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 3
+	Number of tests: 100
+	Test Generation Time: 0.029 seconds
+	Total Testing Time: 0.382 seconds
+	Stmt Coverage: 92.31% of 104
+	Branch Coverage: 70.00% of 40
+	Number of Pass Test: 65
+	Number of Fail Test: 35
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  47 
+Total fail poi:  32 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 10
+	Segment Size (LOC): 47
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.jq3eT6
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.034 seconds
+	Total Testing Time: 0.580 seconds
+	Stmt Coverage: 92.03% of 138
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 68
+	Number of Fail Test: 32
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  41 
+Total fail poi:  28 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....2 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+[1;35mSegment Meta:[0m
+	AST Node Number: 11
+	Segment Size (LOC): 47
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.uwJaJG
+	Compile: false
+[1;36mProcessing query with the head node: main(int a....2 remaining in worklist.
+[0mGetting interprocedure predecessor from ICFG, function: main
+Predecessor count: 0
+[1;36mProcessing query with the head node: fprintf( s....1 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 11
+	Segment Size (LOC): 48
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.dr0dmh
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.395 seconds
+	Stmt Coverage: 92.09% of 139
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 58
+	Number of Fail Test: 42
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  51 
+Total fail poi:  39 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+Segment Invalid due to removing of callsite.
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 12
+	Segment Size (LOC): 49
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.eA3WsV
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.901 seconds
+	Stmt Coverage: 92.14% of 140
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 55
+	Number of Fail Test: 45
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  54 
+Total fail poi:  44 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 13
+	Segment Size (LOC): 50
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.XmKpHI
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.043 seconds
+	Total Testing Time: 0.815 seconds
+	Stmt Coverage: 92.20% of 141
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 65
+	Number of Fail Test: 35
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  41 
+Total fail poi:  30 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 14
+	Segment Size (LOC): 51
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.U4o8lC
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.039 seconds
+	Total Testing Time: 0.692 seconds
+	Stmt Coverage: 92.25% of 142
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 54
+	Number of Fail Test: 46
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  49 
+Total fail poi:  43 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 15
+	Segment Size (LOC): 52
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.9QvCGA
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.035 seconds
+	Total Testing Time: 0.614 seconds
+	Stmt Coverage: 92.31% of 143
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 69
+	Number of Fail Test: 31
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  39 
+Total fail poi:  30 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 16
+	Segment Size (LOC): 53
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.6JATqD
+	Compile: true
+[1;36machtvf:[0m[1;35mTest Meta:[0m
+	Number of input variables: 6
+	Number of tests: 100
+	Test Generation Time: 0.039 seconds
+	Total Testing Time: 0.498 seconds
+	Stmt Coverage: 92.36% of 144
+	Branch Coverage: 69.81% of 53
+	Number of Pass Test: 52
+	Number of Fail Test: 48
+generated CSV file
+Result Meta: 
+Total test:  100 
+Total reach poi:  55 
+Total fail poi:  45 
+
+[1;32mPOI is covered[0m
+[1;32mBug is triggered.[0m
+[1;36mProcessing query with the head node: fprintf( s....0 remaining in worklist.
+[0mInput Variables: 	IntType:int argc
+Input Variables: 	PointerType:char** argv
+Input Variables: 	IntType:int o
+Input Variables: 	PointerType:char* optarg
+Input Variables: 	ArrayType:char[2048] target
+Input Variables: 	IntType:int track
+[1;35mSegment Meta:[0m
+	AST Node Number: 18
+	Segment Size (LOC): 55
+	Procedure Number: 1
+	Branch Number: 0
+	Loop Number: 1
+	Code Written to: /tmp/helium-test-tmp.zNTZcK
+	Compile: false
+Segment Invalid due to removing of callsite.
+End of Helium
