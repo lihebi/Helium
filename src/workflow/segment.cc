@@ -39,7 +39,9 @@ void Segment::Add(CFGNode *node, bool inter) {
   m_selection.insert(node);
   m_head = node;
   m_new.insert(node);
-  m_callsites.insert(node);
+  if (inter) {
+    m_callsites.insert(node);
+  }
 }
 
 
