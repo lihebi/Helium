@@ -732,7 +732,7 @@ TEST(UtilsTestCase, RandIntTest) {
 }
 
 bool utils::rand_bool() {
-  int a = utils::rand_int(1, 2);
+  int a = utils::rand_int(0, 2);
   if (a == 1) return true;
   else return false;
 }

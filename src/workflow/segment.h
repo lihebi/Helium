@@ -49,12 +49,15 @@ public:
   std::string GetMain() {return m_main;}
   std::string GetSupport() {return m_support;}
   std::string GetMakefile() {return m_makefile;}
-  std::map<std::string, Type*> GetInputs() {return m_inputs;}
+  // std::map<std::string, Type*> GetInputs() {return m_inputs;}
+  std::vector<Variable*> GetInputs() {return m_inputs;}
   // getopt specification string
   std::string GetOpt();
   bool IsValid() {return m_valid;}
+  static void SetPOI(CFGNode *poi) {m_poi = poi;}
 private:
 
+  static CFGNode *m_poi;
   bool m_valid = true;
 
   std::set<CFGNode*> m_selection;
@@ -66,8 +69,13 @@ private:
   std::set<CFGNode*> m_new;
   // the callsite nodes. These nodes cannot be removed, otherwise resulting invalid segment.
   std::set<CFGNode*> m_callsites;
+
+
+  // inputs
+  std::vector<Variable*> m_inputs;
   
-  std::map<std::string, Type*> m_inputs;
+  // std::map<std::string, Type*> m_inputs;
+  // std::map<std::string, Type*> m_inputs_without_decl;
 
   std::string m_main;
   std::string m_support;

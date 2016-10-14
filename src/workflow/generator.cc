@@ -109,18 +109,11 @@ std::string replace_return_to_35(const std::string &code) {
 //   m_data = ret;
 // }
 
-void CodeGen::SetInput(std::map<std::string, Type*> inputs) {
-  for (auto mm : inputs) {
-    std::string var = mm.first;
-    Type *t = mm.second;
-    if (!t) {
-      std::cerr << "EE: the type of input variable: " << var <<  " is NULL."
-                << " This will typically results in compilation failure." << "\n";
-      continue;
-    } else {
-      m_inputs[var] = t;
-    }
-  }
+/**
+ * Called before GetXXX and after setting all nodes, inputs.
+ * Compute the Switch case to be included.
+ */
+void CodeGen::Preprocess() {
 }
 
 
@@ -152,24 +145,30 @@ int main() {
   int helium_size;
 )";
 
-
       main_func += "printf(\"HELIUM_INPUT_CODE\\n\");\n" + flush_output;
       // inputs
-      for (auto mm : m_inputs) {
-        std::string var = mm.first;
-        Type *t = mm.second;
-        main_func += t->GetDeclCode(var);
-        // FIXME did not use def use analysis result!
-        main_func += t->GetInputCode(var);
+      for (Variable *var : m_inputs) {
+        main_func += var->GetDeclCode();
+        main_func += var->GetInputCode();
       }
+      // for (auto mm : m_inputs) {
+      //   std::string var = mm.first;
+      //   Type *t = mm.second;
+      //   main_func += t->GetDeclCode(var);
+      //   // FIXME did not use def use analysis result!
+      //   main_func += t->GetInputCode(var);
+      // }
 
 
       main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n" + flush_output;
-      for (auto mm : m_inputs) {
-        std::string var = mm.first;
-        Type *t = mm.second;
-        main_func += t->GetOutputCode(var);
+      for (Variable *var : m_inputs) {
+        main_func += var->GetOutputCode();
       }
+      // for (auto mm : m_inputs) {
+      //   std::string var = mm.first;
+      //   Type *t = mm.second;
+      //   main_func += t->GetOutputCode(var);
+      // }
       main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
       
 

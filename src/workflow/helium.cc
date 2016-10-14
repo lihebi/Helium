@@ -68,7 +68,11 @@ Helium::Helium(PointOfInterest *poi) {
             int target_linum = linum - func_linum + ast_linum;
             ASTNode *target = ast->GetNodeByLinum(target_linum);
             if (target) {
+              CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
+              CFGNode *target_cfgnode = cfg->ASTNodeToCFGNode(target);
+              // (HEBI: Set Failure Point)
               target->SetFailurePoint();
+              Segment::SetPOI(target_cfgnode);
               Segment *init_query = new Segment(target);
               m_worklist.push_back(init_query);
             }
@@ -118,7 +122,6 @@ void Helium::process() {
               << RESET;
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
-    // FIXME how to supply testing profile?
     if (segment->Head()->GetASTNode()->Kind() == ANK_Function) {
       std::vector<Segment*> queries = select(segment);
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
@@ -157,8 +160,14 @@ void Helium::process() {
         // (HEBI: remove branch if not covered)
         if (!analyzer.IsCovered()) {
           std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
-          segment->RemoveNewBranch();
-          m_worklist.push_back(segment);
+          // DEBUG remove branch or not
+          if (HeliumOptions::Instance()->GetBool("remove_branch_if_not_covered")) {
+            segment->RemoveNewBranch();
+            m_worklist.push_back(segment);
+          } else {
+            std::vector<Segment*> queries = select(segment);
+            m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+          }
         } else {
           std::cout << utils::GREEN << "POI is covered" << utils::RESET << "\n";
           std::vector<Segment*> queries = select(segment);

@@ -15,7 +15,7 @@ namespace fs = boost::filesystem;
 #include <boost/timer/timer.hpp>
 using boost::timer::cpu_timer;
 using boost::timer::cpu_times;
-Tester::Tester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs)
+Tester::Tester(std::string exe_folder, std::string exe, std::vector<Variable*> inputs)
   : m_exe_folder(exe_folder), m_exe(exe), m_inputs(inputs) {
 }
 
@@ -67,22 +67,22 @@ void Tester::genRandom() {
   for (int i=0;i<test_number;i++) {
     TestSuite suite;
     ArgV::Instance()->clear();
-    for (auto input : m_inputs) {
-      std::string var = input.first;
-      if (var == "argc") {
+    for (Variable *var : m_inputs) {
+      std::string name = var->GetName();
+      if (name == "argc") {
         InputSpec *spec = ArgV::Instance()->GetArgCInput();
-        suite.Add(var, spec);
-      } else if (var == "argv") {
+        suite.Add(name, spec);
+      } else if (name == "argv") {
         InputSpec *spec = ArgV::Instance()->GetArgVInput();
-        suite.Add(var, spec);
+        suite.Add(name, spec);
       } else {
-        Type *type = input.second;
+        Type *type = var->GetType();
         if (!type) {
           std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
           exit(1);
         }
         InputSpec *spec = type->GenerateRandomInput();
-        suite.Add(var, spec);
+        suite.Add(name, spec);
       }
     }
     m_test_suites.push_back(suite);
@@ -96,15 +96,14 @@ void Tester::genPairwise() {
   int random_number = HeliumOptions::Instance()->GetInt("pairwise-random-number");
   std::vector<std::vector<InputSpec*> > pairpool;
   std::vector<std::string> varnames;
-  for (auto input : m_inputs) {
-    std::string var = input.first;
-    varnames.push_back(var);
-    Type *type = input.second;
+  for (Variable *var : m_inputs) {
+    std::string name = var->GetName();
+    varnames.push_back(name);
+    Type *type = var->GetType();
     if (!type) {
       std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
       exit(1);
     }
-
     std::vector<InputSpec*> corner_inputs = type->GenerateCornerInputs(corner_number);
     std::vector<InputSpec*> random_inputs = type->GenerateRandomInputs(random_number);
     std::vector<InputSpec*> inputs;
@@ -162,19 +161,6 @@ void Tester::genTestSuite() {
   }
   freeTestSuite();
   m_test_suites.clear();
-  if (HeliumOptions::Instance()->GetBool("print-input-variables")) {
-    for (auto input : m_inputs) {
-      std::string var = input.first;
-      Type *type = input.second;
-      if (!type) {
-        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
-        exit(1);
-      }
-      std::cout << "Input Variables: " << "\t"
-                << type->ToString() << ":" << type->GetRaw() << " " << var << "\n";
-    }
-  }
-
   std::string method = HeliumOptions::Instance()->GetString("test-generation-method");
   
   // scan the code and set opt
@@ -308,6 +294,44 @@ void Tester::freeTestSuite() {
   m_specs.clear();
   helium_print_trace("End of Tester::freeTestSuite");
 }
+
+
+
+
+std::string TestSuite::GetInput() {
+  std::string ret;
+  for (auto &m : m_data) {
+    std::string var = m.first;
+    InputSpec *spec = m.second;
+    if (spec) {
+      ret += spec->GetRaw() + "\n";
+    }
+  }
+  return ret;
+}
+
+
+std::string TestSuite::GetSpec() {
+  std::string ret;
+  for (auto &m : m_data) {
+    std::string var = m.first;
+    InputSpec *spec = m.second;
+    if (spec) {
+      ret += var + ": " + spec->GetSpec() + "\n";
+    }
+  }
+  return ret;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

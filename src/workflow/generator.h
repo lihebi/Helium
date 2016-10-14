@@ -23,10 +23,15 @@ public:
     if (!astnode) return;
     m_data[astnode->GetAST()].insert(astnode);
   }
-  void SetInput(std::map<std::string, Type*> inputs);
+  // void SetInput(std::map<std::string, Type*> inputs);
+  void SetInputs(std::vector<Variable*> inputs) {
+    m_inputs = inputs;
+  }
+  // void SetInputWithoutDecl(std::map<std::string, Type*> inputs);
   std::string GetMain();
   std::string GetSupport();
   std::string GetMakefile();
+  void Preprocess();
 private:
   std::string getSupportBody();
   void resolveSnippet(AST *ast);
@@ -35,7 +40,9 @@ private:
   ASTNode *m_first_node = NULL;
   std::map<AST*, std::set<ASTNode*> > m_data;
   std::set<int> m_snippet_ids;
-  std::map<std::string, Type*> m_inputs;
+  // std::map<std::string, Type*> m_inputs;
+  // std::map<std::string, Type*> m_inputs_without_decl;
+  std::vector<Variable*> m_inputs;
 };
 
 

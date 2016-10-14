@@ -80,6 +80,7 @@ void CFG::AdjustReturn() {
   m_returns.clear();
 }
 
+// TODO FIXME remove previous outgoing edges from this break?
 void CFG::AdjustBreak() {
   helium_print_trace("CFG::AdjustBreak");
   for (CFGNode *node : m_breaks) {
@@ -257,6 +258,14 @@ void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool o
 
 
 
+/**
+ * put the cfg pointer of cfgnodes to itself.
+ */
+void CFG::RecordCFG() {
+  for (CFGNode *node : m_nodes) {
+    node->SetCFG(this);
+  }
+}
 
 /********************************
  * CFG Factory
@@ -281,6 +290,9 @@ CFG *CFGFactory::CreateCFG(AST *ast) {
   if (!ast) return NULL;
   ASTNode *root = ast->GetRoot();
   CFG *cfg = CreateCFG(root);
+  // (HEBI: Adjust the CFG pointer inside CFGNode)
+  // This is the only place to ensure that.
+  cfg->RecordCFG();
   return cfg;
 }
 
@@ -556,12 +568,33 @@ CFG *CFGFactory::CreateCFGFromBlock(Block *astnode) {
 }
 
 
+std::set<CFGNode*> CFGNode::GetPredecessors() {
+  return m_cfg->GetPredecessors(this);
+}
+std::set<CFGNode*> CFGNode::GetInterPredecessors() {
+  return m_cfg->GetInterPredecessors(this);
+}
+
+std::set<CFGNode*> CFGNode::GetSuccessors() {
+  return m_cfg->GetSuccessors(this);
+}
+
 
 std::set<CFGNode*> CFG::GetPredecessors(CFGNode *node) {
   std::set<CFGNode*> ret;
   if (m_edge_back_idx.count(node)==1) {
     for (CFGEdge *edge : m_edge_back_idx[node]) {
       ret.insert(edge->From());
+    }
+  }
+  return ret;
+}
+
+std::set<CFGNode*> CFG::GetSuccessors(CFGNode *node) {
+  std::set<CFGNode*> ret;
+  if (m_edge_idx.count(node) == 1) {
+    for (CFGEdge *edge : m_edge_idx[node]) {
+      ret.insert(edge->To());
     }
   }
   return ret;

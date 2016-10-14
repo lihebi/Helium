@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "type/type.h"
+#include "type/variable.h"
 
 
 /**
@@ -71,32 +72,20 @@ class TestSuite {
 public:
   TestSuite() {}
   ~TestSuite() {}
-  std::string GetInput() {
-    std::string ret;
-    for (auto &m : m_data) {
-      ret += m.second->GetRaw() + "\n";
-    }
-    return ret;
-  }
-  std::string GetSpec() {
-    std::string ret;
-    for (auto &m : m_data) {
-      ret += m.first + ": ";
-      ret += m.second->GetSpec();
-      ret += "\n";
-    }
-    return ret;
-  }
+  std::string GetInput();
+  std::string GetSpec();
   void Add(std::string var, InputSpec *spec) {
     m_data.push_back({var, spec});
   }
 private:
+  // pair of (varname, InputSpec)
   std::vector<std::pair<std::string, InputSpec*> > m_data;
 };
 
 class Tester {
 public:
-  Tester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs);
+  // Tester(std::string exe_folder, std::string exe, std::map<std::string, Type*> inputs);
+  Tester(std::string exe_folder, std::string exe, std::vector<Variable*> inputs);
   ~Tester() {}
   void Test();
   void Analyze(TestResult *result);
@@ -109,7 +98,8 @@ private:
 
   fs::path m_exe_folder;
   fs::path m_exe;
-  std::map<std::string, Type*> m_inputs;
+  // std::map<std::string, Type*> m_inputs;
+  std::vector<Variable*> m_inputs;
 
   std::vector<TestSuite> m_test_suites;
 

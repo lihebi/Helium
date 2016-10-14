@@ -5,6 +5,9 @@
 #include "generator.h"
 #include "utils/utils.h"
 #include "resolver/global_variable.h"
+#include "helium_options.h"
+
+CFGNode* Segment::m_poi = NULL;
 
 Segment::Segment(ASTNode *astnode) {
   assert(astnode);
@@ -57,6 +60,7 @@ void Segment::Remove(CFGNode *node) {
   } else if (m_selection.count(node) == 1) {
     m_selection.erase(node);
   }
+  if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
 }
 
 void Segment::Remove(std::set<CFGNode*> nodes) {
@@ -67,6 +71,7 @@ void Segment::Remove(std::set<CFGNode*> nodes) {
     }
     m_selection.erase(node);
   }
+  if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
 }
 
 bool Segment::RemoveNewBranch() {
@@ -85,6 +90,7 @@ bool Segment::RemoveNewBranch() {
     m_selection.erase(node);
     m_new.erase(node);
   }
+  if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
   return !to_remove.empty();
 }
 
@@ -116,27 +122,49 @@ void Segment::ResolveInput() {
       first_astnodes.insert(astnode);
     }
   }
+  std::set<std::string> included;
   for (ASTNode *astnode : first_astnodes) {
     std::set<std::string> ids = astnode->GetVarIds();
     for (std::string id : ids) {
       if (id.empty()) continue;
       if (is_c_keyword(id)) continue;
+      if (included.count(id) == 1) continue;
       SymbolTable *tbl = astnode->GetSymbolTable();
       SymbolTableValue *st_value = tbl->LookUp(id);
       if (st_value) {
         if (first_astnodes.count(st_value->GetNode()) == 0) {
           // (HEBI: input)
-          m_inputs[st_value->GetName()] = st_value->GetType();
+          m_inputs.push_back(new Variable(st_value->GetType(), id));
+          included.insert(id);
+          // m_inputs[st_value->GetName()] = st_value->GetType();
         }
       } else {
-        // TODO global
+        // FIXME global variable should not be declared again
         Type *type = GlobalVariableRegistry::Instance()->LookUp(id);
         if (type) {
-          m_inputs[id] = type;
+          // m_inputs[id] = type;
+          // m_inputs_without_decl[id] = type;
+          Variable *var = new Variable(type, id);
+          var->SetGlobal();
+          m_inputs.push_back(var);
+          included.insert(id);
         }
       }
     }
   }
+  if (HeliumOptions::Instance()->GetBool("print-input-variables")) {
+    for (Variable *var : m_inputs) {
+      std::string name = var->GetName();
+      Type *type = var->GetType();
+      if (!type) {
+        std::cerr << "EE: when generating test suite, the type is NULL! Fatal error!" << "\n";
+        exit(1);
+      }
+      std::cout << "Input Variables: " << "\t"
+                << type->ToString() << ":" << type->GetRaw() << " " << name << "\n";
+    }
+  }
+
 }
 
 
@@ -146,11 +174,29 @@ void Segment::ResolveInput() {
 void Segment::GenCode() {
   CodeGen generator;
   // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
+
+  // we want to resolve the swithc statement here
+  for (CFGNode *cfgnode : m_selection) {
+    if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
+      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
+      for (CFGNode *case_first : sucs) {
+        // FIXME I can only check the first node here ...
+        if (m_selection.count(case_first)==1) {
+          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, case_first);
+          std::vector<ASTNode*> cases = edge->GetCases();
+          for (ASTNode *c : cases) {
+            generator.AddNode(c);
+          }
+        }
+      }
+    }
+  }
+  
   generator.SetFirstNode(m_head->GetASTNode());
   for (CFGNode *cfgnode : m_selection) {
     generator.AddNode(cfgnode->GetASTNode());
   }
-  generator.SetInput(m_inputs);
+  generator.SetInputs(m_inputs);
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();

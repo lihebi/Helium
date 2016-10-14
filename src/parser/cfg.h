@@ -11,6 +11,11 @@ public:
   CFGNode(CFG *cfg, ASTNode *astnode) : m_cfg(cfg), m_astnode(astnode) {}
   ~CFGNode() {}
   ASTNode *GetASTNode() {return m_astnode;}
+
+  void SetCFG(CFG *cfg) {m_cfg = cfg;}
+  std::set<CFGNode*> GetPredecessors();
+  std::set<CFGNode*> GetInterPredecessors();
+  std::set<CFGNode*> GetSuccessors();
   
   
   std::string GetID() {
@@ -77,6 +82,7 @@ public:
     }
     return m_label;
   }
+  std::vector<ASTNode*> GetCases() {return m_cases;}
 private:
   CFGNode *m_from=NULL;
   CFGNode *m_to=NULL;
@@ -97,6 +103,8 @@ public:
   void MergeBranch(CFG *cfg, bool b);
   void MergeCase(CFG *cfg, Case *c);
   void MergeDefault(CFG *cfg, Default *def);
+
+  void RecordCFG();
 
   int GetBranchNum() {return m_branch_num;}
   void RemoveOut(CFGNode *node) {
@@ -138,6 +146,18 @@ public:
    */
   std::set<CFGNode*> GetPredecessors(CFGNode *node);
   std::set<CFGNode*> GetInterPredecessors(CFGNode *node);
+  std::set<CFGNode*> GetSuccessors(CFGNode *node);
+  CFGEdge* GetEdge(CFGNode *from, CFGNode *to) {
+    if (m_edge_idx.count(from) == 1) {
+      std::set<CFGEdge*> edges = m_edge_idx[from];
+      for (CFGEdge *edge : edges) {
+        if (edge->To() == to) return edge;
+      }
+    }
+    return NULL;
+  }
+
+  
   CFGNode *ASTNodeToCFGNode(ASTNode *astnode) {
     // check if all m_nodes are in m_ast_to_cfg mapping
     // FIXME performance

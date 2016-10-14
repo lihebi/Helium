@@ -134,6 +134,7 @@ HeliumOptions::HeliumOptions() {
     ("test-input-max-pointer-size", po::value<int>(), "max malloc size for a pointer")
 
     ("procedure-limit", po::value<int>(), "procedure limit for context search")
+    ("remove_branch_if_not_covered", po::value<bool>()->default_value(false), "Remove branch as long as POI is not covered.")
     ;
   
   po::options_description hidden("Hidden options");
