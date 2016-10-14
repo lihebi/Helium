@@ -1,0 +1,23 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,1,0,0,True,2,100,0.001 seconds,0.499 seconds,93.06% of 72,59.09% of 22,50,50,100,50
+0,1,0,0,True,2,100,0.002 seconds,0.861 seconds,93.06% of 72,59.09% of 22,10,90,100,90
+0,1,0,0,True,3,300,0.007 seconds,2.298 seconds,93.50% of 123,77.08% of 48,125,175,300,175
+0,1,0,0,True,3,300,0.002 seconds,1.102 seconds,93.75% of 80,59.09% of 22,58,242,300,242
+0,1,0,0,True,3,300,0.002 seconds,1.408 seconds,93.75% of 80,59.09% of 22,82,218,300,218
+0,2,1,0,True,2,100,0.001 seconds,0.491 seconds,92.75% of 69,59.09% of 22,10,90,100,90
+0,2,2,0,True,2,100,0.001 seconds,0.736 seconds,92.86% of 70,59.09% of 22,20,80,100,80
+0,3,2,0,True,1,10,0.003 seconds,0.033 seconds,91.67% of 96,66.67% of 36,2,8,7,5
+0,3,2,1,True,2,200,0.008 seconds,1.636 seconds,92.00% of 100,68.42% of 38,84,116,108,104
+0,3,3,1,True,7,1000,0.132 seconds,6.707 seconds,93.10% of 116,60.87% of 46,355,645,397,382
+0,3,4,1,True,8,1000,0.250 seconds,6.252 seconds,65.55% of 119,52.08% of 48,303,697,477,477
+0,3,5,1,True,9,1000,0.436 seconds,6.522 seconds,95.93% of 123,70.00% of 50,357,643,525,509
+0,3,6,1,True,10,1000,0.710 seconds,8.421 seconds,96.06% of 127,73.08% of 52,258,742,667,662
+0,3,7,1,True,11,1000,1.137 seconds,9.279 seconds,66.41% of 131,50.00% of 54,311,689,689,689
+0,3,6,1,True,11,1000,0.906 seconds,8.647 seconds,69.68% of 155,51.56% of 64,191,809,630,630
+0,3,7,1,True,11,1000,1.108 seconds,6.096 seconds,68.94% of 132,53.70% of 54,306,694,419,419
+0,3,7,1,True,12,1000,1.352 seconds,7.276 seconds,94.94% of 158,70.59% of 68,232,768,562,558
+0,3,8,1,True,13,1000,1.995 seconds,9.123 seconds,95.09% of 163,67.65% of 68,313,687,623,613
+0,3,7,1,True,13,1000,2.000 seconds,8.424 seconds,71.17% of 163,54.41% of 68,207,793,793,793
+0,3,9,1,True,14,1000,2.764 seconds,9.764 seconds,93.41% of 167,70.59% of 68,415,585,600,585
+0,3,8,1,True,14,1000,2.779 seconds,10.988 seconds,71.86% of 167,51.47% of 68,310,690,619,619
+0,3,8,1,True,13,1000,1.971 seconds,12.163 seconds,71.17% of 163,54.29% of 70,350,650,650,650

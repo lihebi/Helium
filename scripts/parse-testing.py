@@ -43,8 +43,8 @@ def dump_header():
     print("seg_size, proc_num, branch_num, loop_num, compilible,", end="")
     print("var_num, test_num, gen_time, total_time,", end="")
     print("stmt_cov, branch_cov,", end="")
-    print("pass_num, fail_num", end="")
-    print("covered", "bug_triggered")
+    print("pass_num, fail_num,", end="")
+    print("covered_num, bug_triggered_num")
 
 class Data(object):
     "doc"

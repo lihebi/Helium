@@ -1,0 +1,23 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,1,0,0,True,2,100,0.012 seconds,0.772 seconds,93.06% of 72,59.09% of 22,35,65,99,64
+0,1,0,0,True,2,100,0.011 seconds,0.581 seconds,93.06% of 72,59.09% of 22,37,63,100,63
+0,1,0,0,True,3,100,0.054 seconds,0.682 seconds,93.50% of 123,77.08% of 48,43,57,99,56
+0,1,0,0,True,3,100,0.012 seconds,0.540 seconds,93.75% of 80,59.09% of 22,37,63,96,59
+0,1,0,0,True,3,100,0.012 seconds,0.745 seconds,93.75% of 80,59.09% of 22,35,65,99,64
+0,2,1,0,True,2,100,0.010 seconds,0.604 seconds,92.75% of 69,59.09% of 22,30,70,100,70
+0,2,2,0,True,2,100,0.010 seconds,0.513 seconds,92.86% of 70,59.09% of 22,38,62,100,62
+0,3,2,0,True,1,100,0.012 seconds,0.470 seconds,91.67% of 96,66.67% of 36,63,37,63,0
+0,3,2,1,True,2,100,0.013 seconds,0.668 seconds,92.00% of 100,68.42% of 38,78,22,62,19
+0,3,3,1,True,7,100,0.014 seconds,0.773 seconds,93.10% of 116,60.87% of 46,79,21,62,19
+0,3,4,1,True,8,100,0.014 seconds,0.853 seconds,93.28% of 119,66.67% of 48,79,21,61,18
+0,3,5,1,True,9,100,0.013 seconds,0.545 seconds,93.50% of 123,64.00% of 50,75,25,56,21
+0,3,6,1,True,10,100,0.013 seconds,0.399 seconds,93.70% of 127,67.31% of 52,77,23,66,18
+0,3,7,1,True,11,100,0.013 seconds,0.636 seconds,93.89% of 131,64.81% of 54,76,24,64,20
+0,3,6,1,True,11,100,0.024 seconds,0.752 seconds,92.90% of 155,62.50% of 64,74,26,76,24
+0,3,7,1,True,11,100,0.014 seconds,0.526 seconds,93.94% of 132,61.11% of 54,76,24,58,19
+0,3,7,1,True,12,100,0.023 seconds,0.895 seconds,93.04% of 158,63.24% of 68,77,23,64,21
+0,3,8,1,True,13,100,0.023 seconds,0.990 seconds,93.25% of 163,64.71% of 68,70,30,61,25
+0,3,7,1,True,13,100,0.022 seconds,0.887 seconds,93.25% of 163,64.71% of 68,77,23,65,20
+0,3,9,1,True,14,100,0.024 seconds,0.484 seconds,93.41% of 167,63.24% of 68,78,22,64,20
+0,3,8,1,True,14,100,0.024 seconds,0.844 seconds,93.41% of 167,64.71% of 68,72,28,68,24
+0,3,8,1,True,13,100,0.025 seconds,0.842 seconds,93.25% of 163,65.71% of 70,74,26,67,23

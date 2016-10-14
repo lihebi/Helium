@@ -1,0 +1,44 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,1,0,0,True,2,100,0.005 seconds,0.444 seconds,90.83% of 109,65.22% of 46,50,50,100,50
+0,1,0,0,True,1,10,0.004 seconds,0.034 seconds,90.20% of 102,65.22% of 46,4,6,10,6
+0,1,0,0,True,1,10,0.004 seconds,0.035 seconds,90.20% of 102,65.22% of 46,4,6,10,6
+0,1,0,0,True,1,10,0.009 seconds,0.040 seconds,90.20% of 102,65.22% of 46,3,7,10,7
+0,2,0,0,True,1,10,0.004 seconds,0.033 seconds,90.48% of 105,65.22% of 46,3,7,10,7
+0,2,0,1,True,2,100,0.010 seconds,0.617 seconds,,,0,100,90,90
+0,2,1,1,True,2,100,0.012 seconds,0.470 seconds,,,0,100,80,80
+0,2,2,1,True,3,500,0.010 seconds,3.273 seconds,,,0,500,448,448
+0,2,1,1,True,3,500,0.012 seconds,2.878 seconds,,,0,500,448,448
+0,2,3,1,True,3,500,0.010 seconds,3.067 seconds,,,0,500,500,500
+0,2,2,1,True,3,500,0.044 seconds,3.528 seconds,,,0,500,500,500
+0,2,2,1,True,3,500,0.010 seconds,3.198 seconds,,,0,500,399,399
+0,2,3,2,True,5,1000,0.029 seconds,7.294 seconds,,,0,1000,1000,1000
+0,2,3,1,True,3,500,0.010 seconds,4.377 seconds,,,0,500,444,444
+0,2,3,2,True,6,1000,0.043 seconds,8.729 seconds,,,0,1000,1000,1000
+0,2,3,2,True,7,1000,0.078 seconds,8.727 seconds,,,0,1000,898,898
+0,2,3,2,True,5,1000,0.024 seconds,8.616 seconds,,,0,1000,716,716
+0,2,4,2,True,7,1000,0.062 seconds,8.612 seconds,,,0,1000,1000,1000
+0,2,3,3,True,5,1000,0.022 seconds,10.028 seconds,,,0,1000,536,536
+0,2,3,2,True,5,1000,0.024 seconds,8.519 seconds,,,0,1000,786,786
+0,2,4,2,True,7,1000,0.062 seconds,6.541 seconds,,,0,1000,1000,1000
+0,2,4,2,True,7,1000,0.060 seconds,5.951 seconds,,,0,1000,900,900
+0,2,4,3,True,5,1000,0.024 seconds,5.588 seconds,,,0,1000,709,709
+0,2,3,3,True,5,1000,0.026 seconds,5.330 seconds,,,0,1000,717,717
+0,2,3,3,True,5,1000,0.028 seconds,7.535 seconds,,,0,1000,703,703
+0,2,3,3,True,5,1000,0.025 seconds,6.756 seconds,,,0,1000,693,693
+0,2,3,3,True,5,1000,0.030 seconds,7.186 seconds,,,0,1000,900,900
+0,2,3,3,True,5,1000,0.030 seconds,7.131 seconds,,,0,1000,608,608
+0,2,3,3,True,5,1000,0.027 seconds,7.671 seconds,,,0,1000,714,714
+0,2,3,3,True,5,1000,0.024 seconds,6.311 seconds,,,0,1000,867,867
+0,2,3,3,True,5,1000,0.021 seconds,5.823 seconds,,,0,1000,503,503
+0,2,3,3,True,5,1000,0.025 seconds,6.208 seconds,,,0,1000,705,705
+0,2,3,3,True,5,1000,0.028 seconds,7.483 seconds,,,0,1000,741,741
+0,2,3,2,True,5,1000,0.025 seconds,7.961 seconds,,,0,1000,359,359
+0,2,5,2,True,7,1000,0.062 seconds,8.421 seconds,,,0,1000,718,718
+0,2,5,2,True,7,1000,0.065 seconds,9.512 seconds,,,0,1000,798,798
+0,2,3,3,True,6,1000,0.039 seconds,8.694 seconds,,,0,1000,646,646
+0,2,3,3,True,6,1000,0.044 seconds,9.283 seconds,,,0,1000,781,781
+0,2,3,3,True,6,1000,0.042 seconds,9.865 seconds,,,0,1000,861,861
+0,2,3,3,True,6,1000,0.043 seconds,6.279 seconds,,,0,1000,865,865
+0,2,3,3,True,6,1000,0.079 seconds,6.437 seconds,,,0,1000,659,659
+0,2,3,3,True,6,1000,0.042 seconds,6.918 seconds,,,0,1000,787,787
+0,2,3,3,True,6,1000,0.038 seconds,8.157 seconds,,,0,1000,726,726
