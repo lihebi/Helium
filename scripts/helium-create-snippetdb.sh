@@ -96,7 +96,11 @@ for bench in $1/*; do
     # helium --create-snippet-db helium/$bench/src
     # mv snippets helium/$bench/
     echo "== Creating snippet db ..."
-    time helium --create-snippet-db cpped > /dev/null 2>&1
+    echo "== using timeout 30 min ..."
+    timeout 30m time helium --create-snippet-db cpped > /dev/null 2>&1
+    if [ $? == 124 ]; then
+        echo "== EE: Timed out"
+    fi
     cd $dir_back
 done    
 
