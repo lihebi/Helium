@@ -101,7 +101,7 @@ if __name__ == '__main__':
             data.dump()
             # start new segment
             data = Data()
-        if line.find("Segment Size:") is not -1:
+        if line.find("Segment Size") is not -1:
             data.seg_size = int(line.split(':')[1])
         if line.find("Procedure Number") is not -1:
             data.proc_num = int(line.split(':')[1])
