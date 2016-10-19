@@ -1,0 +1,29 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,0,0,0,False,0,0,,,,,0,0,0,0
+57,1,0,1,True,4,100,0.004 seconds,11.860 seconds,,,0,100,100,100
+58,1,1,1,True,6,100,0.002 seconds,9.933 seconds,,,0,100,100,100
+58,1,1,1,True,6,100,0.002 seconds,10.675 seconds,,,0,100,100,100
+60,1,2,1,True,8,100,0.002 seconds,13.950 seconds,,,0,100,100,100
+59,1,1,1,True,8,100,0.002 seconds,12.487 seconds,,,0,100,100,100
+60,1,2,1,True,9,100,0.002 seconds,14.277 seconds,,,0,100,100,100
+61,1,2,1,True,10,100,0.002 seconds,12.083 seconds,,,0,100,100,100
+60,1,1,1,True,8,100,0.002 seconds,0.383 seconds,,,0,100,100,100
+61,1,2,1,True,11,100,0.004 seconds,0.410 seconds,,,0,100,100,100
+62,1,2,1,True,10,100,0.002 seconds,11.621 seconds,,,0,100,100,100
+61,1,1,1,True,9,100,0.002 seconds,0.449 seconds,,,0,100,100,100
+62,1,2,2,True,12,100,0.004 seconds,7.448 seconds,,,0,100,100,100
+63,1,2,1,True,12,100,0.004 seconds,14.093 seconds,,,0,100,100,100
+63,1,2,1,True,10,100,0.002 seconds,11.471 seconds,,,0,100,100,100
+63,1,3,2,True,12,100,0.004 seconds,8.343 seconds,,,0,100,100,100
+63,1,2,2,True,12,100,0.004 seconds,10.128 seconds,,,0,100,100,100
+63,1,2,2,True,12,100,0.004 seconds,1.496 seconds,,,0,100,100,100
+66,1,2,1,True,12,100,0.004 seconds,11.085 seconds,,,0,100,100,100
+64,1,4,2,True,12,100,0.004 seconds,9.535 seconds,,,0,100,100,100
+64,1,2,2,True,12,100,0.004 seconds,6.856 seconds,,,0,100,100,100
+64,1,3,2,True,12,100,0.004 seconds,1.510 seconds,,,0,100,100,100
+67,1,3,1,True,12,100,0.004 seconds,0.511 seconds,,,0,100,100,100
+72,1,5,2,True,13,100,0.004 seconds,6.264 seconds,,,0,100,100,100
+72,1,4,2,True,13,100,0.004 seconds,8.348 seconds,,,0,100,100,100
+72,1,4,2,True,13,100,0.004 seconds,0.561 seconds,,,0,100,100,100
+76,1,6,2,True,14,100,0.004 seconds,5.968 seconds,,,0,100,100,100
+75,1,6,2,False,0,0,,,,,0,0,0,0

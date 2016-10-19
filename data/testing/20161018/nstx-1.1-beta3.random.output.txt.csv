@@ -1,0 +1,11 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,0,0,0,False,0,0,,,,,0,0,0,0
+28,1,0,0,True,1,100,0.000 seconds,0.396 seconds,,,0,100,100,100
+29,1,1,0,True,1,100,0.000 seconds,0.371 seconds,,,0,100,100,100
+29,1,1,0,True,2,100,0.008 seconds,0.396 seconds,,,0,100,100,100
+29,1,1,0,True,4,100,0.019 seconds,0.458 seconds,,,0,100,0,0
+29,1,0,0,True,3,100,0.011 seconds,0.400 seconds,,,0,100,55,55
+30,1,1,0,False,0,0,,,,,0,0,0,0
+30,1,1,0,True,2,100,0.010 seconds,0.597 seconds,,,0,100,0,0
+30,1,1,0,False,0,0,,,,,0,0,0,0
+30,1,1,0,True,4,100,0.021 seconds,0.474 seconds,,,0,100,0,0

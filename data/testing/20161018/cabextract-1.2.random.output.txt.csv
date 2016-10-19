@@ -1,0 +1,6 @@
+seg_size, proc_num, branch_num, loop_num, compilible,var_num, test_num, gen_time, total_time,stmt_cov, branch_cov,pass_num, fail_num,covered_num, bug_triggered_num
+0,0,0,0,False,0,0,,,,,0,0,0,0
+8,1,0,1,True,1,100,0.000 seconds,0.536 seconds,100.00% of 14,50.00% of 2,100,0,100,0
+9,1,1,1,True,2,100,0.000 seconds,0.731 seconds,100.00% of 15,50.00% of 2,100,0,100,0
+9,1,1,1,False,0,0,,,,,0,0,0,0
+9,1,0,1,False,0,0,,,,,0,0,0,0
