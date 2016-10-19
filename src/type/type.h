@@ -122,13 +122,14 @@ public:
   virtual std::string GetDeclCode(std::string var) {
     std::string ret;
     ret += "// UnknownType::GetDeclCode: " + var + ";\n";
-    if (m_raw.find('[') != std::string::npos) {
-      std::string prefix = m_raw.substr(0, m_raw.find('['));
-      std::string suffix = m_raw.substr(m_raw.find('['));
-      ret += prefix + " " + var + suffix + ";\n";
-    } else {
-      ret += m_raw + " " + var;
-    }
+    // if (m_raw.find('[') != std::string::npos) {
+    //   std::string prefix = m_raw.substr(0, m_raw.find('['));
+    //   std::string suffix = m_raw.substr(m_raw.find('['));
+    //   ret += prefix + " " + var + suffix + ";\n";
+    // } else {
+    //   ret += m_raw + " " + var + ";\n";
+    // }
+    ret += m_raw + " " + var + ";\n";
     return ret;
   }
   virtual std::string GetInputCode(std::string var) {
@@ -224,7 +225,15 @@ public:
     }
     return ret;
   }
-  virtual std::string ToString() override {return "PointerType";}
+  virtual std::string ToString() override {
+    std::string ret = "PointerType: ";
+    if (m_contained_type) {
+      ret += m_contained_type->ToString();
+    } else {
+      ret += "NULL";
+    }
+    return ret;
+  }
 protected:
 private:
   Type *m_contained_type = NULL;

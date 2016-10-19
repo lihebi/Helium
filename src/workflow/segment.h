@@ -44,6 +44,7 @@ public:
   /**
    * Code generating
    */
+  void PatchGrammar();
   void ResolveInput();
   void GenCode();
   std::string GetMain() {return m_main;}

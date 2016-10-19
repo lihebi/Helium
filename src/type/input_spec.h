@@ -84,29 +84,8 @@ public:
       if (spec) delete spec;
     }
   }
-  virtual std::string GetRaw() override {
-    std::string ret;
-    int helium_size = m_heap.size();
-    ret += std::to_string(helium_size) + " ";
-    for (int i=0;i<helium_size;i++) {
-      ret += m_heap[i]->GetRaw() + " ";
-    }
-    return ret;
-  }
-
-  virtual std::string GetSpec() override {
-    std::string ret;
-    ret += "{helium_siz: ";
-    ret += std::to_string(m_heap.size());
-    ret += ", heap: {";
-    for (InputSpec *spec : m_heap) {
-      ret += spec->GetSpec();
-      ret += ",";
-    }
-    ret += "} }";
-    return ret;
-  }
-
+  virtual std::string GetRaw() override;
+  virtual std::string GetSpec() override;
   virtual void Add(InputSpec *spec) override {
     m_heap.push_back(spec);
   }

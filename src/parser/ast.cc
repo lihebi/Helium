@@ -333,6 +333,50 @@ std::set<ASTNode*> patch_syntax(std::set<ASTNode*> nodes) {
   return ret;
 }
 
+std::set<ASTNode*> AST::PatchGrammar(std::set<ASTNode*> nodes) {
+  std::set<ASTNode*> ret (nodes.begin(), nodes.end());
+  for (ASTNode *n : nodes) {
+    if (n->Kind() == ANK_Stmt) {
+      if (xmlnode_to_kind(n->GetXMLNode()) == NK_Break
+          || xmlnode_to_kind(n->GetXMLNode()) == NK_Continue
+          ) {
+        ASTNode *p = n->GetParent();
+        while (p && p->Kind() != ANK_For
+               && p->Kind() != ANK_While
+               && p->Kind() != ANK_Do
+               && p->Kind() != ANK_Switch
+               ) {
+          p = p->GetParent();
+        }
+        assert(p);
+        ret.insert(p);
+      }
+    } else if (n->Kind() == ANK_Case) {
+      ASTNode *p = n->GetParent();
+      // std::cout << p->Kind()  << "\n";
+      // std::cout << ANK_Switch  << "\n";
+      assert(p && p->Kind() == ANK_Switch);
+      ret.insert(p);
+    } else if(n->Kind() == ANK_Else || n->Kind() == ANK_ElseIf) {
+      std::cout << "completing else" << "\n";
+      // add if
+      ASTNode *p = n->GetParent();
+      while (p && p->Kind() != ANK_If) {
+        // this can be anther else or elseif
+        ret.insert(p);
+        std::cout << "patch adding: " <<  p->GetLabel() << "\n";
+
+        p = p->GetParent();
+      }
+      if (p && p->Kind() == ANK_If) {
+        ret.insert(p);
+        std::cout << "patch adding: " <<  p->GetLabel() << "\n";
+      }
+    }
+  }
+  return ret;
+}
+
 std::set<ASTNode*> AST::CompleteGene(std::set<ASTNode*> gene) {
   helium_print_trace("AST::CompleteGene(std::set<ASTNode*> gene)");
   std::set<ASTNode*> ret;

@@ -55,7 +55,13 @@ Helium::Helium(PointOfInterest *poi) {
     std::string func_name = function_get_name(func);
     int func_linum = get_node_line(func);
     std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
+    if (ids.empty()) {
+      std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
+      exit(1);
+    }
     for (int id : ids) {
+      std::cout << id << "\n";
+
       SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
       std::string filename = fs::path(meta.filename).filename().string();
       if (filename == poi->GetFilename()) {
@@ -80,15 +86,59 @@ Helium::Helium(PointOfInterest *poi) {
         }
       }
     }
-    if (m_worklist.empty()) {
-      std::cerr << "Cannot construct the initial query." << "\n";
+  } else if (poi->GetType() == "loop") {
+    XMLNode node = find_node_on_line(doc->document_element(),
+                                     {NK_Do, NK_While, NK_For}, linum);
+    if (!node) {
+      std::cerr << "EE: cannot find SrcML node based on POI." << "\n";
       exit(1);
     }
-    process();
+    XMLNode func = get_function_node(node);
+    std::string func_name = function_get_name(func);
+    int func_linum = get_node_line(func);
+    std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
+    if (ids.empty()) {
+      std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
+      exit(1);
+    }
+    for (int id : ids) {
+      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
+      std::string filename = fs::path(meta.filename).filename().string();
+      if (filename == poi->GetFilename()) {
+        AST *ast = Resource::Instance()->GetAST(id);
+        if (ast) {
+          ASTNode *root = ast->GetRoot();
+          if (root) {
+            int ast_linum = root->GetBeginLinum();
+            int target_linum = linum - func_linum + ast_linum;
+            ASTNode *target = ast->GetNodeByLinum(target_linum);
+            if (target) {
+              CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
+              CFGNode *target_cfgnode = cfg->ASTNodeToCFGNode(target);
+              // DEBUG
+              // std::cout << target_cfgnode->GetLabel() << "\n";
+
+              // (HEBI: Set Failure Point)
+              target->SetFailurePoint();
+              Segment::SetPOI(target_cfgnode);
+              Segment *init_query = new Segment(target);
+              m_worklist.push_back(init_query);
+            }
+          }
+        }
+      }
+    }
+  } else {
+    std::cerr << "Only Support Stmt and Loop as POI." << "\n";
   }
+  // initial query:
+  if (m_worklist.empty()) {
+    std::cerr << "Cannot construct the initial query." << "\n";
+    exit(1);
+  }
+  std::cout << "Initial query: " << m_worklist.size() << "\n";
+  process();
 }
-
-
 
 
 /**
@@ -102,7 +152,9 @@ Helium::Helium(PointOfInterest *poi) {
  * TODO workflow
  */
 void Helium::process() {
-  helium_print_trace("process");
+  // helium_print_trace("process");
+  std::cout << "Helium Processing ..." << "\n";
+
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
     Segment *segment = m_worklist.front();
@@ -127,6 +179,10 @@ void Helium::process() {
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
       continue;
     }
+
+
+    segment->PatchGrammar();
+    
     segment->ResolveInput();
     segment->GenCode();
     
@@ -144,6 +200,10 @@ void Helium::process() {
     }
     if (!builder.Success()) {
       std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
+      if (HeliumOptions::Instance()->GetBool("pause-compile-error")) {
+        std::cout << "Paused, press enter to continue ..." << std::flush;
+        getchar();
+      }
       segment->Remove(segment->New());
       m_worklist.push_back(segment);
       continue;
@@ -182,6 +242,11 @@ void Helium::process() {
           std::cout << utils::RED << "Bug is not triggered." << utils::RESET << "\n";
         }
       }
+    } else {
+      // didn't run test ...
+      // but still do context search, for build rate test
+      std::vector<Segment*> queries = select(segment);
+      m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
     }
   }
 }

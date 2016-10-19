@@ -67,8 +67,8 @@ class Data(object):
         pass
     def dump(self):
         "doc"
-        if not self.compilible:
-            return
+        # if not self.compilible:
+        #     return
         print(self.seg_size, end=",")
         print(self.proc_num, end=",")
         print(self.branch_num, end=",")

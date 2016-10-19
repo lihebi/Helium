@@ -43,6 +43,10 @@ void If::GetCode(std::set<ASTNode*> nodes,
   
   assert(m_then); // then clause for a if must exist
   m_then->GetCode(nodes, ret, all);
+  if (selected) {
+    ret += "}\n";
+  }
+  
   for (ElseIf *ei : m_elseifs) {
     ei->GetCode(nodes, ret, all);
   }
@@ -52,9 +56,6 @@ void If::GetCode(std::set<ASTNode*> nodes,
   // FIXME the "after" point of a "branch POI" should be only surround condition?
   ret += POIAfterCode();
 
-  if (selected) {
-    ret += "}\n";
-  }
 }
 
 std::string If::GetLabel() {

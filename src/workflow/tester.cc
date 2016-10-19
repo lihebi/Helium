@@ -189,6 +189,15 @@ void Tester::Test() {
     }
   }
   cpu_times test_gen_time = timer.elapsed();
+
+  if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
+    std::cout << utils::PURPLE << "Test Meta:" << utils::RESET << "\n";
+    std::cout << "\t" << "Number of input variables: " << m_inputs.size() << "\n";
+    std::cout << "\t" << "Number of tests: " << m_test_suites.size() << "\n";
+    std::cout << "\t" << "Test Generation Time: " << boost::timer::format(test_gen_time, 3, "%w seconds") << "\n";
+  }
+
+
   utils::create_folder((m_exe_folder / "input").string());
   utils::create_folder((m_exe_folder / "tests").string());
 
@@ -217,7 +226,14 @@ void Tester::Test() {
 
 
     // (HEBI: Run the program)
+    if (HeliumOptions::Instance()->Has("verbose")) {
+      std::cout << "Running the program ..." << "\n";
+    }
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+    if (HeliumOptions::Instance()->Has("verbose")) {
+      std::cout << "End of running" << "\n";
+    }
+
 
     utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);
 
@@ -265,10 +281,6 @@ void Tester::Test() {
   cpu_times test_total = timer.elapsed();
 
   if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
-    std::cout << utils::PURPLE << "Test Meta:" << utils::RESET << "\n";
-    std::cout << "\t" << "Number of input variables: " << m_inputs.size() << "\n";
-    std::cout << "\t" << "Number of tests: " << m_test_suites.size() << "\n";
-    std::cout << "\t" << "Test Generation Time: " << boost::timer::format(test_gen_time, 3, "%w seconds") << "\n";
     std::cout << "\t" << "Total Testing Time: " << boost::timer::format(test_total, 3, "%w seconds") << "\n";
     // only calculate coverage if we run some tests
     if (!m_test_suites.empty()) {

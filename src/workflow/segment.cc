@@ -74,6 +74,34 @@ void Segment::Remove(std::set<CFGNode*> nodes) {
   if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
 }
 
+/**
+ * Call PatchGrammar before resolving input and snippet, because the variable used in the condition might be a input variable
+ */
+void Segment::PatchGrammar() {
+  // we want to resolve the switch statement here
+  std::map<AST*, std::set<ASTNode*> > groups;
+  for (CFGNode *cfgnode : m_selection) {
+    ASTNode *astnode = cfgnode->GetASTNode();
+    AST *ast = astnode->GetAST();
+    groups[ast].insert(astnode);
+  }
+
+  // patch for all the asts
+  for (auto m : groups) {
+    AST *ast = m.first;
+    std::set<ASTNode*> nodes = m.second;
+    std::set<ASTNode*> newnodes = ast->PatchGrammar(nodes);
+    CFG *cfg = Resource::Instance()->GetCFG(ast);
+    for (ASTNode *diff : newnodes) {
+      if (nodes.count(diff) == 0) {
+        CFGNode *cfgnode = cfg->ASTNodeToCFGNode(diff);
+        // inserting difference (new nodes) into selection
+        m_selection.insert(cfgnode);
+      }
+    }
+  }
+}
+
 bool Segment::RemoveNewBranch() {
   std::set<CFGNode*> to_remove;
   for (CFGNode *node : m_new) {
@@ -175,7 +203,6 @@ void Segment::GenCode() {
   CodeGen generator;
   // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
 
-  // we want to resolve the swithc statement here
   for (CFGNode *cfgnode : m_selection) {
     if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
       std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
@@ -197,6 +224,11 @@ void Segment::GenCode() {
     generator.AddNode(cfgnode->GetASTNode());
   }
   generator.SetInputs(m_inputs);
+
+
+  // generator.Preprocess();
+
+  
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();

@@ -284,6 +284,8 @@ public:
   std::set<ASTNode*> CompleteGene(Gene *gene);
   std::set<ASTNode*> CompleteGeneToRoot(std::set<ASTNode*> gene);
 
+  std::set<ASTNode*> PatchGrammar(std::set<ASTNode*> nodes);
+
   /**
    * Remove the root node.
    */

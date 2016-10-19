@@ -218,9 +218,12 @@ std::string PointerType::GetOutputCode(std::string var) {
 }
 
 InputSpec *PointerType::GenerateRandomInput() {
+  // std::cout << ToString() << "\n";
+  InputSpec *ret = NULL;
   helium_print_trace("PointerType::GenerateRandomInput");
   if (!m_contained_type) {
     helium_log_warning("PointerType::GenerateRandomInput with no contained type");
+    std::cerr << "EE: PointerType::GenerateRandomInput with no contained type" << "\n";
     return NULL;
   }
 
@@ -236,18 +239,18 @@ InputSpec *PointerType::GenerateRandomInput() {
     }
     std::string raw = std::to_string(helium_size) + " " + str;
     std::string spec = "{strlen: " + std::to_string(str.length()) + ", size: " + std::to_string(helium_size) + "}";
-    return new InputSpec(spec, raw);
+    ret = new InputSpec(spec, raw);
   } else {
-    InputSpec *ret = new PointerInputSpec();
+    ret = new PointerInputSpec();
     int max_pointer_size = HeliumOptions::Instance()->GetInt("test-input-max-pointer-size");
     int helium_size = utils::rand_int(0, max_pointer_size+1);
     for (int i=0;i<helium_size;i++) {
       InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
       ret->Add(tmp_spec);
     }
-    return ret;
   }
-  return NULL;
+  helium_print_trace("PointerType::GenerateRandomInput END");
+  return ret;
 }
 
 std::vector<InputSpec*> PointerType::GeneratePairInput() {

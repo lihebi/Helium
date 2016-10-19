@@ -113,8 +113,14 @@ std::string replace_return_to_35(const std::string &code) {
  * Called before GetXXX and after setting all nodes, inputs.
  * Compute the Switch case to be included.
  */
-void CodeGen::Preprocess() {
-}
+// void CodeGen::Preprocess() {
+//   // call PatchGrammar on nodes
+//   if (m_first_ast && m_data.count(m_first_ast) == 1) {
+//     std::set<ASTNode*> nodes = m_data[m_first_ast];
+//     nodes = m_first_ast->PatchGrammar(nodes);
+//     m_data[m_first_ast] = nodes;
+//   }
+// }
 
 
 std::string CodeGen::GetMain() {
