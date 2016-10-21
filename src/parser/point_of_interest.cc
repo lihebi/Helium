@@ -4,7 +4,7 @@
 
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
-#include "utils/csv.h"
+#include "utils/table.h"
 #include "utils/log.h"
 #include "utils/fs_utils.h"
 
@@ -27,8 +27,8 @@ std::string PointOfInterest::GetPath() {
  * @param folder the folder of benchmark. This folder must contains some sub-folders: cpped, snippets, src. This folder name is the benchmark name.
  * @param poi_file a csv file
  */
-std::vector<PointOfInterest*> create_point_of_interest(std::string folder, std::string poi_file) {
-  helium_print_trace("create_point_of_interest");
+std::vector<PointOfInterest*> POIFactory::Create(std::string folder, std::string poi_file) {
+  helium_print_trace("POIFactory::Create");
   folder = utils::escape_tide(folder);
   poi_file = utils::escape_tide(poi_file);
   // read poi file
@@ -38,20 +38,21 @@ std::vector<PointOfInterest*> create_point_of_interest(std::string folder, std::
     exit(1);
   }
 
-  // check if it exists in folder
-  CSV *csv = CSVFactory::CreateCSV(poi_file);
-  if (!csv) {
-    std::cerr << "EE: point of interest file " << poi_file << " is not valid." << "\n";
+  Table *table = TableFactory::Create(poi_file);
+  if (!table) {
+    std::cerr << "EE: point of interest file " << poi_file << " is not valid" << "\n";
     exit(1);
   }
-  // benchmark, file, linum, type
-  std::vector<std::string> benchmark, file, linum, type;
-  benchmark = csv->Column("benchmark");
-  file = csv->Column("file");
-  linum = csv->Column("linum");
-  type = csv->Column("type");
-  
-  if (benchmark.empty() || file.empty() || linum.empty() || type.empty()) {
+  std::vector<std::string> benchmark = table->Column("benchmark");
+  std::vector<std::string> file = table->Column("file");
+  std::vector<std::string> linum = table->Column("linum");
+  std::vector<std::string> type = table->Column("type");
+  std::vector<std::string> fc = table->Column("failure-condition");
+
+  if (benchmark.empty()
+      || file.empty()
+      || linum.empty()
+      || type.empty()) {
     std::cerr << "EE: point of interest file " << poi_file << " is not valid."
               << "All fields (benchmark, file, linum, type) should be available."
               << "\n";

@@ -336,7 +336,8 @@ int main(int argc, char* argv[]) {
   // Helium helium(fp);
   std::string poi_file = HeliumOptions::Instance()->GetString("poi-file");
   poi_file = utils::escape_tide(poi_file);
-  std::vector<PointOfInterest*> pois = create_point_of_interest(target.string(), poi_file);
+  // std::vector<PointOfInterest*> pois = create_point_of_interest(target.string(), poi_file);
+  std::vector<PointOfInterest*> pois = POIFactory::Create(target.string(), poi_file);
 
   std::cout << "Number of point of interest: " << pois.size() << "\n";
 

@@ -28,6 +28,12 @@ private:
   std::string m_type;
 };
 
-std::vector<PointOfInterest*> create_point_of_interest(std::string folder, std::string poi_file);
+class POIFactory {
+public:
+  static std::vector<PointOfInterest*> Create(std::string folder, std::string poi_file);
+private:
+};
+
+// std::vector<PointOfInterest*> create_point_of_interest(std::string folder, std::string poi_file);
 
 #endif /* POINT_OF_INTEREST_H */

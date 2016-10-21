@@ -9,6 +9,7 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -26,5 +27,7 @@ extern const std::string flush_output;
 
 bool
 is_c_keyword(const std::string& s);
+
+void error(std::string err_msg);
 
 #endif

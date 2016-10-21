@@ -96,33 +96,28 @@ TEST(utils_test_case, split_test) {
  * split string based on delimeter given
  * @param[in] s string to be split
  * @param[in] delim delimeter
- * @param[out] elems store the splits
- * @return reference to elems
+ * @return elems store the splits
  */
-std::vector<std::string>&
-utils::split(const std::string &s, char delim, std::vector<std::string> &elems) {
+std::vector<std::string>
+utils::split(const std::string &s, char delim) {
+  std::vector<std::string> ret;
   std::stringstream ss(s);
   std::string item;
   while (std::getline(ss, item, delim)) {
-    elems.push_back(item);
+    ret.push_back(item);
   }
   // in the case the last one is the delim, push an empty string.
   // This is useful for csv file
   if (!s.empty() && s.back() == delim) {
-    elems.push_back("");
+    ret.push_back("");
   }
-  return elems;
+  return ret;
 }
 
-
-/**
- * Create and return a new vector of splits
- */
-std::vector<std::string>
-utils::split(const std::string &s, char delim) {
-  std::vector<std::string> elems;
-  split(s, delim, elems);
-  return elems;
+TEST(UtilsTestCase, SplitTest) {
+  std::vector<std::string> result;
+  result = split("|Hello|World|", '|');
+  ASSERT_EQ(result.size(), 4);
 }
 
 /**

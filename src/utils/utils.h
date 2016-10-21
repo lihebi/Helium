@@ -132,7 +132,7 @@ namespace utils {
 
   bool ends_with(const std::string &s, const std::string &pattern);
   bool starts_with(const std::string &s, const std::string &pattern);
-  std::vector<std::string>& split(const std::string &s, char delim, std::vector<std::string> &elems);
+  // std::vector<std::string>& split(const std::string &s, char delim, std::vector<std::string> &elems);
   std::vector<std::string> split(const std::string &s, char delim);
   std::vector<std::string> split(std::string s, std::string delim);
 

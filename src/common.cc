@@ -38,3 +38,9 @@ is_c_keyword(const std::string& s) {
 }
 
 const std::string flush_output = "fflush(stdout);\n";
+
+
+void error(std::string err_msg) {
+  std::cerr << err_msg << "\n";
+  exit(1);
+}
