@@ -4,87 +4,87 @@
 ** Prerequisite
 
 *** Packages
-On Debian based system, the following packages should be installed:
+    On Debian based system, the following packages should be installed:
 
-#+BEGIN_EXAMPLE
+    #+BEGIN_EXAMPLE
 exuberant-ctags libsqlite3-dev autoconf graphviz
 gnulib libboost-all-dev libgtest-dev libpugixml-dev
 llvm clang
 feh cmake autoconf automake
-#+END_EXAMPLE
+    #+END_EXAMPLE
 
-=gtest= needs to be built manually:
-#+BEGIN_EXAMPLE
+    =gtest= needs to be built manually:
+    #+BEGIN_EXAMPLE
 cd /tmp
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=RELEASE /usr/src/gtest
 make
 sudo mv libg* /usr/lib/
-#+END_EXAMPLE
+    #+END_EXAMPLE
 
 *** compile ctags library manually
-#+begin_src shell
+    #+begin_src shell
 cd lib/ctags
 cp Makefile.linux Makefile
 make
 make install
-#+end_src
+    #+end_src
 
 *** Download SrcML
-http://www.srcml.org/
+    http://www.srcml.org/
 
 ** compile and setup
 
-In Helium folder, run
-#+BEGIN_EXAMPLE
+   In Helium folder, run
+   #+BEGIN_EXAMPLE
 make
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
-Create system type tagfile:
-#+BEGIN_EXAMPLE
+   Create system type tagfile:
+   #+BEGIN_EXAMPLE
 make systype.tags
 ./setup.sh
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
-# Create local config.h:
-# #+BEGIN_EXAMPLE
-# cd lib/config
-# aclocal
-# autoconf
-# autoheader
-# ./configure
-# #+END_EXAMPLE
+   # Create local config.h:
+   # #+BEGIN_EXAMPLE
+   # cd lib/config
+   # aclocal
+   # autoconf
+   # autoheader
+   # ./configure
+   # #+END_EXAMPLE
 
-Add the following lines to your =~/.bashrc=:
-#+BEGIN_EXAMPLE
+   Add the following lines to your =~/.bashrc=:
+   #+BEGIN_EXAMPLE
 export HELIUM_HOME=/path/to/helium/folder
 export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH
 export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
 ** Run
 
-Now the following command should be available:
-- =helium=
-- =helium-create-snippetdb
+   Now the following command should be available:
+   - =helium=
+   - =helium-create-snippetdb
 
-Say we have the following benchmarks in the =folder=
-#+BEGIN_EXAMPLE
+   Say we have the following benchmarks in the =folder=
+   #+BEGIN_EXAMPLE
 top
 |-- folder
     |--- gzip-1.2.4
          |-- a.c
          |-- b.c
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
-Run the command:
-#+BEGIN_EXAMPLE
+   Run the command:
+   #+BEGIN_EXAMPLE
 helium-create-snippet-db folder
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
-This will create the following file tree:
-#+BEGIN_EXAMPLE
+   This will create the following file tree:
+   #+BEGIN_EXAMPLE
 top
 |-- folder
     |--- gzip-1.2.4
@@ -95,70 +95,63 @@ top
              |-- cpped/
              |-- snippet/
              |-- src/
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
-Now, go into =top/folder/helium/gzip-1.2.4/= and execute:
-#+BEGIN_EXAMPLE
+   Now, go into =top/folder/helium/gzip-1.2.4/= and execute:
+   #+BEGIN_EXAMPLE
 helium --whole-poi /path/to/poi cpped
-#+END_EXAMPLE
+   #+END_EXAMPLE
 
 ** Getting help
-There's a man page. Install via:
-#+BEGIN_EXAMPLE
-./doc/setup-man.sh
-#+END_EXAMPLE
-
-The following command will show help information:
-#+BEGIN_EXAMPLE
-helium
-helium -p
-helium -d
-man helium
-#+END_EXAMPLE
+#    There's a man page. Install via:
+#    #+BEGIN_EXAMPLE
+# ./doc/setup-man.sh
+#    #+END_EXAMPLE
 
 
-# ** A quick test
-# git clone https://github.com/lihebi/poi
-# cd poi && ./setup.sh
-# git clone https://github.com/lihebi/bugbench
-# cd bugbench
-# helium-create-snippetdb folder
-# cd helium
-# heilum-run.sh .
 
-# ** third party libraries
-# Helium relies on ~headers.conf~ for the headers to include.
-# Helium will test if the system has that header.
-# If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
+   # ** A quick test
+   # git clone https://github.com/lihebi/poi
+   # cd poi && ./setup.sh
+   # git clone https://github.com/lihebi/bugbench
+   # cd bugbench
+   # helium-create-snippetdb folder
+   # cd helium
+   # heilum-run.sh .
 
-# So, when you run Helium, be sure to check if you have installed that package.
-# If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
+   # ** third party libraries
+   # Helium relies on ~headers.conf~ for the headers to include.
+   # Helium will test if the system has that header.
+   # If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
 
-# To install all the dependencies in this file, use this command:
+   # So, when you run Helium, be sure to check if you have installed that package.
+   # If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
 
-# #+begin_src shell
-# cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
-# #+end_src
+   # To install all the dependencies in this file, use this command:
 
-# After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
+   # #+begin_src shell
+   # cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
+   # #+end_src
+
+   # After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
 
 
-# ** config
-# The default config file is ~$HELIUM_HOME/helium.conf~.
-# It can be specified by ~-f~ argument.
-# Use ~helium --print-config~ to show the current config.
-# Use ~helium --conf "key=value,key2=value2"~ to change each single config.
+   # ** config
+   # The default config file is ~$HELIUM_HOME/helium.conf~.
+   # It can be specified by ~-f~ argument.
+   # Use ~helium --print-config~ to show the current config.
+   # Use ~helium --conf "key=value,key2=value2"~ to change each single config.
 
-# ~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
+   # ~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
 
-# ** some examples
-# #+begin_src shell
-# helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
-# #+end_src
+   # ** some examples
+   # #+begin_src shell
+   # helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
+   # #+end_src
 
-# * Trouble Shooting
-# ** What to look at when compile failure everywhere
-# - check if all required package installed
-# - check if compiler set correctly and available
-#   - CC=clang helium-create-snippet.sh /folder
-#   - helium --conf="cc=clang"
+   # * Trouble Shooting
+   # ** What to look at when compile failure everywhere
+   # - check if all required package installed
+   # - check if compiler set correctly and available
+   #   - CC=clang helium-create-snippet.sh /folder
+   #   - helium --conf="cc=clang"
