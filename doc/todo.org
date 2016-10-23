@@ -1,8 +1,0 @@
-* TODO list
-
-** TODO struct {} var1,*var2;
-** TODO try all possibilities for
-*** conditional compilation
-*** -std=c99 -ansi -std=c89
-** TODO try all possible callsite
-** TODO try callsite in other file

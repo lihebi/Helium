@@ -1,0 +1,16 @@
+#+TITLE: Design Document for Third-party library
+
+Helium relies on ~headers.conf~ for the headers to include.
+Helium will test if the system has that header.
+If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
+
+So, when you run Helium, be sure to check if you have installed that package.
+If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
+
+To install all the dependencies in this file, use this command:
+
+#+begin_src shell
+   cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
+#+end_src
+
+After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..

@@ -36,122 +36,96 @@ make install
 
 ** compile and setup
 
-   In Helium folder, run
-   #+BEGIN_EXAMPLE
-make
-   #+END_EXAMPLE
+   In Helium root folder, run =make= will compile the project.
+   If no error happens, you should get the binary executable as =bin/helium=.
+   You might want to add helium folder to your =PATH= environment variable so that you can access it without typing the full path.
+   To do that, add the following lines into your =~/.bashrc= file:
 
-   Create system type tagfile:
-   #+BEGIN_EXAMPLE
-make systype.tags
-./setup.sh
-   #+END_EXAMPLE
-
-   # Create local config.h:
-   # #+BEGIN_EXAMPLE
-   # cd lib/config
-   # aclocal
-   # autoconf
-   # autoheader
-   # ./configure
-   # #+END_EXAMPLE
-
-   Add the following lines to your =~/.bashrc=:
    #+BEGIN_EXAMPLE
 export HELIUM_HOME=/path/to/helium/folder
 export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH
+   #+END_EXAMPLE
+
+   Note that the =HELIUM_HOME= variable is /only/ used to save some typing,
+   it has nothing to do with the =helium-home= configuration option.
+   In other word, Helium does not depends on any environment variables.
+
+   Helium uses [[https://github.com/google/sanitizers/wiki/AddressSanitizer][AddressSanitizer]] to detect memory problems, add the following option for it, also in =~/.bashrc= file:
+   #+BEGIN_EXAMPLE
 export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0
    #+END_EXAMPLE
 
-** Run
-
-   Now the following command should be available:
-   - =helium=
-   - =helium-create-snippetdb
-
-   Say we have the following benchmarks in the =folder=
+   Helium configuration file is =/path/to/helium/helium.conf=, and you need to make a symbolic link to =~/.heliumrc=.
+   To do that, run the command in shell:
    #+BEGIN_EXAMPLE
-top
-|-- folder
-    |--- gzip-1.2.4
-         |-- a.c
-         |-- b.c
+ln -sf /path/to/helium/helium.conf $HOME/.heliumrc
    #+END_EXAMPLE
 
-   Run the command:
+   Create system type tag-file:
    #+BEGIN_EXAMPLE
-helium-create-snippet-db folder
+make systype.tags
    #+END_EXAMPLE
 
-   This will create the following file tree:
+   Create local =config.h=:
    #+BEGIN_EXAMPLE
-top
-|-- folder
-    |--- gzip-1.2.4
-         |-- a.c
-         |-- b.c
-    |--- helium
-         |-- gzip-1.2.4
-             |-- cpped/
-             |-- snippet/
-             |-- src/
+   cd lib/config
+   aclocal
+   autoconf
+   autoheader
+   ./configure
    #+END_EXAMPLE
 
-   Now, go into =top/folder/helium/gzip-1.2.4/= and execute:
+* Run
+
+  Now the =helium= command should be available. Run it without arguments will show the help information.
+
+** Pre-processing
+   To run Helium against a benchmark, you need to first pre-process it.
+   There is a script =helium-preprocess.sh= which does this for you.
+   It is used against a single benchmark, or a bunch of benchmarks.
+   The benchmark can be a folder, or a compressed archive.
+   The following examples illustrate the typical usage of it:
+
    #+BEGIN_EXAMPLE
-helium --whole-poi /path/to/poi cpped
+     helium-preprocess.sh /path/to/benchmark/folder
+     helium-preprocess.sh /path/to/benchmark.tar.gz
+     helium-preprocess.sh /path/to/benchmark.zip
+     helium-preprocess.sh /path/to/b1 /path/to/b2 /path/to/b3
    #+END_EXAMPLE
 
-** Getting help
-#    There's a man page. Install via:
-#    #+BEGIN_EXAMPLE
-# ./doc/setup-man.sh
-#    #+END_EXAMPLE
+   This will produce a folder in current directory called =helium-output=,
+   and the processed benchmarks will be put into that folder.
+   For example, when running =helium-preprocess.sh gzip-1.2.4.tar.gz=, it will produce =./helium-output/gzip-1.2.4/=.
+   Run helium against the folder by =helium ./helium-output/gzip-1.2.4=.
 
+** Configuration
+   Before running Helium, you should make sure the configuration is what you want.
+   All the options can be modified both in the configuration file, and supplied as command line option when you invoke Helium.
+   If both present, the command line option takes the priority.
+   For example, =run-test= option can be set as command line option by:
+   #+BEGIN_EXAMPLE
+helium --run-test=false /path/to/benchmark
+   #+END_EXAMPLE
 
+   The first two options, namely =helium-home= and =poi-file=, are system dependent,
+   you need to set to your own path according to where your Helium folder locates.
 
-   # ** A quick test
-   # git clone https://github.com/lihebi/poi
-   # cd poi && ./setup.sh
-   # git clone https://github.com/lihebi/bugbench
-   # cd bugbench
-   # helium-create-snippetdb folder
-   # cd helium
-   # heilum-run.sh .
+** Run helium
+   Helium accepts one propositional argument, which is the benchmark folder.
+   Other command line options must be prefixed with single or double dash.
 
-   # ** third party libraries
-   # Helium relies on ~headers.conf~ for the headers to include.
-   # Helium will test if the system has that header.
-   # If yes, helium will include that header file in ~support.h~, and use the optional flags in ~Makefile~.
+   The folder name is used as the benchmark name, which, in turn, is used for locating the start point of Helium.
+   The start point, a.k.a. /point of interest(POI)/, is specified in the =poi-file= config option.
+   It can be a =csv= file or a =org= table file.
+   The file has the columns
+   - benchmark :: the name of the benchmark. Helium compares it with the actual folder it runs against.
+   - file :: the file name, without path
+   - linum :: the line number in above file
+   - type :: type of this POI, can be =stmt= or =loop=
+   - bug-type :: reserved
+   - failure-condition :: reserved
 
-   # So, when you run Helium, be sure to check if you have installed that package.
-   # If you doesn't install that, Helium will ignore the config even if you put that in ~headers.conf~.
-
-   # To install all the dependencies in this file, use this command:
-
-   # #+begin_src shell
-   # cat headers.conf  | grep devel | sed -e "s/# //" | awk '{print "sudo yum -y install" ,$0}' | bash
-   # #+end_src
-
-   # After installing every library, you may need to ~make systype.tags~ so that the index file knows all the system types you just installed..
-
-
-   # ** config
-   # The default config file is ~$HELIUM_HOME/helium.conf~.
-   # It can be specified by ~-f~ argument.
-   # Use ~helium --print-config~ to show the current config.
-   # Use ~helium --conf "key=value,key2=value2"~ to change each single config.
-
-   # ~helium -t <tagfile>~ to specify the tag file to use, otherwise Helium will generate tagfile on-the-fly.
-
-   # ** some examples
-   # #+begin_src shell
-   # helium -t mem.tags --conf "code-selection=loop,skip-to-seg=21" memcached/ -p "as,ce" -d "ce"
-   # #+end_src
-
-   # * Trouble Shooting
-   # ** What to look at when compile failure everywhere
-   # - check if all required package installed
-   # - check if compiler set correctly and available
-   #   - CC=clang helium-create-snippet.sh /folder
-   #   - helium --conf="cc=clang"
+Running helium is as simple as running against the pre-processed benchmark:
+#+BEGIN_EXAMPLE
+helium /path/to/preprocessed/benchmark
+#+END_EXAMPLE

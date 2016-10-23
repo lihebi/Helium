@@ -1,67 +1,43 @@
 #+TITLE: Helium Project TODO
 
-Now I'm going to instrument everything.
-I'm going to have the failure condition given as input.
+* TODO [#A] Make the server working
+   SCHEDULED: <2016-10-22 Sat>
+* STARTED [#A] better documentation support
+   SCHEDULED: <2016-10-22 Sat>
+* TODO [#A] Add small examples to test each components
+   SCHEDULED: <2016-10-22 Sat>
+* TODO [#A] oracle
+   SCHEDULED: <2016-10-23 Sun>
+* TODO [#A] snippet script refactor
+   SCHEDULED: <2016-10-22 Sat>
+* TODO [#A] Run tests in parrel
+  SCHEDULED: <2016-10-23 Sun>
+* TODO Invariant selection & validation with successfully runs
+* TODO all type input generation, e.g. struct
+   SCHEDULED: <2016-10-19 Wed>
+* TODO Helium use fs::path instead of string for all
+   SCHEDULED: <2016-10-20 Thu>
+* TODO Helium utils thread exec refactoring
+* STARTED Oracle for buffer overflow really working
+   SCHEDULED: <2016-10-20 Thu>
+* STARTED Loop bugs
+   SCHEDULED: <2016-10-20 Thu>
+* STARTED Z3
+   SCHEDULED: <2016-10-20 Thu>
+* STARTED predefined invariant integration
+   SCHEDULED: <2016-10-20 Thu>
+* DONE bug studies
+   CLOSED: [2016-10-22 Sat 14:39]
+* DONE More concrete details for the risks
+   CLOSED: [2016-10-22 Sat 14:39] SCHEDULED: <2016-10-22 Sat>
+* DONE AST generate code: not only selected
+   CLOSED: [2016-10-22 Sat 14:35]
+* DONE Input Output Data format unify
+   CLOSED: [2016-10-22 Sat 14:30]
+* DONE transfer function no constant
+* DONE transfer function infer only when data is more than a limit
+* DONE switch case control flow graph
+   SCHEDULED: <2016-10-13 Thu>
+* DONE switch code selection and test coverage, test Helium getopt code
+   SCHEDULED: <2016-10-15 Sat>
 
-* Tools
-- https://bitbucket.org/nguyenthanhvuh/dig/wiki/Home
-
-* TODO Stack
-- refactor backend analysis
-
-* TODO Report
-- risk writeup
-- testing
-- data (about what?)
-
-* TODO Back
-- Pairwise corner testing
-- z3 symbolic exe
-- output warning instead of assertion
-- if callsite cannot compile, no need to continue
-- log trace verbose
-
-* Context search
-- figure out the different backend oracle for different type of bugs (like instrument-xxx=true)
-- make it stable for examples
-
-Enhancement:
-- Add default action for different bug type
-
-
-
-* Backend Type Design
-** instrument type
-Buffer overflow:
-- strlen
-
-2-f, u-a-f:
-- NULL
-- address
-- free-list
-
-Null-deref:
-- NULL
-
-Infinite-loop:
-- loop jump out condition
-- function parameter
-
-** Analyze type
-Buffer overflow:
-- strlen v.s. buffer size
-
-2-f:
-- pointer address in free-d list
-
-Null-deref:
-- Pointer is NULL, use correct runs to identify the pointer
-
-Infinite-loop:
-- pre-condition only
-- invariant not satisfy jumpout condition
-
-Let's check pre-condition along:
-- Have a reasonable invariant
-- pre-condition relate to only input variables
-- TODO ensure the pre-condition is not satisfied by invalid tests. I.e. the pre-condition is sure to trigger!

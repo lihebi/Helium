@@ -229,7 +229,10 @@ void Tester::Test() {
     if (HeliumOptions::Instance()->Has("verbose")) {
       std::cout << "Running the program ..." << "\n";
     }
-    std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, 0.3);
+
+    int timeout_ms = HeliumOptions::Instance()->GetInt("test-timeout");
+    float timeout_s = (float)timeout_ms / 1000;
+    std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, timeout_s);
     if (HeliumOptions::Instance()->Has("verbose")) {
       std::cout << "End of running" << "\n";
     }

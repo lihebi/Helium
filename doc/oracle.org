@@ -1,0 +1,21 @@
+#+TITLE: Oracle design documentation
+
+* Backend Type Design
+** Analyze type
+   Buffer overflow:
+   - strlen v.s. buffer size
+
+   2-f:
+   - pointer address in free-d list
+
+   Null-deref:
+   - Pointer is NULL, use correct runs to identify the pointer
+
+   Infinite-loop:
+   - pre-condition only
+   - invariant not satisfy jumpout condition
+
+   Let's check pre-condition along:
+   - Have a reasonable invariant
+   - pre-condition relate to only input variables
+                   - TODO ensure the pre-condition is not satisfied by invalid tests. I.e. the pre-condition is sure to trigger!
