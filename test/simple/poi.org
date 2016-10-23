@@ -1,0 +1,3 @@
+| benchmark   | file | linum | type | bug-type | failure-condition | comment |
+|-------------+------+-------+------+----------+-------------------+---------|
+| simplebench | a.c  |     8 | stmt |          |                   |         |

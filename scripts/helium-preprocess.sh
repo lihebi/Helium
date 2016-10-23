@@ -48,7 +48,11 @@ function uncompress {
 }
 
 function get_simple_name {
-    name=${1##*/}
+    name=$1
+    if [[ $name == */ ]]; then
+        name=${name%%/}
+    fi
+    name=${name##*/}
     if [[ $name == *.tar.gz ]]; then
         name=${name%.tar.gz}
     elif [[ $name == *.zip ]]; then

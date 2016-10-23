@@ -4,6 +4,8 @@ build
 # Ignore any executables
 bin/*
 
+helium-output
+
 # Ignore Mac specific files
 .DS_Store
 *.dSYM
