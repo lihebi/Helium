@@ -252,7 +252,7 @@ void CFG::Visualize(std::set<CFGNode*> nodesA, std::set<CFGNode*> nodesB, bool o
     dot.AddEdge(out->GetID(), helium_out);
   }
   std::string dotcode = dot.dump();
-  std::string path = utils::visualize_dot_graph(dotcode, open);
+  std::string path = visualize_dot_graph(dotcode, open);
   std::cout << "written to " << path  << "\n";
 }
 

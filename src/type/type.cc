@@ -205,3 +205,17 @@ Type *TypeFactory::CreateType(std::string str) {
 //   }
 //   return ret;
 // }
+
+/**
+ * These are global variables
+ */
+std::string Type::GetHeader() {
+  return R"(
+  void *helium_heap_addr[BUFSIZ];
+  int helium_heap_size[BUFSIZ];
+  int helium_heap_top = 0;
+  // the size of the found address. Should reset everytime before checking.
+  int helium_heap_target_size=-1;
+)";
+}
+

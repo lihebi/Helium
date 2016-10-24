@@ -676,7 +676,7 @@ std::string AST::VisualizeI(std::set<int> yellow_s, std::set<int> cyan_s, std::s
     }
   }
   dot += "}";
-  std::string dot_file = utils::visualize_dot_graph(dot, true, filename);
+  std::string dot_file = visualize_dot_graph(dot, true, filename);
   std::cout << "written to " << dot_file  << "\n";
   return dot;
 }
@@ -736,7 +736,7 @@ void AST::Visualize2(bool open) {
     }
   }
   std::string dotcode = dot.dump();
-  std::string path = utils::visualize_dot_graph(dotcode, open);
+  std::string path = visualize_dot_graph(dotcode, open);
   std::cout << "AST written to " << path  << "\n";
 }
 

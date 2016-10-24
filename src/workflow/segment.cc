@@ -248,7 +248,7 @@ std::string Segment::GetOpt() {
     ret = ret.substr(0, ret.find("\""));
     assert(ret.find("\"") == std::string::npos);
     // print out the ret
-    utils::print(ret, utils::CK_Cyan);
+    std::cout << utils::CYAN << ret << utils::RESET << "\n";
   }
   return ret;
 }

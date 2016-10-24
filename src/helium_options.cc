@@ -52,6 +52,9 @@ HeliumOptions::HeliumOptions() {
     ("show-cfg", "print CFG for each function")
     ("show-ast", "print AST for each function")
 
+
+    ("show-instrument-code", po::value<std::string>(), "print instrument code")
+
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("resolve-system-type", "Resolve a system type and print out result")

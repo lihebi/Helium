@@ -189,7 +189,7 @@ std::set<Snippet*> SnippetRegistry::Resolve(const std::string& name, std::set<Sn
     // printing out unresolved ones
     // not useful at all. Do not use this.
     if (HeliumOptions::Instance()->GetBool("print-unresolved-id")) {
-      utils::print(name, utils::CK_Yellow);
+      std::cout << utils::YELLOW << name << utils::RESET << "\n";
     }
   }
   if (direct_snippets.empty()) return result;

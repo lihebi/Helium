@@ -51,7 +51,7 @@ static void setopt(std::string file) {
     opt = opt.substr(0, opt.find("\""));
     assert(opt.find("\"") == std::string::npos);
     // print out the opt
-    utils::print(opt, utils::CK_Cyan);
+    std::cout << utils::CYAN << opt << utils::RESET << "\n";
     // set the opt
     ArgV::Instance()->SetOpt(opt);
   }
@@ -242,10 +242,10 @@ void Tester::Test() {
 
     if (status == 0) {
       if (HeliumOptions::Instance()->GetBool("print-test-info")) {
-        utils::print("test success\n", utils::CK_Green);
+        std::cout << utils::GREEN << "test success\n" << utils::RESET << "\n";
       }
       if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
-        utils::print(".", utils::CK_Green);
+        std::cout << utils::GREEN  << "." << utils::RESET << std::flush;
       }
       pass_ct++;
       // ret->AddOutput(output, true);
@@ -253,10 +253,11 @@ void Tester::Test() {
     } else {
       fail_ct++;
       if (HeliumOptions::Instance()->GetBool("print-test-info")) {
-        utils::print("test failure\n", utils::CK_Red);
+        std::cout << utils::RED << "test failure\n" << utils::RESET << "\n";
+
       }
       if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
-        utils::print(".", utils::CK_Red);
+        std::cout << utils::RED << "." << utils::RESET << std::flush;
       }
       // ret->AddOutput(output, false);
       output += "HELIUM_TEST_FAILURE\n";

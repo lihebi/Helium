@@ -1,3 +1,3 @@
-| benchmark   | file | linum | type | bug-type | failure-condition | comment |
-|-------------+------+-------+------+----------+-------------------+---------|
-| simplebench | a.c  |     8 | stmt |          |                   |         |
+| benchmark   | file | linum | type | bug-type | failure-condition                       | comment |
+|-------------+------+-------+------+----------+-----------------------------------------+---------|
+| simplebench | a.c  |     8 | stmt |          | output_int_str.strlen > output_buf.size |         |

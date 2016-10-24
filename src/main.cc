@@ -6,6 +6,7 @@
 #include "resolver/snippet_db.h"
 #include "parser/cfg.h"
 #include "parser/xml_doc_reader.h"
+#include "parser/ast_node.h"
 
 #include "helium_options.h"
 #include "parser/point_of_interest.h"
@@ -231,6 +232,31 @@ int main(int argc, char* argv[]) {
 
   if (HeliumOptions::Instance()->Has("help")) {
     HeliumOptions::Instance()->PrintHelp();
+    exit(0);
+  }
+
+
+  if (HeliumOptions::Instance()->Has("show-instrument-code")) {
+    std::string code = HeliumOptions::Instance()->GetString("show-instrument-code");
+    if (code.empty()) {
+      std::cerr << "EE: Code is empty." << "\n";
+      exit(1);
+    }
+    if (code.back() != ';') {
+      std::cerr << "EE: code must be a decl_stmt, must end with semicolon" << "\n";
+      exit(1);
+    }
+    XMLDoc *doc = XMLDocReader::CreateDocFromString(code, "");
+    XMLNode decl_node = find_first_node_bfs(doc->document_element(), "decl");
+    Decl *decl = DeclFactory::CreateDecl(decl_node);
+    Type *type = decl->GetType();
+    std::string var = decl->GetName();
+    std::string output = type->GetOutputCode(var);
+    std::string input = type->GetInputCode(var);
+    std::cout << "// Output:" << "\n";
+    std::cout << output << "\n";
+    std::cout << "// Input:" << "\n";
+    std::cout << input << "\n";
     exit(0);
   }
 

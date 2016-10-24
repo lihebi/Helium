@@ -12,21 +12,8 @@ public:
     }
     return m_instance;
   }
-  void clear() {
-    m_argc = 0;
-    m_argv.clear();
-  }
-  void SetOpt(std::string opt) {
-    m_opt = opt;
-    for (int i=opt.length()-1;i>=0;i--) {
-      if (opt[i] == ':') {
-        i--;
-        m_str_opt.insert(opt[i]);
-      } else {
-        m_bool_opt.insert(opt[i]);
-      }
-    }
-  }
+  void clear();
+  void SetOpt(std::string opt);
   void ClearOpt() {
     m_opt = "";
   }
@@ -37,11 +24,18 @@ private:
   ~ArgV() {}
   static ArgV *m_instance;
   void generate();
-  int m_argc;
-  std::vector<std::string> m_argv;
+  // int m_argc;
+  // std::vector<std::string> m_argv;
+  
+
   std::string m_opt;
   std::set<char> m_bool_opt;
   std::set<char> m_str_opt;
+
+  std::string m_argv0;
+  std::vector<char> m_bool_input;
+  std::map<char, InputSpec*> m_str_input;
+  std::vector<InputSpec*> m_propositional_input;
 };
 
 #endif /* ARGV_H */

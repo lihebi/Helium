@@ -136,19 +136,6 @@ std::string PointerType::GetDeclCode(std::string var) {
 
 
 /**
- * These are global variables
- */
-std::string Type::GetHeader() {
-  return R"(
-  void *helium_heap_addr[BUFSIZ];
-  int helium_heap_size[BUFSIZ];
-  int helium_heap_top = 0;
-  // the size of the found address. Should reset everytime before checking.
-  int helium_heap_target_size=-1;
-)";
-}
-
-/**
  *
 
  scanf(helium_size);
@@ -165,14 +152,19 @@ std::string PointerType::GetInputCode(std::string var) {
   }
   std::string ret;
   ret += "// PointerType::GetInputCode: " + var + "\n";
-  ret += get_scanf_code("%d", "&helium_size");
+  ret += get_scanf_code_raw("%d", "&helium_size");
+
+  
   std::string inner;
   inner += get_malloc_code(var, m_contained_type->GetRaw(), "helium_size");
 
   // record the size malloc-ed
-  inner += "printf(\"malloc size for addr: %p is %d\\n\", (void*)" + var + ", helium_size);\n";
+  inner += "printf(\"malloc size for addr: %p is %d\\n\", (void*)"
+    + var + LoopHelper::Instance()->GetSuffix()
+    + ", helium_size);\n";
   // also store in the generated program, for later output instrumentation purpose
-  inner += "helium_heap_addr[helium_heap_top]=" + var + ";\n";
+  inner += "helium_heap_addr[helium_heap_top]="
+    + var + LoopHelper::Instance()->GetSuffix() + ";\n";
   inner += "helium_heap_size[helium_heap_top]=helium_size;\n";
   inner += "helium_heap_top++;\n";
   
@@ -180,16 +172,17 @@ std::string PointerType::GetInputCode(std::string var) {
     // string inptu code
     inner += get_scanf_code("%s", var);
   } else {
-    std::string idxvar = LoopHelper::Instance()->GetCurrentIndexVar();
     LoopHelper::Instance()->IncLevel();
-    std::string innerinner = m_contained_type->GetInputCode(var + "[" + idxvar + "]");
-    LoopHelper::Instance()->DecLevel();
+    // the increased level will figure out the correct variable name
+    std::string innerinner = m_contained_type->GetInputCode(var);
     inner += LoopHelper::Instance()->GetHeliumSizeLoop(innerinner);
+    LoopHelper::Instance()->DecLevel();
   }
   // also I want to record the address, and the helium_size value, so that I can know the size of the buffer
   // But how to generate input?
   // It's easy: I generate the size, than generate that many input
-  ret += get_helium_size_branch(var + " = NULL;\n", // false branch, helium_size == 0
+
+  ret += get_helium_size_branch(var + LoopHelper::Instance()->GetSuffix() + " = NULL;\n",
                                 inner);
   return ret;
 }
@@ -197,23 +190,32 @@ std::string PointerType::GetInputCode(std::string var) {
 
 std::string PointerType::GetOutputCode(std::string var) {
   std::string ret;
-  ret += "// PointerType::GetOutputCode: " + var + "\n";
+  ret += "// PointerType::GetOutputCode: " + var
+    + " contained type: " + m_contained_type->ToString()
+    +  "level: " + std::to_string(LoopHelper::Instance()->GetLevel()) + "\n";
+  
   std::string inner;
+  
   inner += get_isnull_printf_code(var, false);
+  
   if (dynamic_cast<CharType*>(m_contained_type)) {
-    ret += get_strlen_printf_code(var);
-    ret += get_addr_printf_code(var);
-    // for a string, only output the size, no individual ones
-    ret += LoopHelper::Instance()->GetHeliumHeapCode(var, "");
+    inner += get_strlen_printf_code(var);
+    inner += get_addr_printf_code(var);
+    // use a new index variable
+    LoopHelper::Instance()->IncLevel();
+    inner += LoopHelper::Instance()->GetHeliumHeapCode(var, "");
+    LoopHelper::Instance()->DecLevel();
   } else {
     // but for other types, output every contained type
-    std::string idxvar = LoopHelper::Instance()->GetCurrentIndexVar();
     LoopHelper::Instance()->IncLevel();
-    std::string innerinner = m_contained_type->GetOutputCode(var + "[" + idxvar + "]");
+    // here only use var, the increased level will figure out the correct variable name
+    std::string innerinner = m_contained_type->GetOutputCode(var);
+    inner += LoopHelper::Instance()->GetHeliumHeapCode(var, innerinner);
     LoopHelper::Instance()->DecLevel();
-    ret += LoopHelper::Instance()->GetHeliumHeapCode(var, innerinner);
   }
-  ret += get_check_null(var, get_isnull_printf_code(var, true), inner);
+  ret += get_check_null(var,
+                        get_isnull_printf_code(var, true),
+                        inner);
   return ret;
 }
 
@@ -258,143 +260,3 @@ std::vector<InputSpec*> PointerType::GeneratePairInput() {
   // TODO
   return ret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// /**
-//  * StrType
-//  */
-
-
-// StrType::StrType() : PointerType("char") {
-//   std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
-//   for (int len : strlen_corners) {
-//     std::string str = utils::rand_str(len);
-//     m_corners.push_back(wrap(str));
-//   }
-// }
-
-// StrType::~StrType() {}
-
-// std::string StrType::GetDeclCode(std::string var) {
-//   std::string ret;
-//   ret += "// StrType::GetDeclCode: " + var + "\n";
-//   ret += "char *" + var + ";\n";
-//   return ret;
-// }
-// std::string StrType::GetInputCode(std::string var) {
-
-//   std::string ret;
-//   ret += "// StrType::GetInputCode: " + var + "\n";
-//   ret += get_scanf_code("%d", "&helium_size");
-//   ret += get_malloc_code(var, "char", "helium_size");
-//   ret += get_helium_size_branch(var + " = NULL;\n",
-//                                 get_scanf_code("%s", var)
-//                                 );
-//   return ret;
-// }
-// std::string StrType::GetOutputCode(std::string var) {
-//   std::string ret;
-//   ret += "// StrType::GetOutputCode: " + var + "\n";
-//   ret += get_strlen_printf_code(var);
-//   ret += get_addr_printf_code(var);
-//   ret += get_check_null(var,
-//                         get_isnull_printf_code(var, true),
-//                         get_isnull_printf_code(var, false)
-//                         );
-//   return ret;
-// }
-// InputSpec *StrType::GenerateRandomInput() {
-//   helium_print_trace("StrType::GenerateRandomInput");
-//   static int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
-//   // TODO at least a string? 0 here?
-//   int size = utils::rand_int(1, max_strlen);
-//   std::vector<std::string> list;
-//   list.push_back(std::to_string(size));
-//   std::string str = utils::rand_str(utils::rand_int(0, size));
-//   list.push_back(str);
-//   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(size) + "}";
-//   std::string joined = boost::algorithm::join(list, " ");
-//   std::string raw = joined;
-//   return new InputSpec(spec, raw);
-// }
-
-// InputSpec *StrType::wrap(std::string str) {
-//   std::vector<std::string> list;
-//   list.push_back(std::to_string(str.size()));
-//   list.push_back(str);
-//   std::string spec = "{strlen: " + std::to_string(str.length())+ ", size: " + std::to_string(str.size()) + "}";
-//   std::string joined = boost::algorithm::join(list, " ");
-//   std::string raw = joined;
-//   return new InputSpec(spec, raw);
-// }
-
-// std::vector<InputSpec*> StrType::GeneratePairInput() {
-//   std::vector<InputSpec*> ret;
-//   std::vector<int> strlen_corners = Corner::Instance()->GetStrlenCorner();
-//   for (int len : strlen_corners) {
-//     std::string str = utils::rand_str(len);
-//     ret.push_back(wrap(str));
-//   }
-//   for (int i=0;i<5;i++) {
-//     ret.push_back(GenerateRandomInput());
-//   }
-//   return ret;
-// }
-
-
-/**
- * BufType
- */
-// BufType::BufType(int num) : ArrayType("char", num) {}
-
-// BufType::~BufType() {}
-
-// std::string BufType::GetDeclCode(std::string var) {
-//   std::string ret;
-//   ret += "// BufType::GetDeclCode: " + var + ";\n";
-//   ret += "char " + var + "[" + std::to_string(m_num) + "];\n";
-//   return ret;
-// }
-// std::string BufType::GetInputCode(std::string var) {
-//   std::string ret;
-//   ret += "// BufType::GetInputCode: " + var + ";\n";
-//   ret += "// HELIUM_TODO\n";
-
-//   // FIXME
-//   // ret += get_sizeof_input_output(var);
-//   return ret;
-// }
-// std::string BufType::GetOutputCode(std::string var) {
-//   std::string ret;
-//   ret += "// BufType::GetOutputCode: " + var = "\n";
-//   ret += get_sizeof_printf_code(var);
-//   ret += get_addr_printf_code(var);
-//   return ret;
-// }
-// InputSpec *BufType::GenerateRandomInput() {
-//   helium_print_trace("BufType::GenerateRandomInput");
-//   // TODO
-//   return NULL;
-// }

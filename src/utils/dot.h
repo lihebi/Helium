@@ -81,4 +81,13 @@ private:
 };
 
 
+/**
+ * TODO Will generate format according to "filename"
+ * If filename do not have a valid extension, use ".dot"
+ * Will open the result.
+ * ".dot" will be added
+ * @param [in] filename The simple filename
+ */
+std::string visualize_dot_graph(const std::string& dot, bool open=false, std::string filename="out");
+
 #endif /* DOT_H */

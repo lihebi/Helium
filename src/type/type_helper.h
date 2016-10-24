@@ -43,6 +43,7 @@ void fill_struct_specifier(std::string& name, struct struct_specifier& specifier
 extern const std::string flush_output;
 
 std::string get_scanf_code(std::string format, std::string var);
+std::string get_scanf_code_raw(std::string format, std::string var);
 std::string get_malloc_code(std::string var, std::string type, std::string size);
 
 std::string get_sizeof_printf_code(std::string var);
@@ -50,9 +51,9 @@ std::string get_strlen_printf_code(std::string var);
 
 
 std::string get_addr_printf_code(std::string var);
-std::string get_check_null_if(std::string var);
-std::string get_check_null_else();
-std::string get_check_null_fi();
+// std::string get_check_null_if(std::string var);
+// std::string get_check_null_else();
+// std::string get_check_null_fi();
 std::string get_isnull_printf_code(std::string var, bool is_null);
 std::string get_check_null(std::string var, std::string true_branch, std::string false_branch);
 
@@ -79,44 +80,20 @@ public:
   void DecLevel() {
     m_level--;
   }
-  /**
-   * loop by helium_size. The index is "i"
-   */
-  std::string GetHeliumSizeLoop(std::string body) {
-    std::string ret;
-    std::string var = GetCurrentIndexVar();
-    // Use helium_size_tmp because the body might overwrite helium_size
-    ret += "for (int " + var + "=0,helium_size_tmp=helium_size;" + var + "<helium_size_tmp;" + var + "++) {\n";
-    ret += body;
-    ret += "}\n";
-    return ret;
+  std::string GetHeliumSizeLoop(std::string body);
+  std::string GetHeliumHeapCode(std::string var, std::string body);
+  int GetLevel() {
+    return m_level;
   }
-  /**
-   * Heap Address Size recorder
-   */
-  std::string GetHeliumHeapCode(std::string var, std::string body) {
-    std::string ret;
-    std::string idxvar = GetCurrentIndexVar();
-    ret += "helium_heap_target_size = -1;\n";
-    ret += "for (int " + idxvar + "=0;" + idxvar + "<helium_heap_top;" + idxvar + "++) {\n";
-    ret += "  if (" + var + " == helium_heap_addr[" + idxvar + "]) {\n";
-    ret += "    helium_heap_target_size = helium_heap_size[" + idxvar + "];\n";
-    ret += "    break;\n";
-    ret += "  }\n";
-    ret += "}\n";
-    ret += "if (helium_heap_target_size != -1) {\n";
-    ret += "  printf(\"int_" + var + "_heapsize = %d\\n\", helium_heap_target_size);\n";
-    ret += flush_output;
-    ret += "  for (int " + idxvar + "=0,helium_heap_target_size_tmp=helium_heap_target_size;"
-      + idxvar + "<helium_heap_target_size_tmp;" + idxvar + "++) {\n";
-    ret += body;
-    ret += " }\n";
-    ret += "}";
-    return ret;
-  }
+  std::string GetSuffix();
+  std::string GetFormatSuffix();
+  std::string GetIndexVar();
+  std::string GetLastSuffix();
+  std::string GetLastFormatSuffix();
+  std::string GetLastIndexVar();
 private:
   static LoopHelper *m_instance;
-  int m_level=1;
+  int m_level=0;
 };
 
 

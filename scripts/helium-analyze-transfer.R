@@ -3,17 +3,45 @@
 ## supress warning
 options(warn=-1)
 
+Constant <- function(data) {
+    ret <- c()
+    i <- 1
+    for (i in c(1:length(data))) {
+        col = data[i];
+        name = names(col);
+        if (substr(name, 1, 6) == "output") {
+            newcol = col[!is.na(col)];
+            ## the number of available data is larger than 2
+            ## and they are all the same
+            if (length(newcol) > 2) {
+                value <- newcol[1]
+                if (length(newcol[newcol != value]) == 0) {
+                    ret <- c(ret, paste(name, " = ",  value))
+                }
+            }
+        }
+    }
+    return(ret)
+}
+
 TransferFunction <- function(data) {
     ret <- c()
     i<-1
     while (i <= length(data)) {
         j <- i+1
         while (j <= length(data)) {
-            col1 = data[i]
-            col2 = data[j]
-            func = TransferFunctionSingle(col1, col2)
-            if (!is.null(func)) {
-                ret <- c(ret, PrintTransferFunction(func))
+            colx = data[i]
+            coly = data[j]
+
+            ## only calculate transfer function for output versus input
+            ## trans(y,x)
+            x_name = names(colx)
+            y_name = names(coly)
+            if (substr(x_name, 1, 5) == "input" && substr(y_name, 1, 6) == "output") {
+                func = TransferFunctionSingle(coly, colx)
+                if (!is.null(func)) {
+                    ret <- c(ret, PrintTransferFunction(func))
+                }
             }
             j = j + 1;
         }
@@ -101,12 +129,22 @@ total_fail_poi <- dim(sub)[[1]]
 
 ## remove last two columns: (code)
 sub <- sub[1:(length(csv)-2)]
-funcs = TransferFunction(sub);
+
+
+
+## also I want the constant information about output variables
 
 ## print out result
 cat("Transfer functions:\n")
+funcs <- TransferFunction(sub);
 for (func in funcs) {
     cat(func, "\n")
+}
+
+cat ("Constant output variable:\n")
+cons <- Constant(sub);
+for (con in cons) {
+    cat(con, "\n")
 }
 
 ## print("Transfer functions:")

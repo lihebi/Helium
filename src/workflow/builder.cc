@@ -325,7 +325,7 @@ Builder::Compile() {
     helium_dump_compile_error("error: " + m_dir);
     helium_dump_compile_error(simplify_error_msg(error_msg));
     if (HeliumOptions::Instance()->GetBool("print-compile-error")) {
-      utils::print(simplify_error_msg(error_msg), utils::CK_Yellow);
+      std::cout << utils::YELLOW << simplify_error_msg(error_msg) << utils::RESET << "\n";
     }
   }
 }

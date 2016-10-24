@@ -20,7 +20,8 @@ Decl* DeclFactory::CreateDecl(XMLNode decl_node) {
   if (t) {
     return new Decl(t, name, decl_node);
   } else {
-    helium_log_warning("Decl create failed because of Type create failure: " + type + " " + name);
+    // helium_log_warning("Decl create failed because of Type create failure: " + type + " " + name);
+    std::cerr << "Decl create failed because of Type create failure: " + type + " " + name << "\n";
     return NULL;
   }
 }

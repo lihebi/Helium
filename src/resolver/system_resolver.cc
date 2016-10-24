@@ -105,22 +105,22 @@ void SystemResolver::check_headers() {
   }
   std::cout << "System Success Count: " << system_suc.size()  << "\n";
   for (std::string s : system_suc) {
-    utils::print(s + " ", CK_Green);
+    std::cout << utils::GREEN << s + " " << utils::RESET << "\n";
   }
   std::cout  << "\n";
   std::cout << "System Error Count: " << system_err.size()  << "\n";
   for (std::string e : system_err) {
-    utils::print(e + " ", CK_Red);
+    std::cout << utils::RED << e + " " << utils::RESET << "\n";
   }
   std::cout  << "\n";
   std::cout << "Third Party Success Count: " << third_suc.size()  << "\n";
   for (std::string e : third_suc) {
-    utils::print(e + " ", CK_Green);
+    std::cout << utils::GREEN << e + " " << utils::RESET << "\n";
   }
   std::cout  << "\n";
   std::cout << "Third Party Error Count: " << third_err.size() << "\n";
   for (std::string e : third_err) {
-    utils::print(e + " ", CK_Red);
+    std::cout << utils::RED << e + " " << utils::RESET << "\n";
   }
   std::cout  << "\n";
 }
