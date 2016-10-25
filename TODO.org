@@ -2,12 +2,12 @@
 
 * TODO [#A] Make the server working
    SCHEDULED: <2016-10-22 Sat>
-* TODO [#A] Add small examples to test each components
-   SCHEDULED: <2016-10-22 Sat>
-* TODO [#A] oracle
-   SCHEDULED: <2016-10-23 Sun>
-* TODO [#A] snippet script refactor
-   SCHEDULED: <2016-10-22 Sat>
+* DONE [#A] Add small examples to test each components
+   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
+* DONE [#A] oracle
+   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
+* DONE [#A] snippet script refactor
+   CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
 * TODO [#A] Run tests in parrel
   SCHEDULED: <2016-10-23 Sun>
 * TODO Invariant selection & validation with successfully runs
@@ -22,8 +22,8 @@
    SCHEDULED: <2016-10-20 Thu>
 * STARTED Z3
    SCHEDULED: <2016-10-20 Thu>
-* STARTED predefined invariant integration
-   SCHEDULED: <2016-10-20 Thu>
+* DONE predefined invariant integration
+   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-20 Thu>
 * DONE [#A] better documentation support
    CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
 * DONE bug studies

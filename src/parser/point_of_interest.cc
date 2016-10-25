@@ -10,14 +10,6 @@
 
 namespace fs = boost::filesystem;
 
-PointOfInterest::PointOfInterest(std::string folder, std::string file, int linum, std::string type)
-  : m_folder(folder), m_file(file), m_linum(linum), m_type(type) {
-}
-
-std::string PointOfInterest::GetFilename() {
-  return m_file;
-}
-
 std::string PointOfInterest::GetPath() {
   fs::path p = fs::path(m_folder) / "cpped" / m_file;
   return p.string();
@@ -52,7 +44,8 @@ std::vector<PointOfInterest*> POIFactory::Create(std::string folder, std::string
   if (benchmark.empty()
       || file.empty()
       || linum.empty()
-      || type.empty()) {
+      || type.empty()
+      || fc.empty()) {
     std::cerr << "EE: point of interest file " << poi_file << " is not valid."
               << "All fields (benchmark, file, linum, type) should be available."
               << "\n";
@@ -69,7 +62,7 @@ std::vector<PointOfInterest*> POIFactory::Create(std::string folder, std::string
     // the "benchmark" field must matches the folder name!
     if (benchmark[i] == benchmark_name) {
       // ret.push_back(new PointOfInterest({benchmark[i], file[i], stoi(linum[i]), type[i]}));
-      ret.push_back(new PointOfInterest({folder, file[i], stoi(linum[i]), type[i]}));
+      ret.push_back(new PointOfInterest({folder, file[i], stoi(linum[i]), type[i], fc[i]}));
     }
   }
   return ret;

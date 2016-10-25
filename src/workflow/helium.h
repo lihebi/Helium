@@ -26,6 +26,7 @@ private:
 
 
   std::string m_failure_condition;
+  PointOfInterest *m_poi = NULL;
   // int countFunction();
 };
 

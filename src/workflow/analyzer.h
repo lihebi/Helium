@@ -9,6 +9,10 @@ public:
   Analyzer(std::string dir) : m_dir(dir) {}
   void GetCSV();
   void AnalyzeCSV();
+  void ResolveQuery(std::string failure_condition);
+
+
+  
   bool IsCovered();
   bool IsBugTriggered();
 private:

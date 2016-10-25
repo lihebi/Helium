@@ -35,101 +35,68 @@ using namespace utils;
 
 
 
+
 Helium::Helium(PointOfInterest *poi) {
   std::cout << "Starting Helium on point of interest: " << poi->GetPath() << ":" << poi->GetLinum() << "\n";
+  assert(poi);
+  m_poi = poi;
 
   XMLDoc *doc = XMLDocReader::Instance()->ReadFile(poi->GetPath());
   int linum = get_true_linum(poi->GetPath(), poi->GetLinum());
   std::cout << "Converted linum after preprocessing: " << linum << "\n";
-  
+
+  XMLNode xmlnode;
   if (poi->GetType() == "stmt") {
-    XMLNode node = find_node_on_line(doc->document_element(),
+    xmlnode = find_node_on_line(doc->document_element(),
                                      {NK_Stmt, NK_ExprStmt, NK_DeclStmt,
                                          NK_Return, NK_Break, NK_Continue},
                                      linum);
-    if (!node) {
-      std::cerr << "EE: Cannot find SrcML node based on POI." << "\n";
-      exit(1);
-    }
-    XMLNode func = get_function_node(node);
-    std::string func_name = function_get_name(func);
-    int func_linum = get_node_line(func);
-    std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
-    if (ids.empty()) {
-      std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
-      exit(1);
-    }
-    for (int id : ids) {
-      std::cout << id << "\n";
-
-      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
-      std::string filename = fs::path(meta.filename).filename().string();
-      if (filename == poi->GetFilename()) {
-        // construct
-        AST *ast = Resource::Instance()->GetAST(id);
-        if (ast) {
-          ASTNode *root = ast->GetRoot();
-          if (root) {
-            int ast_linum = root->GetBeginLinum();
-            int target_linum = linum - func_linum + ast_linum;
-            ASTNode *target = ast->GetNodeByLinum(target_linum);
-            if (target) {
-              CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
-              CFGNode *target_cfgnode = cfg->ASTNodeToCFGNode(target);
-              // (HEBI: Set Failure Point)
-              target->SetFailurePoint();
-              Segment::SetPOI(target_cfgnode);
-              Segment *init_query = new Segment(target);
-              m_worklist.push_back(init_query);
-            }
-          }
-        }
-      }
-    }
   } else if (poi->GetType() == "loop") {
-    XMLNode node = find_node_on_line(doc->document_element(),
+    xmlnode = find_node_on_line(doc->document_element(),
                                      {NK_Do, NK_While, NK_For}, linum);
-    if (!node) {
-      std::cerr << "EE: cannot find SrcML node based on POI." << "\n";
-      exit(1);
-    }
-    XMLNode func = get_function_node(node);
-    std::string func_name = function_get_name(func);
-    int func_linum = get_node_line(func);
-    std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
-    if (ids.empty()) {
-      std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
-      exit(1);
-    }
-    for (int id : ids) {
-      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
-      std::string filename = fs::path(meta.filename).filename().string();
-      if (filename == poi->GetFilename()) {
-        AST *ast = Resource::Instance()->GetAST(id);
-        if (ast) {
-          ASTNode *root = ast->GetRoot();
-          if (root) {
-            int ast_linum = root->GetBeginLinum();
-            int target_linum = linum - func_linum + ast_linum;
-            ASTNode *target = ast->GetNodeByLinum(target_linum);
-            if (target) {
-              CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
-              CFGNode *target_cfgnode = cfg->ASTNodeToCFGNode(target);
-              // DEBUG
-              // std::cout << target_cfgnode->GetLabel() << "\n";
-
-              // (HEBI: Set Failure Point)
-              target->SetFailurePoint();
-              Segment::SetPOI(target_cfgnode);
-              Segment *init_query = new Segment(target);
-              m_worklist.push_back(init_query);
-            }
-          }
-        }
-      }
-    }
   } else {
     std::cerr << "Only Support Stmt and Loop as POI." << "\n";
+  }
+  if (!xmlnode) {
+    std::cerr << "EE: Cannot find SrcML node based on POI." << "\n";
+    exit(1);
+  }
+
+  XMLNode func = get_function_node(xmlnode);
+  std::string func_name = function_get_name(func);
+  int func_linum = get_node_line(func);
+  std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
+  if (ids.empty()) {
+    std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
+    exit(1);
+  }
+
+  for (int id : ids) {
+    std::cout << id << "\n";
+
+    SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
+    std::string filename = fs::path(meta.filename).filename().string();
+    if (filename == poi->GetFilename()) {
+      // construct
+      AST *ast = Resource::Instance()->GetAST(id);
+      if (ast) {
+        ASTNode *root = ast->GetRoot();
+        if (root) {
+          int ast_linum = root->GetBeginLinum();
+          int target_linum = linum - func_linum + ast_linum;
+          ASTNode *target = ast->GetNodeByLinum(target_linum);
+          if (target) {
+            CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
+            CFGNode *target_cfgnode = cfg->ASTNodeToCFGNode(target);
+            // (HEBI: Set Failure Point)
+            target->SetFailurePoint();
+            Segment::SetPOI(target_cfgnode);
+            Segment *init_query = new Segment(target);
+            m_worklist.push_back(init_query);
+          }
+        }
+      }
+    }
   }
   // initial query:
   if (m_worklist.empty()) {
@@ -217,6 +184,7 @@ void Helium::process() {
         Analyzer analyzer(builder.GetDir());
         analyzer.GetCSV();
         analyzer.AnalyzeCSV();
+        analyzer.ResolveQuery(m_poi->GetFailureCondition());
 
         // (HEBI: remove branch if not covered)
         if (!analyzer.IsCovered()) {
