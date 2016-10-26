@@ -55,12 +55,26 @@ std::string get_header() {
   std::vector<std::string> system_headers;
   std::vector<std::string> local_headers;
   system_headers.push_back("stdio.h");
+  system_headers.push_back("stdlib.h");
+  system_headers.push_back("string.h");
   local_headers.push_back("support.h");
   for (auto it=system_headers.begin();it!=system_headers.end();it++) {
     s += "#include <" + *it + ">\n";
   }
   for (auto it=local_headers.begin();it!=local_headers.end();it++) {
     s += "#include \"" + *it + "\"\n";
+  }
+
+  if (HeliumOptions::Instance()->GetBool("gcov-handle-sigsegv")) {
+    s += "#include <signal.h>\n";
+    s += R"prefix(
+void __gcov_flush(void);
+void sigsegv_handler(int signum, siginfo_t *info, void *data) {
+  printf("Received signal finally\n");
+  __gcov_flush();
+}
+#define SEGV_STACK_SIZE BUFSIZ
+)prefix";
   }
   return s;
 }
@@ -146,10 +160,27 @@ std::string CodeGen::GetMain() {
       // heap address
       // global variable
 
-      main_func += R"(
+      main_func += R"prefix(
 int main() {
   int helium_size;
-)";
+)prefix";
+
+      if (HeliumOptions::Instance()->GetBool("gcov-handle-sigsegv")) {
+        main_func += R"prefix(
+  struct sigaction action;
+  bzero(&action, sizeof(action));
+  action.sa_flags = SA_SIGINFO|SA_STACK;
+  action.sa_sigaction = &sigsegv_handler;
+  sigaction(SIGSEGV, &action, NULL);
+
+
+  stack_t segv_stack;
+  segv_stack.ss_sp = valloc(SEGV_STACK_SIZE);
+  segv_stack.ss_flags = 0;
+  segv_stack.ss_size = SEGV_STACK_SIZE;
+  sigaltstack(&segv_stack, NULL);
+)prefix";
+      }
 
       main_func += "printf(\"HELIUM_INPUT_CODE\\n\");\n" + flush_output;
       // inputs

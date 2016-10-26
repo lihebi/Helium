@@ -38,7 +38,7 @@ void If::GetCode(std::set<ASTNode*> nodes,
     ret += POIOutputCode();
     ret += "if (";
     ret += get_text(m_cond);
-    ret += ") {";
+    ret += ") {\n";
   }
   
   assert(m_then); // then clause for a if must exist

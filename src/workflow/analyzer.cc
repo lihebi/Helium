@@ -67,6 +67,12 @@ bool entry_point(std::string s) {
  */
 void Analyzer::ResolveQuery(std::string failure_condition) {
 
+  utils::trim(failure_condition);
+  if (failure_condition.empty()) {
+    std::cout << utils::YELLOW << "WW: failure condition is empty" << utils::RESET << "\n";
+    return;
+  }
+
   // 1. get the variables used in the failure condition
   std::map<std::string, std::vector<std::string> > mapping;
   std::set<std::string> candidate_output_var;
@@ -112,6 +118,7 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     }
     std::cout << "On top of failure condition:" << "\n";
     std::cout << "\t" << failure_condition << "\n";
+    exit(0);
   } else {
     std::cout << "== Resolve failed." << "\n";
     std::cout << "The output variables in FC cannot be all mapped." << "\n";

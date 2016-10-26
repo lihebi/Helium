@@ -190,7 +190,7 @@ void Helium::process() {
         if (!analyzer.IsCovered()) {
           std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
           // DEBUG remove branch or not
-          if (HeliumOptions::Instance()->GetBool("remove_branch_if_not_covered")) {
+          if (HeliumOptions::Instance()->GetBool("remove-branch-if-not-covered")) {
             segment->RemoveNewBranch();
             m_worklist.push_back(segment);
           } else {

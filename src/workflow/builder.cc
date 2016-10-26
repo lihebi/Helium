@@ -176,14 +176,25 @@ assert(helium_stack_guard_1==1);
   std::cout <<result  << "\n";
 }
 
+/**
+ * FIXME
+ */
 static std::string remove_line_marker(std::string s) {
   std::string ret;
   std::vector<std::string> sp = utils::split(s, '\n');
   for (std::string line : sp) {
     if (!line.empty() && line[0] == '#') {
-      if (line.find("include") == std::string::npos) {
+      std::string tmp = line.substr(1);
+      utils::trim(tmp);
+      std::vector<std::string> v = utils::split(tmp);
+      if (v.size() == 0) continue;
+      if (utils::is_number(v[0])) {
         continue;
       }
+      // if (line.find("include") == std::string::npos
+      //     && line.find("define") == std::string::npos) {
+      //   continue;
+      // }
     }
     ret += line + "\n";
   }

@@ -85,7 +85,7 @@ void For::GetCode(std::set<ASTNode*> nodes,
   }
 
   if (selected) {
-    ret += "}";
+    ret += "}\n";
     ret += POIAfterCode();
   }
 }
