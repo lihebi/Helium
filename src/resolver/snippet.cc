@@ -613,7 +613,8 @@ bool Snippet::IsValid() const {
     if (entry.GetName() == m_entry.GetName() && entry.GetType() == m_entry.GetType()) {
       // this is not good
       std::cerr << "Snippet duplicate with a system one: " << entry.GetName() << " of type " << entry.GetType() << ". Skipped.\n";
-      return false;
+      std::cerr << "BUT, IGNORED for now" << "\n";
+      // return false;
     }
   }
   return true;

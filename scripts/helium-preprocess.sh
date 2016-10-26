@@ -106,7 +106,7 @@ for BenchPath in $*; do
     done
     # 6. create snippetdb, the name should be renamed to XXX-cpped/snippet/
     echo "Creating snippet db ..."
-    time helium --create-snippet-db cpped > /dev/null 2>&1
+    time helium --create-snippet-db cpped > /dev/null # 2>&1
     cd $CurrentFolder
 
     

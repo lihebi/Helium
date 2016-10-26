@@ -4,8 +4,6 @@
    SCHEDULED: <2016-10-22 Sat>
 * TODO Run tests in parrel
   SCHEDULED: <2016-10-23 Sun>
-* TODO Z3
-   SCHEDULED: <2016-10-20 Thu>
 * TODO Invariant selection & validation with successfully runs
 * TODO [#A] the new 4 benchmarks, trigger all of them
 * TODO More benchmarks
@@ -17,6 +15,8 @@
 * TODO Helium utils thread exec refactoring
 * STARTED [#A] Loop bugs
    SCHEDULED: <2016-10-20 Thu>
+* DONE Z3
+   CLOSED: [2016-10-26 Wed 11:25] SCHEDULED: <2016-10-20 Thu>
 * DONE [#A] Oracle for buffer overflow really working
    CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
 * DONE assuming not execute
