@@ -12,6 +12,7 @@ gnulib libboost-all-dev libgtest-dev libpugixml-dev
 llvm clang
 feh cmake autoconf automake
 z3 libz3-dev
+r-base
     #+END_EXAMPLE
 
     =gtest= needs to be built manually:
@@ -126,7 +127,31 @@ helium --run-test=false /path/to/benchmark
    - bug-type :: reserved
    - failure-condition :: reserved
 
-Running helium is as simple as running against the pre-processed benchmark:
-#+BEGIN_EXAMPLE
+   Running helium is as simple as running against the pre-processed benchmark:
+   #+BEGIN_EXAMPLE
 helium /path/to/preprocessed/benchmark
-#+END_EXAMPLE
+   #+END_EXAMPLE
+
+
+** Testing on known working benchmarks
+   Go to the folder $HELIUM_HOME/test/simple, and run
+
+   #+BEGIN_EXAMPLE
+helium-preprocess simplebench
+helium helium-output/simplebench --poi-file poi.org
+   #+END_EXAMPLE
+
+   The result should be "query resolved!".
+
+
+   Clone this benchmark repo:
+
+   #+BEGIN_EXAMPLE
+git clone https://github.com/lihebi/benchmark
+cd benchmark
+cd buffer-overflow
+helium-preprocess gzip-1.2.4.tar.gz
+helium helium-output/gzip-1.2.4
+   #+END_EXAMPLE
+
+   The result should also write "query resolved!".
