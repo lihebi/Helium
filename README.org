@@ -11,6 +11,7 @@ exuberant-ctags libsqlite3-dev autoconf graphviz
 gnulib libboost-all-dev libgtest-dev libpugixml-dev
 llvm clang
 feh cmake autoconf automake
+z3 libz3-dev
     #+END_EXAMPLE
 
     =gtest= needs to be built manually:

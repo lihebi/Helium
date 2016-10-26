@@ -1,7 +1,7 @@
 | benchmark                 | file                  | linum | type | bug-type       | failure-condition                                       | comment                   |
 |---------------------------+-----------------------+-------+------+----------------+---------------------------------------------------------+---------------------------|
 | libpng-1.2.5              | pngrutil.c            |  1014 | stmt | null-deref     |                                                         |                           |
-| nstx-1.1-beta3            | nstxd.c               |   121 | stmt | null-deref     |                                                         |                           |
+| nstx-1.1-beta3            | nstxd.c               |   121 | stmt | null-deref     | output_isnull_pkt = 1                                   | dns_free(pkt);            |
 | clamav-0.91.1             | htmlnorm.c            |  1363 | stmt | null-deref     |                                                         |                           |
 | openssl-0.9.8t            | asn_mime.c            |   793 | stmt | null-deref     |                                                         |                           |
 | libtiff                   | tif_jpeg.c            |  1283 | stmt | 2-f            |                                                         |                           |
