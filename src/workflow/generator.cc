@@ -419,7 +419,7 @@ std::string CodeGen::GetMakefile() {
   makefile = makefile + "a.out: main.c\n"
     + "\t$(CC) -g "
     // comment out because <unistd.h> will not include <optarg.h>
-    // + "-std=c11 "
+    + "-std=c11 "
     + "main.c "
     + (HeliumOptions::Instance()->GetBool("address-sanitizer") ? "-fsanitize=address " : "")
     // gnulib should not be used:
