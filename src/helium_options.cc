@@ -96,6 +96,8 @@ HeliumOptions::HeliumOptions() {
     ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
     ("print-analyze-result-transfer", po::value<bool>()->default_value(false), "print the transfer functions")
     ("print-analyze-result-meta", po::value<bool>()->default_value(false), "print the meta")
+
+    ("dump-compile-error", po::value<bool>()->default_value(false), "dump compile error message into a file")
     ;
 
   po::options_description debug_options("Debug Options");

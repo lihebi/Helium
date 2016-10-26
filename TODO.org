@@ -1,5 +1,10 @@
 #+TITLE: Helium Project TODO
 
+* TODO remove duplicated TYPE snippet, but not variable
+
+* TODO add option to control helium_dump_compile_error
+
+
 * TODO [#A] Make the server working
    SCHEDULED: <2016-10-22 Sat>
 * TODO Run tests in parrel
