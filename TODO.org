@@ -1,5 +1,14 @@
 #+TITLE: Helium Project TODO
 
+
+* For PLDI
+** TODO infinite loop
+** TODO NULL dereference
+** TODO more buffer-overflow
+** SIR
+** ffmpeg
+** putty
+
 * TODO remove duplicated TYPE snippet, but not variable
 
 * TODO add option to control helium_dump_compile_error
