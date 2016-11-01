@@ -13,9 +13,26 @@
 
 * TODO add option to control helium_dump_compile_error
 
-
+* TODO extract generated init code into functions, to avoid i,ii,iii problems.
+* TODO The heap size recorder
+  can only work for the variables that I generate input code for.
+  - it does not take into account other variables, which might be used
+    as output variable
+  - It does not count for the advancing of pointers. For example, the
+    pointer might be advanced one, then the new pointer address is no
+    longer been recorded in the heap recorder. Maybe we should try to
+    keep a status variable for each variable, and update it through
+    the generated code, just like what Daikon did.
+* TODO confidence of inferred information
+  in terms of the paper writing, we might use a confidence for the
+  inference (transfer function), to remove those that have few test
+  values, or those always with the same value (few distinct
+  values). Daikon used a probabilistic theory to reject NULL hypothesis.
+* TODO compare static
+  In paper writing, don't forget to conduct a detailed comparison to
+  static inferencing.
 * TODO [#A] Make the server working
-   SCHEDULED: <2016-10-22 Sat>
+  SCHEDULED: <2016-10-22 Sat>
 * TODO Run tests in parrel
   SCHEDULED: <2016-10-23 Sun>
 * TODO Invariant selection & validation with successfully runs
@@ -23,40 +40,40 @@
 * TODO More benchmarks
 * TODO sample program for other type of bugs
 * TODO all type input generation, e.g. struct
-   SCHEDULED: <2016-10-19 Wed>
+  SCHEDULED: <2016-10-19 Wed>
 * TODO Helium use fs::path instead of string for all
-   SCHEDULED: <2016-10-20 Thu>
+  SCHEDULED: <2016-10-20 Thu>
 * TODO Helium utils thread exec refactoring
 * STARTED [#A] Loop bugs
-   SCHEDULED: <2016-10-20 Thu>
+  SCHEDULED: <2016-10-20 Thu>
 * DONE Z3
-   CLOSED: [2016-10-26 Wed 11:25] SCHEDULED: <2016-10-20 Thu>
+  CLOSED: [2016-10-26 Wed 11:25] SCHEDULED: <2016-10-20 Thu>
 * DONE [#A] Oracle for buffer overflow really working
-   CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
+  CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
 * DONE assuming not execute
   CLOSED: [2016-10-25 Tue 23:42]
 * DONE [#A] Add small examples to test each components
-   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
+  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
 * DONE [#A] oracle
-   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
+  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
 * DONE [#A] snippet script refactor
-   CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
+  CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
 * DONE [#A] better documentation support
-   CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
+  CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
 * DONE predefined invariant integration
-   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-20 Thu>
+  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-20 Thu>
 * DONE bug studies
-   CLOSED: [2016-10-22 Sat 14:39]
+  CLOSED: [2016-10-22 Sat 14:39]
 * DONE More concrete details for the risks
-   CLOSED: [2016-10-22 Sat 14:39] SCHEDULED: <2016-10-22 Sat>
+  CLOSED: [2016-10-22 Sat 14:39] SCHEDULED: <2016-10-22 Sat>
 * DONE AST generate code: not only selected
-   CLOSED: [2016-10-22 Sat 14:35]
+  CLOSED: [2016-10-22 Sat 14:35]
 * DONE Input Output Data format unify
-   CLOSED: [2016-10-22 Sat 14:30]
+  CLOSED: [2016-10-22 Sat 14:30]
 * DONE transfer function no constant
 * DONE transfer function infer only when data is more than a limit
 * DONE switch case control flow graph
-   SCHEDULED: <2016-10-13 Thu>
+  SCHEDULED: <2016-10-13 Thu>
 * DONE switch code selection and test coverage, test Helium getopt code
-   SCHEDULED: <2016-10-15 Sat>
+  SCHEDULED: <2016-10-15 Sat>
 
