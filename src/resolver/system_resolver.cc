@@ -11,12 +11,20 @@ using namespace utils;
 
 SystemResolver* SystemResolver::m_instance = 0;
 
+/**
+ * FIXME I need to use a more systematic way to decide this
+ * Actually this is hard coded for 64 bit system.
+ * echo | gcc -v -x c -E -
+ * The output will show the default path
+ */
 static bool header_exists(const std::string header) {
   fs::path p("/usr/include/"+header);
   if (fs::exists(p)) return true;
   p = "/usr/local/include/" + header;
   if (fs::exists(p)) return true;
   p = "/usr/include/x86_64-linux-gnu/" + header;
+  if (fs::exists(p)) return true;
+  p = "/usr/include/i386-linux-gnu/" + header;
   if (fs::exists(p)) return true;
   return false;
 }
