@@ -1,6 +1,12 @@
 #+TITLE: Helium Project TODO
 
 
+* Current Experiment Running
+** VM1 running 9999 preprocessing, no timeout
+** VM2 running 99999 preprocessing, no timeout
+** VM3 running 9999 preprocessing, timeout 30, record success to result.txt
+
+
 * TODO [#A] For PLDI
 ** TODO [#A] infinite loop
 ** TODO [#A] NULL dereference
