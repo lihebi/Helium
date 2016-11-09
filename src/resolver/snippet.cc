@@ -612,10 +612,10 @@ bool Snippet::IsValid() const {
   for (CtagsEntry entry : entries) {
     if (entry.GetName() == m_entry.GetName() && entry.GetType() == m_entry.GetType()) {
       // this is not good
-      std::cerr << "Snippet duplicate with a system one: " << entry.GetName() << " of type " << entry.GetType() << ". Skipped.\n";
+      // std::cerr << "Snippet duplicate with a system one: " << entry.GetName() << " of type " << entry.GetType() << ". Skipped.\n";
 
       if (m_main_kind == SK_Variable) {
-        std::cerr << "BUT, IGNORED for now, because it is a variable" << "\n";
+        // std::cerr << "BUT, IGNORED for now, because it is a variable" << "\n";
         continue;
       }
       return false;
