@@ -8,6 +8,7 @@
 ** TODO grammar patching implementation and evaluation
 ** TODO input code into function
 ** TODO build rate use random selection of AST nodes or failure point
+** TODO timeout limit everywhere
 ** SIR
 ** ffmpeg
 ** putty
