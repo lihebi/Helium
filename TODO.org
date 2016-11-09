@@ -2,11 +2,12 @@
 
 
 * TODO [#A] For PLDI
-** TODO infinite loop
-** TODO NULL dereference
+** TODO [#A] infinite loop
+** TODO [#A] NULL dereference
 ** TODO more buffer-overflow
 ** TODO grammar patching implementation and evaluation
 ** TODO input code into function
+** TODO build rate use random selection of AST nodes or failure point
 ** SIR
 ** ffmpeg
 ** putty
