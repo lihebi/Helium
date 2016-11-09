@@ -1,14 +1,17 @@
 #+TITLE: Helium Project TODO
 
 
-* For PLDI
+* TODO [#A] For PLDI
 ** TODO infinite loop
 ** TODO NULL dereference
 ** TODO more buffer-overflow
+** TODO grammar patching implementation and evaluation
+** TODO input code into function
 ** SIR
 ** ffmpeg
 ** putty
-
+* STARTED [#A] Loop bugs
+  SCHEDULED: <2016-10-20 Thu>
 * TODO remove duplicated TYPE snippet, but not variable
 
 * TODO add option to control helium_dump_compile_error
@@ -31,35 +34,36 @@
 * TODO compare static
   In paper writing, don't forget to conduct a detailed comparison to
   static inferencing.
-* TODO [#A] Make the server working
-  SCHEDULED: <2016-10-22 Sat>
 * TODO Run tests in parrel
   SCHEDULED: <2016-10-23 Sun>
-* TODO Invariant selection & validation with successfully runs
-* TODO [#A] the new 4 benchmarks, trigger all of them
-* TODO More benchmarks
+* TODO transfer function with successfully runs
+* TODO failure condition generation
 * TODO sample program for other type of bugs
 * TODO all type input generation, e.g. struct
   SCHEDULED: <2016-10-19 Wed>
 * TODO Helium use fs::path instead of string for all
   SCHEDULED: <2016-10-20 Thu>
 * TODO Helium utils thread exec refactoring
-* STARTED [#A] Loop bugs
-  SCHEDULED: <2016-10-20 Thu>
+* DONE Make the server working
+  CLOSED: [2016-11-08 Tue 20:20] SCHEDULED: <2016-10-22 Sat>
+* DONE the new 4 benchmarks, trigger all of them
+  CLOSED: [2016-11-08 Tue 20:21]
+* DONE Oracle for buffer overflow really working
+  CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
+* DONE Add small examples to test each components
+  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
+* DONE oracle
+  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
+* DONE snippet script refactor
+  CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
+* DONE better documentation support
+  CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
+* DONE More benchmarks
+  CLOSED: [2016-11-08 Tue 20:20]
 * DONE Z3
   CLOSED: [2016-10-26 Wed 11:25] SCHEDULED: <2016-10-20 Thu>
-* DONE [#A] Oracle for buffer overflow really working
-  CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
 * DONE assuming not execute
   CLOSED: [2016-10-25 Tue 23:42]
-* DONE [#A] Add small examples to test each components
-  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
-* DONE [#A] oracle
-  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
-* DONE [#A] snippet script refactor
-  CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
-* DONE [#A] better documentation support
-  CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
 * DONE predefined invariant integration
   CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-20 Thu>
 * DONE bug studies
