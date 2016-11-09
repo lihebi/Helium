@@ -15,6 +15,10 @@
 # for bench in $1/*; do
 #     helium-preprocess.sh $bench
 # done
+
+
+# Setting timeout
+# for name in *.zip; do timeout 30m helium-preprocess.sh $name; [ $? == 0 ] && echo "$name " >> result.txt; done
     
 
 
