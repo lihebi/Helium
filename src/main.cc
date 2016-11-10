@@ -368,8 +368,20 @@ int main(int argc, char* argv[]) {
   std::cout << "Number of point of interest: " << pois.size() << "\n";
 
 
+  int ct=0;
+  int valid_poi_ct=0;
+  int valid_poi_limit=HeliumOptions::Instance()->GetInt("valid-poi-limit");
   for (PointOfInterest *poi : pois) {
+    std::cerr << "Current POI: " << ct << "\n";
+    ct++;
     Helium helium(poi);
+    if (helium.GetStatus() == HS_Success) {
+      valid_poi_ct++;
+    }
+    if (valid_poi_limit>0 && valid_poi_ct > valid_poi_limit) {
+      std::cerr << "Reach Valid POI Limit: " << valid_poi_limit << ". Breaking ..\n";
+      break;
+    }
   }
 
   std::cout << "End of Helium" << "\n";

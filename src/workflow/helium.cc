@@ -59,21 +59,29 @@ Helium::Helium(PointOfInterest *poi) {
   }
   if (!xmlnode) {
     std::cerr << "EE: Cannot find SrcML node based on POI." << "\n";
-    exit(1);
+    m_status=HS_POIInvalid;
+    // exit(1);
+    return;
   }
 
   XMLNode func = get_function_node(xmlnode);
+  if (!func) {
+    std::cerr << "EE: Cannot find function node for POI." << "\n";
+    m_status=HS_POIInvalid;
+    return;
+  }
   std::string func_name = function_get_name(func);
   int func_linum = get_node_line(func);
   std::set<int> ids = SnippetDB::Instance()->LookUp(func_name, {SK_Function});
   if (ids.empty()) {
     std::cerr << "EE: Cannot find the function " << func_name << " enclosing POI." << "\n";
-    exit(1);
+    // exit(1);
+    m_status=HS_POIInvalid;
+    return;
   }
 
   for (int id : ids) {
-    std::cout << id << "\n";
-
+    // std::cout << id << "\n";
     SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
     std::string filename = fs::path(meta.filename).filename().string();
     if (filename == poi->GetFilename()) {
@@ -101,8 +109,11 @@ Helium::Helium(PointOfInterest *poi) {
   // initial query:
   if (m_worklist.empty()) {
     std::cerr << "Cannot construct the initial query." << "\n";
-    exit(1);
+    m_status=HS_POIInvalid;
+    // exit(1);
+    return;
   }
+  m_status=HS_Success;
   std::cout << "Initial query: " << m_worklist.size() << "\n";
   process();
 }
@@ -121,10 +132,16 @@ Helium::Helium(PointOfInterest *poi) {
 void Helium::process() {
   // helium_print_trace("process");
   std::cout << "Helium Processing ..." << "\n";
-
+  int seg_limit = HeliumOptions::Instance()->GetInt("segment-per-poi-limit");
+  int seg_ct=0;
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
     Segment *segment = m_worklist.front();
+    seg_ct++;
+    if (seg_limit>0 && seg_ct>seg_limit) {
+      std::cerr << "Reach segment-per-poi limit. Returning." << "\n";
+      return;
+    }
     m_worklist.pop_front();
     if (!segment->IsValid()) {
       std::cout << "Segment Invalid due to removing of callsite." << "\n";

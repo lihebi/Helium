@@ -38,14 +38,17 @@ std::vector<PointOfInterest*> POIFactory::Create(std::string folder, std::string
   std::vector<std::string> benchmark = table->Column("benchmark");
   std::vector<std::string> file = table->Column("file");
   std::vector<std::string> linum = table->Column("linum");
+  // the type field is needed. But if it is not correct, Helium will simply emit an error and continue next POI
   std::vector<std::string> type = table->Column("type");
+  // this field is optional. If not provided, the failure condition will be empty
   std::vector<std::string> fc = table->Column("failure-condition");
 
   if (benchmark.empty()
       || file.empty()
       || linum.empty()
       || type.empty()
-      || fc.empty()) {
+      // || fc.empty()
+      ) {
     std::cerr << "EE: point of interest file " << poi_file << " is not valid."
               << "All fields (benchmark, file, linum, type) should be available."
               << "\n";
@@ -62,7 +65,8 @@ std::vector<PointOfInterest*> POIFactory::Create(std::string folder, std::string
     // the "benchmark" field must matches the folder name!
     if (benchmark[i] == benchmark_name) {
       // ret.push_back(new PointOfInterest({benchmark[i], file[i], stoi(linum[i]), type[i]}));
-      ret.push_back(new PointOfInterest({folder, file[i], stoi(linum[i]), type[i], fc[i]}));
+      std::string fcstr=fc.empty()?"":fc[i];
+      ret.push_back(new PointOfInterest({folder, file[i], stoi(linum[i]), type[i], fcstr}));
     }
   }
   return ret;

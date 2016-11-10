@@ -5,10 +5,19 @@
 #include "segment.h"
 #include "parser/point_of_interest.h"
 
+
+typedef enum _HeliumStatus {
+  HS_Success,
+  HS_POIInvalid,
+  HS_Default
+} HeliumStatus;
+
+
 class Helium {
 public:
   // Helium(FailurePoint *fp);
   Helium(PointOfInterest *poi);
+  HeliumStatus GetStatus() {return m_status;}
   ~Helium() {}
 private:
   // void init(ASTNode *node);
@@ -27,6 +36,7 @@ private:
 
   std::string m_failure_condition;
   PointOfInterest *m_poi = NULL;
+  HeliumStatus m_status = HS_Default;
   // int countFunction();
 };
 

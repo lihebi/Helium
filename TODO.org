@@ -9,8 +9,16 @@
    CLOSED: [2016-11-09 Wed 23:36]
 ** DONE record the time and error for each benchmark
    CLOSED: [2016-11-09 Wed 23:36]
-** Generate POI that is randomly selected
+** DONE Generate POI that is randomly selected
+   CLOSED: [2016-11-10 Thu 00:23]
 ** From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
+The parameter setting:
+helium
+- --run-test=false
+- --segment-per-poi-limit=100
+- --valid-poi-limit=100
+
+
 ** [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
 
 
