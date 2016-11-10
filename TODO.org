@@ -2,10 +2,17 @@
 
 
 * Current Experiment Running
-** VM1 running 9999 preprocessing, timeout 30m, record success to result.txt, from z to a
+** DONE VM1 running 9999 preprocessing, timeout 30m, record success to result.txt, from z to a
+   CLOSED: [2016-11-09 Wed 23:36]
 ** VM2 running 99999 preprocessing, timeout 1h
-** VM3 running 9999 preprocessing, timeout 30m, record success to result.txt
-** TODO record the time and error for each benchmark
+** DONE VM3 running 9999 preprocessing, timeout 30m, record success to result.txt
+   CLOSED: [2016-11-09 Wed 23:36]
+** DONE record the time and error for each benchmark
+   CLOSED: [2016-11-09 Wed 23:36]
+** Generate POI that is randomly selected
+** From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
+** [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
+
 
 
 * TODO [#A] For PLDI
