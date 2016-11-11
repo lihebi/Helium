@@ -58,7 +58,7 @@ std::string get_header() {
   system_headers.push_back("stdio.h");
   system_headers.push_back("stdlib.h");
   system_headers.push_back("string.h");
-  local_headers.push_back("support.h");
+  local_headers.push_back("main.h");
   for (auto it=system_headers.begin();it!=system_headers.end();it++) {
     s += "#include <" + *it + ">\n";
   }
@@ -505,7 +505,7 @@ void CodeGen::resolveSnippet(AST *ast) {
   // I need to remove the function here!
   // otherwise the code snippet will get too much
   // For example, I have included a function in main.c, but it turns out to be here
-  // even if I filter it out when adding to support.h, I still have all its dependencies in support.h!
+  // even if I filter it out when adding to main.h, I still have all its dependencies in main.h!
   for (auto m : m_data) {
     AST *ast = m.first;
     assert(ast);

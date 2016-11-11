@@ -27,18 +27,18 @@ std::string IntType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string IntType::GetInputCode(std::string var, bool simple) {
+std::string IntType::GetInputCode(std::string var) {
   // return "input_int(&" + var + ");\n";
   return IOHelper::GetInputCall("int", var);
 }
 
-std::string IntType::GetOutputCode(std::string var, bool simple) {
+std::string IntType::GetOutputCode(std::string var) {
   std::string ret;
   return IOHelper::GetOutputCall("int", var, var);
   // return "output_int("+var+",\"" + var + "\");\n";
 }
 
-InputSpec *IntType::GenerateRandomInput(bool simple) {
+InputSpec *IntType::GenerateRandomInput() {
   static int int_min = HeliumOptions::Instance()->GetInt("test-input-min-int");
   static int int_max = HeliumOptions::Instance()->GetInt("test-input-max-int");
   static int max_array_size = HeliumOptions::Instance()->GetInt("test-input-max-array-size");
@@ -85,17 +85,17 @@ std::string BoolType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string BoolType::GetInputCode(std::string var, bool simple) {
+std::string BoolType::GetInputCode(std::string var) {
   return IOHelper::GetInputCall("bool", var);
   // return "input_bool(&" + var + ");\n";
 }
 
-std::string BoolType::GetOutputCode(std::string var, bool simple) {
+std::string BoolType::GetOutputCode(std::string var) {
   return IOHelper::GetOutputCall("bool", var, var);
   // return "output_bool("+var+",\"" + var + "\");\n";
 }
 
-InputSpec *BoolType::GenerateRandomInput(bool simple) {
+InputSpec *BoolType::GenerateRandomInput() {
   bool b = utils::rand_bool();
   std::string spec = "{bool: " + std::to_string(b) + "}";
   std::string raw = std::to_string(b);
@@ -124,17 +124,17 @@ std::string CharType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string CharType::GetInputCode(std::string var, bool simple) {
+std::string CharType::GetInputCode(std::string var) {
   return IOHelper::GetInputCall("char", var);
   // return "input_char(&"+var+");\n";
 }
 
-std::string CharType::GetOutputCode(std::string var, bool simple) {
+std::string CharType::GetOutputCode(std::string var) {
   return IOHelper::GetOutputCall("char", var, var);
   // return "output_char("+var+",\""+var+"\");\n";
 }
 
-InputSpec *CharType::GenerateRandomInput(bool simple) {
+InputSpec *CharType::GenerateRandomInput() {
   char c = utils::rand_char();
   std::string spec = "{char: " + std::to_string(c) + "}";
   std::string raw = std::to_string(c);

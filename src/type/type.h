@@ -18,7 +18,7 @@ class Type {
 public:
   Type() {}
   virtual ~Type() {}
-  virtual InputSpec* GenerateRandomInput(bool simple=false) = 0;
+  virtual InputSpec* GenerateRandomInput() = 0;
   std::vector<InputSpec*> GenerateRandomInputs(int num=1) {
     std::vector<InputSpec*> ret;
     while (num-- > 0) {
@@ -34,8 +34,8 @@ public:
    * If it is the pointer type, it will not recursively generate for the type.
    * Instead, only NULL or not NULL(malloc)sizeof(A)*1 is used.
    */
-  virtual std::string GetInputCode(std::string var, bool simple=false) = 0;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) = 0;
+  virtual std::string GetInputCode(std::string var) = 0;
+  virtual std::string GetOutputCode(std::string var) = 0;
   virtual void GenerateIOFunc() = 0;
   virtual std::vector<InputSpec*> GenerateCornerInputs(int limit=-1);
   // overwrite when possible!
@@ -78,7 +78,7 @@ class UnknownType : public Type {
 public:
   UnknownType(std::string str) : m_raw(str) {}
   virtual ~UnknownType() {}
-  virtual InputSpec* GenerateRandomInput(bool simple=false) override { return NULL;}
+  virtual InputSpec* GenerateRandomInput() override { return NULL;}
   virtual std::string GetDeclCode(std::string var) override {
     std::string ret;
     ret += "// UnknownType::GetDeclCode: " + var + ";\n";
@@ -86,11 +86,11 @@ public:
     return ret;
   }
   virtual void GenerateIOFunc() override {};
-  virtual std::string GetInputCode(std::string var, bool simple=false) override {
+  virtual std::string GetInputCode(std::string var) override {
     var.empty();
     return "";
   }
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override {
+  virtual std::string GetOutputCode(std::string var) override {
     var.empty();
     return "";
   }

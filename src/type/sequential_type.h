@@ -26,9 +26,9 @@ public:
   ~ArrayType();
   virtual std::string GetDeclCode(std::string var) override;
   virtual void GenerateIOFunc() override;
-  virtual std::string GetInputCode(std::string var, bool simple=false) override;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
-  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {
     std::string ret;
     if (m_contained_type) {
@@ -52,10 +52,10 @@ public:
   PointerType(std::string type_str);
   virtual ~PointerType();
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetInputCode(std::string var) override;
   virtual void GenerateIOFunc() override;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
-  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string GetRaw() override {
     std::string ret;

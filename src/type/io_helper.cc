@@ -21,7 +21,7 @@ void output_int(int *var, const char *name) {
   m_input["bool"] = R"prefix(
 void input_bool(bool *var) {
   int size;
-  scanf("%d", size);
+  scanf("%d", &size);
   if (size==0) (*var)=false;
   else (*var)=true;
 }

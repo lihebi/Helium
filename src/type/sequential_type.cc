@@ -53,7 +53,6 @@ void input_%s(%s **var) { // key, contain
 
   const char *output_format = R"prefix(
 void output_%s(%s *var, const char *name) { // key, contain
-  printf("int_%s.size=%s\n", name, sizeof(var)); fflush(stdout); // replace with s and d
   printf("addr_%s=%s\n", name, (void*)var); fflush(stdout); // replace with s and p
   for (int i=0;i<%d;i++) { // replace with m_num
     output_%s((*var)[i]); // replace with contain_key
@@ -62,7 +61,6 @@ void output_%s(%s *var, const char *name) { // key, contain
 )prefix";
   sprintf(buf, output_format,
           key.c_str(), contain.c_str(),
-          "%s", "%d",
           "%s", "%p",
           m_num,
           contain_key.c_str());
@@ -89,7 +87,7 @@ std::string ArrayType::GetDeclCode(std::string var) {
  * If contained type is "char", use scanf("%s)
  * Otherwise, init the first index if available.
  */
-std::string ArrayType::GetInputCode(std::string var, bool simple) {
+std::string ArrayType::GetInputCode(std::string var) {
   std::string ret;
   ret += "// ArrayType::GetInputCode\n";
   if (!m_contained_type) {
@@ -100,22 +98,17 @@ std::string ArrayType::GetInputCode(std::string var, bool simple) {
     ret += "ArrayType::GetInputCode array size is 0";
     return ret;
   }
-  std::string raw = GetRaw();
-  std::string key = IOHelper::ConvertTypeStr(raw);
-  
-
   if (dynamic_cast<CharType*>(m_contained_type)) {
     ret += get_scanf_code("%s", var);
   } else {
-    for (int i=0;i<m_num;i++) {
-      ret += m_contained_type->GetInputCode(var + "[" + std::to_string(i) + "]", simple);
-    }
+    std::string raw = GetRaw();
+    std::string key = IOHelper::ConvertTypeStr(raw);
+    ret += IOHelper::GetInputCall(key, var);
   }
-  
   return ret;
 }
 
-std::string ArrayType::GetOutputCode(std::string var, bool simple) {
+std::string ArrayType::GetOutputCode(std::string var) {
   std::string ret;
   if (!m_contained_type) {
     helium_log_warning("ArrayType::GetOutputCode with no contained type");
@@ -130,14 +123,14 @@ std::string ArrayType::GetOutputCode(std::string var, bool simple) {
   if (dynamic_cast<CharType*>(m_contained_type)) {
     ret += get_strlen_printf_code(var);
   } else {
-    for (int i=0;i<m_num;i++) {
-      ret += m_contained_type->GetOutputCode(var + "[" + std::to_string(i) + "]", simple);
-    }
+    std::string raw = GetRaw();
+    std::string key = IOHelper::ConvertTypeStr(raw);
+    ret += IOHelper::GetOutputCall(key, var, var);
   }
   return ret;
 }
 
-InputSpec *ArrayType::GenerateRandomInput(bool simple) {
+InputSpec *ArrayType::GenerateRandomInput() {
   helium_print_trace("ArrayType::GenerateRandomInput");
   InputSpec *spec = NULL;
   if (!m_contained_type) {
@@ -155,7 +148,7 @@ InputSpec *ArrayType::GenerateRandomInput(bool simple) {
   } else {
     spec = new ArrayInputSpec();
     for (int i=0;i<m_num;i++) {
-      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput(simple);
+      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
       spec->Add(tmp_spec);
     }
   }
@@ -266,30 +259,25 @@ std::string PointerType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string PointerType::GetInputCode(std::string var, bool simple) {
+std::string PointerType::GetInputCode(std::string var) {
   if (!m_contained_type) {
     helium_log_warning("PointerType::GetInputCode with no contained type");
     return "";
   }
-  // std::string ret;
-  // ret += "// PointerType::GetInputCode: " + var + (simple?"simple":"") +"\n";
   std::string contain = m_contained_type->GetRaw();
   std::string key = IOHelper::ConvertTypeStr(contain+"*");
-  // std::string func = "input_"+key;
-  // std::string call = func + "(&"+var+");\n";
   GenerateIOFunc();
   return IOHelper::GetInputCall(key, var);
-  // return call;
 }
 
-std::string PointerType::GetOutputCode(std::string var, bool simple) {
+std::string PointerType::GetOutputCode(std::string var) {
   std::string contain = m_contained_type->GetRaw();
   std::string key = IOHelper::ConvertTypeStr(contain+"*");
   GenerateIOFunc();
   return IOHelper::GetOutputCall(key, var, var);
 }
 
-InputSpec *PointerType::GenerateRandomInput(bool simple) {
+InputSpec *PointerType::GenerateRandomInput() {
   // std::cout << ToString() << "\n";
   InputSpec *ret = NULL;
   helium_print_trace("PointerType::GenerateRandomInput");
@@ -326,7 +314,7 @@ InputSpec *PointerType::GenerateRandomInput(bool simple) {
     // to, may be 2
     
     for (int i=0;i<helium_size;i++) {
-      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput(simple);
+      InputSpec *tmp_spec = m_contained_type->GenerateRandomInput();
       ret->Add(tmp_spec);
     }
   }

@@ -224,10 +224,10 @@ Builder::Write() {
   preProcess();
 
   utils::write_file(m_dir+"/main.c", m_main);
-  utils::write_file(m_dir+"/support.h", m_support);
+  utils::write_file(m_dir+"/main.h", m_support);
   utils::write_file(m_dir + "/Makefile", m_makefile);
 
-  // post process the outputed files: main.c, support.h, Makefile
+  // post process the outputed files: main.c, main.h, Makefile
   postProcess();
 
   for (std::pair<std::string, std::string> pair : m_scripts) {
@@ -264,7 +264,7 @@ void global_add_static(XMLDoc *doc) {
 }
 
 // TEST(BuilderTestCase, global_add_static_test) {
-//   XMLDoc *doc = XMLDocReader::CreateDocFromFile("/tmp/helium-test-tmp.SX2ZoL/support.h");
+//   XMLDoc *doc = XMLDocReader::CreateDocFromFile("/tmp/helium-test-tmp.SX2ZoL/main.h");
 // }
 
 void remove_typedef(XMLNode node) {
@@ -284,31 +284,31 @@ void remove_typedef(XMLNode node) {
 void Builder::postProcess() {
   // process m_dir+"/main.c"
   // instrument_free(m_dir+"/main.c");
-  // process m_dir+"/support.h"
-  // instrument_free(m_dir+"/support.h");
+  // process m_dir+"/main.h"
+  // instrument_free(m_dir+"/main.h");
   // process m_dir+"/Makefile"
 
-  // For main.c and support.h, get all global variables, and turns them to be static if they are not.
+  // For main.c and main.h, get all global variables, and turns them to be static if they are not.
   XMLDoc *doc = XMLDocReader::CreateDocFromFile(m_dir + "/main.c");
   global_add_static(doc);
   std::string code = get_text(doc->document_element());
   utils::write_file(m_dir + "/main.c", code);
   delete doc;
-  // support.h
-  doc = XMLDocReader::CreateDocFromFile(m_dir + "/support.h");
+  // main.h
+  doc = XMLDocReader::CreateDocFromFile(m_dir + "/main.h");
   global_add_static(doc);
   code = get_text(doc->document_element());
-  utils::write_file(m_dir + "/support.h", code);
+  utils::write_file(m_dir + "/main.h", code);
   delete doc;
 
   // remove typedef if system already de
   // FIXME this might remove some that is needed by the header is not included
   // FIXME For IO type, the insturmented declaration will be the resolved name
   // TODO output many versions, every one success counts
-  // doc = XMLDocReader::CreateDocFromFile(m_dir + "/support.h");
+  // doc = XMLDocReader::CreateDocFromFile(m_dir + "/main.h");
   // remove_typedef(doc->document_element());
   // code = get_text(doc->document_element());
-  // utils::write_file(m_dir + "/support.h", code);
+  // utils::write_file(m_dir + "/main.h", code);
 }
 
 std::string simplify_error_msg(std::string error_msg) {

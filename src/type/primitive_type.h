@@ -20,9 +20,9 @@ public:
   IntType();
   ~IntType();
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var, bool simple=false) override;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
-  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "int";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "IntType";}
@@ -34,9 +34,9 @@ private:
 
 class CharType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var, bool simple=false) override;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
-  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "char";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "CharType";}
@@ -49,9 +49,9 @@ private:
 
 class BoolType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var, bool simple=false) override;
-  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
-  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
+  virtual std::string GetInputCode(std::string var) override;
+  virtual std::string GetOutputCode(std::string var) override;
+  virtual InputSpec *GenerateRandomInput() override;
   virtual std::string GetRaw() override {return "bool";}
   virtual std::string ToString() override {return "BoolType";}
 public:
