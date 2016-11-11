@@ -9,7 +9,8 @@ typedef struct _demo {
 bool b;
 bool c;
 
-demo a;
+demo somedemo;
+
 void bar(demo *z, demo *x) {
   demo *p = z->f;
   demo *y;
@@ -24,7 +25,7 @@ void bar(demo *z, demo *x) {
   } else {
     y = x->f;
   }
-  *y = a;
+  *y = somedemo;
 }
 
 int main(int argc, char* argv[]) {

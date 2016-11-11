@@ -38,7 +38,7 @@ public:
   }
   static std::string GetOutputCall(std::string key, std::string var, std::string name) {
     const char *format=R"prefix(
-output_%s(%s,%s);
+output_%s(&(%s),"%s");
 )prefix";
     char buf[BUFSIZ];
     sprintf(buf, format, key.c_str(), var.c_str(), name.c_str());

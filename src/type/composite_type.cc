@@ -31,41 +31,28 @@ void StructType::GenerateIOFunc() {
     Type *t = decl->GetType();
     std::string name = decl->GetName();
     if (t) {
-      input += t->GetInputCode("var->"+name);
+      input += "  " + t->GetInputCode("var->"+name);
       t->GenerateIOFunc();
       std::string key = IOHelper::ConvertTypeStr(t->GetRaw());
-      output += IOHelper::GetOutputCall(key, "var->"+name, "\"name->"+name+"\"");
+      output += "  " + IOHelper::GetOutputCall(key, "var->"+name, "name->"+name);
     }
   }
+  input += "}\n";
+  output += "}\n";
   IOHelper::Instance()->Add(key, input, output);
 }
 
 std::string StructType::GetInputCode(std::string var, bool simple) {
   // the input code should initiate all the fields
-  std::string ret;
   std::string key = IOHelper::ConvertTypeStr(m_raw);
-  std::string func = "input_" + key;
-  std::string call = func + "(&" + var + ")\n";
   GenerateIOFunc();
-  return call;
+  return IOHelper::GetInputCall(key, var);
 }
 std::string StructType::GetOutputCode(std::string var, bool simple) {
   // output each field
-  std::string ret;
-  ret += "// StructType::GetOutputCode: " + var + "\n";
-  if (simple) {
-    return ret;
-  } else {
-    StructClass *sc = StructResource::Instance()->GetStruct(m_snippet_id);
-    for (Decl *decl : sc->Fields()) {
-      Type *t = decl->GetType();
-      std::string name = decl->GetName();
-      if (t) {
-        ret += t->GetOutputCode(var+"."+name, true);
-      }
-    }
-  }
-  return "";
+  std::string key = IOHelper::ConvertTypeStr(m_raw);
+  GenerateIOFunc();
+  return IOHelper::Instance()->GetOutputCall(key, var, var);
 }
 InputSpec* StructType::GenerateRandomInput(bool simple) {
   if (simple) {

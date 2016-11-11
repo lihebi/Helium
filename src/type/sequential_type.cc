@@ -215,14 +215,14 @@ void input_%s(%s **var) { // key, contain
    * Output
    */
   format = R"prefix(
-void output_%s(%s *var, const char *name) { // key, contain
-  if (var == NULL) {
+void output_%s(%s **var, const char *name) { // key, contain
+  if (*var == NULL) {
     printf("isnull_%s = %s\n", name, 1); fflush(stdout); // replace with s and d
   } else {
     printf("isnull_%s = %s\n", name, 0); fflush(stdout); // replace with s and d
     int size=-1;
     for (int i=0;i<hhtop;i++) {
-      if (var == hhaddr[i]) {
+      if (*var == hhaddr[i]) {
         size = hhsize[i]; break;
       }
     }
@@ -231,7 +231,7 @@ void output_%s(%s *var, const char *name) { // key, contain
       for (int i=0;i<size;i++) {
         char hbuf[BUFSIZ]; // may be a global variable
         sprintf(hbuf, "%s[%s]", name, i); // replace with s and d
-        output_%s(var[i], hbuf); // contain_key
+        output_%s(&(*var)[i], hbuf); // contain_key
       }
     }
   }
@@ -275,17 +275,18 @@ std::string PointerType::GetInputCode(std::string var, bool simple) {
   // ret += "// PointerType::GetInputCode: " + var + (simple?"simple":"") +"\n";
   std::string contain = m_contained_type->GetRaw();
   std::string key = IOHelper::ConvertTypeStr(contain+"*");
-  std::string func = "input_"+key;
-  std::string call = func + "(&"+var+");\n";
+  // std::string func = "input_"+key;
+  // std::string call = func + "(&"+var+");\n";
   GenerateIOFunc();
-  return call;
+  return IOHelper::GetInputCall(key, var);
+  // return call;
 }
 
 std::string PointerType::GetOutputCode(std::string var, bool simple) {
   std::string contain = m_contained_type->GetRaw();
   std::string key = IOHelper::ConvertTypeStr(contain+"*");
   GenerateIOFunc();
-  return IOHelper::GetOutputCall(key, var, "\""+var+"\"");
+  return IOHelper::GetOutputCall(key, var, var);
 }
 
 InputSpec *PointerType::GenerateRandomInput(bool simple) {

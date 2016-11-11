@@ -471,27 +471,20 @@ void CodeGen::resolveSnippet(AST *ast) {
   helium_print_trace("Context::resolveSnippet");
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
-  // Since I changed the decl mechanism to m_decls, I need to change here
-  
-  // decl_deco decl_m = m_ast_to_deco_m[ast].first;
-  // decl_deco decl_input_m = m_ast_to_deco_m[ast].second;
-  // all_decls.insert(decl_input_m.begin(), decl_input_m.end());
-  // all_decls.insert(decl_m.begin(), decl_m.end());
-  // for (auto item : all_decls) {
-  //   ASTNode *node = item.first;
-  //   std::set<std::string> names = item.second;
-  //   for (std::string name : names) {
-  //     SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
-  //     std::string type = value->GetType()->Raw();
-  //     std::set<std::string> ids = extract_id_to_resolve(type);
-  //     all_ids.insert(ids.begin(), ids.end());
-  //   }
-  // }
-
   /**
    * I want to resolve the type of the decls
    * And also the char array[MAX_LENGTH], see that macro?
    */
+
+  for (Variable *v : m_inputs) {
+    Type *t = v->GetType();
+    if (t) {
+      std::string raw = t->GetRaw();
+      // resolve it
+      std::set<std::string> ids = extract_id_to_resolve(raw);
+      all_ids.insert(ids.begin(), ids.end());
+    }
+  }
 
   std::set<ASTNode*> nodes = m_data[ast];
   for (ASTNode *n : nodes) {
@@ -518,6 +511,15 @@ void CodeGen::resolveSnippet(AST *ast) {
     assert(ast);
     std::string func = ast->GetFunctionName();
     all_ids.erase(func);
+  }
+
+
+  if (HeliumOptions::Instance()->Has("verbose")) {
+    std::cout << "Resolved IDs:" << "\n";
+    for (std::string id : all_ids) {
+      std::cout << id << " ";
+    }
+    std::cout << "\n";
   }
 
 

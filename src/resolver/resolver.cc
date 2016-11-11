@@ -14,6 +14,10 @@
  */
 std::set<std::string>
 extract_id_to_resolve(std::string code) {
+  // shit, why i need to remove the newline? The regexp does not cross lines???
+  // FIXME the code here contains my instrumentation ...
+  utils::replace(code, "\n", "");
+  // std::cout << "extracting code from: " << code  << "\n";
   // TODO move to trace --verbose
   // print_trace("extract_id_to_resolve");
 
@@ -31,6 +35,7 @@ extract_id_to_resolve(std::string code) {
   for (boost::sregex_iterator it=begin;it!=end;it++) {
     std::string tmp = (*it).str();
     if (c_common_keywords.find(tmp) == c_common_keywords.end()) {
+      // std::cout << tmp << "\n";
       ss.insert(tmp);
     }
   }
