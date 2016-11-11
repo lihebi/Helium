@@ -263,7 +263,6 @@ int main() {
     int loop_ct = 0;
     int ast_node_ct = 0;
     for (auto m : m_data) {
-      std::string code = m.first->GetCode(m.second);
       for (ASTNode *node : m.second) {
         ast_node_ct++;
         if (node->Kind() == ANK_If) {
@@ -275,6 +274,9 @@ int main() {
           loop_ct++;
         }
       }
+      ASTOption::TurnOffPOIInstrument();
+      std::string code = m.first->GetCode(m.second);
+      ASTOption::TurnOnPOIInstrument();
       loc += std::count(code.begin(), code.end(), '\n');
     }
     std::cout << utils::PURPLE << "Segment Meta:" << utils::RESET << "\n";

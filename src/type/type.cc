@@ -2,6 +2,8 @@
 #include "utils/utils.h"
 #include "utils/log.h"
 #include "resolver/snippet_db.h"
+#include "helium_options.h"
+#include "parser/xml_doc_reader.h"
 #include <iostream>
 
 /**
@@ -114,30 +116,6 @@ Type *TypeFactory::CreateType(XMLNode decl_node) {
 Type *TypeFactory::CreateType(std::string str) {
   if (str.empty()) return NULL;
   Type *type;
-
-  // if (helium_valid_type(str)) {
-  // } else {
-  //   return new UnknownType(str);
-  // }
-
-  // 4. check if char*
-  // if (type_is_str(str)) {
-  //   return new StrType();
-  // }
-
-  // 3. check if char[]
-  // if (type_is_buf(str)) {
-  //   std::string numstr = str.substr(str.find('[')+1, str.find(']'));
-  //   int num = 0;
-  //   try {
-  //     num = stoi(numstr);
-  //   } catch (std::exception e) {
-  //     helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
-  //   }
-  //   type = new BufType(num);
-  //   return type;
-  // }
-
   // Pointer
   if (str.back() == '*') {
     str.pop_back();
@@ -175,19 +153,61 @@ Type *TypeFactory::CreateType(std::string str) {
     return new BoolType();
   }
   // structure
-  // FIXME the struct keyword?
   // now str should contain only the type name, e.g. structure name
-  // std::set<int> ids = SnippetDB::Instance()->LookUp(str, {SK_Structure});
-  // if (!ids.empty()) {
-  //   // TODO typedef? duplicate? enumerator?
-  //   int id = *ids.begin();
-  //   return new StructType(id);
-  // }
+  if (HeliumOptions::Instance()->GetBool("use-struct-type")) {
+    std::pair<int,int> p = SnippetDB::Instance()->QueryStruct(str);
+    int id=p.first;
+    int level=p.second;
+    if (id>=0) {
+      if (level==0) {
+        return new StructType(str, p.first);
+      } else if (level==1) {
+        // Type *type = new PointerType("");
+        // type->SetRaw(str);
+        // type->SetContainedType(MakePointerType());
+        // PointerType *t = make_struct_pointer_type(p.first, p.second);
+        // t->SetRaw(str);
+        // There's another problem: the malloc code for multiple level pointer
+        // This is hard if the contained type is not there.
+        // So I decide to only support pointer of struct to only one level
+        PointerType *pt = new PointerType("");
+        pt->SetRaw(str);
+        std::string code = SnippetDB::Instance()->GetCode(id);
+        std::string name = XMLDocReader::QueryCodeFirst(code, "//type/struct/name");
+        assert(!name.empty());
+        // if (name.empty()) {
+        //   name = XMLDocReader::QueryCodeFirstDeep(code, "//type/name");
+        // }
+        pt->SetRaw(str);
+        pt->SetContainedType(new StructType("struct " + name, id));
+        return pt;
+      }
+    }
+  }
+  // TODO enumerator?
   // TODO system type?
-  
   return new UnknownType(str);
   return NULL;
 }
+
+/**
+ * This is a helper function
+ * It create a n-level pointer type.
+ * The most inner one is the StructType will EMPTY raw.
+ * So never expect the getting decl code would work.
+ * That also means, the user is responsible to give the type a "raw".
+ * That raw will be used to generate ONLY decl
+ */
+// PointerType *make_struct_pointer_type(int id, int level) {
+//   Type *t = new StructType("", id);
+//   PointerType *ret;
+//   while (level-->0) {
+//     ret = new PointerType("");
+//     ret->SetContainedType(t);
+//     t=ret;
+//   }
+//   return ret;
+// }
 
 
 /**
@@ -206,16 +226,20 @@ Type *TypeFactory::CreateType(std::string str) {
 //   return ret;
 // }
 
+
+
 /**
  * These are global variables
  */
 std::string Type::GetHeader() {
   return R"(
-  void *helium_heap_addr[BUFSIZ];
-  int helium_heap_size[BUFSIZ];
-  int helium_heap_top = 0;
-  // the size of the found address. Should reset everytime before checking.
-  int helium_heap_target_size=-1;
+  void *hhaddr[BUFSIZ];
+  int hhsize[BUFSIZ];
+  int hhtop = 0;
 )";
 }
+
+
+
+
 

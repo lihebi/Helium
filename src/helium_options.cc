@@ -145,6 +145,8 @@ HeliumOptions::HeliumOptions() {
     ("valid-poi-limit", po::value<int>()->default_value(-1),"valid poi limit")
     ("remove-branch-if-not-covered", po::value<bool>()->default_value(false), "Remove branch as long as POI is not covered.")
     ("gcov-handle-sigsegv", po::value<bool>()->default_value(false), "Dump coverage information when segment fault happen.")
+
+    ("use-struct-type", po::value<bool>()->default_value(false), "Use structure type for input or just use unknown")
     ;
   
   po::options_description hidden("Hidden options");

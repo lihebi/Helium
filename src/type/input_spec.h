@@ -96,7 +96,13 @@ private:
 class StructInputSpec : public InputSpec {
 public:
   StructInputSpec() {}
-  virtual ~StructInputSpec() {}
+  virtual ~StructInputSpec() {
+    for (auto p : m_fields) {
+      if (p.second) {
+        delete p.second;
+      }
+    }
+  }
 
   virtual std::string GetRaw() override;
   virtual std::string GetSpec() override;

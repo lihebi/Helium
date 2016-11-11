@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "parser/xmlnode.h"
+#include "utils/string_utils.h"
 
 #include "input_spec.h"
 
@@ -43,7 +44,7 @@ class Type {
 public:
   Type() {}
   virtual ~Type() {}
-  virtual InputSpec* GenerateRandomInput() = 0;
+  virtual InputSpec* GenerateRandomInput(bool simple=false) = 0;
   std::vector<InputSpec*> GenerateRandomInputs(int num=1) {
     std::vector<InputSpec*> ret;
     while (num-- > 0) {
@@ -52,8 +53,16 @@ public:
     return ret;
   }
   virtual std::string GetDeclCode(std::string var) = 0;
-  virtual std::string GetInputCode(std::string var) = 0;
-  virtual std::string GetOutputCode(std::string var) = 0;
+  /**
+   * @param [in] simple whether to generate simple input.
+   * This is used to solve the recursive structure problem.
+   * This is currently only apply to sequential type
+   * If it is the pointer type, it will not recursively generate for the type.
+   * Instead, only NULL or not NULL(malloc)sizeof(A)*1 is used.
+   */
+  virtual std::string GetInputCode(std::string var, bool simple=false) = 0;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) = 0;
+  virtual void GenerateIOFunc() = 0;
   virtual std::vector<InputSpec*> GenerateCornerInputs(int limit=-1);
   static std::string GetHeader();
   // overwrite when possible!
@@ -74,6 +83,7 @@ public:
   // virtual std::string GetValue() = 0;
   virtual std::string GetRaw() = 0;
   virtual std::string ToString() = 0;
+
 protected:
   std::vector<InputSpec*> m_corners;
 private:
@@ -118,25 +128,18 @@ class UnknownType : public Type {
 public:
   UnknownType(std::string str) : m_raw(str) {}
   virtual ~UnknownType() {}
-  virtual InputSpec* GenerateRandomInput() { return NULL;}
+  virtual InputSpec* GenerateRandomInput(bool simple=false) { return NULL;}
   virtual std::string GetDeclCode(std::string var) {
     std::string ret;
     ret += "// UnknownType::GetDeclCode: " + var + ";\n";
-    // if (m_raw.find('[') != std::string::npos) {
-    //   std::string prefix = m_raw.substr(0, m_raw.find('['));
-    //   std::string suffix = m_raw.substr(m_raw.find('['));
-    //   ret += prefix + " " + var + suffix + ";\n";
-    // } else {
-    //   ret += m_raw + " " + var + ";\n";
-    // }
     ret += m_raw + " " + var + ";\n";
     return ret;
   }
-  virtual std::string GetInputCode(std::string var) {
+  virtual std::string GetInputCode(std::string var, bool simple=false) {
     var.empty();
     return "";
   }
-  virtual std::string GetOutputCode(std::string var) {
+  virtual std::string GetOutputCode(std::string var, bool simple=false) {
     var.empty();
     return "";
   }
@@ -162,16 +165,18 @@ private:
 
 class StructType : public CompositeType {
 public:
-  StructType(int id);
+  StructType(std::string raw, int id);
   virtual ~StructType() {}
   virtual std::string GetDeclCode(std::string var) override;
   virtual std::string ToString() override {return "SturctType";}
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual void GenerateIOFunc() override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::string GetRaw() override;
 protected:
 private:
+  std::string m_raw;
   int m_snippet_id = -1;
 };
 
@@ -188,9 +193,9 @@ public:
   ArrayType(std::string type_str, int num);
   ~ArrayType();
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::string GetRaw() override {
     std::string ret;
     if (m_contained_type) {
@@ -214,9 +219,10 @@ public:
   PointerType(std::string type_str);
   virtual ~PointerType();
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual void GenerateIOFunc() override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string GetRaw() override {
     std::string ret;
@@ -234,9 +240,14 @@ public:
     }
     return ret;
   }
+  void SetRaw(std::string raw) {m_raw=raw;}
+  void SetContainedType(Type *t) {m_contained_type=t;}
 protected:
 private:
   Type *m_contained_type = NULL;
+  // used to set the raw.
+  // if this is not empty, the *decl* code will use this plus the variable name
+  std::string m_raw;
 };
 
 // class StrType : public PointerType {
@@ -279,9 +290,9 @@ public:
   IntType();
   ~IntType();
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::string GetRaw() override {return "int";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "IntType";}
@@ -293,9 +304,9 @@ private:
 
 class CharType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::string GetRaw() override {return "char";}
   virtual std::vector<InputSpec*> GeneratePairInput() override;
   virtual std::string ToString() override {return "CharType";}
@@ -308,9 +319,9 @@ private:
 
 class BoolType : public PrimitiveType {
   virtual std::string GetDeclCode(std::string var) override;
-  virtual std::string GetInputCode(std::string var) override;
-  virtual std::string GetOutputCode(std::string var) override;
-  virtual InputSpec *GenerateRandomInput() override;
+  virtual std::string GetInputCode(std::string var, bool simple=false) override;
+  virtual std::string GetOutputCode(std::string var, bool simple=false) override;
+  virtual InputSpec *GenerateRandomInput(bool simple=false) override;
   virtual std::string GetRaw() override {return "bool";}
   virtual std::string ToString() override {return "BoolType";}
 public:
@@ -318,6 +329,26 @@ public:
   virtual ~BoolType();
 private:
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// PointerType *make_struct_pointer_type(int id, int level);
 
 
 /**

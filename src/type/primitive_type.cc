@@ -26,22 +26,16 @@ std::string IntType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string IntType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// IntType::GetInputCode: " + var + "\n";
-  ret += get_scanf_code("%d", "&" + var);
-  return ret;
+std::string IntType::GetInputCode(std::string var, bool simple) {
+  return "input_int(&" + var + ");\n";
 }
 
-std::string IntType::GetOutputCode(std::string var) {
+std::string IntType::GetOutputCode(std::string var, bool simple) {
   std::string ret;
-  ret += "// IntType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"int_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
-  ret += flush_output;
-  return ret;
+  return "output_int("+var+",\"" + var + "\");\n";
 }
 
-InputSpec *IntType::GenerateRandomInput() {
+InputSpec *IntType::GenerateRandomInput(bool simple) {
   static int int_min = HeliumOptions::Instance()->GetInt("test-input-min-int");
   static int int_max = HeliumOptions::Instance()->GetInt("test-input-max-int");
   static int max_array_size = HeliumOptions::Instance()->GetInt("test-input-max-array-size");
@@ -88,25 +82,15 @@ std::string BoolType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string BoolType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// BoolType::GetInputCode: " + var + "\n";
-  ret += "scanf(\"%d\", &" + var + ");\n";
-  get_helium_size_branch(var + " = false",
-                         var + " = true"
-                         );
-  return ret;
+std::string BoolType::GetInputCode(std::string var, bool simple) {
+  return "input_bool(&" + var + ");\n";
 }
 
-std::string BoolType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// BoolType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"bool_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
-  ret += flush_output;
-  return ret;
+std::string BoolType::GetOutputCode(std::string var, bool simple) {
+  return "output_bool("+var+",\"" + var + "\");\n";
 }
 
-InputSpec *BoolType::GenerateRandomInput() {
+InputSpec *BoolType::GenerateRandomInput(bool simple) {
   bool b = utils::rand_bool();
   std::string spec = "{bool: " + std::to_string(b) + "}";
   std::string raw = std::to_string(b);
@@ -135,20 +119,15 @@ std::string CharType::GetDeclCode(std::string var) {
   return ret;
 }
 
-std::string CharType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += get_scanf_code("%c", "&" + var);
-  return ret;
+std::string CharType::GetInputCode(std::string var, bool simple) {
+  return "input_char(&"+var+");\n";
 }
 
-std::string CharType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// CharType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"char_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
-  return ret;
+std::string CharType::GetOutputCode(std::string var, bool simple) {
+  return "output_char("+var+",\""+var+"\");\n";
 }
 
-InputSpec *CharType::GenerateRandomInput() {
+InputSpec *CharType::GenerateRandomInput(bool simple) {
   char c = utils::rand_char();
   std::string spec = "{char: " + std::to_string(c) + "}";
   std::string raw = std::to_string(c);

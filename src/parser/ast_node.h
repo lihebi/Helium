@@ -34,6 +34,16 @@ typedef enum {
 
 ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind);
 
+class ASTOption {
+public:
+  // ONLY for calculating segment size purpose
+  static void TurnOffPOIInstrument() {m_instrument=false;}
+  static void TurnOnPOIInstrument() {m_instrument=true;}
+  static bool UsePOIInstrument() {return m_instrument;}
+private:
+  static bool m_instrument;
+};
+
 
 class Function;
 class Block;

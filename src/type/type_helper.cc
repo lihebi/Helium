@@ -67,20 +67,10 @@ void fill_struct_specifier(std::string& name, struct struct_specifier& specifier
  * - get_scanf_code("%c", "&" + var);
  */
 std::string get_scanf_code(std::string format, std::string var) {
-  var = var + LoopHelper::Instance()->GetSuffix();
-  // std::cout << "getting scanf code. Current level: " << LoopHelper::Instance()->GetLevel() << "\n";
-  return "scanf(\"" + format + "\", " + var + ");\n";
-}
-
-/**
- * Do not add suffix
- */
-std::string get_scanf_code_raw(std::string format, std::string var) {
   return "scanf(\"" + format + "\", " + var + ");\n";
 }
 
 std::string get_malloc_code(std::string var, std::string type, std::string size) {
-  var = var + LoopHelper::Instance()->GetSuffix();
   return var + " = (" + type + "*)malloc(sizeof(" + type + ")*" + size + ");\n";
 }
 
@@ -97,30 +87,21 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
 
 std::string get_sizeof_printf_code(std::string var) {
   std::string ret;
-  std::string format_var = var + LoopHelper::Instance()->GetFormatSuffix();
-  std::string value_var = var + LoopHelper::Instance()->GetSuffix();
-  ret += "printf(\"int_" + format_var + ".size = %d\\n\", ";
-  ret += LoopHelper::Instance()->GetIndexVar();
-  ret += "sizeof(" + value_var + "));\n" + flush_output;
+  ret += "printf(\"int_" + var + ".size = %d\\n\", ";
+  ret += "sizeof(" + var + "));\n" + flush_output;
   return ret;
 }
 std::string get_strlen_printf_code(std::string var) {
   std::string ret;
-  std::string format_var = var + LoopHelper::Instance()->GetFormatSuffix();
-  std::string value_var = var + LoopHelper::Instance()->GetSuffix();
-  ret += "printf(\"int_" + format_var + ".strlen = %ld\\n\", ";
-  ret += LoopHelper::Instance()->GetIndexVar();
-  ret += "strlen(" + value_var + "));\n" + flush_output;
+  ret += "printf(\"int_" + var + ".strlen = %ld\\n\", ";
+  ret += "strlen(" + var + "));\n" + flush_output;
   return ret;
 }
 
 std::string get_addr_printf_code(std::string var) {
   std::string ret;
-  std::string format_var = var + LoopHelper::Instance()->GetFormatSuffix();
-  std::string value_var = var + LoopHelper::Instance()->GetSuffix();
-  ret += "printf(\"addr_" + format_var + " = %p\\n\", ";
-  ret += LoopHelper::Instance()->GetIndexVar();
-  ret += "(void*)" + value_var + ");\n" + flush_output;
+  ret += "printf(\"addr_" + var + " = %p\\n\", ";
+  ret += "(void*)" + var + ");\n" + flush_output;
   return ret;
 }
 
@@ -129,9 +110,7 @@ std::string get_addr_printf_code(std::string var) {
  */
 std::string get_isnull_printf_code(std::string var, bool is_null) {
   std::string ret;
-  std::string format_var = var + LoopHelper::Instance()->GetFormatSuffix();
   ret += "printf(\"isnull_" + format_var + " = %d\\n\", ";
-  ret += LoopHelper::Instance()->GetIndexVar();
   if (is_null) {
     ret += "1";
   } else {
@@ -145,7 +124,6 @@ std::string get_isnull_printf_code(std::string var, bool is_null) {
  * branch construction for NULL of a variable
  */
 std::string get_check_null(std::string var, std::string true_branch, std::string false_branch) {
-  var = var + LoopHelper::Instance()->GetSuffix();
   std::string ret;
   ret += "if (" + var + " == NULL) {\n";
   ret += true_branch;
@@ -207,96 +185,25 @@ bool is_primitive(std::string s) {
 /**
  * Heap size: 
  */
-std::string LoopHelper::GetHeliumHeapCode(std::string var, std::string body) {
+std::string GetHeliumHeapCode(std::string var, std::string body) {
   std::string ret;
   // std::cout << "Current levl: " << m_level << "\n";
   // use the last suffix ...
-  std::string value_var = var + LoopHelper::Instance()->GetLastSuffix();
-  std::string format_var = var + LoopHelper::Instance()->GetLastFormatSuffix();
-  std::string idxvar = GetCurrentIndexVar();
   ret += "helium_heap_target_size = -1;\n";
-  ret += "for (int " + idxvar + "=0;" + idxvar + "<helium_heap_top;" + idxvar + "++) {\n";
-  ret += "  if (" + value_var + " == helium_heap_addr[" + idxvar + "]) {\n";
-  ret += "    helium_heap_target_size = helium_heap_size[" + idxvar + "];\n";
+  ret += "for (int i=0;i<helium_heap_top;i++) {\n";
+  ret += "  if (" + var + " == helium_heap_addr[i]) {\n";
+  ret += "    helium_heap_target_size = helium_heap_size[i];\n";
   ret += "    break;\n";
   ret += "  }\n";
   ret += "}\n";
   ret += "if (helium_heap_target_size != -1) {\n";
-  ret += "  printf(\"int_" + format_var + "_heapsize = %d\\n\", ";
-  ret += LoopHelper::Instance()->GetLastIndexVar();
+  ret += "  printf(\"int_" + var + "_heapsize = %d\\n\", ";
   ret += "helium_heap_target_size);\n";
   ret += flush_output;
-  ret += "  for (int " + idxvar + "=0,helium_heap_target_size_tmp=helium_heap_target_size;"
-    + idxvar + "<helium_heap_target_size_tmp;" + idxvar + "++) {\n";
+  ret += "  for (int i=0;i<helium_heap_target_size;i++) {\n";
   ret += "// HeliumHeapCode body\n";
   ret += body;
   ret += " }\n";
-  ret += "}\n";
-  return ret;
-}
-
-/**
- * Heap Address Size recorder
- */
-std::string LoopHelper::GetSuffix() {
-  std::string ret;
-  for (int i=1;i<=m_level;i++) {
-    ret += "[" + std::string(i, 'i') + "]";
-  }
-  return ret;
-}
-
-// suffix to be used in suffix string
-std::string LoopHelper::GetFormatSuffix() {
-  std::string ret;
-  for (int i=1;i<=m_level;i++) {
-    ret += "[%d]";
-  }
-  return ret;
-}
-std::string LoopHelper::GetLastFormatSuffix() {
-  std::string ret;
-  for (int i=1;i<=m_level-1;i++) {
-    ret += "[%d]";
-  }
-  return ret;
-}
-
-/**
- * Use the m_level-1 as level
- */
-std::string LoopHelper::GetLastSuffix() {
-  std::string ret;
-  for (int i=1;i<m_level;i++) {
-    ret += "[" + std::string(i, 'i') + "]";
-  }
-  return ret;
-}
-
-std::string LoopHelper::GetIndexVar() {
-  std::string ret;
-  for (int i=1;i<=m_level;i++) {
-    ret += std::string(i,'i') + ", ";
-  }
-  return ret;
-}
-std::string LoopHelper::GetLastIndexVar() {
-  std::string ret;
-  for (int i=1;i<=m_level-1;i++) {
-    ret += std::string(i,'i') + ", ";
-  }
-  return ret;
-}
-
-/**
- * loop by helium_size. The index is "i"
- */
-std::string LoopHelper::GetHeliumSizeLoop(std::string body) {
-  std::string ret;
-  std::string var = GetCurrentIndexVar();
-  // Use helium_size_tmp because the body might overwrite helium_size
-  ret += "for (int " + var + "=0,helium_size_tmp=helium_size;" + var + "<helium_size_tmp;" + var + "++) {\n";
-  ret += body;
   ret += "}\n";
   return ret;
 }

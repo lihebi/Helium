@@ -1,5 +1,6 @@
 #include "xml_doc_reader.h"
 #include "utils/utils.h"
+#include "xmlnode_helper.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 
@@ -84,6 +85,32 @@ std::string XMLDocReader::QueryCodeFirst(const std::string &code, std::string qu
   delete doc;
   return ret;
 }
+
+/**
+ * Return the string instead of child_value
+ */
+std::string XMLDocReader::QueryCodeFirstDeep(const std::string &code, std::string query) {
+  pugi::xml_document *doc = XMLDocReader::CreateDocFromString(code);
+  pugi::xml_node root_node = doc->document_element();
+  pugi::xml_node node = root_node.select_node(query.c_str()).node();
+  std::string ret = get_text(node);
+  // std::string ret = node.child_value();
+  delete doc;
+  return ret;
+}
+
+/**
+ * Query if the xml has the node
+ */
+bool XMLDocReader::QueryCodeHas(const std::string &code, std::string query) {
+  pugi::xml_document *doc = XMLDocReader::CreateDocFromString(code);
+  pugi::xml_node root_node = doc->document_element();
+  pugi::xml_node node = root_node.select_node(query.c_str()).node();
+  if (node) return true;
+  else return false;
+}
+
+
 /**
  * Query "query" on "code".
  * Return all matching.

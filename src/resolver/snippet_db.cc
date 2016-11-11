@@ -587,6 +587,79 @@ std::set<int> SnippetDB::GetDep(int id) {
   return ret;
 }
 
+
+std::pair<int,int> SnippetDB::QueryStruct(std::string str) {
+  int level=0;
+  if (str.find("struct") != std::string::npos) {
+    // it has struct keyword. This should be easy:
+    // - remove the struct keyword
+    str = str.substr(str.find("struct")+strlen("struct"));
+    // - remove the pointer starts.
+    utils::trim(str);
+    while (!str.empty() && str.back()=='*') {
+      str.pop_back();
+      level++;
+      utils::trim(str);
+    }
+    // - assert only one component left
+    if (str.empty() || str.find(' ')!=std::string::npos) {
+      return {-1,0};
+    }
+    // - then look up struct
+    std::set<int> ids=LookUp(str, {SK_Structure});
+    if (ids.empty()) return {-1,0};
+    int id=*ids.begin();
+    return {id, level};
+  } else {
+    // this might be a typedef.
+    // - remove pointer stars
+    utils::trim(str);
+    while (!str.empty() && str.back()=='*') {
+      str.pop_back();
+      level++;
+      utils::trim(str);
+    }
+    // - assert only one component left
+    if (str.empty() || str.find(' ')!=std::string::npos) {
+      return {-1,0};
+    }
+    // - look up struct, typedef
+    std::set<int> ids=LookUp(str, {SK_Structure});
+    // - if it is a struct, bingo, do it.
+    if (!ids.empty()) {
+      return {*ids.begin(), level};
+    } else {
+      // - parse the snippet, if it is typedef, get the defined to structure
+      std::set<int> ids = LookUp(str, {SK_Typedef});
+      if (ids.empty()) {
+        return {-1,0};
+      } else {
+        int id = *ids.begin();
+        std::string code = GetCode(id);
+        // this is a typedef code
+        // remove the tailing type, and get rid of the pointer stars
+        std::string tmp = code.substr(code.rfind("str"));
+        utils::trim(tmp);
+        utils::trim(tmp);
+        while (!tmp.empty() && tmp.back()=='*') {
+          tmp.pop_back();
+          level++;
+          utils::trim(tmp);
+        }
+        // if this contains the whole struct {} definition, bingo
+        if (XMLDocReader::QueryCodeHas(code, "//struct/block")) {
+          return {id, level};
+        }
+        // otherwise, get the inner struct and Recursively call QueryStruct
+        std::string sub=XMLDocReader::QueryCodeFirstDeep(code, "//type/name");
+        std::pair<int,int> p = QueryStruct(sub);
+        return {p.first, p.second+level};
+      }
+    }
+  }
+}
+
+
 /*******************************
  * queries
  *******************************/

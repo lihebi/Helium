@@ -17,9 +17,13 @@ helium
 --run-test=false
 --segment-per-poi-limit=100
 --valid-poi-limit=100
-
-
-** [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
+** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
+** CANCELED [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
+   CLOSED: [2016-11-10 Thu 12:44]
+** Make the paper example working
+** TODO [#A] NULL dereference
+** TODO [#A] infinite loop
+** All three buffer overflow benchmark
 
 
 

@@ -5,6 +5,8 @@
 #include "utils/log.h"
 #include "resolver/global_variable.h"
 
+bool ASTOption::m_instrument=true;
+
 
 ASTNode::ASTNode(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
   : m_xmlnode(xmlnode), m_ast(ast),  m_parent(parent), m_prev(prev) {
@@ -98,6 +100,9 @@ std::vector<Variable> ASTNode::GetVariables() {
  * It is used in the detailed models
  */
 std::string ASTNode::POIOutputCode() {
+  if (!ASTOption::UsePOIInstrument()) {
+    return "";
+  }
   std::string ret;
   // std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
   // if (vars.size() > 0) {
@@ -130,6 +135,9 @@ std::string ASTNode::POIOutputCode() {
  * Code to instrument after the POI node
  */
 std::string ASTNode::POIAfterCode() {
+  if (!ASTOption::UsePOIInstrument()) {
+    return "";
+  }
   std::string ret;
   if (m_ast->IsFailurePoint(this)) {
     ret += "printf(\"HELIUM_AFTER_POI\\n\");\n";

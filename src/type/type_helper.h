@@ -48,14 +48,7 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
 
 std::string get_sizeof_printf_code(std::string var);
 std::string get_strlen_printf_code(std::string var);
-
-
 std::string get_addr_printf_code(std::string var);
-// std::string get_check_null_if(std::string var);
-// std::string get_check_null_else();
-// std::string get_check_null_fi();
-std::string get_isnull_printf_code(std::string var, bool is_null);
-std::string get_check_null(std::string var, std::string true_branch, std::string false_branch);
 
 std::string get_helium_size_branch(std::string true_branch, std::string false_branch);
 
@@ -63,38 +56,6 @@ std::string get_id(std::string raw_type);
 
 bool is_primitive(std::string s);
 
-class LoopHelper {
-public:
-  static LoopHelper* Instance() {
-    if (!m_instance) {
-      m_instance = new LoopHelper();
-    }
-    return m_instance;
-  }
-  std::string GetCurrentIndexVar() {
-    return std::string(m_level, 'i');
-  }
-  void IncLevel() {
-    m_level++;
-  }
-  void DecLevel() {
-    m_level--;
-  }
-  std::string GetHeliumSizeLoop(std::string body);
-  std::string GetHeliumHeapCode(std::string var, std::string body);
-  int GetLevel() {
-    return m_level;
-  }
-  std::string GetSuffix();
-  std::string GetFormatSuffix();
-  std::string GetIndexVar();
-  std::string GetLastSuffix();
-  std::string GetLastFormatSuffix();
-  std::string GetLastIndexVar();
-private:
-  static LoopHelper *m_instance;
-  int m_level=0;
-};
-
+std::string GetHeliumHeapCode(std::string var, std::string body);
 
 #endif /* TYPE_HELPER_H */
