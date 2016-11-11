@@ -4,7 +4,6 @@
 #include "common.h"
 #include "parser/xmlnode.h"
 #include "utils/string_utils.h"
-
 #include "input_spec.h"
 
 class Type;

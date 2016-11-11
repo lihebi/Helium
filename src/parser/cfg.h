@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "ast_node.h"
+#include "ast_internal.h"
 
 class CFG;
 

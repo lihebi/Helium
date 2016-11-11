@@ -5,6 +5,8 @@
 #include "utils/log.h"
 #include <iostream>
 
+#include "ast_internal.h"
+
 
 /********************************
  * AST

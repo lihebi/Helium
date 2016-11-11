@@ -4,6 +4,7 @@
 
 #include "utils/log.h"
 #include "resolver/global_variable.h"
+#include "ast_internal.h"
 
 bool ASTOption::m_instrument=true;
 

@@ -128,5 +128,5 @@ sub <- subset(csv, reach_code==5 & status_code == 1)
 sub <- sub[1:(length(csv)-2)]
 
 ComputeTransferFunction(sub);
-## ComputeConstant(sub);
+ComputeConstant(sub);
 
