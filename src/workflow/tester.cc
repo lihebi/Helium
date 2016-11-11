@@ -226,16 +226,16 @@ void Tester::Test() {
 
 
     // (HEBI: Run the program)
-    if (HeliumOptions::Instance()->Has("verbose")) {
-      std::cout << "Running the program ..." << "\n";
-    }
+    // if (HeliumOptions::Instance()->Has("verbose")) {
+    //   std::cout << "Running the program ..." << "\n";
+    // }
 
     int timeout_ms = HeliumOptions::Instance()->GetInt("test-timeout");
     float timeout_s = (float)timeout_ms / 1000;
     std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, timeout_s);
-    if (HeliumOptions::Instance()->Has("verbose")) {
-      std::cout << "End of running" << "\n";
-    }
+    // if (HeliumOptions::Instance()->Has("verbose")) {
+    //   std::cout << "End of running" << "\n";
+    // }
 
 
     utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);

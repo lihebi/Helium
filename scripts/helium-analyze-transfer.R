@@ -24,13 +24,60 @@ ComputeConstant <- function(data) {
             if (length(raw) < 3) next;
             value <- raw[1]
             if (length(which(raw != value)) == 0) {
-                cat(paste(name, "=",  value, "\n"))
+                if (as.character(value)=="(nil)") {
+                    cat(paste(name, "=",  "nil", "\n"))
+                } else {
+                    cat(paste(name, "=",  value, "\n"))
+                }
             }
         }
     }
 }
 
+ComputeNumber <- function(frame, xname, yname) {
+    res <- lm(frame)
+    rsq <- summary(res)$r.squared
+    if (!is.na(rsq) && rsq == 1) {
+        k = res$coefficients[2]
+        b = res$coefficients[1]
 
+        ## rounding k and b
+        k = round(k, digit=3)
+        b = round(b, digit=3)
+
+        if (k == 1) {
+            part1 <- xname;
+        } else if (k == 0) {
+            part1 <- "";
+        } else {
+            part1 <- paste(k,"*",xname);
+        }
+        if (b == 0) {
+            part2 <- "";
+        } else if (b > 0) {
+            part2 <- paste("+", b);
+        } else {
+            part2 <- paste("-", -b);
+        }
+        cat(paste(yname, "=", part1, part2, "\n"))
+        ## cat(paste(yname, "=", k, "*", xname, "+", b, "\n"))
+    }
+}
+
+ComputeAddr <- function(frame, xname, yname) {
+    ## cat("hello")
+    ## print("frame1")
+    ## print(frame[[1]])
+    ## print("frame2")
+    ## print(frame[[2]])
+    ## browser()
+
+    ## print(frame[[1]] == frame[[2]])
+
+    if (all(as.character(frame[[1]]) == as.character(frame[[2]]))) {
+        cat(paste(yname,"=",xname, "\n"))
+    }
+}
 
 ComputeTransferFunction <- function(data) {
     cat("Transfer functions:\n")
@@ -42,36 +89,16 @@ ComputeTransferFunction <- function(data) {
             ## only calculate transfer function for output versus input
             if (substr(xname, 1, 5) == "input" && substr(yname, 1, 6) == "output") {
                 ## omit address
-                if (contains(xname, "addr") || contains(yname, "addr")) next;
                 subframe <- data[c(j,i)]
                 subframe <- na.omit(subframe)
                 if (dim(subframe)[1] < 3) next;
-                res <- lm(subframe)
-                rsq <- summary(res)$r.squared
-                if (!is.na(rsq) && rsq == 1) {
-                    k = res$coefficients[2]
-                    b = res$coefficients[1]
-
-                    ## rounding k and b
-                    k = round(k, digit=3)
-                    b = round(b, digit=3)
-
-                    if (k == 1) {
-                        part1 <- xname;
-                    } else if (k == 0) {
-                        part1 <- "";
-                    } else {
-                        part1 <- paste(k,"*",xname);
-                    }
-                    if (b == 0) {
-                        part2 <- "";
-                    } else if (b > 0) {
-                        part2 <- paste("+", b);
-                    } else {
-                        part2 <- paste("-", -b);
-                    }
-                    cat(paste(yname, "=", part1, part2, "\n"))
-                    ## cat(paste(yname, "=", k, "*", xname, "+", b, "\n"))
+                if (contains(xname, "addr") && contains(yname, "addr")) {
+                    ComputeAddr(subframe, xname, yname);
+                } else if (contains(xname, "addr") || contains(yname, "addr")){
+                    ## one of them is addr, do nothing
+                } else {
+                    ## both are numbers ?
+                    ComputeNumber(subframe, xname, yname);
                 }
             }
         }
@@ -101,5 +128,5 @@ sub <- subset(csv, reach_code==5 & status_code == 1)
 sub <- sub[1:(length(csv)-2)]
 
 ComputeTransferFunction(sub);
-ComputeConstant(sub);
+## ComputeConstant(sub);
 

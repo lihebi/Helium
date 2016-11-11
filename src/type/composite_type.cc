@@ -34,7 +34,10 @@ void StructType::GenerateIOFunc() {
       input += "  " + t->GetInputCode("var->"+name);
       t->GenerateIOFunc();
       std::string key = IOHelper::ConvertTypeStr(t->GetRaw());
-      output += "  " + IOHelper::GetOutputCall(key, "var->"+name, "name->"+name);
+
+      // use sprintf to construct the name
+      output += "  sprintf(hbuf, \"%s->" + name + "\", name);\n";
+      output += "  output_" + key + "(&(var->" + name + "), hbuf);\n";
     }
   }
   input += "}\n";

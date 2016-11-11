@@ -209,10 +209,8 @@ void input_%s(%s **var) { // key, contain
    */
   format = R"prefix(
 void output_%s(%s **var, const char *name) { // key, contain
-  if (*var == NULL) {
-    printf("isnull_%s = %s\n", name, 1); fflush(stdout); // replace with s and d
-  } else {
-    printf("isnull_%s = %s\n", name, 0); fflush(stdout); // replace with s and d
+  printf("addr_%s=%s\n", name, (void*)(*var)); fflush(stdout); // replace with s and p
+  if ((*var) != NULL) {
     int size=-1;
     for (int i=0;i<hhtop;i++) {
       if (*var == hhaddr[i]) {
@@ -232,8 +230,7 @@ void output_%s(%s **var, const char *name) { // key, contain
 )prefix";
   sprintf(buf, format.c_str(),
           key.c_str(), contain.c_str(),
-          "%s", "%d",
-          "%s", "%d",
+          "%s", "%p",
           "%s", "%d",
           "%s", "%d",
           contain_key.c_str());
@@ -290,6 +287,14 @@ InputSpec *PointerType::GenerateRandomInput() {
   if (dynamic_cast<CharType*>(m_contained_type)) {
     int max_strlen = HeliumOptions::Instance()->GetInt("test-input-max-strlen");
     int helium_size = utils::rand_int(0, max_strlen+1);
+
+    // for this string input, I also want more NULL string.
+    // For this, I need to use boundary value here
+
+    if (utils::rand_bool()) {
+      helium_size=0;
+    }
+    
     std::string str;
     if (helium_size == 0) {
       str="";

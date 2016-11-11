@@ -1,3 +1,3 @@
-| benchmark | file | linum | type | bug-type | failure-condition | comment |
-|-----------+------+-------+------+----------+-------------------+---------|
-| nullderef | a.c  |    28 | stmt |          | output.y=NULL     |         |
+| benchmark | file | linum | type | bug-type | failure-condition     | comment |
+|-----------+------+-------+------+----------+-----------------------+---------|
+| nullderef | a.c  |    28 | stmt |          | output_addr_y = nil   |         |

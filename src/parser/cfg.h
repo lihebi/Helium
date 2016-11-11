@@ -79,19 +79,30 @@ public:
       for (ASTNode *c : m_cases) {
         m_label += c->GetLabel() + ", ";
       }
+      // TODO I might want to have different class to represent different type of edges
+      if (m_cond_branch) {
+        m_label += m_cond_branch->GetLabel();
+      }
     }
     return m_label;
   }
   std::vector<ASTNode*> GetCases() {return m_cases;}
+  void AddCondBranch(ASTNode *cond_branch) {
+    m_cond_branch = cond_branch;
+  }
+  ASTNode *GetCondBranch() {
+    return m_cond_branch;
+  }
 private:
   CFGNode *m_from=NULL;
   CFGNode *m_to=NULL;
   std::string m_label;
   std::vector<ASTNode*> m_cases;
+  ASTNode *m_cond_branch=NULL; // this can be a Else or ElseIf
 };
 
 /**
- * TODO free so many CFGs
+ * Todo free so many CFGs
  */
 class CFG {
 public:

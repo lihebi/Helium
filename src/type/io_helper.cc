@@ -63,10 +63,8 @@ void input_char_star(char **var) {
 
   m_output["char_star"] = R"prefix(
 void output_char_star(char **var, const char *name) {
-  if (*var == NULL) {
-    printf("isnull_%s=%d\n", name, 1); fflush(stdout);
-  } else {
-    printf("isnull_%s=%d\n", name, 0); fflush(stdout);
+  printf("addr_%s=%p\n", name, (void*)(*var)); fflush(stdout);
+  if ((*var) != NULL) {
     printf("int_%s.strlen=%ld\n", name, strlen(*var)); fflush(stdout);
     printf("addr_%s=%p\n", name, (void*)(*var)); fflush(stdout);
     int size = -1;

@@ -103,21 +103,6 @@ std::string get_addr_printf_code(std::string var) {
 }
 
 /**
- * print it is equal to null, even based on the parameters, not the runtime value.
- */
-std::string get_isnull_printf_code(std::string var, bool is_null) {
-  std::string ret;
-  ret += "printf(\"isnull_" + var + " = %d\\n\", ";
-  if (is_null) {
-    ret += "1";
-  } else {
-    ret += "0";
-  }
-  ret += ");\n" + flush_output;
-  return ret;
-}
-
-/**
  * branch construction for NULL of a variable
  */
 std::string get_check_null(std::string var, std::string true_branch, std::string false_branch) {

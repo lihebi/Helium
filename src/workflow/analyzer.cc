@@ -140,6 +140,7 @@ bool check_sat(std::vector<std::string> vorig) {
     }
   }
   std::string smt;
+  smt += "(declare-const nil Int)\n";
   for (std::string var : vars) {
     smt += get_declare_fun(var) + "\n";
   }
@@ -225,7 +226,6 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     // std::vector<std::vector<std::string> > vv;
     // std::vector<std::vector<std::string> > combinations = get_combinations(vv);
 
-    // TODO NOW putting into z3 to validate it
     std::cout << "Using:" << "\n";
     std::vector<std::string> v;
     v.push_back(failure_condition);

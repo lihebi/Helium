@@ -423,6 +423,7 @@ std::string CodeGen::getSupportBody() {
 void *hhaddr[BUFSIZ];
 int hhsize[BUFSIZ];
 int hhtop = 0;
+char hbuf[BUFSIZ];
 )prefix";
   code += IOHelper::Instance()->GetAll();
   

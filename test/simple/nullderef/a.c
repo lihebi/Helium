@@ -3,7 +3,7 @@
 #include <stdbool.h>
 typedef struct _demo {
   int id;
-  struct _demo *f;
+  char *f;
 } demo;
 
 bool b;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   demo *x;
   x=(demo*)malloc(sizeof(demo));
   z=(demo*)malloc(sizeof(demo));
-  x->f=argv[0];
-  z->f=argv[1];
+  x->f=argv[1];
+  z->f=argv[2];
   bar(z, x);
 }
