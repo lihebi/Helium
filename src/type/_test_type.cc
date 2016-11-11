@@ -1,5 +1,6 @@
 #include "type.h"
 #include "common.h"
+#include "io_helper.h"
 
 #include "parser/xml_doc_reader.h"
 #include "parser/ast_node.h"
@@ -134,3 +135,16 @@ TEST(TypeCase, TypeTest) {
 }
 
 
+TEST(TypeCase, NewTest) {
+  TypeFactory::CreateType("int");
+  std::string input,output;
+  get_instrument_code("char *a;", input, output);
+  std::cout << "input:" << "\n";
+  std::cout << input << "\n";
+  std::cout << "output:" << "\n";
+  std::cout << output << "\n";
+  std::cout << IOHelper::Instance()->GetInput("int") << "\n";
+  std::cout << IOHelper::Instance()->GetOutput("int") << "\n";
+  std::cout << "all" << "\n";
+  std::cout << IOHelper::Instance()->GetAll() << "\n";
+}

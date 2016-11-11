@@ -5,6 +5,7 @@
 #include "helium_options.h"
 #include "utils/utils.h"
 #include "parser/xml_doc_reader.h"
+#include "type/io_helper.h"
 
 
 #include <iostream>
@@ -140,7 +141,7 @@ std::string replace_return_to_35(const std::string &code) {
 std::string CodeGen::GetMain() {
   std::string ret;
   ret += get_header();
-  ret += Type::GetHeader();
+  // ret += Type::GetHeader();
   std::string main_func;
   std::string other_func;
   /**
@@ -238,7 +239,7 @@ int main() {
       code = replace_return_to_35(code);
       main_func += code;
       main_func += "return 0;\n";
-      main_func += "};\n";
+      main_func += "}\n";
     } else {
       std::string code = ast->GetCode(nodes);
       // for (ASTNode *node : nodes) {
@@ -305,6 +306,12 @@ std::string CodeGen::GetSupport() {
       code += "#include <" + header + ">\n";
     }
   }
+  code += R"prefix(
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+)prefix";
   // code += SystemResolver::Instance()->GetHeaders();
 
   code += ""
@@ -407,6 +414,18 @@ std::string CodeGen::getSupportBody() {
   code += code_variable;
   code += "\n// functions\n";
   code += code_func;
+
+
+
+  // Adding libhelium here
+  code += "\n// libhelium222\n";
+  code += R"prefix(
+void *hhaddr[BUFSIZ];
+int hhsize[BUFSIZ];
+int hhtop = 0;
+)prefix";
+  code += IOHelper::Instance()->GetAll();
+  
   return code;
 }
 

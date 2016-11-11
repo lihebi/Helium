@@ -1,4 +1,5 @@
 #include "type.h"
+#include "composite_type.h"
 #include "resolver/snippet_db.h"
 #include "parser/resource.h"
 #include "io_helper.h"
@@ -33,7 +34,7 @@ void StructType::GenerateIOFunc() {
       input += t->GetInputCode("var->"+name);
       t->GenerateIOFunc();
       std::string key = IOHelper::ConvertTypeStr(t->GetRaw());
-      output += IOHelper::GetOutputCall(key, "var->"+name, "name->"+name);
+      output += IOHelper::GetOutputCall(key, "var->"+name, "\"name->"+name+"\"");
     }
   }
   IOHelper::Instance()->Add(key, input, output);

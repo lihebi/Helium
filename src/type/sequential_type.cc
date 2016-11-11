@@ -1,4 +1,5 @@
-#include "type.h"
+#include "sequential_type.h"
+#include "primitive_type.h"
 #include "utils/log.h"
 #include "type_helper.h"
 #include "utils/utils.h"
@@ -22,15 +23,63 @@ ArrayType::~ArrayType() {
   }
 }
 
+void ArrayType::GenerateIOFunc() {
+  // TODO This does not support multi-dimension array
+  std::string raw = GetRaw();
+  char buf[BUFSIZ];
+  std::string key = IOHelper::ConvertTypeStr(raw);
+  std::string contain = m_contained_type->GetRaw();
+  std::string contain_key = IOHelper::ConvertTypeStr(contain);
+  if (IOHelper::Instance()->Has(key)) {
+    return;
+  }
+  const char *input_format = R"prefix(
+void input_%s(%s **var) { // key, contain
+  int size;
+  scanf("%s", &size); // replace to d
+  if (szie==0) {
+    (*var)=NULL;
+  } else {
+    for (int i=0;i<size;i++) {
+      input_%s(&(*var)[i]); // contain_key
+    }
+  }
+}
+)prefix";
+  sprintf(buf, input_format,
+          key.c_str(), contain.c_str(),
+          contain_key.c_str());
+  std::string input = buf;
+
+  const char *output_format = R"prefix(
+void output_%s(%s *var, const char *name) { // key, contain
+  printf("int_%s.size=%s\n", name, sizeof(var)); fflush(stdout); // replace with s and d
+  printf("addr_%s=%s\n", name, (void*)var); fflush(stdout); // replace with s and p
+  for (int i=0;i<%d;i++) { // replace with m_num
+    output_%s((*var)[i]); // replace with contain_key
+  }
+}
+)prefix";
+  sprintf(buf, output_format,
+          key.c_str(), contain.c_str(),
+          "%s", "%d",
+          "%s", "%p",
+          m_num,
+          contain_key.c_str());
+  std::string output=buf;
+  IOHelper::Instance()->Add(key, input, output);
+}
+
 std::string ArrayType::GetDeclCode(std::string var) {
   std::string ret;
+  ret += "// ArrayType::GetDeclCode\n";
   if (!m_contained_type) {
-    helium_log_warning("ArrayType::GetDeclCode with no contained type");
-    return "";
+    ret += "// [WW] ArrayType::GetDeclCode with no contained type\n";
+    return ret;
   }
   if (m_num == 0) {
-    helium_log_warning("ArrayType::GetDeclCode array size is 0");
-    return "";
+    ret += "// [WW] ArrayType::GetDeclCode array size is 0\n";
+    return ret;
   }
   ret += m_contained_type->GetDeclCode(var + "[" + std::to_string(m_num) + "]");
   return ret;
@@ -42,14 +91,18 @@ std::string ArrayType::GetDeclCode(std::string var) {
  */
 std::string ArrayType::GetInputCode(std::string var, bool simple) {
   std::string ret;
+  ret += "// ArrayType::GetInputCode\n";
   if (!m_contained_type) {
-    helium_log_warning("ArrayType::GetInputCode with no contained type");
-    return "";
+    ret += "// ArrayType::GetInputCode with no contained type\n";
+    return ret;
   }
   if (m_num == 0) {
-    helium_log_warning("ArrayType::GetInputCode array size is 0");
-    return "";
+    ret += "ArrayType::GetInputCode array size is 0";
+    return ret;
   }
+  std::string raw = GetRaw();
+  std::string key = IOHelper::ConvertTypeStr(raw);
+  
 
   if (dynamic_cast<CharType*>(m_contained_type)) {
     ret += get_scanf_code("%s", var);
@@ -141,7 +194,7 @@ void PointerType::GenerateIOFunc() {
 void input_%s(%s **var) { // key, contain
   int size;
   scanf("%s", &size); // replace to d
-  if (szie==0) {
+  if (size==0) {
     (*var)=NULL;
   } else {
     (*var) = (%s*)malloc(sizeof(%s)*size); // contain, contain
@@ -232,7 +285,7 @@ std::string PointerType::GetOutputCode(std::string var, bool simple) {
   std::string contain = m_contained_type->GetRaw();
   std::string key = IOHelper::ConvertTypeStr(contain+"*");
   GenerateIOFunc();
-  return IOHelper::GetOutputCall(key, var, var);
+  return IOHelper::GetOutputCall(key, var, "\""+var+"\"");
 }
 
 InputSpec *PointerType::GenerateRandomInput(bool simple) {

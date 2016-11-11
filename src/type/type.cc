@@ -6,6 +6,10 @@
 #include "parser/xml_doc_reader.h"
 #include <iostream>
 
+#include "primitive_type.h"
+#include "composite_type.h"
+#include "sequential_type.h"
+
 /**
  * select from the corner cases
  * @param limit return up to this number of inputs. -1 means no limit, return all corner cases
@@ -189,57 +193,3 @@ Type *TypeFactory::CreateType(std::string str) {
   return new UnknownType(str);
   return NULL;
 }
-
-/**
- * This is a helper function
- * It create a n-level pointer type.
- * The most inner one is the StructType will EMPTY raw.
- * So never expect the getting decl code would work.
- * That also means, the user is responsible to give the type a "raw".
- * That raw will be used to generate ONLY decl
- */
-// PointerType *make_struct_pointer_type(int id, int level) {
-//   Type *t = new StructType("", id);
-//   PointerType *ret;
-//   while (level-->0) {
-//     ret = new PointerType("");
-//     ret->SetContainedType(t);
-//     t=ret;
-//   }
-//   return ret;
-// }
-
-
-/**
- * FIXME need smart pointer!
- */
-// std::vector<std::pair<InputSpec*, InputSpec*> > pairwise(Type* a, Type *b) {
-//   std::vector<std::pair<InputSpec*, InputSpec*> > ret;
-//   std::vector<InputSpec*> apair = a->GeneratePairInput();
-//   std::vector<InputSpec*> bpair = b->GeneratePairInput();
-//   // combine
-//   for (InputSpec* ain : apair) {
-//     for (InputSpec *bin : bpair) {
-//       ret.push_back({ain, bin});
-//     }
-//   }
-//   return ret;
-// }
-
-
-
-/**
- * These are global variables
- */
-std::string Type::GetHeader() {
-  return R"(
-  void *hhaddr[BUFSIZ];
-  int hhsize[BUFSIZ];
-  int hhtop = 0;
-)";
-}
-
-
-
-
-

@@ -638,7 +638,7 @@ std::pair<int,int> SnippetDB::QueryStruct(std::string str) {
         std::string code = GetCode(id);
         // this is a typedef code
         // remove the tailing type, and get rid of the pointer stars
-        std::string tmp = code.substr(code.rfind("str"));
+        std::string tmp = code.substr(code.rfind(str));
         utils::trim(tmp);
         utils::trim(tmp);
         while (!tmp.empty() && tmp.back()=='*') {

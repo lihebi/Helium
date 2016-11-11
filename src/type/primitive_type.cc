@@ -1,4 +1,4 @@
-#include "type.h"
+#include "primitive_type.h"
 #include "type_helper.h"
 #include "utils/utils.h"
 #include "helium_options.h"

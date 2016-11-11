@@ -19,10 +19,18 @@ public:
    */
   static std::string ConvertTypeStr(std::string raw) {
     utils::trim(raw);
+    // this is char[]
+    if (raw.find("char") == 0
+        && std::count(raw.begin(), raw.end(), '*') == 0
+        && std::count(raw.begin(), raw.end(), '[') == 1) {
+      return "char_LJ";
+    }
+    utils::replace(raw, "*", "_star");
+    utils::replace(raw, "[", "_L");
     utils::replace(raw, " ", "_");
-    utils::replace(raw, "*", "star");
-    utils::replace(raw, "[", "L");
     utils::replace(raw, "]", "J");
+    utils::replace(raw, "__", "_");
+    utils::replace(raw, "___", "_");
     return raw;
   }
   static std::string GetInputCall(std::string key, std::string var) {
@@ -47,6 +55,16 @@ output_%s(%s,%s);
     m_input[key] = input;
     m_output[key] = output;
   }
+  std::string GetInput(std::string key) {
+    if (m_input.count(key) == 1) return m_input[key];
+    else return "";
+  }
+  std::string GetOutput(std::string key) {
+    if (m_output.count(key) == 1) return m_output[key];
+    else return "";
+  }
+  std::string GetAll();
+
 private:
   IOHelper();
   ~IOHelper();

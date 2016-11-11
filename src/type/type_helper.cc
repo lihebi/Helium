@@ -3,9 +3,6 @@
 
 using namespace utils;
 
-LoopHelper* LoopHelper::m_instance = NULL;
-
-
 bool search_and_remove(std::string &s, boost::regex reg) {
   if (boost::regex_search(s, reg)) {
     s = boost::regex_replace<boost::regex_traits<char>, char>(s, reg, "");
@@ -110,7 +107,7 @@ std::string get_addr_printf_code(std::string var) {
  */
 std::string get_isnull_printf_code(std::string var, bool is_null) {
   std::string ret;
-  ret += "printf(\"isnull_" + format_var + " = %d\\n\", ";
+  ret += "printf(\"isnull_" + var + " = %d\\n\", ";
   if (is_null) {
     ret += "1";
   } else {

@@ -1,5 +1,7 @@
 #include "io_helper.h"
 
+IOHelper* IOHelper::m_instance = NULL;
+
 IOHelper::IOHelper() {
   /**
    * Primitive types
@@ -79,4 +81,40 @@ void output_char_star(char *var, const char *name) {
   }
 }
 )prefix";
+
+
+  m_input["char_LJ"] = R"prefix(
+void input_char_LJ(char **var) {
+  scanf("%s", (*var));
+}
+)prefix";
+  
+  m_output["char_LJ"] = R"prefix(
+void output_char_LJ(char *var, const char *name) {
+  printf("int_%s.size=%d\n", name, sizeof(var)); fflush(stdout);
+  printf("addr_%s=%p\n", name, (void*)var); fflush(stdout);
+  printf("int_%s.strlen=%d\n", name, strlen(var)); fflush(stdout);
+}
+)prefix";
+
+}
+
+std::string IOHelper::GetAll() {
+  // first, the declaration
+  std::string decl;
+  std::string code;
+  for (auto m : m_input) {
+    std::string func = m.second;
+    utils::trim(func);
+    decl += func.substr(0, func.find('{')-1) + ";\n";
+    code += func + "\n";
+  }
+  // then, the functions
+  for (auto m : m_output) {
+    std::string func = m.second;
+    utils::trim(func);
+    decl += func.substr(0, func.find('{')-1) + ";\n";
+    code += func + "\n";
+  }
+  return decl + code;
 }
