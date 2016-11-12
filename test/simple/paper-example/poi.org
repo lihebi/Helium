@@ -1,0 +1,3 @@
+| benchmark     | file | linum | type | bug-type | failure-condition                         | comment |
+|---------------+------+-------+------+----------+-------------------------------------------+---------|
+| paper-example | a.c  |    24 | stmt |          | output_int_s.strlen > output_int_buf.size |         |

@@ -215,24 +215,6 @@ int main() {
 
       // the code
       std::string code = ast->GetCode(nodes);
-      if (HeliumOptions::Instance()->GetBool("print-segment-peek")) {
-        std::cout << "-- Segment Peek:" << "\n";
-        // print up to 3 lines
-        int loc = HeliumOptions::Instance()->GetInt("segment-peek-loc");
-        if (std::count(code.begin(), code.end(), '\n') <= loc) {
-          std::cout << code << "\n";
-        } else {
-          int idx = 0;
-          while (loc-- > 0) {
-            int idx_new = code.find('\n', idx);
-            std::string tmp = code.substr(idx, idx_new);
-            std::cout << tmp << "\n";
-            idx = idx_new+1;
-          }
-        }
-        std::cout << "-- Segment Peek end" << "\n";
-
-      }
       
       ast->ClearDecl();
       // modify the code, specifically change all return statement to return 35;
@@ -287,6 +269,38 @@ int main() {
     std::cout << "\t" << "Branch Number: " << branch_ct << "\n";
     std::cout << "\t" << "Loop Number: " << loop_ct << "\n";
   }
+
+  if (HeliumOptions::Instance()->GetBool("print-segment-peek")) {
+    std::cout << "-- Segment Peek:" << "\n";
+
+    for (auto m : m_data) {
+      AST *ast = m.first;
+      std::set<ASTNode*> nodes = m.second;
+      if (ast == m_first_ast) {
+        ASTOption::TurnOffPOIInstrument();
+        std::string code = m.first->GetCode(m.second);
+        std::cout << utils::BLUE << utils::indent_string(code) << utils::RESET << "\n";
+        ASTOption::TurnOnPOIInstrument();
+      }
+    }
+
+    // print up to 3 lines
+    // int loc = HeliumOptions::Instance()->GetInt("segment-peek-loc");
+    // if (std::count(code.begin(), code.end(), '\n') <= loc) {
+    //   std::cout << code << "\n";
+    // } else {
+    //   int idx = 0;
+    //   while (loc-- > 0) {
+    //     int idx_new = code.find('\n', idx);
+    //     std::string tmp = code.substr(idx, idx_new);
+    //     std::cout << tmp << "\n";
+    //     idx = idx_new+1;
+    //   }
+    // }
+    std::cout << "-- Segment Peek end" << "\n";
+
+  }
+
   return ret;
 }
 std::string CodeGen::GetSupport() {
