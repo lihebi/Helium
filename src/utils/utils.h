@@ -23,6 +23,7 @@ namespace utils {
 
   double get_time();
   void debug_time(std::string id="");
+
 }
 
 #endif

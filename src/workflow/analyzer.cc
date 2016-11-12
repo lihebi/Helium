@@ -40,13 +40,13 @@ void Analyzer::AnalyzeCSV() {
   
   // std::cout << "Transfer functions:" << "\n";
   if (HeliumOptions::Instance()->GetBool("print-analyze-result-transfer")) {
-    std::cout << "Result Transfer Function: " << "\n";
-    std::cout << m_transfer_output << "\n";
+    std::cout << utils::PURPLE << "Result Transfer Function: " << utils::RESET << "\n";
+    std::cout << utils::indent_string(m_transfer_output) << "\n";
   }
 
   if (HeliumOptions::Instance()->GetBool("print-analyze-result-meta")) {
-    std::cout << "Result Meta: " << "\n";
-    std::cout << m_meta_output << "\n";
+    std::cout << utils::PURPLE << "Result Meta: " << utils::RESET << "\n";
+    std::cout << utils::indent_string(m_meta_output) << "\n";
   }
 }
 
@@ -59,6 +59,17 @@ bool entry_point(std::string s) {
   for (std::string var : all) {
     if (var.find("input") == std::string::npos) continue;
     if (var.find("argc") == std::string::npos && var.find("argv") == std::string::npos) return false;
+  }
+  return true;
+}
+
+static bool is_constant(std::string s) {
+  std::vector<std::string> all = utils::split(s, "><=+- ");
+  for (std::string var : all) {
+    if (var.find("input") != std::string::npos
+        || var.find("output") != std::string::npos) {
+      return false;
+    }
   }
   return true;
 }
@@ -208,6 +219,18 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
       utils::trim(lhs);
       utils::trim(rhs);
       if (candidate_output_var.count(lhs)) {
+        // std::cout << "for variable " << lhs << "\n";
+        // std::cout << "we have " << rhs << "\n";
+        // std::cout << candidate_output_var.size() << "\n";
+        // std::cout << is_constant(rhs) << "\n";
+        if (candidate_output_var.size() == 1 && is_constant(rhs)) {
+          // std::cout << "but it is removed" << "\n";
+          // this is for output_addr_y=nil
+          // This is true, but we need to find the condition!
+          // FIXME this will be wrong if the condition is indeed incured by the path, and it satisfied the output
+          // so the thing missing is: only one output variable, and the variable is determistic (do not have a transfer from input)
+          continue;
+        }
         if (entry_point(rhs)) {
           mapping[lhs].push_back(rhs);
         }
@@ -230,6 +253,7 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     std::vector<std::string> v;
     v.push_back(failure_condition);
     for (auto m : mapping) {
+      // only using the first function
       std::cout << "\t" << m.first << " = " << *m.second.begin() << "\n";
       v.push_back(m.first + " = " + *m.second.begin());
     }

@@ -2,34 +2,37 @@
 
 
 * Current Experiment Running
-** DONE VM1 running 9999 preprocessing, timeout 30m, record success to result.txt, from z to a
-   CLOSED: [2016-11-09 Wed 23:36]
+** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
+** TODO [#A] infinite loop
 ** VM2 running 99999 preprocessing, timeout 1h
-** DONE VM3 running 9999 preprocessing, timeout 30m, record success to result.txt
-   CLOSED: [2016-11-09 Wed 23:36]
-** DONE record the time and error for each benchmark
-   CLOSED: [2016-11-09 Wed 23:36]
-** DONE Generate POI that is randomly selected
-   CLOSED: [2016-11-10 Thu 00:23]
 ** From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
 The parameter setting:
 helium
 --run-test=false
 --segment-per-poi-limit=100
 --valid-poi-limit=100
-** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
+** Make the paper example working
+** All three buffer overflow benchmark
+** If [else]
 ** CANCELED [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
    CLOSED: [2016-11-10 Thu 12:44]
-** Make the paper example working
-** TODO [#A] NULL dereference
-** TODO [#A] infinite loop
-** All three buffer overflow benchmark
+** DONE VM1 running 9999 preprocessing, timeout 30m, record success to result.txt, from z to a
+   CLOSED: [2016-11-09 Wed 23:36]
+** DONE VM3 running 9999 preprocessing, timeout 30m, record success to result.txt
+   CLOSED: [2016-11-09 Wed 23:36]
+** DONE record the time and error for each benchmark
+   CLOSED: [2016-11-09 Wed 23:36]
+** DONE Generate POI that is randomly selected
+   CLOSED: [2016-11-10 Thu 00:23]
+** DONE [#A] NULL dereference
+   CLOSED: [2016-11-12 Sat 15:50]
+** DONE addr_y=nil
+   CLOSED: [2016-11-12 Sat 15:49]
+
 
 
 
 * TODO [#A] For PLDI
-** TODO [#A] infinite loop
-** TODO [#A] NULL dereference
 ** TODO more buffer-overflow
 ** TODO grammar patching implementation and evaluation
 ** TODO input code into function
