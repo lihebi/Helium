@@ -46,6 +46,8 @@ public:
    */
   void PatchGrammar();
   void ResolveInput();
+
+  std::set<ASTNode*> PatchCFG();
   void GenCode();
   std::string GetMain() {return m_main;}
   std::string GetSupport() {return m_support;}

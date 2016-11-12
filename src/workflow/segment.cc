@@ -102,6 +102,55 @@ void Segment::PatchGrammar() {
   }
 }
 
+/**
+ * Patch the control edges. E.g.
+ * - select the case nodes if 1) the switch is selected 2) the body any one is selected.
+ * - select the else and elseif node if 1) the if is selected 2) any node in its body is selected.
+ */
+std::set<ASTNode*> Segment::PatchCFG() {
+  std::set<ASTNode*> ret;
+  for (CFGNode *cfgnode : m_selection) {
+    if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
+      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
+      for (CFGNode *case_first : sucs) {
+        // FIXME I can only check the first node here ...
+        if (m_selection.count(case_first)==1) {
+          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, case_first);
+          std::vector<ASTNode*> cases = edge->GetCases();
+          for (ASTNode *c : cases) {
+            // generator.AddNode(c);
+            ret.insert(c);
+          }
+        }
+      }
+    }
+    else if (cfgnode->GetASTNode()->Kind() == ANK_If) {
+      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
+      for (CFGNode *body_first : sucs) {
+        // FIXME I'm also only checking the first node for each branch ..
+        if (m_selection.count(body_first) == 1) {
+          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, body_first);
+          // this cond will be either a elseif or a else or a then
+          // ASTNode *cond = edge->GetCond();
+          // if (cond) {
+          //   ret.insert(cond);
+          // }
+          if (edge->IsElse()) {
+            // mark all the else
+            If *ifnode = dynamic_cast<If*>(cfgnode->GetASTNode());
+            Else *elsenode = ifnode->GetElse();
+            if (elsenode) {
+              ret.insert(elsenode);
+            }
+          }
+        }
+      }
+    } else if (cfgnode->GetASTNode()->Kind() == ANK_ElseIf) {
+    }
+  }
+  return ret;
+}
+
 bool Segment::RemoveNewBranch() {
   std::set<CFGNode*> to_remove;
   for (CFGNode *node : m_new) {
@@ -202,23 +251,10 @@ void Segment::ResolveInput() {
 void Segment::GenCode() {
   CodeGen generator;
   // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
-
-  for (CFGNode *cfgnode : m_selection) {
-    if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
-      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
-      for (CFGNode *case_first : sucs) {
-        // FIXME I can only check the first node here ...
-        if (m_selection.count(case_first)==1) {
-          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, case_first);
-          std::vector<ASTNode*> cases = edge->GetCases();
-          for (ASTNode *c : cases) {
-            generator.AddNode(c);
-          }
-        }
-      }
-    }
+  std::set<ASTNode*> astnodes = PatchCFG();
+  for (ASTNode *node : astnodes) {
+    generator.AddNode(node);
   }
-  
   generator.SetFirstNode(m_head->GetASTNode());
   for (CFGNode *cfgnode : m_selection) {
     generator.AddNode(cfgnode->GetASTNode());
