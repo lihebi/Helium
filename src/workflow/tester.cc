@@ -155,6 +155,8 @@ void Tester::genPairwise() {
 }
 
 void Tester::genTestSuite() {
+  cpu_timer timer;
+  timer.start();
   helium_print_trace("Tester::genTestSuite");
   if (m_inputs.size() == 0) {
     return;
@@ -174,13 +176,8 @@ void Tester::genTestSuite() {
     std::cerr << "EE: unsupported test generation method: " << method << "\n";
   }
   clearopt();
-}
 
-void Tester::Test() {
-  helium_print_trace("Tester::Test");
-  cpu_timer timer;
-  timer.start();
-  genTestSuite();
+
 
   if (HeliumOptions::Instance()->GetBool("pause-no-testcase")) {
     if (m_test_suites.empty()) {
@@ -196,107 +193,114 @@ void Tester::Test() {
     std::cout << "\t" << "Number of tests: " << m_test_suites.size() << "\n";
     std::cout << "\t" << "Test Generation Time: " << boost::timer::format(test_gen_time, 3, "%w seconds") << "\n";
   }
+  
 
-
+  /**
+   * Write test suites into files
+   */
+  
   utils::create_folder((m_exe_folder / "input").string());
-  utils::create_folder((m_exe_folder / "tests").string());
-
-  // TODO in analyzer, calculate failure due to context
-  int pass_ct=0;
-  int fail_ct=0;
-
-  
-  fs::path test_result_file = m_exe_folder / "result.txt";
+  utils::create_folder((m_exe_folder / "output").string());
+  // utils::create_folder((m_exe_folder / "tests").string());
   fs::path test_input_file = m_exe_folder / "input.txt";
-  
   for (int i=0;i<(int)m_test_suites.size();i++) {
-    std::string cmd = (m_exe_folder / m_exe).string();
-    int status;
     TestSuite suite = m_test_suites[i];
-
-    // utils::write_file(m_exe_folder + "/input/" + std::to_string(i) + ".txt" + ".spec", spec);
-      
-    // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
-    // I'm also going to write the input file in the executable directory
     std::string input = suite.GetInput();
-
-
-    // DEPRECATED no longer use the spec, instrument in the code instead
-    // std::cout << suite.GetSpec() << "\n";
-
-
-    // (HEBI: Run the program)
-    // if (HeliumOptions::Instance()->Has("verbose")) {
-    //   std::cout << "Running the program ..." << "\n";
-    // }
-
-    int timeout_ms = HeliumOptions::Instance()->GetInt("test-timeout");
-    float timeout_s = (float)timeout_ms / 1000;
-    std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, timeout_s);
-    // if (HeliumOptions::Instance()->Has("verbose")) {
-    //   std::cout << "End of running" << "\n";
-    // }
-
-
     utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);
-
-    if (status == 0) {
-      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
-        std::cout << utils::GREEN << "test success\n" << utils::RESET << "\n";
-      }
-      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
-        std::cout << utils::GREEN  << "." << utils::RESET << std::flush;
-      }
-      pass_ct++;
-      // ret->AddOutput(output, true);
-      output += "HELIUM_TEST_SUCCESS\n";
-    } else {
-      fail_ct++;
-      if (HeliumOptions::Instance()->GetBool("print-test-info")) {
-        std::cout << utils::RED << "test failure\n" << utils::RESET << "\n";
-
-      }
-      if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
-        std::cout << utils::RED << "." << utils::RESET << std::flush;
-      }
-      // ret->AddOutput(output, false);
-      output += "HELIUM_TEST_FAILURE\n";
-    }
-
-
-    // DEBUG
-    // if (HeliumOptions::Instance()->Has("verbose")) {
-    //   std::cout << output << "\n";
-    // }
-
-    // For input, and output, log them out only
-    // fs::path in_file = m_exe_folder / "tests" / ("in-" + std::to_string(i) + ".txt");
-    // fs::path out_file = m_exe_folder / "tests" / ("out-" + std::to_string(i) + ".txt");
-    // utils::write_file(in_file.string(), suite.GetSpec());
-    // utils::write_file(out_file.string(), output);
-
-    utils::append_file(test_result_file.string(), output);
     utils::append_file(test_input_file.string(), "-----\n" + suite.GetSpec());
+  }
+
+}
+
+void Tester::Test() {
+  helium_print_trace("Tester::Test");
+  genTestSuite();
+
+  std::string newcmd = "bash -c \"cd " + m_exe_folder.string() + "; ./test.sh\"";
+  std::cout << "running " << newcmd << "\n";
+  utils::new_exec(newcmd.c_str());
+
+  // I will need to read the data
+
+  std::string result = utils::read_file((m_exe_folder/"test-result.txt").string());
+  std::cout << "Testing result:" << "\n";
+  std::cout << result << "\n";
+
+  // combining those test files into one file.
+  // This is to be compatible with old analysis code.
+  // In the future this might change
+
+  // **** Nothing left in this function after this point ****
+
+
+  // int pass_ct=0;
+  // int fail_ct=0;
+  
+  // fs::path test_result_file = m_exe_folder / "result.txt";
+
+
+  // for (int i=0;i<(int)m_test_suites.size();i++) {
+  //   std::string cmd = (m_exe_folder / m_exe).string();
+  //   int status;
+  //   TestSuite suite = m_test_suites[i];
+
+  //   // std::string output = utils::exec_in(cmd.c_str(), test_suite[i].c_str(), &status, 10);
+  //   // I'm also going to write the input file in the executable directory
+  //   std::string input = suite.GetInput();
+
+
+  //   // (HEBI: Run the program)
+  //   int timeout_ms = HeliumOptions::Instance()->GetInt("test-timeout");
+  //   float timeout_s = (float)timeout_ms / 1000;
+  //   std::string output = utils::exec_in(cmd.c_str(), input.c_str(), &status, timeout_s);
+
+
+    
+
+  //   if (status == 0) {
+  //     if (HeliumOptions::Instance()->GetBool("print-test-info")) {
+  //       std::cout << utils::GREEN << "test success\n" << utils::RESET << "\n";
+  //     }
+  //     if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
+  //       std::cout << utils::GREEN  << "." << utils::RESET << std::flush;
+  //     }
+  //     pass_ct++;
+  //     // ret->AddOutput(output, true);
+  //     output += "HELIUM_TEST_SUCCESS\n";
+  //   } else {
+  //     fail_ct++;
+  //     if (HeliumOptions::Instance()->GetBool("print-test-info")) {
+  //       std::cout << utils::RED << "test failure\n" << utils::RESET << "\n";
+
+  //     }
+  //     if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
+  //       std::cout << utils::RED << "." << utils::RESET << std::flush;
+  //     }
+  //     // ret->AddOutput(output, false);
+  //     output += "HELIUM_TEST_FAILURE\n";
+  //   }
+  //   utils::append_file(test_result_file.string(), output);
  
-  }
-  if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
-    std::cout << "\n";
-  }
-  cpu_times test_total = timer.elapsed();
+  // }
 
-  if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
-    std::cout << "\t" << "Total Testing Time: " << boost::timer::format(test_total, 3, "%w seconds") << "\n";
-    // only calculate coverage if we run some tests
-    if (!m_test_suites.empty()) {
-      Gcov gcov(m_exe_folder, "main.c");
-      std::cout << "\t" << "Stmt Coverage: " << gcov.GetStmtCoverage() << "\n";
-      std::cout << "\t" << "Branch Coverage: " << gcov.GetBranchCoverage() << "\n";
-    }
 
-    std::cout << "\t" << "Number of Pass Test: " << pass_ct << "\n";
-    std::cout << "\t" << "Number of Fail Test: " << fail_ct << "\n";
+  // if (HeliumOptions::Instance()->GetBool("print-test-info-dot")) {
+  //   std::cout << "\n";
+  // }
 
-  }
+  // if (HeliumOptions::Instance()->GetBool("print-test-meta")) {
+  //   // std::cout << "\t" << "Total Testing Time: " << boost::timer::format(test_total, 3, "%w seconds") << "\n";
+  //   // only calculate coverage if we run some tests
+  //   if (!m_test_suites.empty()) {
+  //     Gcov gcov(m_exe_folder, "main.c");
+  //     std::cout << "\t" << "Stmt Coverage: " << gcov.GetStmtCoverage() << "\n";
+  //     std::cout << "\t" << "Branch Coverage: " << gcov.GetBranchCoverage() << "\n";
+  //   }
+
+  //   std::cout << "\t" << "Number of Pass Test: " << pass_ct << "\n";
+  //   std::cout << "\t" << "Number of Fail Test: " << fail_ct << "\n";
+
+  // }
   
   // return ret;
 }

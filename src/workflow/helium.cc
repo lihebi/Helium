@@ -174,6 +174,7 @@ void Helium::process() {
     builder.SetMain(segment->GetMain());
     builder.SetSupport(segment->GetSupport());
     builder.SetMakefile(segment->GetMakefile());
+
     builder.Write();
     builder.Compile();
     if (HeliumOptions::Instance()->GetBool("print-code-output-location")) {

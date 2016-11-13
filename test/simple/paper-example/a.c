@@ -5,11 +5,11 @@ char buf[1024];
 void bar(char *a, char *b) {
   char *s=NULL;
   int c=0;
-  /* legacy(); */
-  /* for (char *p=a;p!='\0';p++) { */
-  /*   *p='y'; */
-  /*   if (p) break; */
-  /* } */
+  legacy();
+  for (char *p=a;*p!='\0';p++) {
+    *p='y';
+    if (p) break;
+  }
   strcpy(buf, "short");
   strcat(a,b);
   if(strlen(b)<1024) {

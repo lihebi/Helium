@@ -227,6 +227,19 @@ Builder::Write() {
   utils::write_file(m_dir+"/main.h", m_support);
   utils::write_file(m_dir + "/Makefile", m_makefile);
 
+  // copy the test script
+  std::string script_file = utils::escape_tide(HeliumOptions::Instance()->GetString("helium-home"))
+    + "/scripts/helium-test-segment.sh";
+  // script_file = "/home/hebi/github/helium/scripts/helium-test-segment.sh";
+  // std::cout << "copying the script: " << script_file << "\n";
+  if (!fs::exists(script_file)) {
+    std::cerr << "EE: fatal error: test script does not exist."
+              << "Did you set the correct helium-home option in helium config file?" << "\n";
+    exit(1);
+  }
+  fs::copy(script_file, m_dir+"/test.sh");
+  // utils::write_file(m_dir+"/test.sh");
+
   // post process the outputed files: main.c, main.h, Makefile
   postProcess();
 

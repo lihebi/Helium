@@ -9,20 +9,17 @@ static const std::string META_SCRIPT = "helium-analyze-meta.R";
 
 void Analyzer::GetCSV() {
   // call the script helium-output-to-csv.py
-  std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
-  utils::new_exec(cmd.c_str());
-  std::cout << "generated CSV file" << "\n";
+  // std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
+  // utils::new_exec(cmd.c_str());
+  // std::cout << "generated CSV file" << "\n";
 
   // DEBUG print out the csv file
-  cmd = "cat " + m_dir + "/result.csv";
-  std::string output = utils::new_exec(cmd.c_str());
-  if (HeliumOptions::Instance()->Has("verbose")) {
-    std::cout << output << "\n";
-  }
+  // cmd = "cat " + m_dir + "/result.csv";
+  // std::string output = utils::new_exec(cmd.c_str());
+  // if (HeliumOptions::Instance()->Has("verbose")) {
+  //   std::cout << output << "\n";
+  // }
   // std::cout << output << "\n";
-
-
-  
 }
 
 void Analyzer::AnalyzeCSV() {

@@ -11,10 +11,14 @@ helium
 --run-test=false
 --segment-per-poi-limit=100
 --valid-poi-limit=100
-** Make the paper example working
+** DONE Make the paper example working
+   CLOSED: [2016-11-13 Sun 01:38]
 ** All three buffer overflow benchmark
 ** Merge if transfer is the same
 ** Pairwise testing, for struct!
+** DONE Testing parallel
+   CLOSED: [2016-11-13 Sun 01:37]
+** Testing timeout explicit record
 ** DONE If [else]
    CLOSED: [2016-11-12 Sat 16:30]
 ** CANCELED [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
