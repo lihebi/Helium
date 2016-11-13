@@ -3,7 +3,7 @@
 #include <stdbool.h>
 typedef struct _demo {
   int id;
-  char *f;
+  struct _demo *f;
 } demo;
 
 bool b;
@@ -12,7 +12,7 @@ bool c;
 demo somedemo;
 
 void bar(demo *z, demo *x) {
-  demo *p = z->f;
+  char *p = z->f;
   demo *y;
   int d;
   if (c) {
@@ -28,12 +28,11 @@ void bar(demo *z, demo *x) {
   *y = somedemo;
 }
 
-int main(int argc, char* argv[]) {
-  demo *z;
-  demo *x;
-  x=(demo*)malloc(sizeof(demo));
-  z=(demo*)malloc(sizeof(demo));
-  x->f=argv[1];
-  z->f=argv[2];
+demo *entry_1;
+demo *z;
+demo *x;
+
+int main() {
+  x->f=entry_1;
   bar(z, x);
 }

@@ -135,7 +135,7 @@ void Else::GetCode(std::set<ASTNode*> nodes,
     n->GetCode(nodes, ret, all);
   }
   if (selected) {
-    ret += "}";
+    ret += "}\n";
   }
 }
 

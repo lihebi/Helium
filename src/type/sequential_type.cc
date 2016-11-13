@@ -291,7 +291,7 @@ InputSpec *PointerType::GenerateRandomInput() {
     // for this string input, I also want more NULL string.
     // For this, I need to use boundary value here
 
-    if (utils::rand_bool()) {
+    if (utils::rand_int(1,6) == 1) {
       helium_size=0;
     }
     

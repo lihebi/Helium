@@ -58,7 +58,11 @@ bool entry_point(std::string s) {
   std::vector<std::string> all = utils::split(s, "><=+- ");
   for (std::string var : all) {
     if (var.find("input") == std::string::npos) continue;
-    if (var.find("argc") == std::string::npos && var.find("argv") == std::string::npos) return false;
+    if (var.find("argc") == std::string::npos
+        && var.find("argv") == std::string::npos
+        // hard code this as entry point
+        // TODO needs an instrumentation to tell whether a point is entry point
+        && var.find("entry") == std::string::npos) return false;
   }
   return true;
 }

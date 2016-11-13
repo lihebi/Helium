@@ -148,14 +148,14 @@ void Helium::process() {
       continue;
     }
     std::string label = segment->Head()->GetLabel();
+    utils::trim(label);
     if (label.size() > 10) {
       label = label.substr(0,10);
       label += "...";
     }
-    std::cout << CYAN << "Processing query with the head node: "
-              << label << "."
-              << m_worklist.size() << " remaining in worklist.""\n"
-              << RESET;
+    std::cout << "Processing query with the head node: "
+              << CYAN << label << RED << " "
+              << m_worklist.size() << RESET << " remaining in worklist.""\n" ;
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     if (segment->Head()->GetASTNode()->Kind() == ANK_Function) {

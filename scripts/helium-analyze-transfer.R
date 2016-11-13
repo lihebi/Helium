@@ -13,7 +13,6 @@ startswith <- function(s, pattern) {
 
 ComputeConstant <- function(data) {
     cat ("Constant output variable:\n");
-    ## browser()
     for (i in seq(length(data))) {
         col <- data[i];
         name <- names(data)[i];
@@ -34,7 +33,7 @@ ComputeConstant <- function(data) {
     }
 }
 
-GetFormula <- function(yname, res) {
+GetFormula <- function(yname, res, valid=1) {
     ## print("Getting formula")
     b = res$coefficients[1]
     k = res$coefficients[-1]
@@ -42,55 +41,37 @@ GetFormula <- function(yname, res) {
     b = round(b, digit=3)
     parts <- c()
     for (kname in names(k)) {
-        ## print("Meta:")
-        ## print(kname)
-        ## print(k[kname])
-        ## print("Else:")
         if (is.na(k[kname])) next;
+        if (k[kname] %% 1 != 0) next;
         if (k[kname]==1) {
-            part <- kname
+            part <- paste(kname)
         } else if (k[kname]==0) {
             part <- ""
         } else {
             part <- paste(k[kname], "*", kname)
         }
-        parts <- c(parts, part)
+        if (nchar(part) > 0) {
+            parts <- c(parts, part)
+        }
     }
     ## print(parts)
+    if (length(parts) != valid) return ("");
     rhs <- paste(parts, collapse=" + ")
     form <- paste(yname, "=", rhs)
+    ## for unknown reason, the name string will add `` inside lm res.
+    ## this statement remove them
+    form <- gsub("`", "", form)
     return (form);
 }
 
 
 ComputeNumber <- function(frame, xname, yname) {
-    names(frame)=c(xname,yname)
+    names(frame)=c(yname,xname)
     res <- lm(frame)
     rsq <- summary(res)$r.squared
     if (!is.na(rsq) && rsq == 1) {
-        k = res$coefficients[2]
-        b = res$coefficients[1]
-
-        ## rounding k and b
-        k = round(k, digit=3)
-        b = round(b, digit=3)
-
-        if (k == 1) {
-            part1 <- xname;
-        } else if (k == 0) {
-            part1 <- "";
-        } else {
-            part1 <- paste(k,"*",xname);
-        }
-        if (b == 0) {
-            part2 <- "";
-        } else if (b > 0) {
-            part2 <- paste("+", b);
-        } else {
-            part2 <- paste("-", -b);
-        }
-        cat(paste(yname, "=", part1, part2, "\n"))
-        ## cat(paste(yname, "=", k, "*", xname, "+", b, "\n"))
+        form <- GetFormula(yname, res);
+        cat(form, "\n")
     }
 }
 
@@ -100,7 +81,6 @@ ComputeAddr <- function(frame, xname, yname) {
     ## print(frame[[1]])
     ## print("frame2")
     ## print(frame[[2]])
-    ## browser()
 
     ## print(frame[[1]] == frame[[2]])
 
@@ -135,12 +115,48 @@ ComputeTransferFunction <- function(data) {
     }
 }
 
+## The problem with this function is lm cannot treat NA as I want
+## Thus now I have to support the fixed number of variables
+## MultiTrans <- function(frame) {
+##     OutputNameIndex=c()
+##     InputNameIndex=c()
+##     for (name in names(frame)) {
+##         ## print(name)
+##         if (contains(name, "addr")) next;
+##         if (substr(name, 1, 6) == "output") {
+##             OutputNameIndex=c(OutputNameIndex, name)
+##         }
+##         if (substr(name, 1, 5) == "input") {
+##             InputNameIndex=c(InputNameIndex, name)
+##         }
+##     }
+##     ## print(InputNameIndex)
+##     ## print(OutputNameIndex)
+
+##     for (name in OutputNameIndex) {
+##         subframe <- frame[c(name, InputNameIndex)]
+##         ## subframe <- na.omit(subframe)
+##         res <- lm(subframe
+##                   ## na.action = na.exclude
+##                   ## na.action = na.omit
+##                   ## na.action = na.fail
+##                   ## na.action = NULL
+##                   )
+##         rsq <- summary(res)$r.squared
+##         if (!is.na(rsq) && rsq == 1) {
+##             ## print(summary(res))
+##             form <- GetFormula(names(subframe)[1], res, valid=2);
+##             ## cat(form,"\n")
+##             print(form)
+##         }
+##     }
+## }
 
 
 
-sub[c("output_int_buf.strlen",InputNameIndex)]
 
-MultiTrans <- function(frame) {
+TransFromTwoInput <- function(frame) {
+    cat("Trans from two inputs:\n")
     OutputNameIndex=c()
     InputNameIndex=c()
     for (name in names(frame)) {
@@ -153,22 +169,38 @@ MultiTrans <- function(frame) {
             InputNameIndex=c(InputNameIndex, name)
         }
     }
-    ## print(InputNameIndex)
-    ## print(OutputNameIndex)
 
     for (name in OutputNameIndex) {
-        subframe <- frame[c(name, InputNameIndex)]
-        subframe <- na.omit(subframe)
-        res <- lm(subframe)
-        rsq <- summary(res)$r.squared
-        if (!is.na(rsq) && rsq == 1) {
-            ## print(summary(res))
-            form <- GetFormula(names(subframe)[1], res);
-            ## cat(form,"\n")
-            print(form)
+
+        ## get combination of two variables
+        for (i in seq(1, length(InputNameIndex))) {
+            for (j in seq(i+1,length(InputNameIndex))) {
+                if (i > length(InputNameIndex) ||
+                    j > length(InputNameIndex)) {
+                    break;
+                }
+                inputidx <- InputNameIndex[c(i,j)]
+                subframe <- frame[c(name, inputidx)]
+                subframe <- na.omit(subframe)
+                if (dim(subframe)[1] < 3) next;
+                res <- lm(subframe)
+                rsq <- summary(res)$r.squared
+                if (!is.na(rsq) && rsq == 1) {
+                    k = res$coefficients[-1]
+                    k = round(k, digit=3)
+                    ## print(summary(res))
+                    form <- GetFormula(names(subframe)[1], res, valid=2);
+                    if (nchar(form)>0) {
+                        cat(form,"\n")
+                    }
+                }
+            }
         }
     }
 }
+
+## TransFromTwoInput(sub)
+
 
 ## use some test data doing testing
 ## Data Frame
@@ -201,6 +233,9 @@ sub <- subset(csv, reach_code==5 & status_code == 1)
 sub <- sub[1:(length(csv)-2)]
 
 ComputeTransferFunction(sub);
+
 ComputeConstant(sub);
+
+TransFromTwoInput(sub);
 
 ## MultiTrans(sub);
