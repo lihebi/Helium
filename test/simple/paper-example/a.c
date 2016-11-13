@@ -11,7 +11,7 @@ void bar(char *a, char *b) {
   /*   if (p) break; */
   /* } */
   strcpy(buf, "short");
-  /* strcat(a,b); */
+  strcat(a,b);
   if(strlen(b)<1024) {
     s=b;
   } else {
