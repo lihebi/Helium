@@ -187,12 +187,18 @@ int main() {
       // inputs
       for (Variable *var : m_inputs) {
         main_func += var->GetDeclCode();
-        main_func += var->GetInputCode();
+        if (HeliumOptions::Instance()->GetBool("instrument-io")) {
+          main_func += var->GetInputCode();
+        }
       }
 
       main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n" + flush_output;
-      for (Variable *var : m_inputs) {
-        main_func += var->GetOutputCode();
+      if (HeliumOptions::Instance()->GetBool("instrument-io")) {
+        for (Variable *var : m_inputs) {
+          main_func += var->GetOutputCode();
+        }
+      } else {
+        main_func += "// instrument-io turned off\n";
       }
       main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
 

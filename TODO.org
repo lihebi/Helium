@@ -8,6 +8,7 @@
 ** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
 ** TODO [#A] infinite loop
 ** VM2 running 99999 preprocessing, timeout 1h
+** gnu parallel
 ** From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
 The parameter setting:
 helium

@@ -124,6 +124,7 @@ HeliumOptions::HeliumOptions() {
     ("gnulib", po::value<bool>()->default_value(false), "use gnulib in makefile")
 
     ("run-test", po::value<bool>()->default_value(false), "whether to run test or not")
+    ("instrument-io", po::value<bool>()->default_value(true), "Whether to instrument IO")
     ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
     ("test-generation-method", po::value<std::string>(), "test generation method")
     ("random-test-number", po::value<int>(), "Number of test")
