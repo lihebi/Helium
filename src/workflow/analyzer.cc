@@ -202,7 +202,6 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
   }
 
   // 1. get the variables used in the failure condition
-  std::map<std::string, std::vector<std::string> > mapping;
   std::set<std::string> candidate_output_var;
   std::vector<std::string> components = utils::split(failure_condition);
   for (std::string comp : components) {
@@ -211,6 +210,12 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     }
   }
   // 2. get the transfer functions and constant functions related to those variables
+  // store the mapping to entry point
+  std::map<std::string, std::vector<std::string> > mapping;
+  // store the mapping not necessary to entry point. Used for merging query
+  // Also use approximation: only store the first one
+  // std::map<std::string, std::string> mapping_no_need_entry;
+  m_used_transfer.clear();
   // m_transfer_output
   std::vector<std::string> transfer_output = utils::split(m_transfer_output, '\n');
   for (std::string trans : transfer_output) {
@@ -231,6 +236,9 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
           // FIXME this will be wrong if the condition is indeed incured by the path, and it satisfied the output
           // so the thing missing is: only one output variable, and the variable is determistic (do not have a transfer from input)
           continue;
+        }
+        if (m_used_transfer.count(lhs)==0) {
+          m_used_transfer[lhs] = rhs;
         }
         if (entry_point(rhs)) {
           mapping[lhs].push_back(rhs);
@@ -276,6 +284,10 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     std::cout << "The transfer functions:" << "\n";
     for (auto m : mapping) {
       std::cout << "\t" << m.first << " = " << *m.second.begin() << "\n";
+    }
+    std::cout << "All used transfer funtions:" << "\n";
+    for (auto m : m_used_transfer) {
+      std::cout << "\t" << m.first << " = " << m.second << "\n";
     }
   }
   

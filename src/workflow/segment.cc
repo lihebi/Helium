@@ -24,6 +24,9 @@ Segment::Segment(const Segment &q) {
   m_selection = q.m_selection;
   m_new = q.m_new;
   m_head = q.m_head;
+  // copy the profile
+  // this will be updated when the new segment is tested
+  m_profile = q.m_profile;
 }
 
 Segment::Segment(CFGNode *cfgnode) {

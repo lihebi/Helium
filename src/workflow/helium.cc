@@ -202,13 +202,23 @@ void Helium::process() {
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
       if (fs::exists(builder.GetDir() + "/result.txt")) {
-        Analyzer analyzer(builder.GetDir());
-        analyzer.GetCSV();
-        analyzer.AnalyzeCSV();
-        analyzer.ResolveQuery(m_poi->GetFailureCondition());
+        Analyzer *analyzer = new Analyzer(builder.GetDir());
+        analyzer->GetCSV();
+        analyzer->AnalyzeCSV();
+        analyzer->ResolveQuery(m_poi->GetFailureCondition());
+        // m_segment_profiles[segment] = analyzer;
+        segment->SetProfile(analyzer);
 
+        // std::cout << utils::GREEN << "\n";
+        // std::cout << "Used transfer functions:" << "\n";
+        // std::map<std::string, std::string> mm = analyzer->GetUsedTransfer();
+        // for (auto m : mm) {
+        //   std::cout << m.first << " ==> " << m.second << "\n";
+        // }
+        // std::cout << utils::RESET << "\n";
+        
         // (HEBI: remove branch if not covered)
-        if (!analyzer.IsCovered()) {
+        if (!analyzer->IsCovered()) {
           std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
           // DEBUG remove branch or not
           if (HeliumOptions::Instance()->GetBool("remove-branch-if-not-covered")) {
@@ -225,7 +235,7 @@ void Helium::process() {
         }
 
         
-        if (analyzer.IsBugTriggered()) {
+        if (analyzer->IsBugTriggered()) {
           std::cout << utils::GREEN << "Bug is triggered." << utils::RESET << "\n";
         } else {
           std::cout << utils::RED << "Bug is not triggered." << utils::RESET << "\n";
@@ -327,7 +337,60 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
     // if (utils::rand_bool()) {
     //   ret.insert(q);
     // }
-    ret.insert(q);
+
+    if (sameTransfer(orig_query, q)) {
+      // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";
+      ret.insert(q);
+    } else {
+      // std::cout << utils::CYAN << "Not same, cannot merge .." << utils::RESET << "\n";
+    }
   }
   return ret;
+}
+
+bool Helium::sameTransfer(Segment *s1, Segment *s2) {
+  if (!s1->GetProfile() && !s2->GetProfile()) return true;
+  // if (m_segment_profiles.count(s1) == 0
+  //     && m_segment_profiles.count(s2) == 0) {
+  //   return true;
+  // }
+
+  if (s1->GetProfile() && s2->GetProfile()) {
+    std::map<std::string, std::string> t1 = s1->GetProfile()->GetUsedTransfer();
+    std::map<std::string, std::string> t2 = s2->GetProfile()->GetUsedTransfer();
+  
+  // if (m_segment_profiles.count(s1) == 1
+  //     && m_segment_profiles.count(s2) == 1) {
+  //   std::map<std::string, std::string> t1 = m_segment_profiles[s1]->GetUsedTransfer();
+  //   std::map<std::string, std::string> t2 = m_segment_profiles[s2]->GetUsedTransfer();
+
+    // I might simply call t1==t2
+    // but I'm not 100 percent sure about map comparison, so just be safe
+
+    // std::cout << "Transfer for s1:" << "\n";
+    // for (auto m : t1) {
+    //   std::cout << m.first << " " << m.second << "\n";
+    // }
+    // std::cout << "Transfer for s2:" << "\n";
+    // for (auto m : t2) {
+    //   std::cout << m.first << " " << m.second << "\n";
+    // }
+    
+    if (t1.size() != t2.size()) {
+      // std::cout << "size is different" << "\n";
+      return false;
+    }
+    for (auto m : t1) {
+      if (t2.count(m.first) == 0 || t2[m.first] != m.second) {
+        // std::cout << "different: " << m.first << " " << m.second << "\n";
+        // std::cout << "           " << m.first << " " << t2[m.first] << "\n";
+        return false;
+      }
+    }
+    return true;
+  }
+  // std::cout << "S1 has profile: " << m_segment_profiles.count(s1) << "\n";
+  // std::cout << "S2 has profile: " << m_segment_profiles.count(s2) << "\n";
+  // std::cout << "One has and one not" << "\n";
+  return false;
 }

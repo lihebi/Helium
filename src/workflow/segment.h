@@ -4,6 +4,7 @@
 #include "common.h"
 #include "parser/ast.h"
 #include "parser/cfg.h"
+#include "analyzer.h"
 
 class Selection {
 };
@@ -58,6 +59,10 @@ public:
   std::string GetOpt();
   bool IsValid() {return m_valid;}
   static void SetPOI(CFGNode *poi) {m_poi = poi;}
+  void SetProfile(Analyzer *analyzer) {
+    m_profile = analyzer;
+  }
+  Analyzer *GetProfile() {return m_profile;}
 private:
 
   static CFGNode *m_poi;
@@ -83,6 +88,8 @@ private:
   std::string m_main;
   std::string m_support;
   std::string m_makefile;
+
+  Analyzer *m_profile = NULL;
 };
 
 
