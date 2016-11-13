@@ -6,6 +6,7 @@
 #include "utils/utils.h"
 #include "resolver/global_variable.h"
 #include "helium_options.h"
+#include "type/io_helper.h"
 
 CFGNode* Segment::m_poi = NULL;
 
@@ -280,7 +281,7 @@ void Segment::GenCode() {
 
   // generator.Preprocess();
 
-  
+  IOHelper::Instance()->Reset();
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();

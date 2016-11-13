@@ -189,26 +189,12 @@ int main() {
         main_func += var->GetDeclCode();
         main_func += var->GetInputCode();
       }
-      // for (auto mm : m_inputs) {
-      //   std::string var = mm.first;
-      //   Type *t = mm.second;
-      //   main_func += t->GetDeclCode(var);
-      //   // FIXME did not use def use analysis result!
-      //   main_func += t->GetInputCode(var);
-      // }
-
 
       main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n" + flush_output;
       for (Variable *var : m_inputs) {
         main_func += var->GetOutputCode();
       }
-      // for (auto mm : m_inputs) {
-      //   std::string var = mm.first;
-      //   Type *t = mm.second;
-      //   main_func += t->GetOutputCode(var);
-      // }
       main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
-      
 
       main_func += "// In function " + ast->GetFunctionName() + "\n";
       main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";

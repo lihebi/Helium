@@ -13,6 +13,7 @@ public:
     }
     return m_instance;
   }
+  void Reset();
   /**
    * @param [in] the type raw string
    * @return a string that is capable of being a function name in C

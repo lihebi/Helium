@@ -2,7 +2,11 @@
 
 IOHelper* IOHelper::m_instance = NULL;
 
-IOHelper::IOHelper() {
+/**
+ * Reset the mapping.
+ * If not, the result is serious: the helper functions are accumulating across POIs!
+ */
+void IOHelper::Reset() {
   /**
    * Primitive types
    */
@@ -94,7 +98,10 @@ void output_char_LJ(char **var, const char *name) {
   printf("int_%s.strlen=%d\n", name, strlen(*var)); fflush(stdout);
 }
 )prefix";
+}
 
+IOHelper::IOHelper() {
+  Reset();
 }
 
 std::string IOHelper::GetAll() {
