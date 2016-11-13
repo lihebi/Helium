@@ -2,6 +2,9 @@
 
 
 * Current Experiment Running
+** helium1 running new build rate testing on 515 projects, with:
+- correct segment LOC
+- correct removing of compile error and continue
 ** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
 ** TODO [#A] infinite loop
 ** VM2 running 99999 preprocessing, timeout 1h
