@@ -17,7 +17,7 @@ void bar(char *a, char *b) {
   } else {
     s=a;
   }
-  /* dep(); */
+  dep();
   if (c>8) {
     c=9;
   }

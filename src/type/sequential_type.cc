@@ -290,7 +290,7 @@ InputSpec *PointerType::GenerateRandomInput() {
 
     // for this string input, I also want more NULL string.
     // For this, I need to use boundary value here
-
+    // MAGIC NUMBER here!!
     if (utils::rand_int(1,6) == 1) {
       helium_size=0;
     }
@@ -309,6 +309,13 @@ InputSpec *PointerType::GenerateRandomInput() {
     ret = new PointerInputSpec();
     int max_pointer_size = HeliumOptions::Instance()->GetInt("test-input-max-pointer-size");
     int helium_size = utils::rand_int(0, max_pointer_size+1);
+
+
+    // NULL percent config option
+    int null_percent = HeliumOptions::Instance()->GetInt("test-null-pointer-percent");
+    assert(null_percent>=0 && null_percent <= 100);
+    int tmp = utils::rand_int(0, 101);
+    if (tmp < null_percent) helium_size = 0;
 
     // I'm going to add boundary values here
     // This doesnt need to use pairwise, because pairwise is talking about interaction between different variables

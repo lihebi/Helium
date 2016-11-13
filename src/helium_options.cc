@@ -138,6 +138,7 @@ HeliumOptions::HeliumOptions() {
     ("test-input-max-array-size", po::value<int>(), "max-array-size")
     ("test-input-max-argv0-strlen", po::value<int>(), "max-argv0-length")
     ("test-input-max-pointer-size", po::value<int>(), "max malloc size for a pointer")
+    ("test-null-pointer-percent", po::value<int>(), "the percent of generating a NULL for a pointer")
 
     ("procedure-limit", po::value<int>(), "procedure limit for context search")
     ("segment-per-poi-limit", po::value<int>()->default_value(-1),

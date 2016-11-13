@@ -188,7 +188,10 @@ void Helium::process() {
         std::cout << "Paused, press enter to continue ..." << std::flush;
         getchar();
       }
+      // std::cout << utils::RED << "Removing the new node" << "\n";
       segment->Remove(segment->New());
+      // std::cout << "The segment is valid? " << segment->IsValid() << "\n";
+      // std::cout << utils::RESET << "\n";
       m_worklist.push_back(segment);
       continue;
     }

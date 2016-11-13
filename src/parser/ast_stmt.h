@@ -27,7 +27,9 @@ public:
   virtual std::string GetLabel() override {
     std::string ret;
     std::set<ASTNode*> nodes;
+    ASTOption::TurnOffPOIInstrument();
     GetCode(nodes, ret, true);
+    ASTOption::TurnOnPOIInstrument();
     return ret;
   }
   virtual std::set<std::string> GetIdToResolve() override;

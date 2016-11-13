@@ -41,6 +41,9 @@ void Segment::Add(CFGNode *node, bool inter) {
   assert(node);
   m_selection.insert(node);
   m_head = node;
+  // FIX the bug of m_new contains everything.
+  // But why I need a set of nodes as new?
+  m_new.clear();
   m_new.insert(node);
   if (inter) {
     m_callsites.insert(node);
@@ -64,14 +67,27 @@ void Segment::Remove(CFGNode *node) {
 }
 
 void Segment::Remove(std::set<CFGNode*> nodes) {
+  // std::cout << "Has: " << m_selection.size() << "\n";
+  // std::cout << "removing: " << nodes.size() << "\n";
+  
+  // std::cout << m_valid << "\n";
   for (CFGNode *node : nodes) {
     if (m_callsites.count(node) == 1) {
+      // std::cout << "Reason 1" << "\n";
       m_valid = false;
       return;
     }
     m_selection.erase(node);
   }
-  if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
+  if (!m_poi || m_selection.count(m_poi)==0) {
+    // if (m_poi) {
+    //   std::cout << "POI is still there" << "\n";
+    // }
+    // std::cout << m_selection.size() << "\n";
+    // std::cout << m_poi->GetLabel() << "\n";
+    // std::cout << "Reason 2" << "\n";
+    m_valid = false;
+  }
 }
 
 /**
