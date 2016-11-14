@@ -43,6 +43,14 @@ for inputfile in input/*; do
     outputfile="output/$file"
     # echo "Input file: $inputfile"
     # echo "Output file: $outputfile"
+
+    # adding a layer to unify the output to remove duplication of multiple execution of POI instrumentation
+    # this is for infinite loop experiment
+    # it should do before the write to the file, because the output may be very long
+    # I want to unify before putting onto the disk
+
+    # but , this changes the return code, which is bad
+    # so switching back to previous one:
     timeout -k 1 1 ./a.out <$inputfile >$outputfile 2>/dev/null &
     pid=$!
     # echo "PID: $pid"
@@ -72,8 +80,13 @@ for pid in $allpids; do
     # get the return code by PID
     wait $pid
     res="$res $?"
+
+    # echo "May be this res:"
+    # echo ${PIPESTATUS[0]}
     # echo "Return status: $res"
 done
+
+# echo $res
 
 # store the return code with the tests
 echo $res > test-return-codes.txt
@@ -95,6 +108,9 @@ for file in input/*; do
 done
 for file in output/*; do
     output+=" $file"
+    # moving the 
+    cat $file | helium-unify-output.awk > $file.new
+    mv $file.new $file
 done
 
 
@@ -105,6 +121,9 @@ read -a resarr <<< $res
 # ASSERT equal size?
 for ((i=0;i<${#inputarr[@]};i++)); do
     code=${resarr[i]}
+
+    # echo "Test No. $i" >> result.txt
+    echo "Test No. " ${outputarr[i]} >> result.txt
     cat ${outputarr[i]} >> result.txt
     if [ $code == "0" ]; then
         echo "HELIUM_TEST_SUCCESS" >> result.txt

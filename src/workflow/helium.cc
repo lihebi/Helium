@@ -92,6 +92,8 @@ Helium::Helium(PointOfInterest *poi) {
         if (root) {
           int ast_linum = root->GetBeginLinum();
           int target_linum = linum - func_linum + ast_linum;
+          // find the node by linum
+          // TODO if this is a loop, how? Use all nodes inside the loop?
           ASTNode *target = ast->GetNodeByLinum(target_linum);
           if (target) {
             CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
@@ -99,6 +101,8 @@ Helium::Helium(PointOfInterest *poi) {
             // (HEBI: Set Failure Point)
             target->SetFailurePoint();
             Segment::SetPOI(target_cfgnode);
+            // construct the initial query by the initial nodes
+            // Let's use the entire loop at POI
             Segment *init_query = new Segment(target);
             m_worklist.push_back(init_query);
           }

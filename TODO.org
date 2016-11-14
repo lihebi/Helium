@@ -2,16 +2,18 @@
 
 
 * Current Experiment Running
-** helium1 running new build rate testing on 515 projects, with:
+** DONE helium1 running new build rate testing on 515 projects, with:
+   CLOSED: [2016-11-14 Mon 15:12]
 - correct segment LOC
 - correct removing of compile error and continue
 ** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
 ** TODO [#A] infinite loop
-** VM2 running 99999 preprocessing, timeout 1h
-** Add merge-everything option, for debugging ...
-** gnu parallel
-** String content input model
-** From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
+** Write up the experiment section
+** Implement the removing algorithm
+** DONE VM2 running 99999 preprocessing, timeout 1h
+   CLOSED: [2016-11-14 Mon 15:12]
+** DONE From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
+   CLOSED: [2016-11-14 Mon 15:13]
 The parameter setting:
 helium
 --run-test=false
@@ -43,6 +45,10 @@ helium
 ** DONE addr_y=nil
    CLOSED: [2016-11-12 Sat 15:49]
 
+
+** Add merge-everything option, for debugging ...
+** gnu parallel
+** String content input model
 
 * Infinite loop
 

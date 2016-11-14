@@ -13,6 +13,29 @@ CFGNode* Segment::m_poi = NULL;
 Segment::Segment(ASTNode *astnode) {
   assert(astnode);
   CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+
+  std::cout << "Constructing a segment .." << "\n";
+
+  // If the node is an Loop node, mark all the nodes into selection
+  if (dynamic_cast<For*>(astnode)
+      || dynamic_cast<Do*>(astnode)
+      || dynamic_cast<While*>(astnode)) {
+    std::cout << "This is a loop statement .. Using the entire loop." << "\n";
+    std::deque<ASTNode*> list;
+    list.push_back(astnode);
+    while (!list.empty()) {
+      ASTNode *n = list.front();
+      list.pop_front();
+      std::vector<ASTNode*> children = n->Children();
+      list.insert(list.end(), children.begin(), children.end());
+      CFGNode *cfgnode = cfg->ASTNodeToCFGNode(n);
+      if (cfgnode) {
+        m_selection.insert(cfgnode);
+        m_new.insert(cfgnode);
+      }
+    }
+    astnode->Children();
+  }
   CFGNode *cfgnode = cfg->ASTNodeToCFGNode(astnode);
   m_selection.insert(cfgnode);
   m_new.insert(cfgnode);

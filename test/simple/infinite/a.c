@@ -8,9 +8,9 @@ void foo(int a, int b) {
   }
 }
 
+int entry_1;
+int entry_2;
 int main(int argc, char *argv[]) {
-  int entry_1;
-  int entry_2;
   foo(entry_1, entry_2);
 }
 
