@@ -70,7 +70,6 @@ void For::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
-    ret += POIOutputCode();
     ret += "for (";
     // init
     if (!m_inits.empty()) {
@@ -83,6 +82,8 @@ void For::GetCode(std::set<ASTNode*> nodes,
     ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
     // m_blk->GetCode(nodes, ret, all, selected);
     ret += "{\n";
+    // For the loop, the instrumentation point should be inside the loop
+    ret += POIOutputCode();
   }
 
   
@@ -192,11 +193,11 @@ void While::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
-    ret += POIOutputCode();
     ret += "while (";
     ret += get_text(m_cond);
     ret += ")";
     ret += "{\n";
+    ret += POIOutputCode();
   }
   for (ASTNode *child: m_children) {
     child->GetCode(nodes, ret, all);
@@ -246,6 +247,7 @@ void Do::GetCode(std::set<ASTNode*> nodes,
   selected |= all;
   if (selected) {
     ret += "do {\n";
+    ret += POIOutputCode();
   }
   for (ASTNode *child : m_children) {
     child->GetCode(nodes, ret, all);

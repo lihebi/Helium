@@ -6,6 +6,34 @@
 # the output files will be in "output/" folder (the folder must be exist). The file name will be the same as input
 # both the stdout and stderr will be redirect to the output file
 
+# input: raw output from generated program
+# output: retain only the last HELIUM_POI_INSTRUMENT -- HELIUM_POI_INSTRUMENT_END
+# function OutputFilter() {
+#     tmp=""
+#     inprefix=false
+#     while read line; do
+#         if $inprefix; then
+#             echo line
+#         fi
+#         if [ $line == "HELIUM_POI_INSTRUMENT" ]; then
+#             # save this section
+#             insection=true
+#             inprefix=false
+#         fi
+#         if [ $line == "HELIUM_POI_INSTRUMENT_END" ]; then
+#             insection=false
+#         fi
+#         if [ $insection ]; then
+#             lastsection+=line
+#         elif [ !$inprefix ]; then
+#             suffix+=line
+#         fi
+#     done
+# }
+
+# OutputFilter
+# exit 1
+
 
 echo "Running all tests .."
 
