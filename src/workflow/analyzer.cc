@@ -7,6 +7,10 @@
 static const std::string TRANSFER_SCRIPT = "helium-analyze-transfer.R";
 static const std::string META_SCRIPT = "helium-analyze-meta.R";
 
+
+static const std::string TRANSFER_SCRIPT_TIMEOUT = "helium-analyze-transfer-timeout.sh";
+static const std::string META_SCRIPT_TIMEOUT = "helium-analyze-meta-timeout.sh";
+
 void Analyzer::GetCSV() {
   // call the script helium-output-to-csv.py
   // std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
@@ -26,12 +30,13 @@ void Analyzer::AnalyzeCSV() {
   std::string result_csv = m_dir + "/result.csv";
   std::string cmd;
   // transfer function
-  cmd = TRANSFER_SCRIPT + " " + result_csv;
+  // using timeout version. The default is 3s
+  cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv;
   // std::cout << "Analyzing using linear regression .." << "\n";
   // std::cout << cmd << "\n";
   m_transfer_output = utils::new_exec(cmd.c_str());
 
-  cmd = META_SCRIPT + " " + result_csv;
+  cmd = META_SCRIPT_TIMEOUT + " " + result_csv;
   m_meta_output = utils::new_exec(cmd.c_str());
 
   

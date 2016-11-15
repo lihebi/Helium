@@ -153,8 +153,8 @@ void Helium::process() {
     }
     std::string label = segment->Head()->GetLabel();
     utils::trim(label);
-    if (label.size() > 10) {
-      label = label.substr(0,10);
+    if (label.size() > 20) {
+      label = label.substr(0,20);
       label += "...";
     }
     std::cout << "Processing query with the head node: "
