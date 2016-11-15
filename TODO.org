@@ -4,12 +4,21 @@
 * Current Experiment Running
 ** DONE helium1 running new build rate testing on 515 projects, with:
    CLOSED: [2016-11-14 Mon 15:12]
-- correct segment LOC
-- correct removing of compile error and continue
+   - correct segment LOC
+   - correct removing of compile error and continue
 ** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
-** TODO [#A] infinite loop
-** Write up the experiment section
-** Implement the removing algorithm
+** TODO [#A] Write up the experiment section
+** DONE [#A] Implement the removing algorithm
+   CLOSED: [2016-11-14 Mon 18:44]
+** TODO [#A] Use automatic patching tools
+** DONE [#A] polymorph overflow benchmarks
+   CLOSED: [2016-11-14 Mon 18:44]
+  - argv -f output
+** TODO [#A] ncompress overflow benchmark
+** TODO Assertion experiment
+** TODO The new example in paper
+** DONE [#A] infinite loop
+   CLOSED: [2016-11-14 Mon 16:53]
 ** DONE VM2 running 99999 preprocessing, timeout 1h
    CLOSED: [2016-11-14 Mon 15:12]
 ** DONE From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything

@@ -133,6 +133,10 @@ HeliumOptions::HeliumOptions() {
     ("pairwise-random-number", po::value<int>(), "how many random values added to pairwise pool")
     ("test-timeout", po::value<int>(), "timeout for a test")
 
+    ("aggressive-merge", po::value<bool>()->default_value(false), "aggressively merge everything")
+    ("random-merge", po::value<bool>()->default_value(false), "random merge")
+    ("aggressive-remove", po::value<bool>()->default_value(false), "remove whenever the transfer does not change")
+
     ("test-input-max-strlen", po::value<int>(), "max strlen for test generation")
     ("test-input-min-int", po::value<int>(), "int min")
     ("test-input-max-int", po::value<int>(), "int max")

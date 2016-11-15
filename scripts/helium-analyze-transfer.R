@@ -214,6 +214,70 @@ TransFromTwoInput <- function(frame) {
 ## k=res$coefficients[-1]
 
 
+## Now I want one more operation: "one of"
+## check if an output is "one of" a bench of input
+## to check that, we do this:
+## apply == on the vector of data frame
+## collect all "true" column names
+##
+## this is not minimal
+## so I want to, for now, only check the column of argv ...
+
+
+CheckArgvOneOf <- function(data) {
+    data=sub
+    cat("Trans from two inputs:\n")
+    OutputNameIndex <- c()
+    ArgvNameIndex <- c()
+    for (name in names(data)) {
+        ## print(name)
+        if (contains(name, "addr")) next;
+        if (substr(name, 1, 6) == "output") {
+            OutputNameIndex=c(OutputNameIndex, name)
+        } else if (contains(name, "argv")) {
+            ArgvNameIndex <- c(ArgvNameIndex, name)
+        }
+    }
+
+    for (name in OutputNameIndex) {
+        subframe <- data[c(name, ArgvNameIndex)];
+        if (checkoneof(subframe)) {
+            ## print out
+            cat(paste(name,"=","oneofargv", "\n"))
+        }
+    }
+}
+
+
+## precondition: data[[1]] is the response
+## data[2:] is all argvs
+checkoneof <- function(data) {
+    ## omit NA for response column
+    subframe <- data[which(!is.na(data[1])),]
+    if (dim(subframe)[1] < 3) return (FALSE);
+    ## extract the matrix
+    res <- which(subframe[-1]==subframe[[1]], arr.ind=TRUE)
+    ## the number of rows unique
+    goodnum <- length(unique(res[,1]))
+    ## compare the good number with the original rows
+    if (dim(subframe)[1] == goodnum) {
+        ## good
+        ## however, the number might be slightly different. In this case, I would like to still consider as "one of"
+    }
+
+    total <- dim(subframe)[1]
+    if ((total - goodnum)/total < 0.1) {
+        print(total)
+        print(goodnum)
+        return (TRUE);
+    }
+    return (FALSE);
+}
+
+
+
+
+
 ##############################
 ## The commands
 ##############################
@@ -237,5 +301,7 @@ ComputeTransferFunction(sub);
 ComputeConstant(sub);
 
 TransFromTwoInput(sub);
+
+CheckArgvOneOf(sub)
 
 ## MultiTrans(sub);

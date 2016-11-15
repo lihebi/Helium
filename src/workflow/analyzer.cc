@@ -153,6 +153,9 @@ bool check_sat(std::vector<std::string> vorig) {
   }
   std::string smt;
   smt += "(declare-const nil Int)\n";
+  // FIXME multiple oneofargv would need multiple different SMT variable name
+  // TODO more general way to automatically insert based on "const-like" variable name
+  smt += "(declare-const oneofargv Int)\n";
   for (std::string var : vars) {
     smt += get_declare_fun(var) + "\n";
   }
@@ -315,4 +318,24 @@ bool Analyzer::IsBugTriggered() {
     }
   }
   return false;
+}
+
+
+
+bool Analyzer::same_trans(Analyzer *p1, Analyzer *p2) {
+  if (!p1 || !p2) return false;
+
+  std::map<std::string, std::string> t1 = p1->GetUsedTransfer();
+  std::map<std::string, std::string> t2 = p2->GetUsedTransfer();
+  
+  if (t1.size() != t2.size()) {
+    return false;
+  }
+  for (auto m : t1) {
+    if (t2.count(m.first) == 0 || t2[m.first] != m.second) {
+      return false;
+    }
+  }
+  return true;
+    
 }

@@ -195,9 +195,15 @@ void Helium::process() {
       }
       // std::cout << utils::RED << "Removing the new node" << "\n";
       segment->Remove(segment->New());
+      // remove the new one that cause compile error
+      // But we still want to continue propagate for it
+      // this selection will not have profile data
+      // (HEBI: Another place to propagate query)
+      std::vector<Segment*> queries = select(segment);
+      m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
       // std::cout << "The segment is valid? " << segment->IsValid() << "\n";
       // std::cout << utils::RESET << "\n";
-      m_worklist.push_back(segment);
+      // m_worklist.push_back(segment);
       continue;
     }
     std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
@@ -211,6 +217,24 @@ void Helium::process() {
         analyzer->AnalyzeCSV();
         analyzer->ResolveQuery(m_poi->GetFailureCondition());
         // m_segment_profiles[segment] = analyzer;
+
+        // before setting the profile, check if the new profile is the same as previous one?
+        // if so, remove the new branch and do context search.
+        // this is aggressive-remove option in config file
+
+        if (segment->GetProfile()) {
+          if (HeliumOptions::Instance()->GetBool("aggressive-remove")) {
+            Analyzer *old_profile = segment->GetProfile();
+            if (Analyzer::same_trans(old_profile, analyzer)) {
+              segment->Remove(segment->New());
+              // (HEBI: aggressive remove)
+              std::vector<Segment*> queries = select(segment);
+              m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+              continue;
+            }
+          }
+        }
+        
         segment->SetProfile(analyzer);
 
         // std::cout << utils::GREEN << "\n";
@@ -234,6 +258,10 @@ void Helium::process() {
           }
         } else {
           std::cout << utils::GREEN << "POI is covered" << utils::RESET << "\n";
+          // (HEBI: propagating the query, the normal place)
+          // Now I want to remove node if not covered
+          // FIXME this might cause infinite loop because the criteria of not following back edge is by checking whether the node is in current selection
+          // TODO Also, I want to make a helium option that control how to generally do context search: I want to flavor the path going up instead of following loop backedge
           std::vector<Segment*> queries = select(segment);
           m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
         }
@@ -338,15 +366,20 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
   // for all the candidates that have same transfer function as orig_query
   for (Segment *q : candidates) {
     // use random here
-    // if (utils::rand_bool()) {
-    //   ret.insert(q);
-    // }
 
-    if (sameTransfer(orig_query, q)) {
-      // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";
+    if (HeliumOptions::Instance()->GetBool("aggressive-merge")) {
       ret.insert(q);
+    } else if (HeliumOptions::Instance()->GetBool("random-merge")) {
+      if (utils::rand_bool()) {
+        ret.insert(q);
+      }
     } else {
-      // std::cout << utils::CYAN << "Not same, cannot merge .." << utils::RESET << "\n";
+      if (sameTransfer(orig_query, q)) {
+        // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";
+        ret.insert(q);
+      } else {
+        // std::cout << utils::CYAN << "Not same, cannot merge .." << utils::RESET << "\n";
+      }
     }
   }
   return ret;
@@ -354,47 +387,8 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
 
 bool Helium::sameTransfer(Segment *s1, Segment *s2) {
   if (!s1->GetProfile() && !s2->GetProfile()) return true;
-  // if (m_segment_profiles.count(s1) == 0
-  //     && m_segment_profiles.count(s2) == 0) {
-  //   return true;
-  // }
-
   if (s1->GetProfile() && s2->GetProfile()) {
-    std::map<std::string, std::string> t1 = s1->GetProfile()->GetUsedTransfer();
-    std::map<std::string, std::string> t2 = s2->GetProfile()->GetUsedTransfer();
-  
-  // if (m_segment_profiles.count(s1) == 1
-  //     && m_segment_profiles.count(s2) == 1) {
-  //   std::map<std::string, std::string> t1 = m_segment_profiles[s1]->GetUsedTransfer();
-  //   std::map<std::string, std::string> t2 = m_segment_profiles[s2]->GetUsedTransfer();
-
-    // I might simply call t1==t2
-    // but I'm not 100 percent sure about map comparison, so just be safe
-
-    // std::cout << "Transfer for s1:" << "\n";
-    // for (auto m : t1) {
-    //   std::cout << m.first << " " << m.second << "\n";
-    // }
-    // std::cout << "Transfer for s2:" << "\n";
-    // for (auto m : t2) {
-    //   std::cout << m.first << " " << m.second << "\n";
-    // }
-    
-    if (t1.size() != t2.size()) {
-      // std::cout << "size is different" << "\n";
-      return false;
-    }
-    for (auto m : t1) {
-      if (t2.count(m.first) == 0 || t2[m.first] != m.second) {
-        // std::cout << "different: " << m.first << " " << m.second << "\n";
-        // std::cout << "           " << m.first << " " << t2[m.first] << "\n";
-        return false;
-      }
-    }
-    return true;
+    return Analyzer::same_trans(s1->GetProfile(), s2->GetProfile());
   }
-  // std::cout << "S1 has profile: " << m_segment_profiles.count(s1) << "\n";
-  // std::cout << "S2 has profile: " << m_segment_profiles.count(s2) << "\n";
-  // std::cout << "One has and one not" << "\n";
   return false;
 }

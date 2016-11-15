@@ -207,6 +207,9 @@ void Tester::genTestSuite() {
     TestSuite suite = m_test_suites[i];
     std::string input = suite.GetInput();
     utils::write_file((m_exe_folder / "input" / (std::to_string(i) + ".txt")).string(), input);
+
+
+    // write test input specification
     utils::append_file(test_input_file.string(), "-----\n" + suite.GetSpec());
   }
 

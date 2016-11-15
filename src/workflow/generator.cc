@@ -312,11 +312,16 @@ std::string CodeGen::GetSupport() {
       code += "#include <" + header + ">\n";
     }
   }
+
+  // some predefined headers ...
+  // I'm adding <getopt.h> because polymorph does not include it in its files ...
+  // should be a better idea if checking if these headers exist on current machine
   code += R"prefix(
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 )prefix";
   // code += SystemResolver::Instance()->GetHeaders();
 
