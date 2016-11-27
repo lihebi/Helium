@@ -47,10 +47,14 @@ make install
 
 ** compile and setup
 
-   In Helium root folder, run =make= will compile the project.
-   If no error happens, you should get the binary executable as =bin/helium=.
-   You might want to add helium folder to your =PATH= environment variable so that you can access it without typing the full path.
-   To do that, add the following lines into your =~/.bashrc= file:
+   You might want to run =ldconfig= to update the library database on
+   your system before compile Helium.  In Helium root folder, run =make=
+   will compile the project. If your cpu has multiple cores, you can
+   use =make -j4= to speed up the compilation.  If no error happens, you
+   should get the binary executable as =bin/helium=.  You might want to
+   add helium folder to your =PATH= environment variable so that you can
+   access it without typing the full path.  To do that, add the
+   following lines into your =~/.bashrc= file:
 
    #+BEGIN_EXAMPLE
 export HELIUM_HOME=/path/to/helium/folder
