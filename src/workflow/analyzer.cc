@@ -7,46 +7,48 @@
 static const std::string TRANSFER_SCRIPT = "helium-analyze-transfer.R";
 static const std::string META_SCRIPT = "helium-analyze-meta.R";
 
+
+static const std::string TRANSFER_SCRIPT_TIMEOUT = "helium-analyze-transfer-timeout.sh";
+static const std::string META_SCRIPT_TIMEOUT = "helium-analyze-meta-timeout.sh";
+
 void Analyzer::GetCSV() {
   // call the script helium-output-to-csv.py
-  std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
-  utils::new_exec(cmd.c_str());
-  std::cout << "generated CSV file" << "\n";
+  // std::string cmd = "helium-output-to-csv.py " + m_dir + "/result.txt > " + m_dir + "/result.csv";
+  // utils::new_exec(cmd.c_str());
+  // std::cout << "generated CSV file" << "\n";
 
   // DEBUG print out the csv file
-  cmd = "cat " + m_dir + "/result.csv";
-  std::string output = utils::new_exec(cmd.c_str());
-  if (HeliumOptions::Instance()->Has("verbose")) {
-    std::cout << output << "\n";
-  }
+  // cmd = "cat " + m_dir + "/result.csv";
+  // std::string output = utils::new_exec(cmd.c_str());
+  // if (HeliumOptions::Instance()->Has("verbose")) {
+  //   std::cout << output << "\n";
+  // }
   // std::cout << output << "\n";
-
-
-  
 }
 
 void Analyzer::AnalyzeCSV() {
   std::string result_csv = m_dir + "/result.csv";
   std::string cmd;
   // transfer function
-  cmd = TRANSFER_SCRIPT + " " + result_csv;
+  // using timeout version. The default is 3s
+  cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv;
   // std::cout << "Analyzing using linear regression .." << "\n";
   // std::cout << cmd << "\n";
   m_transfer_output = utils::new_exec(cmd.c_str());
 
-  cmd = META_SCRIPT + " " + result_csv;
+  cmd = META_SCRIPT_TIMEOUT + " " + result_csv;
   m_meta_output = utils::new_exec(cmd.c_str());
 
   
   // std::cout << "Transfer functions:" << "\n";
   if (HeliumOptions::Instance()->GetBool("print-analyze-result-transfer")) {
-    std::cout << "Result Transfer Function: " << "\n";
-    std::cout << m_transfer_output << "\n";
+    std::cout << utils::PURPLE << "Result Transfer Function: " << utils::RESET << "\n";
+    std::cout << utils::indent_string(m_transfer_output) << "\n";
   }
 
   if (HeliumOptions::Instance()->GetBool("print-analyze-result-meta")) {
-    std::cout << "Result Meta: " << "\n";
-    std::cout << m_meta_output << "\n";
+    std::cout << utils::PURPLE << "Result Meta: " << utils::RESET << "\n";
+    std::cout << utils::indent_string(m_meta_output) << "\n";
   }
 }
 
@@ -58,7 +60,22 @@ bool entry_point(std::string s) {
   std::vector<std::string> all = utils::split(s, "><=+- ");
   for (std::string var : all) {
     if (var.find("input") == std::string::npos) continue;
-    if (var.find("argc") == std::string::npos && var.find("argv") == std::string::npos) return false;
+    if (var.find("argc") == std::string::npos
+        && var.find("argv") == std::string::npos
+        // hard code this as entry point
+        // TODO needs an instrumentation to tell whether a point is entry point
+        && var.find("entry") == std::string::npos) return false;
+  }
+  return true;
+}
+
+static bool is_constant(std::string s) {
+  std::vector<std::string> all = utils::split(s, "><=+- ");
+  for (std::string var : all) {
+    if (var.find("input") != std::string::npos
+        || var.find("output") != std::string::npos) {
+      return false;
+    }
   }
   return true;
 }
@@ -140,6 +157,10 @@ bool check_sat(std::vector<std::string> vorig) {
     }
   }
   std::string smt;
+  smt += "(declare-const nil Int)\n";
+  // FIXME multiple oneofargv would need multiple different SMT variable name
+  // TODO more general way to automatically insert based on "const-like" variable name
+  smt += "(declare-const oneofargv Int)\n";
   for (std::string var : vars) {
     smt += get_declare_fun(var) + "\n";
   }
@@ -189,7 +210,6 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
   }
 
   // 1. get the variables used in the failure condition
-  std::map<std::string, std::vector<std::string> > mapping;
   std::set<std::string> candidate_output_var;
   std::vector<std::string> components = utils::split(failure_condition);
   for (std::string comp : components) {
@@ -198,6 +218,12 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     }
   }
   // 2. get the transfer functions and constant functions related to those variables
+  // store the mapping to entry point
+  std::map<std::string, std::vector<std::string> > mapping;
+  // store the mapping not necessary to entry point. Used for merging query
+  // Also use approximation: only store the first one
+  // std::map<std::string, std::string> mapping_no_need_entry;
+  m_used_transfer.clear();
   // m_transfer_output
   std::vector<std::string> transfer_output = utils::split(m_transfer_output, '\n');
   for (std::string trans : transfer_output) {
@@ -207,6 +233,21 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
       utils::trim(lhs);
       utils::trim(rhs);
       if (candidate_output_var.count(lhs)) {
+        // std::cout << "for variable " << lhs << "\n";
+        // std::cout << "we have " << rhs << "\n";
+        // std::cout << candidate_output_var.size() << "\n";
+        // std::cout << is_constant(rhs) << "\n";
+        if (candidate_output_var.size() == 1 && is_constant(rhs)) {
+          // std::cout << "but it is removed" << "\n";
+          // this is for output_addr_y=nil
+          // This is true, but we need to find the condition!
+          // FIXME this will be wrong if the condition is indeed incured by the path, and it satisfied the output
+          // so the thing missing is: only one output variable, and the variable is determistic (do not have a transfer from input)
+          continue;
+        }
+        if (m_used_transfer.count(lhs)==0) {
+          m_used_transfer[lhs] = rhs;
+        }
         if (entry_point(rhs)) {
           mapping[lhs].push_back(rhs);
         }
@@ -225,11 +266,11 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     // std::vector<std::vector<std::string> > vv;
     // std::vector<std::vector<std::string> > combinations = get_combinations(vv);
 
-    // TODO NOW putting into z3 to validate it
     std::cout << "Using:" << "\n";
     std::vector<std::string> v;
     v.push_back(failure_condition);
     for (auto m : mapping) {
+      // only using the first function
       std::cout << "\t" << m.first << " = " << *m.second.begin() << "\n";
       v.push_back(m.first + " = " + *m.second.begin());
     }
@@ -251,6 +292,10 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     std::cout << "The transfer functions:" << "\n";
     for (auto m : mapping) {
       std::cout << "\t" << m.first << " = " << *m.second.begin() << "\n";
+    }
+    std::cout << "All used transfer funtions:" << "\n";
+    for (auto m : m_used_transfer) {
+      std::cout << "\t" << m.first << " = " << m.second << "\n";
     }
   }
   
@@ -278,4 +323,24 @@ bool Analyzer::IsBugTriggered() {
     }
   }
   return false;
+}
+
+
+
+bool Analyzer::same_trans(Analyzer *p1, Analyzer *p2) {
+  if (!p1 || !p2) return false;
+
+  std::map<std::string, std::string> t1 = p1->GetUsedTransfer();
+  std::map<std::string, std::string> t2 = p2->GetUsedTransfer();
+  
+  if (t1.size() != t2.size()) {
+    return false;
+  }
+  for (auto m : t1) {
+    if (t2.count(m.first) == 0 || t2[m.first] != m.second) {
+      return false;
+    }
+  }
+  return true;
+    
 }

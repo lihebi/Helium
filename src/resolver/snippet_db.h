@@ -58,6 +58,14 @@ public:
   std::vector<int> SortSnippets(std::set<int> snippets);
 
   /**
+   * Query the stcuture snippet this type string "str" really refers to
+   * It will handle typedef, and hopefully the implicit structure (that used directly for a variable)
+   * @return first -1 if not found, otherwise the snippet id that contains the structure declaration
+   * @return second the pointer level added to the returned structure
+   */
+  std::pair<int,int> QueryStruct(std::string str);
+
+  /**
    * Print methods
    */
   void PrintCG();

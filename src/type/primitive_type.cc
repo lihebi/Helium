@@ -1,8 +1,9 @@
-#include "type.h"
+#include "primitive_type.h"
 #include "type_helper.h"
 #include "utils/utils.h"
 #include "helium_options.h"
 #include "corner.h"
+#include "io_helper.h"
 
 /********************************
  * IntType
@@ -27,18 +28,14 @@ std::string IntType::GetDeclCode(std::string var) {
 }
 
 std::string IntType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// IntType::GetInputCode: " + var + "\n";
-  ret += get_scanf_code("%d", "&" + var);
-  return ret;
+  // return "input_int(&" + var + ");\n";
+  return IOHelper::GetInputCall("int", var);
 }
 
 std::string IntType::GetOutputCode(std::string var) {
   std::string ret;
-  ret += "// IntType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"int_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
-  ret += flush_output;
-  return ret;
+  return IOHelper::GetOutputCall("int", var, var);
+  // return "output_int("+var+",\"" + var + "\");\n";
 }
 
 InputSpec *IntType::GenerateRandomInput() {
@@ -89,21 +86,13 @@ std::string BoolType::GetDeclCode(std::string var) {
 }
 
 std::string BoolType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += "// BoolType::GetInputCode: " + var + "\n";
-  ret += "scanf(\"%d\", &" + var + ");\n";
-  get_helium_size_branch(var + " = false",
-                         var + " = true"
-                         );
-  return ret;
+  return IOHelper::GetInputCall("bool", var);
+  // return "input_bool(&" + var + ");\n";
 }
 
 std::string BoolType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// BoolType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"bool_" + var + " = " + "%d" + "\\n\", " + var + ");\n";
-  ret += flush_output;
-  return ret;
+  return IOHelper::GetOutputCall("bool", var, var);
+  // return "output_bool("+var+",\"" + var + "\");\n";
 }
 
 InputSpec *BoolType::GenerateRandomInput() {
@@ -136,16 +125,13 @@ std::string CharType::GetDeclCode(std::string var) {
 }
 
 std::string CharType::GetInputCode(std::string var) {
-  std::string ret;
-  ret += get_scanf_code("%c", "&" + var);
-  return ret;
+  return IOHelper::GetInputCall("char", var);
+  // return "input_char(&"+var+");\n";
 }
 
 std::string CharType::GetOutputCode(std::string var) {
-  std::string ret;
-  ret += "// CharType::GetOutputCode: " + var + "\n";
-  ret += "printf(\"char_" + var + " = %c\\n\", " + var + ");\n" + flush_output;
-  return ret;
+  return IOHelper::GetOutputCall("char", var, var);
+  // return "output_char("+var+",\""+var+"\");\n";
 }
 
 InputSpec *CharType::GenerateRandomInput() {

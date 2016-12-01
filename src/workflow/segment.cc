@@ -6,12 +6,36 @@
 #include "utils/utils.h"
 #include "resolver/global_variable.h"
 #include "helium_options.h"
+#include "type/io_helper.h"
 
 CFGNode* Segment::m_poi = NULL;
 
 Segment::Segment(ASTNode *astnode) {
   assert(astnode);
   CFG *cfg = Resource::Instance()->GetCFG(astnode->GetAST());
+
+  std::cout << "Constructing a segment .." << "\n";
+
+  // If the node is an Loop node, mark all the nodes into selection
+  if (dynamic_cast<For*>(astnode)
+      || dynamic_cast<Do*>(astnode)
+      || dynamic_cast<While*>(astnode)) {
+    std::cout << "This is a loop statement .. Using the entire loop." << "\n";
+    std::deque<ASTNode*> list;
+    list.push_back(astnode);
+    while (!list.empty()) {
+      ASTNode *n = list.front();
+      list.pop_front();
+      std::vector<ASTNode*> children = n->Children();
+      list.insert(list.end(), children.begin(), children.end());
+      CFGNode *cfgnode = cfg->ASTNodeToCFGNode(n);
+      if (cfgnode) {
+        m_selection.insert(cfgnode);
+        m_new.insert(cfgnode);
+      }
+    }
+    astnode->Children();
+  }
   CFGNode *cfgnode = cfg->ASTNodeToCFGNode(astnode);
   m_selection.insert(cfgnode);
   m_new.insert(cfgnode);
@@ -23,6 +47,9 @@ Segment::Segment(const Segment &q) {
   m_selection = q.m_selection;
   m_new = q.m_new;
   m_head = q.m_head;
+  // copy the profile
+  // this will be updated when the new segment is tested
+  m_profile = q.m_profile;
 }
 
 Segment::Segment(CFGNode *cfgnode) {
@@ -41,6 +68,9 @@ void Segment::Add(CFGNode *node, bool inter) {
   assert(node);
   m_selection.insert(node);
   m_head = node;
+  // FIX the bug of m_new contains everything.
+  // But why I need a set of nodes as new?
+  m_new.clear();
   m_new.insert(node);
   if (inter) {
     m_callsites.insert(node);
@@ -64,14 +94,27 @@ void Segment::Remove(CFGNode *node) {
 }
 
 void Segment::Remove(std::set<CFGNode*> nodes) {
+  // std::cout << "Has: " << m_selection.size() << "\n";
+  // std::cout << "removing: " << nodes.size() << "\n";
+  
+  // std::cout << m_valid << "\n";
   for (CFGNode *node : nodes) {
     if (m_callsites.count(node) == 1) {
+      // std::cout << "Reason 1" << "\n";
       m_valid = false;
       return;
     }
     m_selection.erase(node);
   }
-  if (!m_poi || m_selection.count(m_poi)==0) m_valid = false;
+  if (!m_poi || m_selection.count(m_poi)==0) {
+    // if (m_poi) {
+    //   std::cout << "POI is still there" << "\n";
+    // }
+    // std::cout << m_selection.size() << "\n";
+    // std::cout << m_poi->GetLabel() << "\n";
+    // std::cout << "Reason 2" << "\n";
+    m_valid = false;
+  }
 }
 
 /**
@@ -100,6 +143,55 @@ void Segment::PatchGrammar() {
       }
     }
   }
+}
+
+/**
+ * Patch the control edges. E.g.
+ * - select the case nodes if 1) the switch is selected 2) the body any one is selected.
+ * - select the else and elseif node if 1) the if is selected 2) any node in its body is selected.
+ */
+std::set<ASTNode*> Segment::PatchCFG() {
+  std::set<ASTNode*> ret;
+  for (CFGNode *cfgnode : m_selection) {
+    if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
+      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
+      for (CFGNode *case_first : sucs) {
+        // FIXME I can only check the first node here ...
+        if (m_selection.count(case_first)==1) {
+          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, case_first);
+          std::vector<ASTNode*> cases = edge->GetCases();
+          for (ASTNode *c : cases) {
+            // generator.AddNode(c);
+            ret.insert(c);
+          }
+        }
+      }
+    }
+    else if (cfgnode->GetASTNode()->Kind() == ANK_If) {
+      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
+      for (CFGNode *body_first : sucs) {
+        // FIXME I'm also only checking the first node for each branch ..
+        if (m_selection.count(body_first) == 1) {
+          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, body_first);
+          // this cond will be either a elseif or a else or a then
+          // ASTNode *cond = edge->GetCond();
+          // if (cond) {
+          //   ret.insert(cond);
+          // }
+          if (edge->IsElse()) {
+            // mark all the else
+            If *ifnode = dynamic_cast<If*>(cfgnode->GetASTNode());
+            Else *elsenode = ifnode->GetElse();
+            if (elsenode) {
+              ret.insert(elsenode);
+            }
+          }
+        }
+      }
+    } else if (cfgnode->GetASTNode()->Kind() == ANK_ElseIf) {
+    }
+  }
+  return ret;
 }
 
 bool Segment::RemoveNewBranch() {
@@ -202,23 +294,10 @@ void Segment::ResolveInput() {
 void Segment::GenCode() {
   CodeGen generator;
   // generator.SetFirstAST(m_new->GetASTNode()->GetAST());
-
-  for (CFGNode *cfgnode : m_selection) {
-    if (cfgnode->GetASTNode()->Kind() == ANK_Switch) {
-      std::set<CFGNode*> sucs = cfgnode->GetSuccessors();
-      for (CFGNode *case_first : sucs) {
-        // FIXME I can only check the first node here ...
-        if (m_selection.count(case_first)==1) {
-          CFGEdge *edge = cfgnode->GetCFG()->GetEdge(cfgnode, case_first);
-          std::vector<ASTNode*> cases = edge->GetCases();
-          for (ASTNode *c : cases) {
-            generator.AddNode(c);
-          }
-        }
-      }
-    }
+  std::set<ASTNode*> astnodes = PatchCFG();
+  for (ASTNode *node : astnodes) {
+    generator.AddNode(node);
   }
-  
   generator.SetFirstNode(m_head->GetASTNode());
   for (CFGNode *cfgnode : m_selection) {
     generator.AddNode(cfgnode->GetASTNode());
@@ -228,7 +307,7 @@ void Segment::GenCode() {
 
   // generator.Preprocess();
 
-  
+  IOHelper::Instance()->Reset();
   m_main = generator.GetMain();
   m_support = generator.GetSupport();
   m_makefile = generator.GetMakefile();

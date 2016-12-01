@@ -4,6 +4,7 @@
 #include "common.h"
 #include "segment.h"
 #include "parser/point_of_interest.h"
+#include "analyzer.h"
 
 
 typedef enum _HeliumStatus {
@@ -24,6 +25,7 @@ private:
   void process();
   std::vector<Segment*> select(Segment *query);
   std::set<Segment*> find_mergable_query(CFGNode *node, Segment *orig_query);
+  bool sameTransfer(Segment *s1, Segment *s2);
   // std::string derive_pre_cond(std::vector<std::string> invs, std::vector<std::string> trans);
   // bool pre_entry_point(std::string pre);
   // std::string merge_failure_condition(std::vector<std::string> invs);
@@ -32,6 +34,7 @@ private:
   std::deque<Segment*> m_worklist;
   std::map<CFGNode*, std::set<Segment*> > m_waiting_quries;
   std::map<Segment*, std::set<Segment*> > m_propagating_queries;
+  // std::map<Segment*, Analyzer*> m_segment_profiles;
 
 
   std::string m_failure_condition;

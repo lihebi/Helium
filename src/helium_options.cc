@@ -124,6 +124,7 @@ HeliumOptions::HeliumOptions() {
     ("gnulib", po::value<bool>()->default_value(false), "use gnulib in makefile")
 
     ("run-test", po::value<bool>()->default_value(false), "whether to run test or not")
+    ("instrument-io", po::value<bool>()->default_value(true), "Whether to instrument IO")
     ("test-global-variable", po::value<bool>()->default_value(false), "test global variable or not")
     ("test-generation-method", po::value<std::string>(), "test generation method")
     ("random-test-number", po::value<int>(), "Number of test")
@@ -132,12 +133,17 @@ HeliumOptions::HeliumOptions() {
     ("pairwise-random-number", po::value<int>(), "how many random values added to pairwise pool")
     ("test-timeout", po::value<int>(), "timeout for a test")
 
+    ("aggressive-merge", po::value<bool>()->default_value(false), "aggressively merge everything")
+    ("random-merge", po::value<bool>()->default_value(false), "random merge")
+    ("aggressive-remove", po::value<bool>()->default_value(false), "remove whenever the transfer does not change")
+
     ("test-input-max-strlen", po::value<int>(), "max strlen for test generation")
     ("test-input-min-int", po::value<int>(), "int min")
     ("test-input-max-int", po::value<int>(), "int max")
     ("test-input-max-array-size", po::value<int>(), "max-array-size")
     ("test-input-max-argv0-strlen", po::value<int>(), "max-argv0-length")
     ("test-input-max-pointer-size", po::value<int>(), "max malloc size for a pointer")
+    ("test-null-pointer-percent", po::value<int>(), "the percent of generating a NULL for a pointer")
 
     ("procedure-limit", po::value<int>(), "procedure limit for context search")
     ("segment-per-poi-limit", po::value<int>()->default_value(-1),
@@ -145,6 +151,8 @@ HeliumOptions::HeliumOptions() {
     ("valid-poi-limit", po::value<int>()->default_value(-1),"valid poi limit")
     ("remove-branch-if-not-covered", po::value<bool>()->default_value(false), "Remove branch as long as POI is not covered.")
     ("gcov-handle-sigsegv", po::value<bool>()->default_value(false), "Dump coverage information when segment fault happen.")
+
+    ("use-struct-type", po::value<bool>()->default_value(false), "Use structure type for input or just use unknown")
     ;
   
   po::options_description hidden("Hidden options");

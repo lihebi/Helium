@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "ast_node.h"
+#include "ast_internal.h"
 
 class CFG;
 
@@ -64,6 +65,12 @@ private:
   // std::set<CFGNode*> m_successors;
 };
 
+
+enum CFGEdgeKind {
+  CFGEK_Cond,
+  CFGEK_Case,
+  CFGEK_Default
+};
 class CFGEdge {
 public:
   CFGEdge(CFGNode *from, CFGNode *to) : m_from(from), m_to(to) {}
@@ -79,19 +86,43 @@ public:
       for (ASTNode *c : m_cases) {
         m_label += c->GetLabel() + ", ";
       }
+      // TODO I might want to have different class to represent different type of edges
+      // if (m_cond) {
+      //   m_label += m_cond->GetLabel();
+      // }
     }
     return m_label;
   }
   std::vector<ASTNode*> GetCases() {return m_cases;}
+  // void AddCond(ASTNode *cond) {
+  //   m_cond = cond;
+  // }
+  // ASTNode *GetCond() {
+  //   return m_cond;
+  // }
+  /**
+   * Whether this edge is a else branch
+   * FIXME should have a better solution for elseif, but this is a temporary fix for if [else] problem
+   */
+  // void SetElse(bool b) {
+  //   m_is_else=b;
+  // }
+  bool IsElse() {
+    // return m_is_else;
+    return m_label == "false";
+  }
 private:
   CFGNode *m_from=NULL;
   CFGNode *m_to=NULL;
   std::string m_label;
   std::vector<ASTNode*> m_cases;
+  // ASTNode *m_cond=NULL; // this can be a Else or ElseIf or a Then
+  // CFGEdgeKind m_kind;
+  // bool m_is_else=false;
 };
 
 /**
- * TODO free so many CFGs
+ * Todo free so many CFGs
  */
 class CFG {
 public:

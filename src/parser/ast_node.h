@@ -34,22 +34,67 @@ typedef enum {
 
 ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind);
 
+class ASTOption {
+public:
+  // ONLY for calculating segment size purpose
+  static void TurnOffPOIInstrument() {m_instrument=false;}
+  static void TurnOnPOIInstrument() {m_instrument=true;}
+  static bool UsePOIInstrument() {return m_instrument;}
+private:
+  static bool m_instrument;
+};
 
-class Function;
-class Block;
-class Stmt;
-class Expr;
-class If;
-class Then;
-class Else;
-class ElseIf;
-class Switch;
-class Case;
-class Default;
-class While;
-class For;
-class Do;
-class ASTOther;
+
+/**
+ * <decl></decl>
+ */
+class Decl {
+public:
+  // Decl(XMLNode n);
+  Decl(Type *t, std::string name, XMLNode node) : m_type(t), m_name(name), m_xmlnode(node) {}
+  ~Decl();
+  Type *GetType() const {return m_type;}
+  std::string GetName() const {return m_name;}
+  // std::vector<std::string> GetDims() const {return m_dims;}
+  // int GetDim() const {return m_dims.size();}
+private:
+  // std::string m_type;
+  // TODO NOW use type in Decl, and others
+  Type *m_type = NULL;
+  std::string m_name;
+  XMLNode m_xmlnode;
+  // TODO m_dimension
+  // this is dimensions
+  // if the code is char buf[5][4], the result is a vector of string "5" "4"
+  // if the dimension is [], it will have an empty string, but the size of m_dims is still valid
+  // Actually I only intend to use the size here.
+  // A design decision:
+  // whether to use a fixed length of buffer (of the stack), or use a variable length of buffer (on the heap)
+  // std::vector<std::string> m_dims;
+};
+
+class DeclFactory {
+public:
+  static Decl* CreateDecl(XMLNode node);
+};
+
+
+
+// class Function;
+// class Block;
+// class Stmt;
+// class Expr;
+// class If;
+// class Then;
+// class Else;
+// class ElseIf;
+// class Switch;
+// class Case;
+// class Default;
+// class While;
+// class For;
+// class Do;
+// class ASTOther;
 
 void ast_dfs(ASTNode *root, std::vector<ASTNode*> &visited);
 
@@ -243,296 +288,6 @@ protected:
   // this will of course bring some overhead
   // int m_begin_linum = 0;
   // int m_end_linum = 0;
-};
-
-
-
-/*******************************
- * Models
- *******************************/
-
-/**
- * some writeup
-
- Models that will add symbol table:
- 1. Function
- 2. Stmt
- 3. For
-*/
-
-  
-/**
- * <decl></decl>
- */
-class Decl {
-public:
-  // Decl(XMLNode n);
-  Decl(Type *t, std::string name, XMLNode node) : m_type(t), m_name(name), m_xmlnode(node) {}
-  ~Decl();
-  Type *GetType() const {return m_type;}
-  std::string GetName() const {return m_name;}
-  // std::vector<std::string> GetDims() const {return m_dims;}
-  // int GetDim() const {return m_dims.size();}
-private:
-  // std::string m_type;
-  // TODO NOW use type in Decl, and others
-  Type *m_type = NULL;
-  std::string m_name;
-  XMLNode m_xmlnode;
-  // TODO m_dimension
-  // this is dimensions
-  // if the code is char buf[5][4], the result is a vector of string "5" "4"
-  // if the dimension is [], it will have an empty string, but the size of m_dims is still valid
-  // Actually I only intend to use the size here.
-  // A design decision:
-  // whether to use a fixed length of buffer (of the stack), or use a variable length of buffer (on the heap)
-  // std::vector<std::string> m_dims;
-};
-
-class DeclFactory {
-public:
-  static Decl* CreateDecl(XMLNode node);
-};
-
-// function
-class Function : public ASTNode {
-public:
-  Function(XMLNode n, AST *ast, ASTNode* parent, ASTNode *prev);
-  ~Function();
-  virtual ASTNodeKind Kind() override {return ANK_Function;}
-  virtual std::string GetLabel() override;
-  std::string GetReturnType() {return m_ret_ty;}
-  std::string GetName() {return m_name;}
-  void GetParams() {}
-  virtual void GetCode(std::set<ASTNode*> nodes, std::string &ret, bool all) override;
-  virtual std::set<std::string> GetIdToResolve() override;
-  virtual void CreateSymbolTable() override;
-private:
-  std::string m_ret_ty;
-  std::string m_name;
-  std::vector<Decl*> m_params;
-};
-
-class Stmt : public ASTNode {
-public:
-  Stmt(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  virtual ~Stmt();
-  ASTNodeKind Kind() override {return ANK_Stmt;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::set<std::string> GetVarIds() override {
-    std::set<std::string> ids = get_var_ids(m_xmlnode);
-    return ids;
-  }
-  virtual std::string GetLabel() override {
-    std::string ret;
-    std::set<ASTNode*> nodes;
-    GetCode(nodes, ret, true);
-    return ret;
-  }
-  virtual std::set<std::string> GetIdToResolve() override;
-  virtual ASTNode* LookUpDefinition(std::string id) override;
-  virtual void CreateSymbolTable() override;
-private:
-  std::vector<Decl*> m_decls;
-};
-
-
-
-
-
-class Block : public ASTNode {
-public:
-  Block(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~Block() {}
-  ASTNodeKind Kind() override {return ANK_Block;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Block";}
-private:
-};
-
-// condition
-class If : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_If;}
-  If(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~If() {}
-  XMLNode GetCondition() override {return m_cond;}
-  Then* GetThen() {return m_then;}
-  std::vector<ElseIf*> GetElseIfs() {return m_elseifs;}
-  Else* GetElse() {return m_else;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override {
-    return get_var_ids(m_cond);
-  }
-  virtual std::set<std::string> GetIdToResolve() override {
-    return extract_id_to_resolve(get_text(m_cond));
-  }
-  // virtual ASTNode* LookUpDefinition(std::string id) override;
-
-private:
-  XMLNode m_cond;
-  Then *m_then = NULL;
-  Else *m_else = NULL;
-  std::vector<ElseIf*> m_elseifs;
-};
-
-
-class Else : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Else;}
-  Else(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~Else() {}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Else";}
-private:
-};
-  
-class ElseIf : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_ElseIf;}
-  ElseIf(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  XMLNode GetCondition() override {return m_cond;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override {
-    return get_var_ids(m_cond);
-  }
-  virtual std::set<std::string> GetIdToResolve() override {
-    return extract_id_to_resolve(get_text(m_cond));
-  }
-  // virtual ASTNode* LookUpDefinition(std::string id) override;
-private:
-  XMLNode m_cond;
-};
-  
-class Then : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Then;}
-  Then(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Then";}
-private:
-};
-
-
-/*******************************
- * Swith
- *******************************/
-class Switch : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Switch;}
-  Switch(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~Switch() {}
-  XMLNode GetCondition() override {return m_cond;}
-  std::vector<Case*> GetCases() {return m_cases;}
-  Default* GetDefault() {return m_default;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override {
-    return get_var_ids(m_cond);
-  }
-private:
-  XMLNode m_cond;
-  std::vector<Case*> m_cases;
-  Default *m_default = NULL;
-};
-
-class Case : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Case;}
-  Case(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-private:
-  XMLNode m_cond;
-};
-class Default : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Default;}
-  Default(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Default";}
-private:
-};
-
-// loop
-class For : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_For;}
-  For(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~For();
-  XMLNodeList GetInits() {return m_inits;}
-  XMLNode GetCondition() override {return m_cond;}
-  XMLNode GetIncr() {return m_incr;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override;
-  virtual std::set<std::string> GetIdToResolve() override;
-  virtual ASTNode* LookUpDefinition(std::string id) override;
-  virtual void CreateSymbolTable() override;
-private:
-  XMLNode m_cond;
-  XMLNodeList m_inits;
-  XMLNode m_incr;
-  std::vector<Decl*> m_decls;
-};
-class While : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_While;}
-  While(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~While() {}
-  XMLNode GetCondition() override {return m_cond;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override {
-    return get_var_ids(m_cond);
-  }
-  virtual std::set<std::string> GetIdToResolve() override {
-    return extract_id_to_resolve(get_text(m_cond));
-  }
-private:
-  XMLNode m_cond;
-};
-class Do : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Do;}
-  Do(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  ~Do() {}
-  XMLNode GetCondition() override {return m_cond;}
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override;
-  virtual std::set<std::string> GetVarIds() override {
-    return get_var_ids(m_cond);
-  }
-  virtual std::set<std::string> GetIdToResolve() override {
-    return extract_id_to_resolve(get_text(m_cond));
-  }
-private:
-  XMLNode m_cond;
-};
-
-class ASTOther : public ASTNode {
-public:
-  ASTNodeKind Kind() override {return ANK_Other;}
-  ASTOther(XMLNode, AST *ast, ASTNode *parent, ASTNode *prev);
-  virtual void GetCode(std::set<ASTNode*> nodes,
-                       std::string &ret, bool all) override;
-  virtual std::string GetLabel() override {return "Other";}
-  virtual void CreateSymbolTable() override;
-private:
 };
 
 #endif /* AST_NODE_H */

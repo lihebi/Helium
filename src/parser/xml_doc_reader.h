@@ -37,6 +37,8 @@ public:
   
   static std::vector<std::string> QueryCode(const std::string &code, std::string query);
   static std::string QueryCodeFirst(const std::string &code, std::string query);
+  static std::string QueryCodeFirstDeep(const std::string &code, std::string query);
+  static bool QueryCodeHas(const std::string &code, std::string query);
   /**
    * These two methods are static, meaning the user is responsible to free the returned document
    * The cache is not used even for the file option, because there's no instance of XMLDocReader involved

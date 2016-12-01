@@ -43,6 +43,8 @@ namespace utils {
   std::vector<std::string> split(const std::string &s);
   void remove(std::string& s, const std::string& pattern);
   void replace(std::string &s, std::string pattern, std::string replacement);
+  std::string indent_string(std::string raw, int indent=1);
+  
 }
 
 #endif /* STRING_UTILS_H */

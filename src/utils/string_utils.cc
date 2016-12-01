@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include "common.h"
 
 /*******************************
  ** string utils
@@ -166,5 +167,14 @@ namespace utils {
     while (s.find(pattern) != std::string::npos) {
       s.replace(s.find(pattern), pattern.length(), replacement);
     }
+  }
+  std::string indent_string(std::string raw, int indent) {
+    assert(indent >= 0);
+    std::string indention = std::string("  ", indent);
+    std::vector<std::string> lines = utils::split(raw, '\n');
+    for (std::string line : lines) {
+      line = indention + line;
+    }
+    return boost::algorithm::join(lines, "\n");
   }
 }

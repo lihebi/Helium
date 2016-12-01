@@ -92,6 +92,8 @@ Helium::Helium(PointOfInterest *poi) {
         if (root) {
           int ast_linum = root->GetBeginLinum();
           int target_linum = linum - func_linum + ast_linum;
+          // find the node by linum
+          // TODO if this is a loop, how? Use all nodes inside the loop?
           ASTNode *target = ast->GetNodeByLinum(target_linum);
           if (target) {
             CFG *cfg = Resource::Instance()->GetCFG(target->GetAST());
@@ -99,6 +101,8 @@ Helium::Helium(PointOfInterest *poi) {
             // (HEBI: Set Failure Point)
             target->SetFailurePoint();
             Segment::SetPOI(target_cfgnode);
+            // construct the initial query by the initial nodes
+            // Let's use the entire loop at POI
             Segment *init_query = new Segment(target);
             m_worklist.push_back(init_query);
           }
@@ -148,14 +152,14 @@ void Helium::process() {
       continue;
     }
     std::string label = segment->Head()->GetLabel();
-    if (label.size() > 10) {
-      label = label.substr(0,10);
+    utils::trim(label);
+    if (label.size() > 20) {
+      label = label.substr(0,20);
       label += "...";
     }
-    std::cout << CYAN << "Processing query with the head node: "
-              << label << "."
-              << m_worklist.size() << " remaining in worklist.""\n"
-              << RESET;
+    std::cout << "Processing query with the head node: "
+              << CYAN << label << RED << " "
+              << m_worklist.size() << RESET << " remaining in worklist.""\n" ;
 
     // reach the function definition, continue search, do not test, because will dont need, and will compile error
     if (segment->Head()->GetASTNode()->Kind() == ANK_Function) {
@@ -174,6 +178,7 @@ void Helium::process() {
     builder.SetMain(segment->GetMain());
     builder.SetSupport(segment->GetSupport());
     builder.SetMakefile(segment->GetMakefile());
+
     builder.Write();
     builder.Compile();
     if (HeliumOptions::Instance()->GetBool("print-code-output-location")) {
@@ -188,8 +193,17 @@ void Helium::process() {
         std::cout << "Paused, press enter to continue ..." << std::flush;
         getchar();
       }
+      // std::cout << utils::RED << "Removing the new node" << "\n";
       segment->Remove(segment->New());
-      m_worklist.push_back(segment);
+      // remove the new one that cause compile error
+      // But we still want to continue propagate for it
+      // this selection will not have profile data
+      // (HEBI: Another place to propagate query)
+      std::vector<Segment*> queries = select(segment);
+      m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+      // std::cout << "The segment is valid? " << segment->IsValid() << "\n";
+      // std::cout << utils::RESET << "\n";
+      // m_worklist.push_back(segment);
       continue;
     }
     std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
@@ -198,13 +212,41 @@ void Helium::process() {
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
       if (fs::exists(builder.GetDir() + "/result.txt")) {
-        Analyzer analyzer(builder.GetDir());
-        analyzer.GetCSV();
-        analyzer.AnalyzeCSV();
-        analyzer.ResolveQuery(m_poi->GetFailureCondition());
+        Analyzer *analyzer = new Analyzer(builder.GetDir());
+        analyzer->GetCSV();
+        analyzer->AnalyzeCSV();
+        analyzer->ResolveQuery(m_poi->GetFailureCondition());
+        // m_segment_profiles[segment] = analyzer;
 
+        // before setting the profile, check if the new profile is the same as previous one?
+        // if so, remove the new branch and do context search.
+        // this is aggressive-remove option in config file
+
+        if (segment->GetProfile()) {
+          if (HeliumOptions::Instance()->GetBool("aggressive-remove")) {
+            Analyzer *old_profile = segment->GetProfile();
+            if (Analyzer::same_trans(old_profile, analyzer)) {
+              segment->Remove(segment->New());
+              // (HEBI: aggressive remove)
+              std::vector<Segment*> queries = select(segment);
+              m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+              continue;
+            }
+          }
+        }
+        
+        segment->SetProfile(analyzer);
+
+        // std::cout << utils::GREEN << "\n";
+        // std::cout << "Used transfer functions:" << "\n";
+        // std::map<std::string, std::string> mm = analyzer->GetUsedTransfer();
+        // for (auto m : mm) {
+        //   std::cout << m.first << " ==> " << m.second << "\n";
+        // }
+        // std::cout << utils::RESET << "\n";
+        
         // (HEBI: remove branch if not covered)
-        if (!analyzer.IsCovered()) {
+        if (!analyzer->IsCovered()) {
           std::cout << utils::RED << "POI is not covered" << utils::RESET << "\n";
           // DEBUG remove branch or not
           if (HeliumOptions::Instance()->GetBool("remove-branch-if-not-covered")) {
@@ -216,12 +258,16 @@ void Helium::process() {
           }
         } else {
           std::cout << utils::GREEN << "POI is covered" << utils::RESET << "\n";
+          // (HEBI: propagating the query, the normal place)
+          // Now I want to remove node if not covered
+          // FIXME this might cause infinite loop because the criteria of not following back edge is by checking whether the node is in current selection
+          // TODO Also, I want to make a helium option that control how to generally do context search: I want to flavor the path going up instead of following loop backedge
           std::vector<Segment*> queries = select(segment);
           m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
         }
 
         
-        if (analyzer.IsBugTriggered()) {
+        if (analyzer->IsBugTriggered()) {
           std::cout << utils::GREEN << "Bug is triggered." << utils::RESET << "\n";
         } else {
           std::cout << utils::RED << "Bug is not triggered." << utils::RESET << "\n";
@@ -320,10 +366,29 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
   // for all the candidates that have same transfer function as orig_query
   for (Segment *q : candidates) {
     // use random here
-    // if (utils::rand_bool()) {
-    //   ret.insert(q);
-    // }
-    ret.insert(q);
+
+    if (HeliumOptions::Instance()->GetBool("aggressive-merge")) {
+      ret.insert(q);
+    } else if (HeliumOptions::Instance()->GetBool("random-merge")) {
+      if (utils::rand_bool()) {
+        ret.insert(q);
+      }
+    } else {
+      if (sameTransfer(orig_query, q)) {
+        // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";
+        ret.insert(q);
+      } else {
+        // std::cout << utils::CYAN << "Not same, cannot merge .." << utils::RESET << "\n";
+      }
+    }
   }
   return ret;
+}
+
+bool Helium::sameTransfer(Segment *s1, Segment *s2) {
+  if (!s1->GetProfile() && !s2->GetProfile()) return true;
+  if (s1->GetProfile() && s2->GetProfile()) {
+    return Analyzer::same_trans(s1->GetProfile(), s2->GetProfile());
+  }
+  return false;
 }

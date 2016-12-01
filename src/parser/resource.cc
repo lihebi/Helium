@@ -78,7 +78,13 @@ StructClass::StructClass(std::string code) {
   for (XMLNode decl_stmt_node : node.child("block").children("decl_stmt")) {
     for (XMLNode decl_node : decl_stmt_node.children("decl")) {
       Decl *decl = DeclFactory::CreateDecl(decl_node);
-      m_fields.push_back(decl);
+      // create
+      // Type *t = TypeFactory::CreateType(decl);
+      // TODO Decl and Variable seems to be duplicate
+      // m_fields.push_back(Variable(decl->GetType(), decl->GetName()));
+      if (decl) {
+        m_fields.push_back(decl);
+      }
     }
   }
 }

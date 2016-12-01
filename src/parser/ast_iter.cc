@@ -1,6 +1,12 @@
-#include "parser/ast_node.h"
-#include "parser/ast_common.h"
+#include "ast_iter.h"
+#include "ast_node.h"
+#include "ast_common.h"
 #include "utils/log.h"
+
+/*******************************
+ * For
+ *******************************/
+
 
 For::For(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
   : ASTNode(xmlnode, ast, parent, prev) {
@@ -64,7 +70,6 @@ void For::GetCode(std::set<ASTNode*> nodes,
   bool selected = nodes.count(this) == 1;
   selected |= all;
   if (selected) {
-    ret += POIOutputCode();
     ret += "for (";
     // init
     if (!m_inits.empty()) {
@@ -77,6 +82,8 @@ void For::GetCode(std::set<ASTNode*> nodes,
     ret += ";" + get_text(m_cond) + ";" + get_text(m_incr) + ")";
     // m_blk->GetCode(nodes, ret, all, selected);
     ret += "{\n";
+    // For the loop, the instrumentation point should be inside the loop
+    ret += POIOutputCode();
   }
 
   
@@ -154,3 +161,111 @@ ASTNode* For::LookUpDefinition(std::string id) {
   else
     return NULL;
 }
+
+/*******************************
+ * While
+ *******************************/
+
+
+While::While(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
+  #ifdef DEBUG_AST_NODE_TRACE
+  std::cout << "---- WHILE" << "\n";
+  #endif
+  m_xmlnode = xmlnode;
+  m_parent = parent;
+  m_prev = prev;
+  m_ast = ast;
+
+  XMLNode blk = while_get_block(xmlnode);
+  // m_blk = new Block(blk_node, ast, this, prev);
+  for (XMLNode node : block_get_nodes(blk)) {
+    ASTNode *n = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
+    if (n) m_children.push_back(n);
+  }
+  m_cond = while_get_condition_expr(xmlnode);
+  // m_children.push_back(m_blk);
+}
+
+void While::GetCode(std::set<ASTNode*> nodes,
+                    std::string &ret, bool all) {
+  // if (!nodes.empty() && nodes.count(this) == 0) return;
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "while (";
+    ret += get_text(m_cond);
+    ret += ")";
+    ret += "{\n";
+    ret += POIOutputCode();
+  }
+  for (ASTNode *child: m_children) {
+    child->GetCode(nodes, ret, all);
+  }
+  if (selected) {
+    ret += "}";
+    ret += POIAfterCode();
+  }
+}
+
+std::string While::GetLabel() {
+  std::string ret;
+  ret += "while (";
+  ret += get_text(m_cond);
+  ret += ")";
+  return ret;
+}
+
+/*******************************
+ * Do
+ *******************************/
+
+
+Do::Do(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
+  : ASTNode(xmlnode, ast, parent, prev) {
+  #ifdef DEBUG_AST_NODE_TRACE
+  std::cout << "---- DO" << "\n";
+  #endif
+  m_xmlnode = xmlnode;
+  m_parent = parent;
+  m_ast = ast;
+  m_prev = prev;
+  m_cond = while_get_condition_expr(xmlnode);
+
+  XMLNode blk_node = while_get_block(xmlnode);
+  for (XMLNode node : block_get_nodes(blk_node)) {
+    ASTNode *n  = ASTNodeFactory::CreateASTNode(node, ast, this, prev);
+    if (n) {m_children.push_back(n);}
+  }
+  // m_blk = new Block(blk_node, this, ast);
+  // m_children.push_back(m_blk);
+}
+
+void Do::GetCode(std::set<ASTNode*> nodes,
+                 std::string &ret, bool all) {
+  bool selected = nodes.count(this) == 1;
+  selected |= all;
+  if (selected) {
+    ret += "do {\n";
+    ret += POIOutputCode();
+  }
+  for (ASTNode *child : m_children) {
+    child->GetCode(nodes, ret, all);
+  }
+  if (selected) {
+    ret += "} ";
+    ret += "while (";
+    ret += get_text(m_cond);
+    ret += ");";
+  }
+}
+
+std::string Do::GetLabel() {
+  std::string ret;
+  ret += "do ";
+  ret += "while (";
+  ret += get_text(m_cond);
+  ret += ");";
+  return ret;
+}
+

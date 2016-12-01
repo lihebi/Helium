@@ -4,6 +4,10 @@
 
 #include "utils/log.h"
 #include "resolver/global_variable.h"
+#include "ast_internal.h"
+#include "helium_options.h"
+
+bool ASTOption::m_instrument=true;
 
 
 ASTNode::ASTNode(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)
@@ -98,6 +102,9 @@ std::vector<Variable> ASTNode::GetVariables() {
  * It is used in the detailed models
  */
 std::string ASTNode::POIOutputCode() {
+  if (!ASTOption::UsePOIInstrument()) {
+    return "";
+  }
   std::string ret;
   // std::vector<Variable> vars = m_ast->GetRequiredOutputVariables(this);
   // if (vars.size() > 0) {
@@ -115,9 +122,13 @@ std::string ASTNode::POIOutputCode() {
   if (m_ast->IsFailurePoint(this)) {
     ret += "printf(\"HELIUM_POI_INSTRUMENT\\n\");\n";
     ret += "fflush(stdout);\n";
-    std::vector<Variable> vars = GetVariables();
-    for (Variable var : vars) {
-      ret += var.GetType()->GetOutputCode(var.GetName());
+    if (HeliumOptions::Instance()->GetBool("instrument-io")) {
+      std::vector<Variable> vars = GetVariables();
+      for (Variable var : vars) {
+        ret += var.GetType()->GetOutputCode(var.GetName());
+      }
+    } else {
+      ret += "// instrument-io turned off\n";
     }
     ret += "printf(\"HELIUM_POI_INSTRUMENT_END\\n\");\n";
     ret += "fflush(stdout);\n";
@@ -130,6 +141,9 @@ std::string ASTNode::POIOutputCode() {
  * Code to instrument after the POI node
  */
 std::string ASTNode::POIAfterCode() {
+  if (!ASTOption::UsePOIInstrument()) {
+    return "";
+  }
   std::string ret;
   if (m_ast->IsFailurePoint(this)) {
     ret += "printf(\"HELIUM_AFTER_POI\\n\");\n";

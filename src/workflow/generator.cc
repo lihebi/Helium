@@ -5,6 +5,7 @@
 #include "helium_options.h"
 #include "utils/utils.h"
 #include "parser/xml_doc_reader.h"
+#include "type/io_helper.h"
 
 
 #include <iostream>
@@ -57,7 +58,7 @@ std::string get_header() {
   system_headers.push_back("stdio.h");
   system_headers.push_back("stdlib.h");
   system_headers.push_back("string.h");
-  local_headers.push_back("support.h");
+  local_headers.push_back("main.h");
   for (auto it=system_headers.begin();it!=system_headers.end();it++) {
     s += "#include <" + *it + ">\n";
   }
@@ -140,7 +141,7 @@ std::string replace_return_to_35(const std::string &code) {
 std::string CodeGen::GetMain() {
   std::string ret;
   ret += get_header();
-  ret += Type::GetHeader();
+  // ret += Type::GetHeader();
   std::string main_func;
   std::string other_func;
   /**
@@ -186,59 +187,33 @@ int main() {
       // inputs
       for (Variable *var : m_inputs) {
         main_func += var->GetDeclCode();
-        main_func += var->GetInputCode();
+        if (HeliumOptions::Instance()->GetBool("instrument-io")) {
+          main_func += var->GetInputCode();
+        }
       }
-      // for (auto mm : m_inputs) {
-      //   std::string var = mm.first;
-      //   Type *t = mm.second;
-      //   main_func += t->GetDeclCode(var);
-      //   // FIXME did not use def use analysis result!
-      //   main_func += t->GetInputCode(var);
-      // }
-
 
       main_func += "printf(\"HELIUM_INPUT_SPEC\\n\");\n" + flush_output;
-      for (Variable *var : m_inputs) {
-        main_func += var->GetOutputCode();
+      if (HeliumOptions::Instance()->GetBool("instrument-io")) {
+        for (Variable *var : m_inputs) {
+          main_func += var->GetOutputCode();
+        }
+      } else {
+        main_func += "// instrument-io turned off\n";
       }
-      // for (auto mm : m_inputs) {
-      //   std::string var = mm.first;
-      //   Type *t = mm.second;
-      //   main_func += t->GetOutputCode(var);
-      // }
       main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
-      
 
       main_func += "// In function " + ast->GetFunctionName() + "\n";
       main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
 
       // the code
       std::string code = ast->GetCode(nodes);
-      if (HeliumOptions::Instance()->GetBool("print-segment-peek")) {
-        std::cout << "-- Segment Peek:" << "\n";
-        // print up to 3 lines
-        int loc = HeliumOptions::Instance()->GetInt("segment-peek-loc");
-        if (std::count(code.begin(), code.end(), '\n') <= loc) {
-          std::cout << code << "\n";
-        } else {
-          int idx = 0;
-          while (loc-- > 0) {
-            int idx_new = code.find('\n', idx);
-            std::string tmp = code.substr(idx, idx_new);
-            std::cout << tmp << "\n";
-            idx = idx_new+1;
-          }
-        }
-        std::cout << "-- Segment Peek end" << "\n";
-
-      }
       
       ast->ClearDecl();
       // modify the code, specifically change all return statement to return 35;
       code = replace_return_to_35(code);
       main_func += code;
       main_func += "return 0;\n";
-      main_func += "};\n";
+      main_func += "}\n";
     } else {
       std::string code = ast->GetCode(nodes);
       // for (ASTNode *node : nodes) {
@@ -263,7 +238,6 @@ int main() {
     int loop_ct = 0;
     int ast_node_ct = 0;
     for (auto m : m_data) {
-      std::string code = m.first->GetCode(m.second);
       for (ASTNode *node : m.second) {
         ast_node_ct++;
         if (node->Kind() == ANK_If) {
@@ -275,6 +249,9 @@ int main() {
           loop_ct++;
         }
       }
+      ASTOption::TurnOffPOIInstrument();
+      std::string code = m.first->GetCode(m.second);
+      ASTOption::TurnOnPOIInstrument();
       loc += std::count(code.begin(), code.end(), '\n');
     }
     std::cout << utils::PURPLE << "Segment Meta:" << utils::RESET << "\n";
@@ -284,6 +261,38 @@ int main() {
     std::cout << "\t" << "Branch Number: " << branch_ct << "\n";
     std::cout << "\t" << "Loop Number: " << loop_ct << "\n";
   }
+
+  if (HeliumOptions::Instance()->GetBool("print-segment-peek")) {
+    std::cout << "-- Segment Peek:" << "\n";
+
+    for (auto m : m_data) {
+      AST *ast = m.first;
+      std::set<ASTNode*> nodes = m.second;
+      if (ast == m_first_ast) {
+        ASTOption::TurnOffPOIInstrument();
+        std::string code = m.first->GetCode(m.second);
+        std::cout << utils::BLUE << utils::indent_string(code) << utils::RESET << "\n";
+        ASTOption::TurnOnPOIInstrument();
+      }
+    }
+
+    // print up to 3 lines
+    // int loc = HeliumOptions::Instance()->GetInt("segment-peek-loc");
+    // if (std::count(code.begin(), code.end(), '\n') <= loc) {
+    //   std::cout << code << "\n";
+    // } else {
+    //   int idx = 0;
+    //   while (loc-- > 0) {
+    //     int idx_new = code.find('\n', idx);
+    //     std::string tmp = code.substr(idx, idx_new);
+    //     std::cout << tmp << "\n";
+    //     idx = idx_new+1;
+    //   }
+    // }
+    std::cout << "-- Segment Peek end" << "\n";
+
+  }
+
   return ret;
 }
 std::string CodeGen::GetSupport() {
@@ -303,6 +312,17 @@ std::string CodeGen::GetSupport() {
       code += "#include <" + header + ">\n";
     }
   }
+
+  // some predefined headers ...
+  // I'm adding <getopt.h> because polymorph does not include it in its files ...
+  // should be a better idea if checking if these headers exist on current machine
+  code += R"prefix(
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+)prefix";
   // code += SystemResolver::Instance()->GetHeaders();
 
   code += ""
@@ -405,6 +425,19 @@ std::string CodeGen::getSupportBody() {
   code += code_variable;
   code += "\n// functions\n";
   code += code_func;
+
+
+
+  // Adding libhelium here
+  code += "\n// libhelium222\n";
+  code += R"prefix(
+void *hhaddr[BUFSIZ];
+int hhsize[BUFSIZ];
+int hhtop = 0;
+char hbuf[BUFSIZ];
+)prefix";
+  code += IOHelper::Instance()->GetAll();
+  
   return code;
 }
 
@@ -450,27 +483,20 @@ void CodeGen::resolveSnippet(AST *ast) {
   helium_print_trace("Context::resolveSnippet");
   std::set<std::string> all_ids;
   std::map<ASTNode*, std::set<std::string> > all_decls;
-  // Since I changed the decl mechanism to m_decls, I need to change here
-  
-  // decl_deco decl_m = m_ast_to_deco_m[ast].first;
-  // decl_deco decl_input_m = m_ast_to_deco_m[ast].second;
-  // all_decls.insert(decl_input_m.begin(), decl_input_m.end());
-  // all_decls.insert(decl_m.begin(), decl_m.end());
-  // for (auto item : all_decls) {
-  //   ASTNode *node = item.first;
-  //   std::set<std::string> names = item.second;
-  //   for (std::string name : names) {
-  //     SymbolTableValue *value = node->GetSymbolTable()->LookUp(name);
-  //     std::string type = value->GetType()->Raw();
-  //     std::set<std::string> ids = extract_id_to_resolve(type);
-  //     all_ids.insert(ids.begin(), ids.end());
-  //   }
-  // }
-
   /**
    * I want to resolve the type of the decls
    * And also the char array[MAX_LENGTH], see that macro?
    */
+
+  for (Variable *v : m_inputs) {
+    Type *t = v->GetType();
+    if (t) {
+      std::string raw = t->GetRaw();
+      // resolve it
+      std::set<std::string> ids = extract_id_to_resolve(raw);
+      all_ids.insert(ids.begin(), ids.end());
+    }
+  }
 
   std::set<ASTNode*> nodes = m_data[ast];
   for (ASTNode *n : nodes) {
@@ -491,12 +517,21 @@ void CodeGen::resolveSnippet(AST *ast) {
   // I need to remove the function here!
   // otherwise the code snippet will get too much
   // For example, I have included a function in main.c, but it turns out to be here
-  // even if I filter it out when adding to support.h, I still have all its dependencies in support.h!
+  // even if I filter it out when adding to main.h, I still have all its dependencies in main.h!
   for (auto m : m_data) {
     AST *ast = m.first;
     assert(ast);
     std::string func = ast->GetFunctionName();
     all_ids.erase(func);
+  }
+
+
+  if (HeliumOptions::Instance()->Has("verbose")) {
+    std::cout << "Resolved IDs:" << "\n";
+    for (std::string id : all_ids) {
+      std::cout << id << " ";
+    }
+    std::cout << "\n";
   }
 
 
