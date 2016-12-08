@@ -135,7 +135,9 @@ HeliumOptions::HeliumOptions() {
 
     ("aggressive-merge", po::value<bool>()->default_value(false), "aggressively merge everything")
     ("random-merge", po::value<bool>()->default_value(false), "random merge")
+    ("no-merge", po::value<bool>()->default_value(false), "no merge")
     ("aggressive-remove", po::value<bool>()->default_value(false), "remove whenever the transfer does not change")
+    ("debug-remove-alg", po::value<bool>()->default_value(false, "debug removing algorithm"))
 
     ("test-input-max-strlen", po::value<int>(), "max strlen for test generation")
     ("test-input-min-int", po::value<int>(), "int min")

@@ -63,6 +63,26 @@ public:
     m_profile = analyzer;
   }
   Analyzer *GetProfile() {return m_profile;}
+
+  void ActivateRemoveMark() {
+    m_back = m_selection;
+    for (CFGNode *n : m_remove_mark) {
+      if (m_selection.count(n) == 1) {
+        m_selection.erase(n);
+      }
+    }
+  }
+  void RestoreRemoveMark() {
+    m_selection = m_back;
+  }
+  void MarkRemove(CFGNode *node) {
+    m_remove_mark.insert(node);
+  }
+  void MarkRemove(std::set<CFGNode*> nodes) {
+    m_remove_mark.insert(nodes.begin(), nodes.end());
+  }
+
+  void Dump();
 private:
 
   static CFGNode *m_poi;
@@ -77,6 +97,11 @@ private:
   std::set<CFGNode*> m_new;
   // the callsite nodes. These nodes cannot be removed, otherwise resulting invalid segment.
   std::set<CFGNode*> m_callsites;
+
+
+  // nodes marked remove. This is experimental
+  std::set<CFGNode*> m_remove_mark;
+  std::set<CFGNode*> m_back;
 
 
   // inputs

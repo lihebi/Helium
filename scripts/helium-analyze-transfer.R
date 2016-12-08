@@ -34,6 +34,7 @@ ComputeConstant <- function(data) {
 }
 
 GetFormula <- function(yname, res, valid=1) {
+    ## browser()
     ## print("Getting formula")
     b = res$coefficients[1]
     k = res$coefficients[-1]
@@ -56,6 +57,10 @@ GetFormula <- function(yname, res, valid=1) {
     }
     ## print(parts)
     if (length(parts) != valid) return ("");
+    ## also add b
+    if (b != 0) {
+        parts <- c(parts, b);
+    }
     rhs <- paste(parts, collapse=" + ")
     form <- paste(yname, "=", rhs)
     ## for unknown reason, the name string will add `` inside lm res.

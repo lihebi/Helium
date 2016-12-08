@@ -23,6 +23,7 @@ public:
 private:
   // void init(ASTNode *node);
   void process();
+  Analyzer* testProfile(Segment *segment);
   std::vector<Segment*> select(Segment *query);
   std::set<Segment*> find_mergable_query(CFGNode *node, Segment *orig_query);
   bool sameTransfer(Segment *s1, Segment *s2);

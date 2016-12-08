@@ -43,6 +43,8 @@ Segment::Segment(ASTNode *astnode) {
 }
 
 
+
+// FIXME TODO NOW buggy introducing!
 Segment::Segment(const Segment &q) {
   m_selection = q.m_selection;
   m_new = q.m_new;
@@ -50,6 +52,7 @@ Segment::Segment(const Segment &q) {
   // copy the profile
   // this will be updated when the new segment is tested
   m_profile = q.m_profile;
+  m_remove_mark = q.m_remove_mark;
 }
 
 Segment::Segment(CFGNode *cfgnode) {
@@ -330,4 +333,13 @@ std::string Segment::GetOpt() {
     std::cout << utils::CYAN << ret << utils::RESET << "\n";
   }
   return ret;
+}
+
+void Segment::Dump() {
+  std::cout << "Dump segment:" << "\n";
+  std::cout << "Number of marked node: " << m_remove_mark.size() << "\n";
+  std::cout << "Number of nodes: " << m_selection.size() << "\n";
+  for (CFGNode *n : m_remove_mark) {
+    std::cout << n->GetLabel() << "\n";
+  }
 }

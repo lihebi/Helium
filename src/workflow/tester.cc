@@ -219,7 +219,7 @@ void Tester::Test() {
   helium_print_trace("Tester::Test");
   genTestSuite();
 
-  std::string newcmd = "bash -c \"cd " + m_exe_folder.string() + "; ./test.sh\"";
+  std::string newcmd = "bash -c \"cd " + m_exe_folder.string() + "; ./test.sh 2>/dev/null\"";
   std::cout << "running " << newcmd << "\n";
   utils::new_exec(newcmd.c_str());
 

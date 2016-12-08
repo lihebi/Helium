@@ -18,3 +18,77 @@
 |         2 | bugs reported, fixed, but not in benchmark suite; official patch | use official patch to fix the bug signature         | debug the benchmark |
 |         3 | manually built benchmark and original code                       | compare bug signature with manual benchmark         | benchmark selection |
 |         4 | reported but not fixed bugs                                      | manually patch bug signature, then fix original bug | find bugs           |
+
+* Infinite loop
+
+Ways to produce infinite loop:
+1. put a semicolon after the loop header
+
+#+BEGIN_SRC C
+while (num>255);
+  sum+=num--;
+#+END_SRC
+
+2. use true as condition
+#+BEGIN_SRC C
+num = 1;
+while(true) {
+  num += 2;
+  if (num>10) break;
+}
+#+END_SRC
+
+3. subscript remains the same
+
+#+BEGIN_SRC C
+int i=0;
+while (i < 10) {
+  sum += i;
+}
+#+END_SRC
+
+Another example:
+
+#+BEGIN_SRC C
+  int num1;
+  int num2;
+  for (int i=0;i!=num1;i++) {
+    if (i==num2) {
+      i--;
+    }
+  }
+#+END_SRC
+The error condition is still
+- output_i!=output_num1;
+The expected pre-condition is
+- input_num1>input_num2;
+Here the transfer function will be
+- output_i = input_num2 - 1
+- output_num1 = input_num1
+Combine error condition and transfer function, we have:
+- input_num2-1 != input_num1
+Which is, satisfiable, when input_num2
+- TODO NOW THIS IS IMPORTANT: we need to model the invariants in
+  pre-condition. The reason is the precondition will have a impact of
+  the satisfiability of the model. In this case, the precondition
+  needs to be satisfied is =input_num2<input_num1=. This is learned by
+  the failure test profiles. This only needs to be integrated into the
+  SAT solving process.
+
+4. off by one
+#+BEGIN_SRC C
+  int num;
+  for (int i=0;i!=num;i++) {
+    if (i==9) {
+      i++;
+    }
+  }
+#+END_SRC
+
+For this, we use the error condition =i!=10=.
+This is inside the loop.
+What is the transfer function here?
+Sure we see i!=10, but why?
+
+** TODO Infinite Recursion
+

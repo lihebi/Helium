@@ -344,3 +344,12 @@ bool Analyzer::same_trans(Analyzer *p1, Analyzer *p2) {
   return true;
     
 }
+
+void Analyzer::print_used_trans(Analyzer *p) {
+  if (p) {
+    std::map<std::string, std::string> t = p->GetUsedTransfer();
+    for (auto m : t) {
+      std::cout << m.first << " " << m.second << "\n";
+    }
+  }
+}

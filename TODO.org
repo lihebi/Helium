@@ -1,6 +1,67 @@
 #+TITLE: Helium Project TODO
 
 
+* New Stage
+
+  - Syntax patching algorithm rethink and test for examples of
+    different scenarios.
+    - Implement syntax patching and integrate with Helium, test build
+      rate
+  - Removing of code algorithm rethink
+    - “real time removing” (remove if transfer function does not
+      change) has any problems? Search for examples?
+    - Test in real benchmarks
+  - Continue assertion experiment, get good results or identify
+    difficulties and solve them
+  - Model more inputs for bug signatures. E.g. network input for CVE
+    benchmarks. Come up with Systematic way or Heuristic for
+    identifying program entry point.
+
+** Remove of code
+current strategy
+- remove if transfer function does not change
+
+Task done:
+- Implement
+- Test in real benchmarks
+- Hand write examples
+- Run Helium and gather the changed examples
+  - randomly choose a location
+  - use the variables as variable of interest
+  - run context search, if not changed, record and go to a pair, with
+    and without the new statement
+    - one continue to do context search for both of them
+    - if at some point, one changed and one does not, report it out
+
+
+Implement a tester:
+- for each of the segment, record a list of marked statements
+- marked statements are those that do not alter the transfer functions
+- for each new statement(s) n added, test
+  - seg + n (1)
+  - seg - mark + n (2)
+  and compare to
+  - seg (3)
+  - seg - mark
+  The result will be of the following kinds
+  - seg + n == seg
+  - seg - mark + n == seg - mark
+  - seg + n == seg - mark + n
+  Using the numbers
+  - 1,2,3 :: n changes the property, to different directions.
+    - REPORT
+  - 123 :: n does not change property.
+    - Continue, add to mark
+  - 12,3 :: n change property, and mark has no difference.
+    - Continue. Do not add to mark
+  - 13,2 :: n change property of full, but does not change property of
+       removing mark
+    - Report
+  - 23,1 :: n change property of remove mark, but does not change that
+       of full
+    - Report
+
+
 * Current Experiment Running
 ** DONE helium1 running new build rate testing on 515 projects, with:
    CLOSED: [2016-11-14 Mon 15:12]
@@ -59,79 +120,6 @@ helium
 ** gnu parallel
 ** String content input model
 
-* Infinite loop
-
-Ways to produce infinite loop:
-1. put a semicolon after the loop header
-
-#+BEGIN_SRC C
-while (num>255);
-  sum+=num--;
-#+END_SRC
-
-2. use true as condition
-#+BEGIN_SRC C
-num = 1;
-while(true) {
-  num += 2;
-  if (num>10) break;
-}
-#+END_SRC
-
-3. subscript remains the same
-
-#+BEGIN_SRC C
-int i=0;
-while (i < 10) {
-  sum += i;
-}
-#+END_SRC
-
-Another example:
-
-#+BEGIN_SRC C
-  int num1;
-  int num2;
-  for (int i=0;i!=num1;i++) {
-    if (i==num2) {
-      i--;
-    }
-  }
-#+END_SRC
-The error condition is still
-- output_i!=output_num1;
-The expected pre-condition is
-- input_num1>input_num2;
-Here the transfer function will be
-- output_i = input_num2 - 1
-- output_num1 = input_num1
-Combine error condition and transfer function, we have:
-- input_num2-1 != input_num1
-Which is, satisfiable, when input_num2
-- TODO NOW THIS IS IMPORTANT: we need to model the invariants in
-  pre-condition. The reason is the precondition will have a impact of
-  the satisfiability of the model. In this case, the precondition
-  needs to be satisfied is =input_num2<input_num1=. This is learned by
-  the failure test profiles. This only needs to be integrated into the
-  SAT solving process.
-
-4. off by one
-#+BEGIN_SRC C
-  int num;
-  for (int i=0;i!=num;i++) {
-    if (i==9) {
-      i++;
-    }
-  }
-#+END_SRC
-
-For this, we use the error condition =i!=10=.
-This is inside the loop.
-What is the transfer function here?
-Sure we see i!=10, but why?
-
-** TODO Infinite Recursion
-
 
 
 
@@ -140,18 +128,23 @@ Sure we see i!=10, but why?
 ** TODO more buffer-overflow
 ** TODO grammar patching implementation and evaluation
 ** TODO input code into function
-** TODO build rate use random selection of AST nodes or failure point
-** TODO timeout limit everywhere
+** DONE build rate use random selection of AST nodes or failure point
+   CLOSED: [2016-12-08 Thu 09:47]
+** DONE timeout limit everywhere
+   CLOSED: [2016-12-08 Thu 09:47]
 ** SIR
 ** ffmpeg
 ** putty
-* STARTED [#A] Loop bugs
-  SCHEDULED: <2016-10-20 Thu>
-* TODO remove duplicated TYPE snippet, but not variable
+* DONE [#A] Loop bugs
+  CLOSED: [2016-12-08 Thu 09:47] SCHEDULED: <2016-10-20 Thu>
+* DONE remove duplicated TYPE snippet, but not variable
+  CLOSED: [2016-12-08 Thu 09:48]
 
-* TODO add option to control helium_dump_compile_error
+* CANCELED add option to control helium_dump_compile_error
+  CLOSED: [2016-12-08 Thu 09:48]
 
-* TODO extract generated init code into functions, to avoid i,ii,iii problems.
+* DONE extract generated init code into functions, to avoid i,ii,iii problems.
+  CLOSED: [2016-12-08 Thu 09:48]
 * TODO The heap size recorder
   can only work for the variables that I generate input code for.
   - it does not take into account other variables, which might be used
@@ -169,13 +162,14 @@ Sure we see i!=10, but why?
 * TODO compare static
   In paper writing, don't forget to conduct a detailed comparison to
   static inferencing.
-* TODO Run tests in parrel
-  SCHEDULED: <2016-10-23 Sun>
+* DONE Run tests in parrel
+  CLOSED: [2016-12-08 Thu 09:49] SCHEDULED: <2016-10-23 Sun>
 * TODO transfer function with successfully runs
 * TODO failure condition generation
-* TODO sample program for other type of bugs
-* TODO all type input generation, e.g. struct
-  SCHEDULED: <2016-10-19 Wed>
+* DONE sample program for other type of bugs
+  CLOSED: [2016-12-08 Thu 09:49]
+* DONE all type input generation, e.g. struct
+  CLOSED: [2016-12-08 Thu 09:49] SCHEDULED: <2016-10-19 Wed>
 * TODO Helium use fs::path instead of string for all
   SCHEDULED: <2016-10-20 Thu>
 * TODO Helium utils thread exec refactoring

@@ -208,6 +208,81 @@ void Helium::process() {
     }
     std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
     std::string executable = builder.GetExecutable();
+
+
+
+    /********************************
+     * debug removing algorithm
+     *******************************/
+    // This is a self contained exp, the code after this will be skipped. Need refactoring.
+    if (HeliumOptions::Instance()->GetBool("debug-remove-alg")) {
+
+      // print out the segment information
+      segment->Dump();
+      
+      Analyzer *old_profile = segment->GetProfile();
+      // seg + n
+      std::cout << "seg+n" << "\n";
+      Analyzer *profile1 = testProfile(segment);
+      // seg - mark + n
+      std::cout << "seg-mark+n" << "\n";
+      segment->ActivateRemoveMark();
+      Analyzer *profile2 = testProfile(segment);
+      segment->RestoreRemoveMark();
+
+      // outputing the transfer used in all three profiles
+      std::cout << utils::CYAN << "Used Trans" << "\n";
+      Analyzer::print_used_trans(old_profile);
+      std::cout << "---" << "\n";
+      Analyzer::print_used_trans(profile1);
+      std::cout << "---" << "\n";
+      Analyzer::print_used_trans(profile2);
+      std::cout << utils::RESET << "\n";
+      
+      if (Analyzer::same_trans(profile1, profile2)) {
+        helium_log("same");
+        // does not report
+        // we need to continue based on whether it is equal to the old profile
+        // mark as remove if does not chagne
+        if (Analyzer::same_trans(profile1, old_profile)) {
+          helium_log("123");
+          std::cout << utils::RED << "Marking remove" << utils::RESET << "\n";
+          segment->MarkRemove(segment->New());
+          std::cout << segment->New().size() << "\n";
+        } else {
+          helium_log("12,3");
+          // if it does change, it makes sense to report it. But actually we don't need to add any mark
+          std::cout
+            << "The context transfer profile changed, but both mark and non-mark version change to the same"
+            << "\n";
+        }
+        // record the new profile.
+        // Since profile1 and profile2 are "same" in terms of variable of interest, we choose one of them
+        segment->SetProfile(profile1);
+        // we finally need to continue search
+        std::vector<Segment*> queries = select(segment);
+        m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+      } else {
+        // report
+        std::cout << utils::GREEN << "Got the difference!" << utils::RESET << "\n";
+        // now we can skip this segment (does not context search)
+        helium_log("difference");
+        if (Analyzer::same_trans(old_profile, profile1)) {
+          helium_log("13,2");
+        } else if (Analyzer::same_trans(old_profile, profile2)) {
+          helium_log("23,1");
+        } else {
+          helium_log("1,2,3");
+        }
+      }
+      continue;
+    }
+
+
+
+
+    
+    
     if (HeliumOptions::Instance()->GetBool("run-test")) {
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
@@ -225,6 +300,7 @@ void Helium::process() {
         if (segment->GetProfile()) {
           if (HeliumOptions::Instance()->GetBool("aggressive-remove")) {
             Analyzer *old_profile = segment->GetProfile();
+            // same transfer function, we are going to do something
             if (Analyzer::same_trans(old_profile, analyzer)) {
               segment->Remove(segment->New());
               // (HEBI: aggressive remove)
@@ -233,6 +309,7 @@ void Helium::process() {
               continue;
             }
           }
+          
         }
         
         segment->SetProfile(analyzer);
@@ -283,6 +360,36 @@ void Helium::process() {
 }
 
 
+Analyzer* Helium::testProfile(Segment *segment) {
+  segment->PatchGrammar();
+  segment->ResolveInput();
+  segment->GenCode();
+  Builder builder;
+  builder.SetMain(segment->GetMain());
+  builder.SetSupport(segment->GetSupport());
+  builder.SetMakefile(segment->GetMakefile());
+  builder.Write();
+  builder.Compile();
+  std::cout << "\t" << "Code Written to: " << builder.GetDir()  << "\n";
+  if (builder.Success()) {
+    std::cout << "testProfile compile Success" << "\n";
+    Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
+    tester.Test();
+    if (fs::exists(builder.GetDir() + "/result.txt")) {
+      Analyzer *analyzer = new Analyzer(builder.GetDir());
+      analyzer->GetCSV();
+      analyzer->AnalyzeCSV();
+      analyzer->ResolveQuery(m_poi->GetFailureCondition());
+      // This new analyzer is the profile
+      return analyzer;
+    }
+  } else {
+    std::cout << "testProfile compile Error" << "\n";
+  }
+  return NULL;
+}
+
+
 
 /**
  * context search
@@ -317,7 +424,14 @@ std::vector<Segment*> Helium::select(Segment *query) {
   if (!preds.empty()) {
     for (CFGNode *pred : preds) {
       // FIXME this will not work on loops
-      if (query->ContainNode(pred)) continue;
+      // DEBUG FIXME FIXME
+      // if (query->ContainNode(pred)) continue;
+      if (query->ContainNode(pred)) {
+        // if it is not a branch, we remove it
+        if (!pred->IsBranch()) {
+          continue;
+        }
+      }
       // continue here, easier..
       // UPDATE I don't really need to check this here, the compilation will tell this is bad.
       // if (Segment::IsBad(pred)) continue;
@@ -373,6 +487,8 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
       if (utils::rand_bool()) {
         ret.insert(q);
       }
+    } else if (HeliumOptions::Instance()->GetBool("no-merge")) {
+      return ret;
     } else {
       if (sameTransfer(orig_query, q)) {
         // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";

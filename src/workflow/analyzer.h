@@ -20,6 +20,7 @@ public:
    * Whether the two analyzer using same set of transfer function
    */
   static bool same_trans(Analyzer *p1, Analyzer *p2);
+  static void print_used_trans(Analyzer *p);
 private:
   std::string m_dir;
   std::string m_transfer_output;
