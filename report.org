@@ -1,0 +1,97 @@
+#+TITLE: 
+#+LATEX_CLASS: fse
+
+* tasks from last meeting
+
+  - Syntax patching algorithm rethink and test for examples of
+    different scenarios.
+    - Implement syntax patching and integrate with Helium, test build
+      rate
+  - Removing of code algorithm rethink
+    - “real time removing” (remove if transfer function does not
+      change) has any problems? Search for examples?
+    - Test in real benchmarks
+  - Continue assertion experiment, get good results or identify
+    difficulties and solve them
+  - Model more inputs for bug signatures. E.g. network input for CVE
+    benchmarks. Come up with Systematic way or Heuristic for
+    identifying program entry point.
+
+* Remove of code
+current strategy
+- remove if transfer function related to variables of interest does not change
+
+** Task done:
+- [x] Implement the removing algorithm
+- [x] Test in real benchmarks: no problem for already working benchmarks
+- [x] Situation of removing a statement will affect the
+  result: 1. looping back; 2. data dependence
+- [x] think about an algorithm to automatic gather examples.
+- [x] implement the algorithm
+- [x] Run Helium and gather the changed examples (ran on assertions for github projects)
+
+** Algorithm for automatically gathering examples from benchmarks:
+1. for each of the segment, record a list of marked nodes
+2. marked nodes are those that do not alter the transfer functions
+3. for each new statement(s) n added, test
+   - seg + n (1)
+   - seg - mark + n (2)
+   and compare to
+   - seg (3)
+   - seg - mark
+4. The result will be of the following kinds. Situations with different
+   transfer functions are separated by comma.
+   - 1,2,3 :: n changes the property, to different directions.
+     - Report
+   - 123 :: n does not change property.
+     - Continue, add to mark
+   - 12,3 :: n change property, and mark has no difference.
+     - Continue. Do not add to mark
+   - 13,2 :: n change property of full, but does not change property of
+        removing mark
+     - Report
+   - 23,1 :: n change property of remove mark, but does not change that
+        of full
+     - Report
+
+
+** Some results on assertion
+
+| code  | count |
+| /     |     < |
+|-------+-------|
+| 12,3  |    70 |
+| 123   |    89 |
+|-------+-------|
+| 1,2,3 |     0 |
+| 13,2  |     7 |
+| 23,1  |     0 |
+
+
+** An example
+
+#+BEGIN_SRC C
+int main() {
+  int a=0;
+  int b=1;
+  int c=b-20;
+  while (c<b) {
+    a=c;
+    c++;
+  }
+  a++;
+  assert(a<b);
+}
+#+END_SRC
+
+
+** Some points
+- most of the time, transfer function is not inferred.
+- Different path have different transfer functions. Although we search
+  context along path, When including the while node, we automatically
+  include the paths.
+- Using both success and failure runs, will also execute the different
+  path
+- we indeed need to model path by path if want to be precise
+- piece-wise linear might be helpful
+
