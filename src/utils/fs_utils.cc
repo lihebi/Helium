@@ -47,12 +47,12 @@ namespace utils {
     }
   }
 
-  TEST(UtilsTestCase, GetFilesTest) {
-    std::vector<std::string> files = get_files("/home/hebi/tmp");
-    for (std::string file : files) {
-      std::cout << file  << "\n";
-    }
-  }
+  // TEST(UtilsTestCase, GetFilesTest) {
+  //   std::vector<std::string> files = get_files("/home/hebi/tmp");
+  //   for (std::string file : files) {
+  //     std::cout << file  << "\n";
+  //   }
+  // }
 
   /**
    * Get files in a folder, with ONE specific extension.

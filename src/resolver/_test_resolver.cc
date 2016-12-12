@@ -90,23 +90,23 @@
 //   ASSERT_EQ(result.size(), 4);
 // }
 
-TEST(resolver_test_case, system) {
-  SystemResolver::Instance()->Load("systype.tags");
-  ASSERT_TRUE(SystemResolver::Instance()->Has("uint8_t"));
-  std::string output = SystemResolver::Instance()->ResolveType("uint8_t");
-  EXPECT_EQ(output, "unsigned char");
-  output = SystemResolver::Instance()->ResolveType("u_int");
-  EXPECT_EQ(output, "unsigned int");
-  output = SystemResolver::Instance()->ResolveType("u_long");
-  // EXPECT_EQ(output, "unsigned long int");
-  // on Darwin, it is unsigned long
-  // on GNU Linux, it is unsigned long int
-  // I may need to unify this
-  EXPECT_TRUE(output == "unsigned long int" || output == "unsigned long");
-  output = SystemResolver::Instance()->ResolveType("u_char");
-  EXPECT_EQ(output, "unsigned char");
-  output = SystemResolver::Instance()->ResolveType("u_int8_t");
-  EXPECT_EQ(output, "unsigned char");
-  output = SystemResolver::Instance()->ResolveType("u_int32_t");
-  EXPECT_EQ(output, "unsigned int");
-}
+// TEST(resolver_test_case, system) {
+//   SystemResolver::Instance()->Load("systype.tags");
+//   ASSERT_TRUE(SystemResolver::Instance()->Has("uint8_t"));
+//   std::string output = SystemResolver::Instance()->ResolveType("uint8_t");
+//   EXPECT_EQ(output, "unsigned char");
+//   output = SystemResolver::Instance()->ResolveType("u_int");
+//   EXPECT_EQ(output, "unsigned int");
+//   output = SystemResolver::Instance()->ResolveType("u_long");
+//   // EXPECT_EQ(output, "unsigned long int");
+//   // on Darwin, it is unsigned long
+//   // on GNU Linux, it is unsigned long int
+//   // I may need to unify this
+//   EXPECT_TRUE(output == "unsigned long int" || output == "unsigned long");
+//   output = SystemResolver::Instance()->ResolveType("u_char");
+//   EXPECT_EQ(output, "unsigned char");
+//   output = SystemResolver::Instance()->ResolveType("u_int8_t");
+//   EXPECT_EQ(output, "unsigned char");
+//   output = SystemResolver::Instance()->ResolveType("u_int32_t");
+//   EXPECT_EQ(output, "unsigned int");
+// }

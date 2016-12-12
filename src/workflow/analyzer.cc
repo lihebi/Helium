@@ -172,7 +172,7 @@ bool check_sat(std::vector<std::string> vorig) {
   std::string dir = utils::create_tmp_dir();
   std::string smt_file = dir + "/helium.smt";
   utils::write_file(smt_file, smt);
-  std::cout << "output smt to " << smt_file<< "\n";
+  // std::cout << "output smt to " << smt_file<< "\n";
   // call z3 to execute
   // FIXME check whether z3 is available
   std::string cmd = "z3 -v:1 -smt2 " + smt_file;
@@ -181,8 +181,8 @@ bool check_sat(std::vector<std::string> vorig) {
   if (output == "sat") {
     return true;
   } else {
-    std::cout << "SAT output:" << "\n";
-    std::cout << output << "\n";
+    // std::cout << "SAT output:" << "\n";
+    // std::cout << output << "\n";
     return false;
   }
 }

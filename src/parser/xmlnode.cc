@@ -556,9 +556,9 @@ int aa[5][4];
   std::vector<std::string> dims = decl_get_dimension(decl);
   ASSERT_EQ(dims.size(), 2);
   // output
-  for (std::string dim : dims) {
-    std::cout << dim  << "\n";
-  }
+  // for (std::string dim : dims) {
+  //   std::cout << dim  << "\n";
+  // }
   // another test
   raw = R"prefix(
 int aa[];
@@ -740,7 +740,7 @@ lalala
 )prefix";
   std::string s(code);
   std::string decl = get_function_decl(s);
-  std::cout << decl  << "\n";
+  // std::cout << decl  << "\n";
 
   code = R"prefix(
 local int get_istat(iname, sbuf)
@@ -751,7 +751,7 @@ local int get_istat(iname, sbuf)
 }
 )prefix";
   decl = get_function_decl(code);
-  std::cout << decl  << "\n";
+  // std::cout << decl  << "\n";
 }
 
 /**

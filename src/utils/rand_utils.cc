@@ -47,10 +47,10 @@ namespace utils {
 
   TEST(UtilsTestCase, RandIntTest) {
     for (int i=0;i<10;i++) {
-      std::cout << rand_int(0, 1) << "\n";
+      // std::cout << rand_int(0, 1) << "\n";
     }
-    int neg = rand_int(-10, -7);
-    std::cout << neg  << "\n";
+    // int neg = rand_int(-10, -7);
+    // std::cout << neg  << "\n";
   }
 
   bool rand_bool() {
@@ -101,21 +101,21 @@ namespace utils {
     return ret;
   }
 
-  TEST(UtilsTestCase, RandTest) {
-    std::cout << "random int: ";
-    for (int i=0;i<10;i++) {
-      std::cout << rand_int(0, 100) << " ";
-    }
-    std::cout << "\n random char: ";
-    for (int i=0;i<10;i++) {
-      std::cout << rand_char() << " ";
-    }
-    std::cout << "\n random str: ";
-    for (int i=0;i<5;i++) {
-      std::cout << rand_str(rand_int(0, 5)) << " ";
-    }
-    std::cout   << "\n";
-  }
+  // TEST(UtilsTestCase, RandTest) {
+  //   std::cout << "random int: ";
+  //   for (int i=0;i<10;i++) {
+  //     std::cout << rand_int(0, 100) << " ";
+  //   }
+  //   std::cout << "\n random char: ";
+  //   for (int i=0;i<10;i++) {
+  //     std::cout << rand_char() << " ";
+  //   }
+  //   std::cout << "\n random str: ";
+  //   for (int i=0;i<5;i++) {
+  //     std::cout << rand_str(rand_int(0, 5)) << " ";
+  //   }
+  //   std::cout   << "\n";
+  // }
 
 
 }

@@ -19,6 +19,7 @@ TEST(BoostCase, FileSystemTest) {
 }
 
 
+// This needs to be not hard-coded
 TEST(StdCase, StreamTest) {
   std::ifstream ifs;
   // ifs can open both regular file and symbolic link
@@ -27,8 +28,9 @@ TEST(StdCase, StreamTest) {
   ifs.open("/home/hebi/.bashrc.local");
   EXPECT_TRUE(ifs.is_open());
   // but it cannot expand ~
+  // YES, it can!!!
   ifs.open("~/.bashrc");
-  EXPECT_FALSE(ifs.is_open());
+  EXPECT_TRUE(ifs.is_open());
   ifs.open("~/.bashrc.local");
-  EXPECT_FALSE(ifs.is_open());
+  EXPECT_TRUE(ifs.is_open());
 }

@@ -201,18 +201,18 @@ TEST(thread_test_case, exec) {
   // EXPECT_EQ(status, 1);
 }
 
-TEST(ThreadTestCase, TimeoutTest) {
-  int status;
-  status=0;
-  // utils::exec_in("sleep 10", "test", &status, 1);
-  // utils::exec_in("sleep 10", "this is input", &status, 1);
-  // utils::exec_in("/Users/hebi/github/Helium/scratch/a.out", "3", &status, 1);
-  // utils::exec("/Users/hebi/github/Helium/scratch/a.out", &status, 1);
-  // utils::exec("/tmp/helium-test-tmp.2D6sfk/a.out", &status, 1);
-  // std::cout << status  << "\n";
-  utils::exec("sleep 10", &status, 0.5); // 100000 MICROseconds, 0.1s
-  std::cout << status  << "\n";
-}
+// TEST(ThreadTestCase, TimeoutTest) {
+//   int status;
+//   status=0;
+//   // utils::exec_in("sleep 10", "test", &status, 1);
+//   // utils::exec_in("sleep 10", "this is input", &status, 1);
+//   // utils::exec_in("/Users/hebi/github/Helium/scratch/a.out", "3", &status, 1);
+//   // utils::exec("/Users/hebi/github/Helium/scratch/a.out", &status, 1);
+//   // utils::exec("/tmp/helium-test-tmp.2D6sfk/a.out", &status, 1);
+//   // std::cout << status  << "\n";
+//   utils::exec("sleep 10", &status, 0.5); // 100000 MICROseconds, 0.1s
+//   std::cout << status  << "\n";
+// }
 
 /**
  * Use /bin/sh to execute the command, thus support output redirection.
