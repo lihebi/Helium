@@ -287,20 +287,28 @@ checkoneof <- function(data) {
 ## The commands
 ##############################
 
+
+## Getting the csv file from command line option
 args = commandArgs(trailingOnly=TRUE)
 ## csvfile = "result.csv"
 csvfile = args[1]
 ## csv = read.csv(csvfile, header=TRUE)
 
+## read the csv file
 ## do not replace [] with .
 csv = read.csv(csvfile, header=TRUE, check.names=FALSE, stringsAsFactors=FALSE)
 
+
+
+## filter the data
 ## only the failure traces
 sub <- subset(csv, reach_code>=5)
 sub <- subset(csv, reach_code==5 & status_code == 1)
 ## remove last two columns: (code)
 sub <- sub[1:(length(csv)-2)]
 
+
+## do the computation
 ComputeTransferFunction(sub);
 
 ComputeConstant(sub);

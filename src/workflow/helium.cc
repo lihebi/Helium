@@ -246,9 +246,9 @@ void Helium::process() {
         // mark as remove if does not chagne
         if (Analyzer::same_trans(profile1, old_profile)) {
           helium_log("123");
-          std::cout << utils::RED << "Marking remove" << utils::RESET << "\n";
+          // std::cout << utils::RED << "Marking remove" << utils::RESET << "\n";
           segment->MarkRemove(segment->New());
-          std::cout << segment->New().size() << "\n";
+          // std::cout << segment->New().size() << "\n";
         } else {
           helium_log("12,3");
           // if it does change, it makes sense to report it. But actually we don't need to add any mark
