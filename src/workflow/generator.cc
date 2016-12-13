@@ -216,11 +216,6 @@ int main() {
       main_func += "}\n";
     } else {
       std::string code = ast->GetCode(nodes);
-      // for (ASTNode *node : nodes) {
-      //   if (!ast->Contains(node)) {
-      //     std::cout << "not contain!!!"  << "\n";
-      //   }
-      // }
       ast->ClearDecl();
       other_func += "// " + ast->GetFunctionName() + "\n";
       other_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
@@ -354,7 +349,11 @@ std::string CodeGen::getSupportBody() {
   for (auto m : m_data) {
     avoid_funcs.insert(m.first->GetFunctionName());
   }
-  avoid_funcs.erase(m_first_ast->GetFunctionName());
+  // it might be a recursive function call.
+  // the function of first AST is not avoided, to handle this
+  if (m_first_ast && avoid_funcs.count(m_first_ast->GetFunctionName()) == 1) {
+    avoid_funcs.erase(m_first_ast->GetFunctionName());
+  }
   for (std::string s : avoid_funcs) {
     std::set<int> ids = SnippetDB::Instance()->LookUp(s, {SK_Function});
     if (ids.size() == 0) {
@@ -488,6 +487,7 @@ void CodeGen::resolveSnippet(AST *ast) {
    * And also the char array[MAX_LENGTH], see that macro?
    */
 
+  // Type resolving for variable types
   for (Variable *v : m_inputs) {
     Type *t = v->GetType();
     if (t) {
@@ -498,19 +498,11 @@ void CodeGen::resolveSnippet(AST *ast) {
     }
   }
 
+  // Getting all the IDs
   std::set<ASTNode*> nodes = m_data[ast];
   for (ASTNode *n : nodes) {
     assert(n);
     std::set<std::string> ids = n->GetIdToResolve();
-
-
-    // if (ids.count("lzw")==1) {
-    //   std::cout << n->GetLabel()  << "\n";
-    //   ast->VisualizeN(nodes, {});
-    //   getchar();
-    // }
-
-
     all_ids.insert(ids.begin(), ids.end());
   }
 

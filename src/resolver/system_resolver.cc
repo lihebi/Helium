@@ -26,6 +26,10 @@ static bool header_exists(const std::string header) {
   if (fs::exists(p)) return true;
   p = "/usr/include/i386-linux-gnu/" + header;
   if (fs::exists(p)) return true;
+  p = "/usr/lib/gcc/x86_64-linux-gnu/6/include/" + header;
+  if (fs::exists(p)) return true;
+  p = "/usr/lib/gcc/i386-linux-gnu/6/include/" + header;
+  if (fs::exists(p)) return true;
   return false;
 }
 

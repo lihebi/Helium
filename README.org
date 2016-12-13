@@ -12,6 +12,11 @@ For Debian, this is done by
 3. sudo apt-get upgrade
 4. sudo apt-get dist-upgrade
 
+
+GCC 6 is strongly recommended because I rely on a lot staff on
+compiler end. Also 64 bit system is currently recommended because I
+use it, and I might hard code some path in x86-64 instead of i386.
+
 *** Packages
     On Debian based system, the following packages should be installed:
 
