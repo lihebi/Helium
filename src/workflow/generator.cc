@@ -364,6 +364,7 @@ std::string CodeGen::getSupportBody() {
     }
     int id = *ids.begin();
     std::string code = SnippetDB::Instance()->GetCode(id);
+    // the function decl in the header file is the one directly from the code
     std::string decl_code = get_function_decl(code);
     code_func_decl +=
       "// Decl Code for " + s + "\n"

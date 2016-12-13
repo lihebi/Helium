@@ -61,6 +61,55 @@ protected:
 private:
 };
 
+class ConstType : public Type {
+public:
+  ConstType(std::string type_str) {
+    // assert type_str don't have "const"
+    // FIXME the structure type name might contain const
+    // assert(type_str.find("const") == std::string::npos);
+    m_contained_type = TypeFactory::CreateType(type_str);
+    assert(m_contained_type);
+    // assert m_contained_type is not null
+  }
+  virtual ~ConstType() {}
+private:
+  virtual std::string GetDeclCode(std::string var) override {
+    // return "const " + m_contained_type->GetDeclCode(var);
+    // FIXME I didn't add anything to the decl. I think decl it as a non-const is fine
+    // I cannot add anything because I added some comments before the decl, like // IntType
+    return m_contained_type->GetDeclCode(var);
+  }
+  virtual std::string GetInputCode(std::string var) override {
+    return m_contained_type->GetInputCode(var);
+  }
+  virtual void GenerateIOFunc() override {
+    // FIXME the IO func must have const!!
+    m_contained_type->GenerateIOFunc();
+  }
+  virtual std::string GetOutputCode(std::string var) override {
+    return m_contained_type->GetOutputCode(var);
+  }
+  virtual InputSpec *GenerateRandomInput() override {
+    return m_contained_type->GenerateRandomInput();
+  }
+  virtual std::vector<InputSpec*> GeneratePairInput() override {
+    return m_contained_type->GeneratePairInput();
+  }
+  virtual std::string GetRaw() override {
+    return "const " + m_contained_type->GetRaw();
+  }
+  virtual std::string ToString() override {
+    std::string ret = "ConstType: ";
+    if (m_contained_type) {
+      ret += m_contained_type->ToString();
+    } else {
+      ret += "NULL";
+    }
+    return ret;
+  }
+  Type *m_contained_type;
+};
+
 /**
  * First level
  */

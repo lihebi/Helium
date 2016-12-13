@@ -175,6 +175,12 @@ void Function::GetCode(std::set<ASTNode*> nodes,
   if (selected) {
     ret += m_ret_ty + " " + m_name + "(";
     if (!m_params.empty()) {
+      // FIXME these parameter and the type's raw might not be the exact from the code
+      // for example, the const will be removed
+      // this will cause problem of inconsisitent function prototype
+      // in the header file, the function is declared as is, with const
+      // while in main.c the function parameter does not have const
+      // The solution: TODO capture "const" in the type
       for (Decl *param : m_params) {
         ret += param->GetType()->GetRaw();
         ret += " ";

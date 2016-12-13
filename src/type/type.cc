@@ -10,6 +10,8 @@
 #include "composite_type.h"
 #include "sequential_type.h"
 
+#include <gtest/gtest.h>
+
 /**
  * select from the corner cases
  * @param limit return up to this number of inputs. -1 means no limit, return all corner cases
@@ -112,6 +114,12 @@ Type *TypeFactory::CreateType(XMLNode decl_node) {
   return TypeFactory::CreateType(type + suffix);
 }
 
+
+TEST(TypeCase, ConstTest) {
+  Type *type = TypeFactory::CreateType("const int");
+  EXPECT_EQ(type->GetRaw(), "const int");
+}
+
 /**
  * Current Strategy: First check if it is valid.
  * Only construct type when it is, otherwise create an Unknown type, where only decl is added.
@@ -119,6 +127,12 @@ Type *TypeFactory::CreateType(XMLNode decl_node) {
  */
 Type *TypeFactory::CreateType(std::string str) {
   if (str.empty()) return NULL;
+
+  if (str.find("const") != std::string::npos) {
+    utils::replace(str, "const", "");
+    return new ConstType(str);
+  }
+  
   Type *type;
   // Pointer
   if (str.back() == '*') {

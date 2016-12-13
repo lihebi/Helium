@@ -468,6 +468,19 @@ std::string decl_get_name(XMLNode node) {
   return node.child_value("name");
 }
 
+
+TEST(XMLNodeCase, DeclGetTypeTest) {
+  std::string code = "int a; const int b;";
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  XMLNodeList nodelist = find_nodes(*doc, NK_Decl);
+  ASSERT_EQ(nodelist.size(), 2);
+  XMLNode node;
+  node = nodelist[0];
+  EXPECT_EQ(decl_get_type(node), "int");
+  node = nodelist[1];
+  EXPECT_EQ(decl_get_type(node), "const int");
+}
+
 std::string decl_get_type(XMLNode node) {
   // if (!node || strcmp(node.name(), "decl") != 0) {
   //   assert(false && "node should be <decl>");
