@@ -179,7 +179,8 @@ std::vector<std::string> escape(std::vector<std::string> v) {
   return ret;
 }
 
-bool check_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
+
+std::string gen_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
   // escape
   v = escape(v);
   vneg = escape(vneg);
@@ -215,16 +216,13 @@ bool check_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
     smt += get_assert(s, true) + "\n";
   }
   smt += "(check-sat)";
-  
-  // write to a smt file
-
   if (HeliumOptions::Instance()->GetBool("print-sat-stmt")) {
     std::cout << smt << "\n";
   }
-  std::string dir = utils::create_tmp_dir();
-  std::string smt_file = dir + "/helium.smt";
-  utils::write_file(smt_file, smt);
-  // std::cout << "output smt to " << smt_file<< "\n";
+  return smt;
+}
+
+bool execute_sat(std::string smt_file) {
   // call z3 to execute
   // FIXME check whether z3 is available
   std::string cmd = "z3 -v:1 -smt2 " + smt_file;
@@ -239,6 +237,17 @@ bool check_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
     }
     return false;
   }
+}
+
+
+bool check_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
+  // write to a smt file
+  std::string smt = gen_sat(v, vneg);
+  std::string dir = utils::create_tmp_dir();
+  std::string smt_file = dir + "/helium.smt";
+  utils::write_file(smt_file, smt);
+  // std::cout << "output smt to " << smt_file<< "\n";
+  return execute_sat(smt_file);
 }
 
 TEST(SATCase, SATTest) {
@@ -359,15 +368,29 @@ bool Analyzer::ResolveQuery(std::string failure_condition) {
   return false;
 }
 
-bool check_fc(std::vector<std::string> cons, std::string fc) {
-  cons.push_back(fc);
-  return check_sat(cons);
+bool Analyzer::checkSat(std::vector<std::string> v, std::vector<std::string> vneg) {
+  // write to a smt file
+  std::string smt = gen_sat(v, vneg);
+  std::string smt_file = m_dir + "/helium.smt";
+  utils::write_file(smt_file, smt);
+  return execute_sat(smt_file);
 }
 
-bool check_negfc(std::vector<std::string> cons, std::string fc) {
+bool Analyzer::checkFc(std::vector<std::string> cons, std::string fc) {
+  cons.push_back(fc);
+  std::string smt = gen_sat(cons);
+  std::string smt_file = m_dir + "/fc.smt";
+  utils::write_file(smt_file, smt);
+  return execute_sat(smt_file);
+}
+
+bool Analyzer::checkNegfc(std::vector<std::string> cons, std::string fc) {
   std::vector<std::string> neg;
   neg.push_back(fc);
-  return check_sat(cons, neg);
+  std::string smt = gen_sat(cons, neg);
+  std::string smt_file = m_dir + "/negfc.smt";
+  utils::write_file(smt_file, smt);
+  return execute_sat(smt_file);
 }
 
 /**
@@ -380,6 +403,10 @@ bool Analyzer::ResolveQuery2(std::string failure_condition) {
   if (failure_condition.empty()) {
     std::cout << utils::YELLOW << "WW: failure condition is empty" << utils::RESET << "\n";
     return false;
+  }
+  // this check is because my current assertion poi file has it.. Should not be here definitely
+  if (failure_condition.back() == ';') {
+    failure_condition.pop_back();
   }
 
   // 1. get the variables used in the failure condition
@@ -410,24 +437,54 @@ bool Analyzer::ResolveQuery2(std::string failure_condition) {
   // 1. [bad] sat: useless
   // 2. [good] unsat: RESOLVED: the failure always trigger
 
-  if (check_fc(transfer_functions, failure_condition)) {
-    // need to check entry point
-    std::cout << "FC satisfiable. Need to check entry point" << "\n";
+
+  /**
+   * The difference is only swap the two funnction names
+   */
+  if (HeliumOptions::Instance()->GetBool("negate-fc")) {
+    // negate
+    if (checkNegfc(transfer_functions, failure_condition)) {
+      // need to check entry point
+      std::cout << "FC satisfiable. Need to check entry point" << "\n";
+    } else {
+      // resolved
+      std::cout << utils::GREEN
+                << "RESOLVED: FC cannot be satisfied. The failure cannot be triggered."
+                << utils::RESET<< "\n";
+      return true;
+    }
+
+    
+    if (checkFc(transfer_functions, failure_condition)) {
+      // useless
+    } else {
+      std::cout << utils::GREEN
+                << "RESOLVED: FC always satisfied"
+                << utils::RESET << "\n";
+      return true;
+    }
   } else {
-    // resolved
-    std::cout << utils::GREEN
-              << "RESOLVED: FC cannot be satisfied. The failure cannot be triggered."
-              << utils::RESET<< "\n";
-    return true;
+    // normal
+    if (checkFc(transfer_functions, failure_condition)) {
+      // need to check entry point
+      std::cout << "FC satisfiable. Need to check entry point" << "\n";
+    } else {
+      // resolved
+      std::cout << utils::GREEN
+                << "RESOLVED: FC cannot be satisfied. The failure cannot be triggered."
+                << utils::RESET<< "\n";
+      return true;
+    }
+    if (checkNegfc(transfer_functions, failure_condition)) {
+      // useless
+    } else {
+      std::cout << utils::GREEN
+                << "RESOLVED: FC always satisfied"
+                << utils::RESET << "\n";
+      return true;
+    }
   }
-  if (check_negfc(transfer_functions, failure_condition)) {
-    // useless
-  } else {
-    std::cout << utils::GREEN
-              << "RESOLVED: FC always satisfied"
-              << utils::RESET << "\n";
-    return true;
-  }
+  
   return false;
 }
 

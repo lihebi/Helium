@@ -23,6 +23,9 @@ public:
   static bool same_trans(Analyzer *p1, Analyzer *p2);
   static void print_used_trans(Analyzer *p);
 private:
+  bool checkSat(std::vector<std::string> v, std::vector<std::string> vneg={});
+  bool checkFc(std::vector<std::string> cons, std::string fc);
+  bool checkNegfc(std::vector<std::string> cons, std::string fc);
   std::string m_dir;
   std::string m_transfer_output;
   std::string m_meta_output;

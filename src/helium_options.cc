@@ -157,6 +157,7 @@ HeliumOptions::HeliumOptions() {
 
     ("use-struct-type", po::value<bool>()->default_value(false), "Use structure type for input or just use unknown")
     ("use-query-resolver-2", po::value<bool>()->default_value(false), "use query resolver 2")
+    ("negate-fc", po::value<bool>()->default_value(false), "negate the fc")
     ;
   
   po::options_description hidden("Hidden options");
