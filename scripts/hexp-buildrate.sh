@@ -14,9 +14,10 @@
 
 for name in $1/*; do
     echo "============ " ${name##*/} | tee -a helium-result.txt
+    ## --print-compile-error=true\
     timeout 30m helium\
-            --run-test=false --instrument-io=false\
-            --print-compile-error=true\
+            --run-test=false\
+            --instrument-io=false\
             --segment-per-poi-limit=100 --valid-poi-limit=100\
             $name --poi-file=$2/${name##*/}.csv\
             2>&1 | tee -a helium-result.txt
