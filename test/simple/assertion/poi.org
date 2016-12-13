@@ -1,0 +1,4 @@
+| benchmark | file | linum | type | bug-type | failure-condition            | comment |
+|-----------+------+-------+------+----------+------------------------------+---------|
+| assertion | a.c  |     7 | stmt |          | output_int_a <= output_int_b |         |
+| assertion | a.c  |    12 | stmt |          | output_int_a <= output_int_b |         |

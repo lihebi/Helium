@@ -58,7 +58,6 @@ HeliumOptions::HeliumOptions() {
     ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("resolve-system-type", "Resolve a system type and print out result")
-
     ;
 
   po::options_description print_options("Print Options");
@@ -98,6 +97,8 @@ HeliumOptions::HeliumOptions() {
     ("print-analyze-result-meta", po::value<bool>()->default_value(false), "print the meta")
 
     ("dump-compile-error", po::value<bool>()->default_value(false), "dump compile error message into a file")
+    ("print-sat-stmt", po::value<bool>()->default_value(false), "print sat stmt")
+    ("print-sat-output", po::value<bool>()->default_value(false), "print sat output")
     ;
 
   po::options_description debug_options("Debug Options");
@@ -155,6 +156,7 @@ HeliumOptions::HeliumOptions() {
     ("gcov-handle-sigsegv", po::value<bool>()->default_value(false), "Dump coverage information when segment fault happen.")
 
     ("use-struct-type", po::value<bool>()->default_value(false), "Use structure type for input or just use unknown")
+    ("use-query-resolver-2", po::value<bool>()->default_value(false), "use query resolver 2")
     ;
   
   po::options_description hidden("Hidden options");

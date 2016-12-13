@@ -9,7 +9,8 @@ public:
   Analyzer(std::string dir) : m_dir(dir) {}
   void GetCSV();
   void AnalyzeCSV();
-  void ResolveQuery(std::string failure_condition);
+  bool ResolveQuery(std::string failure_condition);
+  bool ResolveQuery2(std::string failure_condition);
   std::map<std::string, std::string> GetUsedTransfer() {
     return m_used_transfer;
   }

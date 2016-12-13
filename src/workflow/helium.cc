@@ -290,7 +290,25 @@ void Helium::process() {
         Analyzer *analyzer = new Analyzer(builder.GetDir());
         analyzer->GetCSV();
         analyzer->AnalyzeCSV();
+
+
+
+        // resolve the query
+
+
+        
+
+        if (HeliumOptions::Instance()->GetBool("use-query-resolver-2")) {
+          // resolve query 2 is used for assertion experiment
+          bool res = analyzer->ResolveQuery2(m_poi->GetFailureCondition());
+          if (res) {
+            return;
+          }
+        }
         analyzer->ResolveQuery(m_poi->GetFailureCondition());
+
+
+        
         // m_segment_profiles[segment] = analyzer;
 
         // before setting the profile, check if the new profile is the same as previous one?

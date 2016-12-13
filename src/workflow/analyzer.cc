@@ -111,9 +111,12 @@ std::string get_rhs(std::string s) {
   }
 }
 
-std::string get_assert(std::string constraint) {
+std::string get_assert(std::string constraint, bool negate=false) {
   std::string ret;
   ret += "(assert ";
+  if (negate) {
+    ret += "(not ";
+  }
   // only support binary operation
   std::vector<std::string> hs = utils::split(constraint, "<=>");
   if (hs.size() != 2) {
@@ -121,34 +124,71 @@ std::string get_assert(std::string constraint) {
     std::cout << "actuall size: " << hs.size() << "\n";
     return "(assert (= 0 1))";
   }
-  if (constraint.find('=') != std::string::npos) {
-    ret += "(= ";
-  } else if (constraint.find(">") != std::string::npos) {
-    ret += "(> ";
-  } else {
-    ret += "(< ";
-  }
+
+  // if (constraint.find('=') != std::string::npos) {
+  //   ret += "(= ";
+  // } else if (constraint.find(">") != std::string::npos) {
+  //   ret += "(> ";
+  // } else {
+  //   ret += "(< ";
+  // }
   std::string lhs = hs[0];
   std::string rhs = hs[1];
   utils::trim(lhs);
   utils::trim(rhs);
-  ret += lhs + " ";
-  ret += get_rhs(rhs);
-  ret += ") )";
+  rhs = get_rhs(rhs);
+  if (constraint.find(">=") != std::string::npos) {
+    ret += "(>= " + lhs + " " + rhs + ")";
+  } else if (constraint.find("<=") != std::string::npos) {
+    ret += "(<= " + lhs + " " + rhs + ")";
+  } else if (constraint.find("==") != std::string::npos) {
+    ret += "(= " + lhs + " " + rhs + ")";
+  } else if (constraint.find("!=") != std::string::npos) {
+    ret += "(not (= " + lhs + " " + rhs + "))";
+  } else if (constraint.find("=") != std::string::npos) {
+    ret += "(= " + lhs + " " + rhs + ")";
+  } else if (constraint.find(">") != std::string::npos) {
+    ret += "(> " + lhs + " " + rhs + ")";
+  } else if (constraint.find("<") != std::string::npos) {
+    ret += "(< " + lhs + " " + rhs + ")";
+  } else {
+    // FIXME this might cause false positive!
+    ret =+ "(assert (= 0 1))";
+  }
+  if (negate) {
+    ret += ")";
+  }
+  ret += ")";
   return ret;
 }
 
-bool check_sat(std::vector<std::string> vorig) {
-  // escape
-  std::vector<std::string> v;
-  for (std::string s : vorig) {
+TEST(AnalyzerCase, AssertTest) {
+  std::string s1 = "a=b+1";
+  std::string s2 = "a<=b";
+  EXPECT_EQ(get_assert("a=b+1"), "(assert (= a (+ b 1)))");
+  EXPECT_EQ(get_assert("a<=b"), "(assert (<= a b))");
+}
+
+std::vector<std::string> escape(std::vector<std::string> v) {
+  std::vector<std::string> ret;
+  for (std::string s : v) {
     utils::replace(s, "[", ".");
     utils::replace(s, "]", ".");
-    v.push_back(s);
+    ret.push_back(s);
   }
-  // actual work
+  return ret;
+}
+
+bool check_sat(std::vector<std::string> v, std::vector<std::string> vneg={}) {
+  // escape
+  v = escape(v);
+  vneg = escape(vneg);
+  std::vector<std::string> vall;
+  vall.insert(vall.begin(), v.begin(), v.end());
+  vall.insert(vall.begin(), vneg.begin(), vneg.end());
+  // get variables
   std::set<std::string> vars;
-  for (std::string s : v) {
+  for (std::string s : vall) {
     std::vector<std::string> all = utils::split(s, "><=+- ");
     for (std::string var : all) {
       if (var.find("output") == 0 || var.find("input") == 0) {
@@ -156,6 +196,8 @@ bool check_sat(std::vector<std::string> vorig) {
       }
     }
   }
+  
+  // create variable statements
   std::string smt;
   smt += "(declare-const nil Int)\n";
   // FIXME multiple oneofargv would need multiple different SMT variable name
@@ -164,11 +206,21 @@ bool check_sat(std::vector<std::string> vorig) {
   for (std::string var : vars) {
     smt += get_declare_fun(var) + "\n";
   }
+  
+  // create checking statements
   for (std::string s : v) {
     smt += get_assert(s) + "\n";
   }
+  for (std::string s : vneg) {
+    smt += get_assert(s, true) + "\n";
+  }
   smt += "(check-sat)";
+  
   // write to a smt file
+
+  if (HeliumOptions::Instance()->GetBool("print-sat-stmt")) {
+    std::cout << smt << "\n";
+  }
   std::string dir = utils::create_tmp_dir();
   std::string smt_file = dir + "/helium.smt";
   utils::write_file(smt_file, smt);
@@ -181,8 +233,10 @@ bool check_sat(std::vector<std::string> vorig) {
   if (output == "sat") {
     return true;
   } else {
-    // std::cout << "SAT output:" << "\n";
-    // std::cout << output << "\n";
+    if (HeliumOptions::Instance()->GetBool("print-sat-output")) {
+      std::cout << "SAT output:" << "\n";
+      std::cout << output << "\n";
+    }
     return false;
   }
 }
@@ -194,6 +248,10 @@ TEST(SATCase, SATTest) {
   EXPECT_TRUE(check_sat(v));
   v.push_back("output_int_y > output_int_x");
   EXPECT_FALSE(check_sat(v));
+  v.pop_back();
+  std::vector<std::string> vneg;
+  vneg.push_back("output_int_x > 8");
+  EXPECT_FALSE(check_sat(v, vneg));
 }
 
 
@@ -201,12 +259,12 @@ TEST(SATCase, SATTest) {
 /**
  * Analyze if the failure condition is going to be satisfied only depends on the program entry point.
  */
-void Analyzer::ResolveQuery(std::string failure_condition) {
+bool Analyzer::ResolveQuery(std::string failure_condition) {
 
   utils::trim(failure_condition);
   if (failure_condition.empty()) {
     std::cout << utils::YELLOW << "WW: failure condition is empty" << utils::RESET << "\n";
-    return;
+    return false;
   }
 
   // 1. get the variables used in the failure condition
@@ -278,7 +336,7 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
     std::cout << "\t" << failure_condition << "\n";
     if (check_sat(v)) {
       std::cout << utils::GREEN << "== Query Resolved!" << utils::RESET << "\n";
-      exit(0);
+      return true;
     } else {
       std::cout << utils::RED << "== SAT unsatisfiable." << utils::RESET << "\n";
     }
@@ -298,7 +356,79 @@ void Analyzer::ResolveQuery(std::string failure_condition) {
       std::cout << "\t" << m.first << " = " << m.second << "\n";
     }
   }
-  
+  return false;
+}
+
+bool check_fc(std::vector<std::string> cons, std::string fc) {
+  cons.push_back(fc);
+  return check_sat(cons);
+}
+
+bool check_negfc(std::vector<std::string> cons, std::string fc) {
+  std::vector<std::string> neg;
+  neg.push_back(fc);
+  return check_sat(cons, neg);
+}
+
+/**
+ * Resolve query using only constraint solver.
+ * But how to get the model?
+ * How to judge the entry point?
+ */
+bool Analyzer::ResolveQuery2(std::string failure_condition) {
+  utils::trim(failure_condition);
+  if (failure_condition.empty()) {
+    std::cout << utils::YELLOW << "WW: failure condition is empty" << utils::RESET << "\n";
+    return false;
+  }
+
+  // 1. get the variables used in the failure condition
+  std::set<std::string> candidate_output_var;
+  std::vector<std::string> components = utils::split(failure_condition);
+  for (std::string comp : components) {
+    if (comp.find("output") == 0) {
+      candidate_output_var.insert(comp);
+    }
+  }
+  // get the transfer functions related to them
+  std::vector<std::string> transfer_output = utils::split(m_transfer_output, '\n');
+  std::vector<std::string> transfer_functions;
+  for (std::string trans : transfer_output) {
+    if (trans.find('=') != std::string::npos) {
+      transfer_functions.push_back(trans);
+    }
+  }
+  // put failure condition and all transfer functions
+  // put the negation of failure condition?
+
+  // failure condition + all trans
+  // 1. [semi-good] sat:
+  //    If all mapped to entry point:
+  //    RESOLVED: the failure can be triggered. 
+  // 2. [good] unsat: RESOLVED: the failure cannot be triggered
+  // assertion (negate) + all trans
+  // 1. [bad] sat: useless
+  // 2. [good] unsat: RESOLVED: the failure always trigger
+
+  if (check_fc(transfer_functions, failure_condition)) {
+    // need to check entry point
+    std::cout << "FC satisfiable. Need to check entry point" << "\n";
+  } else {
+    // resolved
+    std::cout << utils::GREEN
+              << "RESOLVED: FC cannot be satisfied. The failure cannot be triggered."
+              << utils::RESET<< "\n";
+    return true;
+  }
+  if (check_negfc(transfer_functions, failure_condition)) {
+    // useless
+  } else {
+    std::cout << utils::GREEN
+              << "RESOLVED: FC always satisfied"
+              << utils::RESET << "\n";
+    return true;
+  }
+  return false;
 }
 
 bool Analyzer::IsCovered() {
