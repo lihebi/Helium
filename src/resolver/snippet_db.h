@@ -52,6 +52,7 @@ public:
   std::set<int> LookUp(SnippetKind kind);
   SnippetMeta GetMeta(int snippet_id);
   std::string GetCode(int snippet_id);
+  std::string GetFilename(int snippet_id);
   std::set<int> RemoveDup(std::set<int> snippet_ids);
   std::set<int> GetAllDep(std::set<int> snippet_ids);
   std::set<int> GetDep(int id);

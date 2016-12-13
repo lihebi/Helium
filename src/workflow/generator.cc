@@ -202,6 +202,8 @@ int main() {
       }
       main_func += "printf(\"HELIUM_INPUT_SPEC_END\\n\");\n" + flush_output;
 
+
+      // some comments
       main_func += "// In function " + ast->GetFunctionName() + "\n";
       main_func += "// nodes: " + std::to_string(nodes.size()) + "\n";
 

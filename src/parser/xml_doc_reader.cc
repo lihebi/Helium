@@ -47,11 +47,14 @@ XMLDoc* XMLDocReader::ReadString(const std::string &code) {
 XMLDoc* XMLDocReader::ReadSnippet(int id) {
   if (m_snippet_docs.count(id) == 1) return m_snippet_docs[id];
   std::string code = SnippetDB::Instance()->GetCode(id);
-  XMLDoc *doc = CreateDocFromString(code);
+  std::string filename = SnippetDB::Instance()->GetFilename(id);
+  // I should provide the filename!
+  XMLDoc *doc = CreateDocFromString(code,filename);
   m_snippet_docs[id] = doc;
   return doc;
 }
 
+// I should try my best to fill the filename here
 XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
   std::string cmd = "srcml --position -lC";
   if (!filename.empty()) {

@@ -560,6 +560,11 @@ std::string SnippetDB::GetCode(int snippet_id) {
   return m_snippet_code_cache[snippet_id];
 }
 
+
+std::string SnippetDB::GetFilename(int snippet_id) {
+  return GetMeta(snippet_id).filename;
+}
+
 std::set<int> SnippetDB::GetDep(int id) {
   std::set<int> ret;
   assert(m_db);
