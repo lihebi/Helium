@@ -134,9 +134,11 @@ HeliumOptions::HeliumOptions() {
     ("pairwise-random-number", po::value<int>(), "how many random values added to pairwise pool")
     ("test-timeout", po::value<int>(), "timeout for a test")
 
-    ("aggressive-merge", po::value<bool>()->default_value(false), "aggressively merge everything")
-    ("random-merge", po::value<bool>()->default_value(false), "random merge")
-    ("no-merge", po::value<bool>()->default_value(false), "no merge")
+    // ("aggressive-merge", po::value<bool>()->default_value(false), "aggressively merge everything")
+    // ("random-merge", po::value<bool>()->default_value(false), "random merge")
+    // ("no-merge", po::value<bool>()->default_value(false), "no merge")
+    ("merge-method", po::value<std::string>(), "merge method")
+    
     ("aggressive-remove", po::value<bool>()->default_value(false), "remove whenever the transfer does not change")
     ("debug-remove-alg", po::value<bool>()->default_value(false, "debug removing algorithm"))
 

@@ -140,6 +140,7 @@ void Helium::process() {
   int seg_ct=0;
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
+    // get the segment out from worklist
     Segment *segment = m_worklist.front();
     seg_ct++;
     if (seg_limit>0 && seg_ct>seg_limit) {
@@ -161,7 +162,8 @@ void Helium::process() {
               << CYAN << label << RED << " "
               << m_worklist.size() << RESET << " remaining in worklist.""\n" ;
 
-    // reach the function definition, continue search, do not test, because will dont need, and will compile error
+    // reach the function definition, continue search,
+    // do not test, because will dont need, and will compile error
     if (segment->Head()->GetASTNode()->Kind() == ANK_Function) {
       std::vector<Segment*> queries = select(segment);
       m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
@@ -169,11 +171,13 @@ void Helium::process() {
     }
 
 
+    // process teh segment and generate code
     segment->PatchGrammar();
     
     segment->ResolveInput();
     segment->GenCode();
-    
+
+    // write file and compile
     Builder builder;
     builder.SetMain(segment->GetMain());
     builder.SetSupport(segment->GetSupport());
@@ -187,6 +191,8 @@ void Helium::process() {
     if (HeliumOptions::Instance()->GetBool("print-compile-info")) {
       std::cout << "\t" << "Compile: " << (builder.Success() ? "true" : "false") << "\n";
     }
+
+    // if compile error, remove the new statement
     if (!builder.Success()) {
       std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
       if (HeliumOptions::Instance()->GetBool("pause-compile-error")) {
@@ -208,7 +214,6 @@ void Helium::process() {
     }
     std::cerr << utils::GREEN << "compile success" << utils::RESET << "\n";
     std::string executable = builder.GetExecutable();
-
 
 
     /********************************
@@ -251,13 +256,16 @@ void Helium::process() {
           // std::cout << segment->New().size() << "\n";
         } else {
           helium_log("12,3");
-          // if it does change, it makes sense to report it. But actually we don't need to add any mark
+          // if it does change, it makes sense to report it.
+          // But actually we don't need to add any mark
           std::cout
-            << "The context transfer profile changed, but both mark and non-mark version change to the same"
+            << "The context transfer profile changed,"
+            << "but both mark and non-mark version change to the same"
             << "\n";
         }
         // record the new profile.
-        // Since profile1 and profile2 are "same" in terms of variable of interest, we choose one of them
+        // Since profile1 and profile2 are "same" in terms of variable of interest,
+        // we choose one of them
         segment->SetProfile(profile1);
         // we finally need to continue search
         std::vector<Segment*> queries = select(segment);
@@ -281,22 +289,21 @@ void Helium::process() {
 
 
 
-    
+    // run test
     
     if (HeliumOptions::Instance()->GetBool("run-test")) {
+
+      // run test
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
+
+      // get result
       if (fs::exists(builder.GetDir() + "/result.txt")) {
         Analyzer *analyzer = new Analyzer(builder.GetDir());
         analyzer->GetCSV();
         analyzer->AnalyzeCSV();
 
-
-
         // resolve the query
-
-
-        
 
         if (HeliumOptions::Instance()->GetBool("use-query-resolver-2")) {
           // resolve query 2 is used for assertion experiment
@@ -308,14 +315,14 @@ void Helium::process() {
         analyzer->ResolveQuery(m_poi->GetFailureCondition());
 
 
+
+        // aggressive remove
         
         // m_segment_profiles[segment] = analyzer;
-
-        // before setting the profile, check if the new profile is the same as previous one?
-        // if so, remove the new branch and do context search.
-        // this is aggressive-remove option in config file
-
         if (segment->GetProfile()) {
+          // before setting the profile, check if the new profile is the same as previous one?
+          // if so, remove the new branch and do context search.
+          // this is aggressive-remove option in config file
           if (HeliumOptions::Instance()->GetBool("aggressive-remove")) {
             Analyzer *old_profile = segment->GetProfile();
             // same transfer function, we are going to do something
@@ -327,9 +334,10 @@ void Helium::process() {
               continue;
             }
           }
-          
         }
-        
+
+
+        // set profile
         segment->SetProfile(analyzer);
 
         // std::cout << utils::GREEN << "\n";
@@ -361,7 +369,6 @@ void Helium::process() {
           m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
         }
 
-        
         if (analyzer->IsBugTriggered()) {
           std::cout << utils::GREEN << "Bug is triggered." << utils::RESET << "\n";
         } else {
@@ -475,6 +482,9 @@ std::vector<Segment*> Helium::select(Segment *query) {
 }
 
 
+/**
+ * Merge query
+ */
 std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_query) {
   helium_print_trace("find_mergable_query");
   std::set<Segment*> ret;
@@ -499,21 +509,29 @@ std::set<Segment*> Helium::find_mergable_query(CFGNode *node, Segment *orig_quer
   for (Segment *q : candidates) {
     // use random here
 
-    if (HeliumOptions::Instance()->GetBool("aggressive-merge")) {
-      ret.insert(q);
-    } else if (HeliumOptions::Instance()->GetBool("random-merge")) {
-      if (utils::rand_bool()) {
-        ret.insert(q);
-      }
-    } else if (HeliumOptions::Instance()->GetBool("no-merge")) {
-      return ret;
-    } else {
+
+    std::string merge_method = HeliumOptions::Instance()->GetString("merge-method");
+    if (merge_method == "transfer") {
       if (sameTransfer(orig_query, q)) {
-        // std::cout << utils::CYAN << "Transfer function the same, merging .." << utils::RESET << "\n";
+        // std::cout << utils::CYAN
+        //           << "Transfer function the same, merging .."
+        //           << utils::RESET << "\n";
         ret.insert(q);
       } else {
         // std::cout << utils::CYAN << "Not same, cannot merge .." << utils::RESET << "\n";
       }
+    } else if (merge_method == "transfer-all") {
+      if (sameAllTransfer(orig_query, q)) {
+        ret.insert(q);
+      }
+    } else if (merge_method == "aggressive") {
+      ret.insert(q);
+    } else if (merge_method == "random") {
+      if (utils::rand_bool()) {
+        ret.insert(q);
+      }
+    } else if (merge_method == "no") {
+      return ret;
     }
   }
   return ret;
@@ -523,6 +541,17 @@ bool Helium::sameTransfer(Segment *s1, Segment *s2) {
   if (!s1->GetProfile() && !s2->GetProfile()) return true;
   if (s1->GetProfile() && s2->GetProfile()) {
     return Analyzer::same_trans(s1->GetProfile(), s2->GetProfile());
+  }
+  return false;
+}
+
+/**
+ * whether all the transfers are same
+ */
+bool Helium::sameAllTransfer(Segment *s1, Segment *s2) {
+  if (!s1->GetProfile() && !s2->GetProfile()) return true;
+  if (s1->GetProfile() && s2->GetProfile()) {
+    return Analyzer::same_trans_2(s1->GetProfile(), s2->GetProfile());
   }
   return false;
 }

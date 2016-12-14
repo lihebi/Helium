@@ -15,6 +15,11 @@ public:
     return m_used_transfer;
   }
 
+
+  std::set<std::string> GetUsedTransferSet() {
+    return m_used_transfer_set;
+  }
+
   bool IsCovered();
   bool IsBugTriggered();
   /**
@@ -22,6 +27,8 @@ public:
    */
   static bool same_trans(Analyzer *p1, Analyzer *p2);
   static void print_used_trans(Analyzer *p);
+  static bool same_trans_2(Analyzer *p1, Analyzer *p2);
+  static void print_used_trans_2(Analyzer *p);
 private:
   bool checkSat(std::vector<std::string> v, std::vector<std::string> vneg={});
   bool checkFc(std::vector<std::string> cons, std::string fc);
@@ -32,6 +39,9 @@ private:
   // this might not map to entry point
   // only valid if called after ResolveQuery!
   std::map<std::string, std::string> m_used_transfer;
+  // this is used for the "resolver2"
+  // basically the above one can only capture one transfer function per lhs
+  std::set<std::string> m_used_transfer_set;
 };
 
 #endif /* ANALYZER_H */

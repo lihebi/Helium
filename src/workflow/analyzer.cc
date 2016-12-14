@@ -279,7 +279,11 @@ TEST(SATCase, SATTest) {
 
 
 /**
- * Analyze if the failure condition is going to be satisfied only depends on the program entry point.
+ * Analyze if the failure condition is going to be satisfied
+ * only depends on the program entry point.
+ *
+ * @return whether resolved or not
+ * @return clear and set m_used_transfer
  */
 bool Analyzer::ResolveQuery(std::string failure_condition) {
 
@@ -410,6 +414,8 @@ bool Analyzer::checkNegfc(std::vector<std::string> cons, std::string fc) {
  * Resolve query using only constraint solver.
  * But how to get the model?
  * How to judge the entry point?
+ *
+ * @return clear and set m_used_transfer_set
  */
 bool Analyzer::ResolveQuery2(std::string failure_condition) {
   utils::trim(failure_condition);
@@ -438,6 +444,31 @@ bool Analyzer::ResolveQuery2(std::string failure_condition) {
       transfer_functions.push_back(trans);
     }
   }
+
+  // I also wan to set the used transfer
+  // In this case, I use ALL transfers that relates to the variables
+  // actually when resolving, I used ALL transfers
+  // regardless of whether it is related to POI variables
+  // But, that might be a must, because transfer functions can derive
+  // Anyway, I'm using the related ones only for checking used_transfer
+
+  m_used_transfer_set.clear();
+  for (std::string trans : transfer_output) {
+    if (trans.find('=') != std::string::npos) {
+      std::string lhs = trans.substr(0, trans.find('='));
+      std::string rhs = trans.substr(trans.find('=')+1);
+      utils::trim(lhs);
+      utils::trim(rhs);
+      if (candidate_output_var.count(lhs)) {
+        // if (candidate_output_var.size() == 1 && is_constant(rhs)) {
+        //   continue;
+        // }
+        m_used_transfer_set.insert(trans);
+      }
+    }
+  }
+  
+  
   // put failure condition and all transfer functions
   // put the negation of failure condition?
 
@@ -542,7 +573,6 @@ bool Analyzer::same_trans(Analyzer *p1, Analyzer *p2) {
     }
   }
   return true;
-    
 }
 
 void Analyzer::print_used_trans(Analyzer *p) {
@@ -550,6 +580,33 @@ void Analyzer::print_used_trans(Analyzer *p) {
     std::map<std::string, std::string> t = p->GetUsedTransfer();
     for (auto m : t) {
       std::cout << m.first << " " << m.second << "\n";
+    }
+  }
+}
+
+
+/**
+ * checking if the transfer functions are same, used together with "Resovler2"
+ */
+bool Analyzer::same_trans_2(Analyzer *p1, Analyzer *p2) {
+  if (!p1 || !p2) return false;
+  std::set<std::string> s1 = p1->GetUsedTransferSet();
+  std::set<std::string> s2 = p2->GetUsedTransferSet();
+
+  // I actually have a lot of strategies to choose from
+  // - exact the same
+  // - one is subset of another
+  if (s1.size() != s2.size()) return false;
+  for (std::string s : s1) {
+    if (s2.count(s) == 0) return false;
+  }
+  return true;
+}
+
+void Analyzer::print_used_trans_2(Analyzer *p) {
+  if (p) {
+    for (std::string s : p->GetUsedTransferSet()) {
+      std::cout << s << "\n";
     }
   }
 }
