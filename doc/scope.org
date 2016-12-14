@@ -1,0 +1,7 @@
+#+TITLE: Scope of Helium: What cannot handle
+
+
+If the segment head is inside a function, and this function is
+recursively been called, it will have compile error.
+Because Helium put the statements into main function, so there will
+not be such as function.
