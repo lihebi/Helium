@@ -137,16 +137,25 @@ void Helium::process() {
   // helium_print_trace("process");
   std::cout << "Helium Processing ..." << "\n";
   int seg_limit = HeliumOptions::Instance()->GetInt("segment-per-poi-limit");
+  int compile_error_limit = HeliumOptions::Instance()->GetInt("compile-error-limit-per-poi");
   int seg_ct=0;
+  int compile_error_ct=0;
   while (!m_worklist.empty()) {
     // std::cout << "size of worklist: " << m_worklist.size()  << "\n";
     // get the segment out from worklist
     Segment *segment = m_worklist.front();
+
+    // checking of limits
     seg_ct++;
     if (seg_limit>0 && seg_ct>seg_limit) {
       std::cerr << "Reach segment-per-poi limit. Returning." << "\n";
       return;
     }
+    if (compile_error_limit > 0 && compile_error_limit < compile_error_ct) {
+      std::cerr << "Reach compile-error-limit-per-poi limit. Returning" << "\n";
+      return;
+    }
+
     m_worklist.pop_front();
     if (!segment->IsValid()) {
       std::cout << "Segment Invalid due to removing of callsite." << "\n";
@@ -194,6 +203,7 @@ void Helium::process() {
 
     // if compile error, remove the new statement
     if (!builder.Success()) {
+      compile_error_ct++;
       std::cerr << utils::RED << "compile error"<< utils::RESET << "\n";
       if (HeliumOptions::Instance()->GetBool("pause-compile-error")) {
         std::cout << "Paused, press enter to continue ..." << std::flush;

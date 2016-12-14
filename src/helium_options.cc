@@ -153,7 +153,8 @@ HeliumOptions::HeliumOptions() {
     ("procedure-limit", po::value<int>(), "procedure limit for context search")
     ("segment-per-poi-limit", po::value<int>()->default_value(-1),
      "how many segment to try. Will return after this number of segment is processed. -1 to disable")
-    ("valid-poi-limit", po::value<int>()->default_value(-1),"valid poi limit")
+    ("valid-poi-limit", po::value<int>()->default_value(-1), "valid poi limit")
+    ("compile-error-limit-per-poi", po::value<int>()->default_value(-1), "compiler error limit")
     ("remove-branch-if-not-covered", po::value<bool>()->default_value(false), "Remove branch as long as POI is not covered.")
     ("gcov-handle-sigsegv", po::value<bool>()->default_value(false), "Dump coverage information when segment fault happen.")
 
