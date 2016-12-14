@@ -259,6 +259,7 @@ CheckArgvOneOf <- function(data) {
 checkoneof <- function(data) {
     ## omit NA for response column
     subframe <- data[which(!is.na(data[1])),]
+    if (length(dim(subframe))==0) return (FALSE);
     if (dim(subframe)[1] < 3) return (FALSE);
     ## extract the matrix
     res <- which(subframe[-1]==subframe[[1]], arr.ind=TRUE)
@@ -303,7 +304,8 @@ csv = read.csv(csvfile, header=TRUE, check.names=FALSE, stringsAsFactors=FALSE)
 ## filter the data
 ## only the failure traces
 sub <- subset(csv, reach_code>=5)
-sub <- subset(csv, reach_code==5 & status_code == 1)
+## sub <- subset(csv, reach_code==5 & status_code == 1)
+## sub <- subset(csv, reach_code==5)
 ## remove last two columns: (code)
 sub <- sub[1:(length(csv)-2)]
 
