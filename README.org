@@ -64,6 +64,7 @@ make install
    #+BEGIN_EXAMPLE
 export HELIUM_HOME=/path/to/helium/folder
 export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH
+export PATH=$HELIUM_HOME/scripts/analyze:$HELIUM_HOME/scripts/hexp:$PATH
    #+END_EXAMPLE
 
    Note that the =HELIUM_HOME= variable is /only/ used to save some typing,
