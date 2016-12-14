@@ -31,7 +31,20 @@ void Analyzer::AnalyzeCSV() {
   std::string cmd;
   // transfer function
   // using timeout version. The default is 3s
-  cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv;
+
+  // checking the dataoption
+  std::string dataoption = HeliumOptions::Instance()->GetString("analyze-data-option");
+  if (dataoption == "all") {
+    cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv + " all";
+  } else if (dataoption == "fail") {
+    cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv + " fail";
+  } else if (dataoption == "success") {
+    cmd = TRANSFER_SCRIPT_TIMEOUT + " " + result_csv + " success";
+  } else {
+    std::cerr << "Data option " << dataoption << " is not valid." << "\n";
+    exit(1);
+  }
+  
   // std::cout << "Analyzing using linear regression .." << "\n";
   // std::cout << cmd << "\n";
   m_transfer_output = utils::new_exec(cmd.c_str());
