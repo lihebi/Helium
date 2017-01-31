@@ -7,6 +7,8 @@
 #include "ast_internal.h"
 #include "helium_options.h"
 
+#include "cond.h"
+
 bool ASTOption::m_instrument=true;
 
 
@@ -70,7 +72,7 @@ ASTNodeKind xmlnode_kind_to_astnode_kind(XMLNodeKind kind) {
 /**
  * Get variables used in this node.
  * This is currently used for output variables.
- * Also resovle global variable!
+ * Also resolve global variable!
  */
 std::vector<Variable> ASTNode::GetVariables() {
   std::vector<Variable> ret;
@@ -127,9 +129,20 @@ std::string ASTNode::POIOutputCode() {
       for (Variable var : vars) {
         ret += var.GetType()->GetOutputCode(var.GetName());
       }
+      // instrument the assertion here
+      // also store the transfer function
+      XMLNode callnode = find_first_node_bfs(m_xmlnode, "call");
+      if (callnode) {
+        std::string func = call_get_name(callnode);
+        if (func == "assert") {
+          Assertion assertion(callnode);
+          ret += assertion.GetCode();
+        }
+      }
     } else {
       ret += "// instrument-io turned off\n";
     }
+
     ret += "printf(\"HELIUM_POI_INSTRUMENT_END\\n\");\n";
     ret += "fflush(stdout);\n";
     ret += "// @HeliumSegmentBegin\n";

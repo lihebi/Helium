@@ -28,6 +28,8 @@
 #include "tester.h"
 #include "analyzer.h"
 
+#include "parser/cond.h"
+
 namespace fs = boost::filesystem;
 
 
@@ -101,6 +103,26 @@ Helium::Helium(PointOfInterest *poi) {
             // (HEBI: Set Failure Point)
             target->SetFailurePoint();
             Segment::SetPOI(target_cfgnode);
+
+
+            m_failure_condition = m_poi->GetFailureCondition();
+            if (m_failure_condition == "assertion") {
+              // construct the failure condition from assertion
+              // change the failure condition to the negation of assertion
+              // - query the type of the variable
+              // - also change the text: using output_int_ syntax
+              // std::vector<Variable> vars = target->GetVariables();
+              XMLNode xmlnode = target->GetXMLNode();
+              XMLNode callnode = find_first_node_bfs(xmlnode, "call");
+              if (callnode) {
+                std::string func = call_get_name(callnode);
+                if (func == "assert") {
+                  Assertion assertion(callnode);
+                  m_failure_condition = assertion.GetContent();
+                }
+              }
+            }
+            
             // construct the initial query by the initial nodes
             // Let's use the entire loop at POI
             Segment *init_query = new Segment(target);
@@ -120,6 +142,70 @@ Helium::Helium(PointOfInterest *poi) {
   m_status=HS_Success;
   std::cout << "Initial query: " << m_worklist.size() << "\n";
   process();
+}
+
+void Helium::debugRemoveAlg(Segment *segment) {
+  // print out the segment information
+  segment->Dump();
+      
+  Analyzer *old_profile = segment->GetProfile();
+  // seg + n
+  std::cout << "seg+n" << "\n";
+  Analyzer *profile1 = testProfile(segment);
+  // seg - mark + n
+  std::cout << "seg-mark+n" << "\n";
+  segment->ActivateRemoveMark();
+  Analyzer *profile2 = testProfile(segment);
+  segment->RestoreRemoveMark();
+
+  // outputing the transfer used in all three profiles
+  std::cout << utils::CYAN << "Used Trans" << "\n";
+  Analyzer::print_used_trans(old_profile);
+  std::cout << "---" << "\n";
+  Analyzer::print_used_trans(profile1);
+  std::cout << "---" << "\n";
+  Analyzer::print_used_trans(profile2);
+  std::cout << utils::RESET << "\n";
+      
+  if (Analyzer::same_trans(profile1, profile2)) {
+    helium_log("same");
+    // does not report
+    // we need to continue based on whether it is equal to the old profile
+    // mark as remove if does not chagne
+    if (Analyzer::same_trans(profile1, old_profile)) {
+      helium_log("123");
+      // std::cout << utils::RED << "Marking remove" << utils::RESET << "\n";
+      segment->MarkRemove(segment->New());
+      // std::cout << segment->New().size() << "\n";
+    } else {
+      helium_log("12,3");
+      // if it does change, it makes sense to report it.
+      // But actually we don't need to add any mark
+      std::cout
+        << "The context transfer profile changed,"
+        << "but both mark and non-mark version change to the same"
+        << "\n";
+    }
+    // record the new profile.
+    // Since profile1 and profile2 are "same" in terms of variable of interest,
+    // we choose one of them
+    segment->SetProfile(profile1);
+    // we finally need to continue search
+    std::vector<Segment*> queries = select(segment);
+    m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
+  } else {
+    // report
+    std::cout << utils::GREEN << "Got the difference!" << utils::RESET << "\n";
+    // now we can skip this segment (does not context search)
+    helium_log("difference");
+    if (Analyzer::same_trans(old_profile, profile1)) {
+      helium_log("13,2");
+    } else if (Analyzer::same_trans(old_profile, profile2)) {
+      helium_log("23,1");
+    } else {
+      helium_log("1,2,3");
+    }
+  }
 }
 
 
@@ -231,78 +317,12 @@ void Helium::process() {
      *******************************/
     // This is a self contained exp, the code after this will be skipped. Need refactoring.
     if (HeliumOptions::Instance()->GetBool("debug-remove-alg")) {
-
-      // print out the segment information
-      segment->Dump();
-      
-      Analyzer *old_profile = segment->GetProfile();
-      // seg + n
-      std::cout << "seg+n" << "\n";
-      Analyzer *profile1 = testProfile(segment);
-      // seg - mark + n
-      std::cout << "seg-mark+n" << "\n";
-      segment->ActivateRemoveMark();
-      Analyzer *profile2 = testProfile(segment);
-      segment->RestoreRemoveMark();
-
-      // outputing the transfer used in all three profiles
-      std::cout << utils::CYAN << "Used Trans" << "\n";
-      Analyzer::print_used_trans(old_profile);
-      std::cout << "---" << "\n";
-      Analyzer::print_used_trans(profile1);
-      std::cout << "---" << "\n";
-      Analyzer::print_used_trans(profile2);
-      std::cout << utils::RESET << "\n";
-      
-      if (Analyzer::same_trans(profile1, profile2)) {
-        helium_log("same");
-        // does not report
-        // we need to continue based on whether it is equal to the old profile
-        // mark as remove if does not chagne
-        if (Analyzer::same_trans(profile1, old_profile)) {
-          helium_log("123");
-          // std::cout << utils::RED << "Marking remove" << utils::RESET << "\n";
-          segment->MarkRemove(segment->New());
-          // std::cout << segment->New().size() << "\n";
-        } else {
-          helium_log("12,3");
-          // if it does change, it makes sense to report it.
-          // But actually we don't need to add any mark
-          std::cout
-            << "The context transfer profile changed,"
-            << "but both mark and non-mark version change to the same"
-            << "\n";
-        }
-        // record the new profile.
-        // Since profile1 and profile2 are "same" in terms of variable of interest,
-        // we choose one of them
-        segment->SetProfile(profile1);
-        // we finally need to continue search
-        std::vector<Segment*> queries = select(segment);
-        m_worklist.insert(m_worklist.end(), queries.begin(), queries.end());
-      } else {
-        // report
-        std::cout << utils::GREEN << "Got the difference!" << utils::RESET << "\n";
-        // now we can skip this segment (does not context search)
-        helium_log("difference");
-        if (Analyzer::same_trans(old_profile, profile1)) {
-          helium_log("13,2");
-        } else if (Analyzer::same_trans(old_profile, profile2)) {
-          helium_log("23,1");
-        } else {
-          helium_log("1,2,3");
-        }
-      }
+      debugRemoveAlg(segment);
       continue;
     }
 
-
-
-
     // run test
-    
     if (HeliumOptions::Instance()->GetBool("run-test")) {
-
       // run test
       Tester tester(builder.GetDir(), builder.GetExecutableName(), segment->GetInputs());
       tester.Test();
@@ -317,12 +337,12 @@ void Helium::process() {
 
         if (HeliumOptions::Instance()->GetBool("use-query-resolver-2")) {
           // resolve query 2 is used for assertion experiment
-          bool res = analyzer->ResolveQuery2(m_poi->GetFailureCondition());
+          bool res = analyzer->ResolveQuery2(m_failure_condition);
           if (res) {
             return;
           }
         }
-        analyzer->ResolveQuery(m_poi->GetFailureCondition());
+        analyzer->ResolveQuery(m_failure_condition);
 
 
 
@@ -395,6 +415,10 @@ void Helium::process() {
 }
 
 
+/**
+ * gen code, compile, test, and analyze the segment
+ * @return analyzer as profile
+ */
 Analyzer* Helium::testProfile(Segment *segment) {
   segment->PatchGrammar();
   segment->ResolveInput();
@@ -414,7 +438,7 @@ Analyzer* Helium::testProfile(Segment *segment) {
       Analyzer *analyzer = new Analyzer(builder.GetDir());
       analyzer->GetCSV();
       analyzer->AnalyzeCSV();
-      analyzer->ResolveQuery(m_poi->GetFailureCondition());
+      analyzer->ResolveQuery(m_failure_condition);
       // This new analyzer is the profile
       return analyzer;
     }

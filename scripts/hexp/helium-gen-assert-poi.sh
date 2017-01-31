@@ -13,13 +13,7 @@ fi
 
 for file in $1/src/*.c; do
     >&2 echo $file
-    helium-gen-assert-poi.awk $file | awk -v bench="$bench" -v file=${file##*/} '{print bench "," file "," $0}'
-    # cmd="helium-gen-assert-poi.awk $file | awk '{print \"${bench},${file##*/},\" \$0}'"
-    # cmd1="helium-gen-assert-poi.awk $file"
-    # cmd2="awk '{print \"${bench},${file##*/},\" \$0}'"
-    # echo $cmd
-    # echo $cmd
-    # $cmd
-    # $cmd1 | $cmd2
-    # "${bench},${file##*/},$line,stmt"
+    helium-gen-assert-poi.awk $file\
+        | awk -v bench="$bench" -v file=${file##*/}\
+              '{print bench "," file "," $0}'
 done

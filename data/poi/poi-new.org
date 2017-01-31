@@ -18,7 +18,7 @@
 | craft-null-deref          | a.c                   |    27 | stmt | null-deref     |                                                         |                           |
 | gzip-1.2.4                | gzip.c                |  1009 | stmt |                | output_int_iname.strlen > output_int_ifname.size        |                           |
 | ncompress                 | compress42.c          |   892 | stmt |                |                                                         |                           |
-| ncompress-4.2.4           | compress42.c          |   886 | stmt |                | output_int_fileptr[0].strlen > output_int_tempname.size |                           |
+| ncompress-4.2.4           | compress42.c          |   886 | stmt |                | output_int_fileptr_0_.strlen > output_int_tempname.size |                           |
 | polymorph-0.4.0           | polymorph.c           |   118 | stmt |                | output_int_target.size < output_int_optarg.strlen       |                           |
 | cyrus-sasl-2.1.23         | pwcheck_getpwnam.c    |    44 | stmt |                |                                                         |                           |
 | wu-ftpd-2.4.2-beta-18-vr8 | realpath.c            |    79 | stmt |                |                                                         |                           |

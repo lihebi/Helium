@@ -185,8 +185,8 @@ TEST(AnalyzerCase, AssertTest) {
 std::vector<std::string> escape(std::vector<std::string> v) {
   std::vector<std::string> ret;
   for (std::string s : v) {
-    utils::replace(s, "[", ".");
-    utils::replace(s, "]", ".");
+    utils::replace(s, "[", "_");
+    utils::replace(s, "]", "_");
     ret.push_back(s);
   }
   return ret;
