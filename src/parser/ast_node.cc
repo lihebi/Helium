@@ -131,14 +131,17 @@ std::string ASTNode::POIOutputCode() {
       }
       // instrument the assertion here
       // also store the transfer function
-      XMLNode callnode = find_first_node_bfs(m_xmlnode, "call");
-      if (callnode) {
-        std::string func = call_get_name(callnode);
-        if (func == "assert") {
-          Assertion assertion(callnode);
-          ret += assertion.GetCode();
-        }
-      }
+
+
+      // Commented out because this might cause compilation issue
+      // XMLNode callnode = find_first_node_bfs(m_xmlnode, "call");
+      // if (callnode) {
+      //   std::string func = call_get_name(callnode);
+      //   if (func == "assert") {
+      //     Assertion assertion(callnode);
+      //     ret += assertion.GetCode();
+      //   }
+      // }
     } else {
       ret += "// instrument-io turned off\n";
     }

@@ -105,6 +105,7 @@ Helium::Helium(PointOfInterest *poi) {
             Segment::SetPOI(target_cfgnode);
 
 
+            // for "assertion" failure condition
             m_failure_condition = m_poi->GetFailureCondition();
             if (m_failure_condition == "assertion") {
               // construct the failure condition from assertion
@@ -144,6 +145,9 @@ Helium::Helium(PointOfInterest *poi) {
   process();
 }
 
+/**
+ * Debug the remove algorithm. This should not appear in production code
+ */
 void Helium::debugRemoveAlg(Segment *segment) {
   // print out the segment information
   segment->Dump();
@@ -335,6 +339,7 @@ void Helium::process() {
 
         // resolve the query
 
+        // TODO this should be better organized instead of resolver2
         if (HeliumOptions::Instance()->GetBool("use-query-resolver-2")) {
           // resolve query 2 is used for assertion experiment
           bool res = analyzer->ResolveQuery2(m_failure_condition);
@@ -342,6 +347,8 @@ void Helium::process() {
             return;
           }
         }
+
+        // ordinary resolver
         analyzer->ResolveQuery(m_failure_condition);
 
 
