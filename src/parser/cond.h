@@ -27,11 +27,83 @@ public:
     delete m_left;
     delete m_right;
   }
+
+  std::string GetOp() {return m_op;}
+
 private:
   std::string m_op;
   Cond *m_left;
   Cond *m_right;
   std::string m_text;
+};
+
+
+typedef enum _OpKind {
+  OK_Greater,
+  OK_Less,
+  OK_Equal,
+  OK_NotEqual,
+  OK_GreaterOrEqual,
+  OK_LessOrEqual
+} OpKind;
+
+
+OpKind Str2OpKind(std::string text);
+std::string OpKind2Str(OpKind op);
+
+/**
+ * Only consider <expr> <operator> <expr>
+ * And this also don't use for a->b
+ */
+class SimpleCond {
+public:
+  SimpleCond(std::string left, OpKind op, std::string right)
+    : m_left(left), m_op(op), m_right(right) {}
+  /**
+   * Get SMT string
+   */
+  std::string GetSMT() {
+    // TODO
+    return "";
+  }
+  std::string GetLeft() {return m_left;}
+  std::string GetRight() {return m_right;}
+  std::string GetOp() {return OpKind2Str(m_op);}
+private:
+  std::string m_left;
+  OpKind m_op;
+  std::string m_right;
+};
+
+class SimpleCondFactory {
+public:
+  static SimpleCond *Create(std::string text) {
+    SimpleCond *ret = NULL;
+    XMLDoc *doc = XMLDocReader::CreateDocFromString(text);
+    XMLNode expr = find_first_node_bfs(doc->document_element(), "expr");
+    std::vector<XMLNode> nodes;
+    for (XMLNode node : expr.children()) {
+      nodes.push_back(node);
+    }
+    if (nodes.size() == 1) {
+      ret = new SimpleCond(get_text(nodes[0]), OK_NotEqual, "0");
+    } else if (nodes.size() == 3) {
+      if (std::string("operator") == nodes[1].name()) {
+        std::string left = get_text(nodes[0]);
+        if (left == "NULL") left = "0";
+        std::string right = get_text(nodes[2]);
+        if (right == "NULL") right = "0";
+        std::string op = get_text(nodes[1]);
+        try {
+          ret = new SimpleCond(left, Str2OpKind(op), right);
+        } catch (HeliumException) {
+          if (ret) delete ret;
+          ret = NULL;
+        }
+      }
+    }
+    return ret;
+  }
 };
 
 class CondFactory {

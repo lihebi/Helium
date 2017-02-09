@@ -104,26 +104,8 @@ Helium::Helium(PointOfInterest *poi) {
             target->SetFailurePoint();
             Segment::SetPOI(target_cfgnode);
 
-
-            // for "assertion" failure condition
             m_failure_condition = m_poi->GetFailureCondition();
-            if (m_failure_condition == "assertion") {
-              // construct the failure condition from assertion
-              // change the failure condition to the negation of assertion
-              // - query the type of the variable
-              // - also change the text: using output_int_ syntax
-              // std::vector<Variable> vars = target->GetVariables();
-              XMLNode xmlnode = target->GetXMLNode();
-              XMLNode callnode = find_first_node_bfs(xmlnode, "call");
-              if (callnode) {
-                std::string func = call_get_name(callnode);
-                if (func == "assert") {
-                  Assertion assertion(callnode);
-                  m_failure_condition = assertion.GetContent();
-                }
-              }
-            }
-            
+
             // construct the initial query by the initial nodes
             // Let's use the entire loop at POI
             Segment *init_query = new Segment(target);

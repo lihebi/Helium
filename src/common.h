@@ -25,6 +25,19 @@ extern int g_compile_error_no;
 
 extern const std::string flush_output;
 
+
+class HeliumException : public std::exception {
+public:
+  HeliumException(std::string text) {
+    m_text = text;
+  }
+  virtual const char *what() const throw() {
+    return "Helium Exception";
+  }
+private:
+  std::string m_text;
+};
+
 bool
 is_c_keyword(const std::string& s);
 

@@ -76,6 +76,8 @@ std::vector<std::string> CSV::parseRow(std::string line) {
  */
 std::vector<std::string> OrgTable::parseRow(std::string line) {
   std::vector<std::string> ret;
+  utils::trim(line);
+  if (line.empty() || line[0] == '#') return ret;
   std::vector<std::string> tmp = utils::split(line, '|');
   for (std::string &t : tmp) {
     utils::trim(t);

@@ -84,13 +84,15 @@ std::string get_malloc_code(std::string var, std::string type, std::string size)
 
 std::string get_sizeof_printf_code(std::string var) {
   std::string ret;
-  ret += "printf(\"int_" + var + ".size = %d\\n\", ";
+  // ret += "printf(\"int_" + var + ".size = %d\\n\", ";
+  ret += "printf(\"sizeof(" + var + ") = %d\\n\", ";
   ret += "sizeof(" + var + "));\n" + flush_output;
   return ret;
 }
 std::string get_strlen_printf_code(std::string var) {
   std::string ret;
-  ret += "printf(\"int_" + var + ".strlen = %ld\\n\", ";
+  // ret += "printf(\"int_" + var + ".strlen = %ld\\n\", ";
+  ret += "printf(\"strlen(" + var + ") = %ld\\n\", ";
   ret += "strlen(" + var + "));\n" + flush_output;
   return ret;
 }
