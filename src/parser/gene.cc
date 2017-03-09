@@ -1,6 +1,6 @@
-#include "ast.h"
-#include "utils/utils.h"
-#include "ast_node.h"
+#include "helium/parser/ast.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/ast_node.h"
 #include <iostream>
 
 /*******************************

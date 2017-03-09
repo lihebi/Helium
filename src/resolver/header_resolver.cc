@@ -1,6 +1,6 @@
-#include "header_resolver.h"
-#include "utils/utils.h"
-#include "utils/log.h"
+#include "helium/resolver/header_resolver.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/log.h"
 #include <cassert>
 #include <iostream>
 

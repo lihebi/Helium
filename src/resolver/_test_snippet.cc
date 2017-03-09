@@ -1,5 +1,5 @@
-#include "snippet.h"
-#include "utils/utils.h"
+#include "helium/resolver/snippet.h"
+#include "helium/utils/utils.h"
 #include <gtest/gtest.h>
 
 /**

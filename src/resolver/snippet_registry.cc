@@ -3,10 +3,10 @@
 #include <iostream>
 #include <boost/regex.hpp>
 
-#include "snippet.h"
-#include "utils/utils.h"
-#include "resolver.h"
-#include "helium_options.h"
+#include "helium/resolver/snippet.h"
+#include "helium/utils/utils.h"
+#include "helium/resolver/resolver.h"
+#include "helium/utils/helium_options.h"
 
 using namespace utils;
 

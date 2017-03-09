@@ -1,13 +1,13 @@
-#include "ast_node.h"
+#include "helium/parser/ast_node.h"
 #include <gtest/gtest.h>
-#include "utils/utils.h"
+#include "helium/utils/utils.h"
 
-#include "utils/log.h"
-#include "resolver/global_variable.h"
-#include "ast_internal.h"
-#include "helium_options.h"
+#include "helium/utils/log.h"
+#include "helium/resolver/global_variable.h"
+#include "helium/parser/ast_internal.h"
+#include "helium/utils/helium_options.h"
 
-#include "cond.h"
+#include "helium/parser/cond.h"
 
 bool ASTOption::m_instrument=true;
 

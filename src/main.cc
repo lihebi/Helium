@@ -1,17 +1,17 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "workflow/helium.h"
+#include "helium/workflow/helium.h"
 
-#include "resolver/snippet_db.h"
-#include "parser/cfg.h"
-#include "parser/xml_doc_reader.h"
-#include "parser/ast_node.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/parser/cfg.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/parser/ast_node.h"
 
-#include "helium_options.h"
-#include "parser/point_of_interest.h"
-#include "utils/fs_utils.h"
-#include "utils/utils.h"
+#include "helium/utils/helium_options.h"
+#include "helium/parser/point_of_interest.h"
+#include "helium/utils/fs_utils.h"
+#include "helium/utils/utils.h"
 
 #include <boost/filesystem.hpp>
 

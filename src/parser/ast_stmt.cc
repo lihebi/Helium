@@ -1,6 +1,6 @@
-#include "parser/ast_node.h"
-#include "parser/ast_common.h"
-#include "utils/log.h"
+#include "helium/parser/ast_node.h"
+#include "helium/parser/ast_common.h"
+#include "helium/utils/log.h"
 #include "ast_stmt.h"
 
 Stmt::Stmt(XMLNode xmlnode, AST *ast, ASTNode *parent, ASTNode *prev)

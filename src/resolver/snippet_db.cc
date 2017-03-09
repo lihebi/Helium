@@ -6,14 +6,14 @@
 #include <gtest/gtest.h>
 #include <readtags.h>
 #include <sqlite3.h>
-#include "utils/utils.h"
-#include "snippet.h"
-#include "resolver.h"
+#include "helium/utils/utils.h"
+#include "helium/resolver/snippet.h"
+#include "helium/resolver/resolver.h"
 
-#include "snippet_db.h"
-#include "parser/xml_doc_reader.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/parser/xml_doc_reader.h"
 
-#include "utils/dot.h"
+#include "helium/utils/dot.h"
 
 using namespace utils;
 

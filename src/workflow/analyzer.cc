@@ -1,6 +1,6 @@
-#include "analyzer.h"
-#include "utils/utils.h"
-#include "helium_options.h"
+#include "helium/workflow/analyzer.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/helium_options.h"
 #include <iostream>
 #include <gtest/gtest.h>
 

@@ -1,7 +1,7 @@
-#include "formula.h"
-#include "utils/utils.h"
+#include "helium/workflow/formula.h"
+#include "helium/utils/utils.h"
 
-#include "utils/log.h"
+#include "helium/utils/log.h"
 
 
 bool Formula::is_constant(std::string str) {

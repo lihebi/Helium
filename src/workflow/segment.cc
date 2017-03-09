@@ -1,12 +1,12 @@
-#include "segment.h"
-#include "parser/resource.h"
-#include "utils/log.h"
+#include "helium/workflow/segment.h"
+#include "helium/parser/resource.h"
+#include "helium/utils/log.h"
 #include <iostream>
-#include "generator.h"
-#include "utils/utils.h"
-#include "resolver/global_variable.h"
-#include "helium_options.h"
-#include "type/io_helper.h"
+#include "helium/workflow/generator.h"
+#include "helium/utils/utils.h"
+#include "helium/resolver/global_variable.h"
+#include "helium/utils/helium_options.h"
+#include "helium/type/io_helper.h"
 
 CFGNode* Segment::m_poi = NULL;
 

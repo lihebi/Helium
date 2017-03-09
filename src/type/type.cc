@@ -1,14 +1,14 @@
-#include "type.h"
-#include "utils/utils.h"
-#include "utils/log.h"
-#include "resolver/snippet_db.h"
-#include "helium_options.h"
-#include "parser/xml_doc_reader.h"
+#include "helium/type/type.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/log.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/utils/helium_options.h"
+#include "helium/parser/xml_doc_reader.h"
 #include <iostream>
 
-#include "primitive_type.h"
-#include "composite_type.h"
-#include "sequential_type.h"
+#include "helium/type/primitive_type.h"
+#include "helium/type/composite_type.h"
+#include "helium/type/sequential_type.h"
 
 #include <gtest/gtest.h>
 

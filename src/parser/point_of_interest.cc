@@ -1,12 +1,12 @@
-#include "point_of_interest.h"
-#include "helium_options.h"
+#include "helium/parser/point_of_interest.h"
+#include "helium/utils/helium_options.h"
 #include <iostream>
 
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
-#include "utils/table.h"
-#include "utils/log.h"
-#include "utils/fs_utils.h"
+#include "helium/utils/table.h"
+#include "helium/utils/log.h"
+#include "helium/utils/fs_utils.h"
 
 namespace fs = boost::filesystem;
 

@@ -1,4 +1,4 @@
-#include "corner.h"
+#include "helium/type/corner.h"
 
 Corner* Corner::m_instance = NULL;
 

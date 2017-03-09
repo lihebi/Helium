@@ -1,9 +1,9 @@
-#include "resolver.h"
+#include "helium/resolver/resolver.h"
 #include <boost/regex.hpp>
-#include "utils/utils.h"
-#include "parser/xml_doc_reader.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/xml_doc_reader.h"
 #include <gtest/gtest.h>
-#include "parser/xmlnode_helper.h"
+#include "helium/parser/xmlnode_helper.h"
 /**
  * Extract id which is not c keyword
  * This is the master copy of this resolving

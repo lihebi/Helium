@@ -1,7 +1,7 @@
 #ifndef AST_ITER_H
 #define AST_ITER_H
 
-#include "ast_node.h"
+#include "helium/parser/ast_node.h"
 
 
 // loop

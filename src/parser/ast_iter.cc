@@ -1,7 +1,7 @@
 #include "ast_iter.h"
-#include "ast_node.h"
-#include "ast_common.h"
-#include "utils/log.h"
+#include "helium/parser/ast_node.h"
+#include "helium/parser/ast_common.h"
+#include "helium/utils/log.h"
 
 /*******************************
  * For

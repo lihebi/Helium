@@ -1,5 +1,5 @@
-#include "resolver.h"
-#include "utils/utils.h"
+#include "helium/resolver/resolver.h"
+#include "helium/utils/utils.h"
 #include "workflow/helium_utils.h"
 
 #include <gtest/gtest.h>

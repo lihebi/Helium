@@ -1,5 +1,5 @@
-#include "type_helper.h"
-#include "type_common.h"
+#include "helium/type/type_helper.h"
+#include "helium/type/type_common.h"
 
 using namespace utils;
 

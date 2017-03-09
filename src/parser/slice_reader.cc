@@ -1,6 +1,6 @@
-#include "slice_reader.h"
+#include "helium/parser/slice_reader.h"
 #include <fstream>
-#include "utils/utils.h"
+#include "helium/utils/utils.h"
 
 SliceFile::SliceFile(std::string slicing_file) {
   std::ifstream is;

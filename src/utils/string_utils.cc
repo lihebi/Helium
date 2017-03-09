@@ -1,8 +1,8 @@
-#include "string_utils.h"
+#include "helium/utils/string_utils.h"
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-#include "common.h"
+#include "helium/utils/common.h"
 
 /*******************************
  ** string utils

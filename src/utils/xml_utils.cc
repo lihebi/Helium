@@ -1,6 +1,6 @@
-#include "xml_utils.h"
-#include "common.h"
-#include "thread_utils.h"
+#include "helium/utils/xml_utils.h"
+#include "helium/utils/common.h"
+#include "helium/utils/thread_utils.h"
 
 namespace utils {
 

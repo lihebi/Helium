@@ -8,7 +8,7 @@
 #include "../../src/ast.h"
 #include "../../src/utils.h"
 #include "../../src/ast_node.h"
-#include "../../src/common.h"
+#include "helium/utils/common.h"
 #include "../../src/type.h"
 
 

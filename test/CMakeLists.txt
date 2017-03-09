@@ -1,0 +1,17 @@
+add_executable(heliumtest
+        test_main.cc)
+
+target_link_libraries(heliumtest
+        HeliumUtils
+        HeliumParser
+        HeliumResolver
+        HeliumType
+        HeliumWorkflow)
+
+target_link_libraries(heliumtest
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
+        ${Boost_LIBRARIES}
+        ${GTEST_BOTH_LIBRARIES})
+
+target_link_libraries(heliumtest pugixml sqlite3 ctags)

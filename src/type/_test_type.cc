@@ -1,11 +1,11 @@
-#include "type.h"
-#include "common.h"
-#include "io_helper.h"
+#include "helium/type/type.h"
+#include "helium/utils/common.h"
+#include "helium/type/io_helper.h"
 
-#include "parser/xml_doc_reader.h"
-#include "parser/ast_node.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/parser/ast_node.h"
 
-#include "utils/utils.h"
+#include "helium/utils/utils.h"
 #include <gtest/gtest.h>
 
 

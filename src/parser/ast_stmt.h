@@ -1,7 +1,7 @@
 #ifndef AST_STMT_H
 #define AST_STMT_H
 
-#include "ast_node.h"
+#include "helium/parser/ast_node.h"
 
 
 /**

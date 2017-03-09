@@ -1,8 +1,8 @@
-#include "xmlnode_helper.h"
-#include "xmlnode.h"
+#include "helium/parser/xmlnode_helper.h"
+#include "helium/parser/xmlnode.h"
 #include <deque>
 
-#include "utils/utils.h"
+#include "helium/utils/utils.h"
 
 #include <gtest/gtest.h>
 

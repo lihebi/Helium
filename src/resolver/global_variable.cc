@@ -1,5 +1,5 @@
-#include "global_variable.h"
-#include "utils/log.h"
+#include "helium/resolver/global_variable.h"
+#include "helium/utils/log.h"
 #include <iostream>
 
 GlobalVariableRegistry* GlobalVariableRegistry::m_instance = NULL;

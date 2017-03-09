@@ -1,7 +1,7 @@
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <fstream>
-#include "utils/fs_utils.h"
+#include "helium/utils/fs_utils.h"
 namespace fs = boost::filesystem;
 
 

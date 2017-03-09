@@ -1,10 +1,10 @@
-#include "xml_doc_reader.h"
-#include "utils/utils.h"
-#include "xmlnode_helper.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/xmlnode_helper.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 
-#include "resolver/snippet_db.h"
+#include "helium/resolver/snippet_db.h"
 namespace fs = boost::filesystem;
 XMLDocReader *XMLDocReader::m_instance = NULL;
 

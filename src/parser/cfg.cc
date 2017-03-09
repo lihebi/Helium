@@ -1,12 +1,12 @@
-#include "cfg.h"
-#include "ast_node.h"
+#include "helium/parser/cfg.h"
+#include "helium/parser/ast_node.h"
 
-#include "utils/dot.h"
-#include "utils/utils.h"
-#include "resolver/snippet_db.h"
-#include "resource.h"
+#include "helium/utils/dot.h"
+#include "helium/utils/utils.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/parser/resource.h"
 
-#include "utils/log.h"
+#include "helium/utils/log.h"
 
 #include <iostream>
 

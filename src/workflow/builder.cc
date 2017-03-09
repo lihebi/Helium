@@ -1,13 +1,13 @@
-#include "builder.h"
+#include "helium/workflow/builder.h"
 #include <algorithm>
-#include "utils/utils.h"
-#include "helium_options.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/helium_options.h"
 
-#include "resolver/system_resolver.h"
+#include "helium/resolver/system_resolver.h"
 
-#include "utils/log.h"
-#include "parser/xml_doc_reader.h"
-#include "parser/xmlnode_helper.h"
+#include "helium/utils/log.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/parser/xmlnode_helper.h"
 #include <gtest/gtest.h>
 
 Builder::Builder() {

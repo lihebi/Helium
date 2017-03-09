@@ -1,11 +1,11 @@
-#include "ast.h"
-#include "ast_node.h"
-#include "utils/utils.h"
-#include "utils/dot.h"
-#include "utils/log.h"
+#include "helium/parser/ast.h"
+#include "helium/parser/ast_node.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/dot.h"
+#include "helium/utils/log.h"
 #include <iostream>
 
-#include "ast_internal.h"
+#include "helium/parser/ast_internal.h"
 
 
 /********************************

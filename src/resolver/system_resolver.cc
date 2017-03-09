@@ -1,10 +1,10 @@
-#include "resolver.h"
-#include "utils/utils.h"
+#include "helium/resolver/resolver.h"
+#include "helium/utils/utils.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
-#include "helium_options.h"
-#include "type/type_helper.h"
-#include "utils/fs_utils.h"
+#include "helium/utils/helium_options.h"
+#include "helium/type/type_helper.h"
+#include "helium/utils/fs_utils.h"
 
 namespace fs = boost::filesystem;
 using namespace utils;

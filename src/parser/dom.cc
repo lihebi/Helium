@@ -1,4 +1,4 @@
-#include "xmlnode.h"
+#include "helium/parser/xmlnode.h"
 
 /*******************************
  ** DomUtil

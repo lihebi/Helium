@@ -1,12 +1,12 @@
 #include <pugixml.hpp>
 #include <iostream>
-#include "snippet.h"
-#include "utils/log.h"
-#include "utils/utils.h"
+#include "helium/resolver/snippet.h"
+#include "helium/utils/log.h"
+#include "helium/utils/utils.h"
 
-#include "parser/xmlnode.h"
-#include "parser/xmlnode_helper.h"
-#include "system_resolver.h"
+#include "helium/parser/xmlnode.h"
+#include "helium/parser/xmlnode_helper.h"
+#include "helium/resolver/system_resolver.h"
 
 
 using namespace utils;

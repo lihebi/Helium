@@ -1,5 +1,5 @@
-#include "ast_node.h"
-#include "utils/log.h"
+#include "helium/parser/ast_node.h"
+#include "helium/utils/log.h"
 
 
 Decl::~Decl() {

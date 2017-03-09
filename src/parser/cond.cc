@@ -1,4 +1,4 @@
-#include "cond.h"
+#include "helium/parser/cond.h"
 #include <gtest/gtest.h>
 
 TEST(CondCase, CreateTest) {

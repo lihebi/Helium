@@ -1,34 +1,34 @@
-#include "helium.h"
+#include "helium/workflow/helium.h"
 #include <string>
 #include <iostream>
 
-#include "helium_utils.h"
+#include "helium/workflow/helium_utils.h"
 
-#include "helium_options.h"
-#include "parser/xml_doc_reader.h"
-#include "parser/xmlnode.h"
-#include "parser/ast_node.h"
-#include "parser/cfg.h"
+#include "helium/utils/helium_options.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/parser/xmlnode.h"
+#include "helium/parser/ast_node.h"
+#include "helium/parser/cfg.h"
 
-#include "utils/utils.h"
-#include "utils/dump.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/dump.h"
 
-#include "resolver/snippet.h"
-#include "resolver/resolver.h"
-#include "resolver/snippet_db.h"
-#include "parser/resource.h"
-#include "utils/log.h"
-#include "builder.h"
+#include "helium/resolver/snippet.h"
+#include "helium/resolver/resolver.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/parser/resource.h"
+#include "helium/utils/log.h"
+#include "helium/workflow/builder.h"
 
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-#include "helper.h"
-#include "tester.h"
-#include "analyzer.h"
+#include "helium/utils/helper.h"
+#include "helium/workflow/tester.h"
+#include "helium/workflow/analyzer.h"
 
-#include "parser/cond.h"
+#include "helium/parser/cond.h"
 
 namespace fs = boost::filesystem;
 

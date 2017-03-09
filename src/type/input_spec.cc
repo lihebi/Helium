@@ -1,4 +1,4 @@
-#include "input_spec.h"
+#include "helium/type/input_spec.h"
 
 std::string PointerInputSpec::GetRaw() {
   std::string ret;

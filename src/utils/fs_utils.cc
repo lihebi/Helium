@@ -1,5 +1,5 @@
-#include "fs_utils.h"
-#include "common.h"
+#include "helium/utils/fs_utils.h"
+#include "helium/utils/common.h"
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

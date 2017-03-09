@@ -1,11 +1,11 @@
-#include "sequential_type.h"
-#include "primitive_type.h"
-#include "utils/log.h"
-#include "type_helper.h"
-#include "utils/utils.h"
-#include "corner.h"
-#include "helium_options.h"
-#include "io_helper.h"
+#include "helium/type/sequential_type.h"
+#include "helium/type/primitive_type.h"
+#include "helium/utils/log.h"
+#include "helium/type/type_helper.h"
+#include "helium/utils/utils.h"
+#include "helium/type/corner.h"
+#include "helium/utils/helium_options.h"
+#include "helium/type/io_helper.h"
 #include <iostream>
 
 /**

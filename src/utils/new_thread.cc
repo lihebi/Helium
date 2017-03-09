@@ -3,7 +3,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include "utils.h"
+#include "helium/utils/utils.h"
 
 namespace utils {
   std::string new_exec(const char* cmd) {

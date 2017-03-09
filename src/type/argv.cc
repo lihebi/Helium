@@ -1,7 +1,7 @@
-#include "argv.h"
-#include "utils/utils.h"
-#include "helium_options.h"
-#include "type.h"
+#include "helium/type/argv.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/helium_options.h"
+#include "helium/type/type.h"
 #include <iostream>
 
 

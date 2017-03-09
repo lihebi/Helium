@@ -1,6 +1,6 @@
-#include "ast_node.h"
-#include "utils/utils.h"
-#include "parser/xmlnode.h"
+#include "helium/parser/ast_node.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/xmlnode.h"
 #include <gtest/gtest.h>
 
 

@@ -1,8 +1,8 @@
-#include "type.h"
-#include "composite_type.h"
-#include "resolver/snippet_db.h"
-#include "parser/resource.h"
-#include "io_helper.h"
+#include "helium/type/type.h"
+#include "helium/type/composite_type.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/parser/resource.h"
+#include "helium/type/io_helper.h"
 
 StructType::StructType(std::string raw, int snippet_id)
   : m_raw(raw), m_snippet_id(snippet_id) {

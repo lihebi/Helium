@@ -1,9 +1,9 @@
-#include "primitive_type.h"
-#include "type_helper.h"
-#include "utils/utils.h"
-#include "helium_options.h"
-#include "corner.h"
-#include "io_helper.h"
+#include "helium/type/primitive_type.h"
+#include "helium/type/type_helper.h"
+#include "helium/utils/utils.h"
+#include "helium/utils/helium_options.h"
+#include "helium/type/corner.h"
+#include "helium/type/io_helper.h"
 
 /********************************
  * IntType

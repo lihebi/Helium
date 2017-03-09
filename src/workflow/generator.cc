@@ -1,11 +1,11 @@
-#include "generator.h"
+#include "helium/workflow/generator.h"
 
-#include "resolver/snippet_db.h"
-#include "utils/log.h"
-#include "helium_options.h"
-#include "utils/utils.h"
-#include "parser/xml_doc_reader.h"
-#include "type/io_helper.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/utils/log.h"
+#include "helium/utils/helium_options.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/type/io_helper.h"
 
 
 #include <iostream>

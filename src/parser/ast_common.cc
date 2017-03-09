@@ -1,5 +1,5 @@
-#include "ast_common.h"
-#include "utils/utils.h"
+#include "helium/parser/ast_common.h"
+#include "helium/utils/utils.h"
 
 /**
  * This only check the first "="

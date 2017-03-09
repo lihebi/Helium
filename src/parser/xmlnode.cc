@@ -1,12 +1,12 @@
-#include "xmlnode.h"
+#include "helium/parser/xmlnode.h"
 
 #include <gtest/gtest.h>
-#include "utils/utils.h"
-#include "parser/xml_doc_reader.h"
-#include "helium_options.h"
-#include "utils/log.h"
+#include "helium/utils/utils.h"
+#include "helium/parser/xml_doc_reader.h"
+#include "helium/utils/helium_options.h"
+#include "helium/utils/log.h"
 
-#include "xmlnode_helper.h"
+#include "helium/parser/xmlnode_helper.h"
 
 static const std::map<XMLNodeKind, std::string> kind_to_name_map {
   {NK_Function, "function"}

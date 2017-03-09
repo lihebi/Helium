@@ -1,8 +1,8 @@
-#include "resource.h"
-#include "resolver/snippet_db.h"
-#include "utils/log.h"
-#include "parser/xmlnode_helper.h"
-#include "ast_node.h"
+#include "helium/parser/resource.h"
+#include "helium/resolver/snippet_db.h"
+#include "helium/utils/log.h"
+#include "helium/parser/xmlnode_helper.h"
+#include "helium/parser/ast_node.h"
 #include <iostream>
 
 Resource* Resource::m_instance = 0;

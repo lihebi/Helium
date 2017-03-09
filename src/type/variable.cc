@@ -1,4 +1,4 @@
-#include "variable.h"
+#include "helium/type/variable.h"
 
 std::string Variable::GetDeclCode() {
   if (!m_is_global && m_type) {
