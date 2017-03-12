@@ -199,6 +199,34 @@ XMLNodeKind xmlnode_to_kind(XMLNode node) {
   }
 }
 
+XMLNodeList element_children(XMLNode node) {
+  XMLNodeList ret;
+  for (XMLNode n : node.chilren()) {
+    if (n.type() == pugi::node_element) {
+      ret.push_back(n);
+    }
+  }
+  return ret;
+}
+XMLNode first_element_child(XMLNode node) {
+  for (XMLNode n : node.children()) {
+    if (n.type() == pugi::node_elemnt) {
+      return n;
+    }
+  }
+  return XMLNode();
+}
+
+XMLNode next_element_sibling(XMLNode node) {
+  XMLNode n = node.next_sibilng();
+  while (n) {
+    if (n.type() == pugi::node_element) {
+      return n;
+    }
+  }
+  return XMLNode();
+}
+
 /*******************************
  ** Specific node
  *******************************/

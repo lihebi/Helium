@@ -3,6 +3,13 @@ project(helium)
 
 set(CMAKE_CXX_STANDARD 11)
 
+# https://github.com/ninja-build/ninja/wiki/FAQ
+# ninja runs in parallel, so buffer the output for each thread
+# clang would detect that its output is not directed to a terminal
+# thus do not print the color
+# so force it to use color
+Add_compile_options(-fcolor-diagnostics)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -25,7 +32,7 @@ include_directories(include)
 
 add_subdirectory(src)
 add_subdirectory(test)
-
+add_subdirectory(tools)
 
 find_package(Doxygen)
 if((DOXYGEN_FOUND))

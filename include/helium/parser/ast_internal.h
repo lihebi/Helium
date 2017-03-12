@@ -4,8 +4,8 @@
 #include "ast.h"
 #include "ast_node.h"
 
-#include "../../../src/parser/ast_stmt.h"
-#include "../../../src/parser/ast_iter.h"
+#include "helium/parser/ast_stmt.h"
+#include "helium/parser/ast_iter.h"
 #include "ast_cond.h"
 
 

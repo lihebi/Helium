@@ -112,6 +112,11 @@ const std::set<XMLNodeKind> helium_valid_ast {
     };
 
 
+// get only children that is node element intead of content
+XMLNodeList element_children(XMLNode node);
+XMLNode first_element_child(XMLNode node);
+XMLNode next_element_sibling(XMLNode node);
+
 /*******************************
  ** For specific type of node
  *******************************/
