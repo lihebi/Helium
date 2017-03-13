@@ -201,7 +201,7 @@ XMLNodeKind xmlnode_to_kind(XMLNode node) {
 
 XMLNodeList element_children(XMLNode node) {
   XMLNodeList ret;
-  for (XMLNode n : node.chilren()) {
+  for (XMLNode n : node.children()) {
     if (n.type() == pugi::node_element) {
       ret.push_back(n);
     }
@@ -210,7 +210,7 @@ XMLNodeList element_children(XMLNode node) {
 }
 XMLNode first_element_child(XMLNode node) {
   for (XMLNode n : node.children()) {
-    if (n.type() == pugi::node_elemnt) {
+    if (n.type() == pugi::node_element) {
       return n;
     }
   }
@@ -218,7 +218,7 @@ XMLNode first_element_child(XMLNode node) {
 }
 
 XMLNode next_element_sibling(XMLNode node) {
-  XMLNode n = node.next_sibilng();
+  XMLNode n = node.next_sibling();
   while (n) {
     if (n.type() == pugi::node_element) {
       return n;
