@@ -1,7 +1,19 @@
 #ifndef AST_V2_H
 #define AST_V2_H
 
+#include <string>
+#include <vector>
+
+
 namespace v2 {
+
+  class TranslationUnitDecl;
+  class FunctionDecl;
+  class Expr;
+  class Stmt;
+  class Decl;
+  class DeclStmt;
+  
   /**
    * You can get TranslationUnitDecl from this
    * This also contains the source manager
@@ -13,7 +25,7 @@ namespace v2 {
     ~ASTContext() {}
     TranslationUnitDecl *getTranslationUnitDecl() {return Unit;}
   private:
-    TranslationUnit *Unit;
+    TranslationUnitDecl *Unit;
   };
 
 
@@ -24,13 +36,13 @@ namespace v2 {
   
   class Decl {
   public:
-    Decl(std::string text) {}
+    Decl() {}
     ~Decl() {}
   };
 
   class TranslationUnitDecl : Decl {
   public:
-    TranslationUnitDecl(std::vector<Decl*> decls,
+    TranslationUnitDecl(std::vector<DeclStmt*> decls,
                         std::vector<FunctionDecl*> funcs) {}
     ~TranslationUnitDecl() {}
   };
@@ -51,7 +63,7 @@ namespace v2 {
    */
   class DeclStmt : Stmt {
   public:
-    DeclStmt() {}
+    DeclStmt(std::string text) {}
     ~DeclStmt() {}
   };
 
@@ -95,7 +107,7 @@ namespace v2 {
 
   class IfStmt : public Stmt {
   public:
-    IfStmt(Expr *cond, Stmt *body, Stmt *else) {}
+    IfStmt(Expr *cond, Stmt *body, Stmt *elsestmt) {}
     ~IfStmt() {}
   };
 
@@ -103,7 +115,7 @@ namespace v2 {
   public:
     SwitchStmt(Expr *cond, Stmt *body) {}
     ~SwitchStmt() {}
-    void AddCase(SwitchCase *case) {}
+    void AddCase(Stmt *casestmt) {}
   };
 
   /**

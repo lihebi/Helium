@@ -2,6 +2,8 @@
 #include "helium/parser/xml_doc_reader.h"
 #include "helium/parser/ast_v2.h"
 
+#include "helium/parser/xmlnode_helper.h"
+
 
 // rename this file to srcmlparser.cc
 
@@ -16,11 +18,11 @@ Parser::Parser(std::string filename) {
 
 TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
   match(unit, "unit");
-  std::vector<Decl*> decls;
+  std::vector<DeclStmt*> decls;
   std::vector<FunctionDecl*> funcs;
   for (XMLNode node : unit.children()) {
     if (std::string(node.name()) == "decl_stmt") {
-      Decl *decl = ParseDecl(node);
+      DeclStmt *decl = ParseDeclStmt(node);
       decls.push_back(decl);
     } else if (std::string(node.name()) == "function") {
       FunctionDecl *func = ParseFunctionDecl(node);
@@ -30,15 +32,15 @@ TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
   return new TranslationUnitDecl(decls, funcs);
 }
 
-Decl *Parser::ParseDecl(XMLNode decl) {
-  std::string text = get_text_content(decl);
-  return new Decl(text);
+DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
+  std::string text = get_text(decl);
+  return new DeclStmt(text);
 }
 
-FunctionDecl *Parser::ParseFunctionDecl(XMLNode func) {
+FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // constructnig children
-  XMLNode block = xmlnode.child("block");
-  CompoundStmt comp = ParseCompoundStmt(block);
+  XMLNode block = node.child("block");
+  CompoundStmt *comp = ParseCompoundStmt(block);
   return new FunctionDecl(comp);
 }
 

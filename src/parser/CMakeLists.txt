@@ -1,7 +1,7 @@
 add_library(HeliumParser
 
-  ast_v2.cc
-  parser.cc
+  # ast_v2.cc
+  # parser.cc
 
   
   ast.cc
