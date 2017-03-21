@@ -23,6 +23,8 @@ HeliumOptions::HeliumOptions() {
   general_options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("verbose,v", "verbose mode")
+    ("setup", "setup")
+    ("extract", "extract")
 
     ("config,f", po::value<std::string>(), "config file")
 

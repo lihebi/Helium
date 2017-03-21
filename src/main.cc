@@ -14,6 +14,7 @@
 #include "helium/utils/utils.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 
 #include <gtest/gtest.h>
 
@@ -260,18 +261,133 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
+  fs::path user_home(getenv("HOME"));
+  fs::path helium_home = user_home / ".helium.d";
+  if (!fs::exists(helium_home)) {
+    fs::create_directory(helium_home);
+  }
+  fs::path systag = helium_home / "systype.tags";
+  if (!fs::exists(systag)) {
+    if (HeliumOptions::Instance()->Has("setup")) {
+      // run ctags to create tags
+      std::cout << "Creating ~/systype.tags" << "\n";
+      std::string cmd = "ctags -f " + systag.string() +
+        " --exclude=boost"
+        " --exclude=llvm"
+        " --exclude=c++"
+        " --exclude=linux"
+        " --exclude=xcb"
+        " --exclude=X11"
+        " --exclude=openssl"
+        " --exclude=xorg"
+        " -R /usr/include/ /usr/local/include";
+      std::cout << "Running " << cmd << "\n";
+      utils::exec(cmd.c_str());
+      std::cout << "Done" << "\n";
+      exit(0);
+    } else {
+      std::cout << "No systype.tags found. Run helium --setup first." << "\n";
+      exit(1);
+    }
+  }
+  SystemResolver::Instance()->Load(systag.string());
   
-  // target folder
+  // Reading target folder. This is the parameter
   std::string folder = HeliumOptions::Instance()->GetString("folder");
   folder = utils::escape_tide(folder);
-  if (!fs::exists(folder)) {
-    std::cerr << "EE: target folder " << folder << " does not exist." << "\n";
+  // the folder argument contains:
+  // 1. cpped
+  // 2. src
+  // 3. snippets
+  fs::path target(folder);
+  // fs::path cpped = target / "cpped";
+  // fs::path src = target / "src";
+  // fs::path snippets = target / "snippets";
+  if (!fs::exists(target)) {
+    std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);
   }
-  std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
-  helium_home = utils::escape_tide(helium_home);
-  SystemResolver::Instance()->Load(helium_home + "/systype.tags");
 
+
+  // change relative to absolute
+  std::string cache_dir_name = fs::canonical(target).string();
+  std::replace(cache_dir_name.begin(), cache_dir_name.end(), '/', '_');
+  fs::path cache_dir(helium_home / "cache" / cache_dir_name);
+
+  if (HeliumOptions::Instance()->Has("extract")) {
+    if (fs::exists(cache_dir)) {
+      std::cout << "Cache exists: " << cache_dir.string() << "\n";
+      std::cout << "Replace? [y/N] " << std::flush;
+      char c = getchar();
+      if (c != 'y' && c != 'Y') {
+        std::cout << "Cancelled." << "\n";
+        exit(1);
+      }
+    }
+    fs::remove_all(cache_dir);
+    fs::create_directories(cache_dir);
+    fs::create_directories(cache_dir / "cpp");
+    fs::create_directories(cache_dir / "src");
+    fs::create_directories(cache_dir / "snippet");
+    // preprocess and put everything in "cpp" folder
+    std::cout << "Preprocessing .." << "\n";
+
+    // put source files into "src" folder
+    // std::string cmd = "find "
+    //   + target.string()
+    //   + " -name \"*.[c|h]\" -exec cp \"{}\" "
+    //   + cache_dir.string() + "src \\;";
+    // utils::new_exec(cmd.c_str());
+
+    fs::recursive_directory_iterator it(target), eod;
+    BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+      if (is_regular_file(p)) {
+        if (p.extension() == ".c" || p.extension() == ".h") {
+          // std::cout << "Copying from " << p.string() << " to " << "..." << "\n";
+          fs::copy_file(p, cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
+        }
+      }
+    }
+    
+    // process and put "cpp" folder
+    for (fs::directory_entry &e : fs::directory_iterator(cache_dir / "src")) {
+      fs::path p = e.path();
+      fs::path filename = p.filename();
+      if (p.extension() == ".c") {
+        std::string cmd = "clang -E " + p.string()
+          + " >> " + (cache_dir / "cpp" / p.filename()).string();
+        utils::new_exec(cmd.c_str());
+      }
+    }
+    
+    // create tag file
+    fs::path tagfile = cache_dir / "tags";
+    std::cout << "Creating tagfile .." << "\n";
+    create_tagfile((cache_dir / "cpp").string(), (cache_dir / "tags").string());
+    std::cout << "Creating Snippet DB .." << "\n";
+    // this will call srcml
+    SnippetDB::Instance()->Create(tagfile.string(), (cache_dir / "snippet").string());
+    exit(0);
+  }
+
+
+  if (!fs::exists(cache_dir)) {
+    std::cerr << "The benchmark is not processed. Consider run helium --extract /path/to/benchmark" << "\n";
+    exit(1);
+  }
+
+  // load_tagfile((cache_dir / "cpp").string());
+  ctags_load((cache_dir / "tags").string());
+  load_snippet_db((cache_dir / "snippet").string());
+  load_header_resolver((cache_dir / "src").string());
+
+  // check if the snippet database has been generated
+  
+
+  // load_tagfile(cpped.string());
+  // load_snippet_db(snippets.string());
+  // load_header_resolver(src.string());
+  // load_slice();
 
   
   // check_light_utilities();
@@ -290,16 +406,6 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
   // create_utilities(folder);
-
-
-  // the folder argument contains:
-  // 1. cpped
-  // 2. src
-  // 3. snippets
-  fs::path target(folder);
-  fs::path cpped = target / "cpped";
-  fs::path src = target / "src";
-  fs::path snippets = target / "snippets";
 
 
   if (HeliumOptions::Instance()->Has("show-ast")) {
@@ -335,24 +441,24 @@ int main(int argc, char* argv[]) {
 
   
 
-  if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
-    std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
-    std::cout << cpped << "\n";
-    std::cout << src << "\n";
-    std::cout << snippets << "\n";
-    exit(1);
-  }
+  // if (!fs::exists(cpped) || !fs::exists(src) || !fs::exists(snippets)) {
+  //   std::cerr << "EE: cpped src snippets folders must exist in " << folder << "\n";
+  //   std::cout << cpped << "\n";
+  //   std::cout << src << "\n";
+  //   std::cout << snippets << "\n";
+  //   exit(1);
+  // }
 
   if (HeliumOptions::Instance()->GetBool("print-benchmark-name")) {
     std::cout << "Benchmark Name: " << target.filename().string() << "\n";
   }
 
-  load_tagfile(cpped.string());
-  load_snippet_db(snippets.string());
-  load_header_resolver(src.string());
+  // load_tagfile(cpped.string());
+  // load_snippet_db(snippets.string());
+  // load_header_resolver(src.string());
   // load_slice();
 
-  print_utilities(cpped.string());
+  // print_utilities(cpped.string());
 
   // FailurePoint *fp = load_failure_point();
   // if (!fp) {
