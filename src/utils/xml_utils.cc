@@ -50,7 +50,8 @@ namespace utils {
   pugi::xml_document* file2xml(const std::string &filename) {
     if (xml_docs.count(filename) == 1) return xml_docs[filename];
     std::string cmd;
-    cmd = "srcml --position -lC " + filename;
+    // cmd = "srcml --position -lC " + filename;
+    cmd = "helium-srcml --position " + filename;
     // cmd = "srcml " + filename;
     std::string xml = exec(cmd.c_str(), NULL);
     pugi::xml_document *doc = new pugi::xml_document();
@@ -68,7 +69,8 @@ namespace utils {
    */
   void file2xml(const std::string &filename, pugi::xml_document& doc) {
     std::string cmd;
-    cmd = "srcml --position -lC " + filename;
+    // cmd = "srcml --position -lC " + filename;
+    cmd = "helium-srcml --position " + filename;
     // cmd = "srcml " + filename;
     std::string xml = exec(cmd.c_str(), NULL);
     doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
@@ -81,7 +83,8 @@ namespace utils {
    * @param[out] doc
    */
   void string2xml(const std::string &code, pugi::xml_document& doc) {
-    std::string cmd = "srcml --position -lC";
+    // std::string cmd = "srcml --position -lC";
+    std::string cmd = "helium-srcml --position -";
     // std::string cmd = "srcml -lC";
     std::string xml = exec_in(cmd.c_str(), code.c_str(), NULL);
     doc.load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);

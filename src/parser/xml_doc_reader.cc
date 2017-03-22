@@ -16,7 +16,9 @@ XMLDoc *XMLDocReader::ReadFile(std::string filename) {
   filename = fs::canonical(fs::path(filename)).string();
   if (m_docs.count(filename) == 1) return m_docs[filename];
   std::string cmd;
-  cmd = "srcml --position -lC " + filename;
+  // cmd = "srcml --position -lC " + filename;
+  cmd = "helium-srcml --position " + filename;
+  
   // cmd = "srcml " + filename;
   std::string xml = utils::exec(cmd.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
@@ -32,7 +34,9 @@ XMLDoc *XMLDocReader::ReadFile(std::string filename) {
  */
 XMLDoc* XMLDocReader::ReadString(const std::string &code) {
   std::cerr << "warning: [XMLDocReader::ReadString] create from string" << "\n";
-  std::string cmd = "srcml --position -lC";
+  std::string cmd;
+  // cmd = "srcml --position -lC";
+  cmd = "helium-srcml --position -";
   // std::string cmd = "srcml -lC";
   std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
@@ -56,7 +60,7 @@ XMLDoc* XMLDocReader::ReadSnippet(int id) {
 
 // I should try my best to fill the filename here
 XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
-  std::string cmd = "srcml --position -lC";
+  std::string cmd = "helium-srcml --position - ";
   if (!filename.empty()) {
     cmd += " -f " + filename;
   }
@@ -69,7 +73,7 @@ XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string f
 
 XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
   std::string cmd;
-  cmd = "srcml --position -lC " + filename;
+  cmd = "helium-srcml --position " + filename;
   std::string xml = utils::exec(cmd.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
   doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
