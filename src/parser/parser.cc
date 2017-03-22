@@ -68,7 +68,8 @@ Stmt *Parser::ParseStmt(XMLNode node) {
     // e.g. it might directly be a if statement
     // Stmt *stmt = ParseStmt(node);
     // FIXME no such tag in srmcl? will cause recursion
-    error();
+    // error();
+    assert(0);
   } else if (NodeName == "if") {
     ret = ParseIfStmt(node);
   } else if (NodeName == "while") {
@@ -83,16 +84,24 @@ Stmt *Parser::ParseStmt(XMLNode node) {
   return ret;
 }
 
+
 IfStmt *Parser::ParseIfStmt(XMLNode node) {
   match(node, "if");
+  XMLNode cond = if_get_condition_expr(node);
+  Expr *condexpr = ParseExpr(cond);
   XMLNode then_node = if_get_then(node);
   Stmt *thenstmt = nullptr;
   Stmt *elsestmt = nullptr;
   if (then_node) {
     if (std::string(then_node.name()) == "block") {
-      thenstmt = new CompoundStmt(then_node);
+      // CompoundStmt *compstmt = new CompoundStmt();
+      // for (XMLNode node : then_node.children()) {
+      //   compstmt->Add(ParseStmt(node));
+      // }
+      // thenstmt = compstmt;
+      thenstmt = ParseBlockAsStmt(then_node);
     } else {
-      themstmt = ParseStmt(thenstmt);
+      thenstmt = ParseStmt(then_node);
     }
   } else {
     std::cerr << "Error: no else for if." << "\n";
@@ -100,9 +109,10 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   }
   XMLNode elseifnode = node.child("elseif");
   if (elseifnode) {
-    Stmt *else = ParseElseIfAsIfStmt(elseifnode.child("if"));
+    elsestmt = ParseElseIfAsIfStmt(elseifnode.child("if"));
   }
-  Stmt *else = new CompoundStmt(if_get_else(node));
+  elsestmt = ParseBlockAsStmt(if_get_else(node));
+  return new IfStmt(condexpr, thenstmt, elsestmt);
 }
 
 /**
@@ -130,7 +140,8 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
     } else if (std::string(next.name()) == "else") {
       elsestmt = ParseBlockAsStmt(next.child("block"));
     } else {
-      error();
+      // error();
+      assert(0);
     }
   }
   ifstmt->setElse(elsestmt);
@@ -141,7 +152,7 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
 SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
   match(node, "switch");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
-  SwitchStmt *ret = new SwitchStmt(cond);
+  SwitchStmt *ret = new SwitchStmt(cond, NULL);
   for(XMLNode c : node.child("block").children("case")) {
     CaseStmt *casestmt = ParseCaseStmt(c);
     ret->AddCase(casestmt);
@@ -150,6 +161,7 @@ SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
   if (defnode) {
     ret->AddCase(ParseDefaultStmt(defnode));
   }
+  return ret;
 }
 
 /**
@@ -163,7 +175,7 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   Expr *cond = ParseExpr(node.child("expr"));
   CaseStmt *ret = new CaseStmt(cond);
   XMLNode n = node;
-  while (n = next_element_sibling(n)) {
+  while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
         std::string(n.name()) == "default") {
       break;
@@ -173,9 +185,9 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   return ret;
 }
 DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
-  DefaultStmt *ret = new DefaultStmt(cond);
+  DefaultStmt *ret = new DefaultStmt();
   XMLNode n = node;
-  while (n = next_element_sibling(n)) {
+  while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
         std::string(n.name()) == "default") {
       break;
@@ -187,7 +199,7 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
 
 WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
   match(node, "while");
-  Expr *cond = ParseExpr(while_get_condition(node));
+  Expr *cond = ParseExpr(while_get_condition_expr(node));
   Stmt *body = ParseBlockAsStmt(while_get_block(node));
   return new WhileStmt(cond, body);
 }
@@ -199,12 +211,14 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
  */
 Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
   XMLNode block = node.child("block");
+  Stmt *ret = nullptr;
   if (std::string(block.attribute("type").value()) == "pseudo") {
-    XMLNode *child = block.first_child();
-    body = ParseStmt(child);
+    XMLNode child = block.first_child();
+    ret = ParseStmt(child);
   } else {
-    body = ParseCompoundStmt(block);
+    ret = ParseCompoundStmt(block);
   }
+  return ret;
 }
 
 ForStmt *Parser::ParseForStmt(XMLNode node) {
@@ -220,10 +234,11 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
   match(node, "do");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
   Stmt *block = ParseBlockAsStmt(node.child("block"));
+  return new DoStmt(cond, block);
 }
 
 Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
   match(node, "expr");
-  return new Expr(get_text_content(node));
+  return new Expr(get_text(node));
 }

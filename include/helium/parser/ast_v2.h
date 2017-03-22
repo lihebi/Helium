@@ -40,7 +40,7 @@ namespace v2 {
     ~Decl() {}
   };
 
-  class TranslationUnitDecl : Decl {
+  class TranslationUnitDecl : public Decl {
   public:
     TranslationUnitDecl(std::vector<DeclStmt*> decls,
                         std::vector<FunctionDecl*> funcs) {}
@@ -61,7 +61,7 @@ namespace v2 {
   /**
    * Adapter class for mixing declarations with statements
    */
-  class DeclStmt : Stmt {
+  class DeclStmt : public Stmt {
   public:
     DeclStmt(std::string text) {}
     ~DeclStmt() {}
@@ -70,7 +70,7 @@ namespace v2 {
   /**
    * There's actually no ExprStmt in C grammar, but srcml made it
    */
-  class ExprStmt : Stmt {
+  class ExprStmt : public Stmt {
   public:
     ExprStmt() {}
     ~ExprStmt() {}
@@ -80,6 +80,11 @@ namespace v2 {
   public:
     CompoundStmt() {}
     ~CompoundStmt() {}
+    void Add(Stmt *stmt) {
+      stmts.push_back(stmt);
+    }
+  private:
+    std::vector<Stmt*> stmts;
   };
 
   class FunctionDecl : public Decl {
@@ -90,25 +95,50 @@ namespace v2 {
 
   class ForStmt : public Stmt {
   public:
-    ForStmt(Stmt *Init, Expr *Cond, Expr *Inc) {}
+    ForStmt(Expr *Init, Expr *Cond, Expr *Inc, Stmt *body) {}
     ~ForStmt() {}
   };
 
   class WhileStmt : public Stmt {
-    WhileStmt(Stmt *body, Expr *cond) {}
+  public:
+    WhileStmt(Expr *cond, Stmt *body) {}
     ~WhileStmt() {}
   };
 
   class DoStmt : public Stmt {
   public:
-    DoStmt(Stmt *body, Expr *cond) {}
+    DoStmt(Expr *cond, Stmt *body) {}
     ~DoStmt() {}
+  };
+
+  class BreakStmt : public Stmt {
+  public:
+    BreakStmt() {}
+    ~BreakStmt() {}
+  };
+  class ContinueStmt : public Stmt {
+  public:
+    ContinueStmt() {}
+    ~ContinueStmt() {}
+  };
+  class ReturnStmt : public Stmt {
+  public:
+    ReturnStmt() {}
+    ~ReturnStmt() {}
   };
 
   class IfStmt : public Stmt {
   public:
-    IfStmt(Expr *cond, Stmt *body, Stmt *elsestmt) {}
+    IfStmt(Expr *cond, Stmt *thenstmt, Stmt *elsestmt)
+      : cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {}
     ~IfStmt() {}
+    void setElse(Stmt *stmt) {
+      elsestmt = stmt;
+    }
+  private:
+    Expr *cond;
+    Stmt *thenstmt;
+    Stmt *elsestmt;
   };
 
   class SwitchStmt : public Stmt {
@@ -125,6 +155,7 @@ namespace v2 {
   public:
     SwitchCase() {}
     ~SwitchCase() {}
+    void Add(Stmt *stmt) {}
   };
 
   /**
@@ -142,9 +173,8 @@ namespace v2 {
    */
   class CaseStmt : public SwitchCase {
   public:
-    CaseStmt() {}
+    CaseStmt(Expr *cond) {}
     ~CaseStmt() {}
-    void Add(Stmt *stmt) {}
   };
 
   class DefaultStmt : public SwitchCase {
@@ -159,7 +189,7 @@ namespace v2 {
 
   class Expr {
   public:
-    Expr() {}
+    Expr(std::string text) {}
     ~Expr() {}
   };
 
