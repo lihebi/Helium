@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 # thus do not print the color
 # so force it to use color
 Add_compile_options(-fcolor-diagnostics)
+Add_compile_options(-g)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
