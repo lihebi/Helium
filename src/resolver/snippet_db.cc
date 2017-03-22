@@ -292,6 +292,21 @@ void SnippetDB::createTable() {
 
 
 /**
+ * getting total number of tag entries
+ */
+int get_num_total_entry(tagFile *tag) {
+  tagEntry *entry = (tagEntry*)malloc(sizeof(tagEntry));
+  tagResult res = tagsFirst(tag, entry);
+  int ret=0;
+  while (res == TagSuccess) {
+    res = tagsNext(tag, entry);
+    ret++;
+  }
+  return ret;
+}
+
+
+/**
  * According to, and only to, the tagfile, create a database of snippets.
  * The output will be:
  * output_folder/index.db
@@ -324,16 +339,28 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
   /**
    * Iterating tag file
    */
+
   std::cout << "iterating .."  << "\n";
+  // getting total number of tag entries
+  int num = get_num_total_entry(tag);
+  std::cout << "Total number of entry: " << num << "\n";
   tagEntry *entry = (tagEntry*)malloc(sizeof(tagEntry));
   tagResult res = tagsFirst(tag, entry);
+
   int snippet_id = 0;
   std::vector<Snippet*> all_snippets;
+  int count=0;
   while (res == TagSuccess) {
+    count++;
     /**
      * Inserting database
      */
-    std::cout << '.' << std::flush;
+    // std::cout << '.' << std::flush;
+    std::cout << "\33[2K" << "\r" << count  << " / " << num
+              // << " : " << entry->name << " "
+              // << entry->file << ":" << entry->address.lineNumber
+              << std::flush;
+
     CtagsEntry ctags_entry(entry);
     // std::cout << "creating for snippet: " << ctags_entry.GetName();
     Snippet *snippet = new Snippet(ctags_entry);

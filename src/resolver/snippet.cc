@@ -8,6 +8,8 @@
 #include "helium/parser/xmlnode_helper.h"
 #include "helium/resolver/system_resolver.h"
 
+#include "helium/parser/xml_doc_reader.h"
+
 
 using namespace utils;
 
@@ -28,13 +30,13 @@ CtagsEntry::CtagsEntry(const tagEntry* const entry) {
     m_type = *(entry->kind);
   } else {
     helium_print_warning("Warning: CtagsEntry::CtagsEntry: entry->kind == NULL");
-    std::cout << "warning:"  << "\n";
-    std::cout << m_name  << "\n";
-    std::cout << m_file  << "\n";
-    std::cout << m_line  << "\n";
-    std::cout << m_pattern  << "\n";
+    // std::cout << "warning:"  << "\n";
+    // std::cout << m_name  << "\n";
+    // std::cout << m_file  << "\n";
+    // std::cout << m_line  << "\n";
+    // std::cout << m_pattern  << "\n";
     m_type = 'x';
-    assert(false);
+    // assert(false);
   }
   if (m_file.find("/") != std::string::npos) {
     m_simple_filename = m_file.substr(m_file.rfind("/")+1);
@@ -212,7 +214,7 @@ Snippet::Snippet(const CtagsEntry& entry) : m_entry(entry) {
     if (m_code.find("typedef") == 0) {
       m_main_kind = SK_Typedef;
       m_main_name = query_code_first(m_code, "//typedef/name");
-      // m_sig.emplace(m_main_name, SK_Typedef);
+      // // m_sig.emplace(m_main_name, SK_Typedef);
       m_sig[m_main_name].insert(SK_Typedef);
     }
     break;
@@ -366,6 +368,7 @@ Snippet::Snippet(const CtagsEntry& entry) : m_entry(entry) {
     m_code = ""; // this indicate the snippet is invalid.
     return;
   }
+
   // if (m_sig.empty()) {
   //   // std::cout << "WARNING: No Sig Found!"  << "\n";
   //   // FIXME should I add this for everyone?
