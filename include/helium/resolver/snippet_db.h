@@ -75,6 +75,7 @@ public:
   std::vector<std::pair<std::string, std::string> > GetHeaderDep();
 
   std::set<int> QueryCallers(int id);
+  int numOfSnippet() const {return m_snippet_cache.size();}
 
 private:
   std::vector<int> queryInt(const char *query);

@@ -266,6 +266,29 @@ int main(int argc, char* argv[]) {
   if (!fs::exists(helium_home)) {
     fs::create_directory(helium_home);
   }
+  fs::path cache_dir = helium_home / "cache";
+
+  if (HeliumOptions::Instance()->Has("ls-cache")) {
+    for (fs::directory_entry &e : fs::directory_iterator(cache_dir)) {
+      fs::path p = e.path();
+      if (fs::is_directory(p)) {
+        std::cout << p.filename().string() << "\n";
+      }
+    }
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("rm-cache")) {
+    std::string toremove = HeliumOptions::Instance()->GetString("target");
+    if (fs::exists(cache_dir / toremove)) {
+      fs::remove_all(cache_dir / toremove);
+      exit(0);
+    } else {
+      std::cerr << "No such cache: " << toremove << "\n";
+      exit(1);
+    }
+  }
+  
+
   fs::path systag = helium_home / "systype.tags";
   if (!fs::exists(systag)) {
     if (HeliumOptions::Instance()->Has("setup")) {
@@ -293,13 +316,13 @@ int main(int argc, char* argv[]) {
   SystemResolver::Instance()->Load(systag.string());
   
   // Reading target folder. This is the parameter
-  std::string folder = HeliumOptions::Instance()->GetString("folder");
-  folder = utils::escape_tide(folder);
+  std::string target_str = HeliumOptions::Instance()->GetString("target");
+  target_str = utils::escape_tide(target_str);
   // the folder argument contains:
   // 1. cpped
   // 2. src
   // 3. snippets
-  fs::path target(folder);
+  fs::path target(target_str);
   // fs::path cpped = target / "cpped";
   // fs::path src = target / "src";
   // fs::path snippets = target / "snippets";
@@ -310,13 +333,13 @@ int main(int argc, char* argv[]) {
 
 
   // change relative to absolute
-  std::string cache_dir_name = fs::canonical(target).string();
-  std::replace(cache_dir_name.begin(), cache_dir_name.end(), '/', '_');
-  fs::path cache_dir(helium_home / "cache" / cache_dir_name);
+  std::string target_cache_dir_name = fs::canonical(target).string();
+  std::replace(target_cache_dir_name.begin(), target_cache_dir_name.end(), '/', '_');
+  fs::path target_cache_dir(helium_home / "cache" / target_cache_dir_name);
 
   if (HeliumOptions::Instance()->Has("extract")) {
-    if (fs::exists(cache_dir)) {
-      std::cout << "Cache exists: " << cache_dir.string() << "\n";
+    if (fs::exists(target_cache_dir)) {
+      std::cout << "Cache exists: " << target_cache_dir.string() << "\n";
       std::cout << "Replace? [y/N] " << std::flush;
       char c = getchar();
       if (c != 'y' && c != 'Y') {
@@ -324,11 +347,11 @@ int main(int argc, char* argv[]) {
         exit(1);
       }
     }
-    fs::remove_all(cache_dir);
-    fs::create_directories(cache_dir);
-    fs::create_directories(cache_dir / "cpp");
-    fs::create_directories(cache_dir / "src");
-    fs::create_directories(cache_dir / "snippet");
+    fs::remove_all(target_cache_dir);
+    fs::create_directories(target_cache_dir);
+    fs::create_directories(target_cache_dir / "cpp");
+    fs::create_directories(target_cache_dir / "src");
+    fs::create_directories(target_cache_dir / "snippet");
     // preprocess and put everything in "cpp" folder
     std::cout << "Preprocessing .." << "\n";
 
@@ -336,7 +359,7 @@ int main(int argc, char* argv[]) {
     // std::string cmd = "find "
     //   + target.string()
     //   + " -name \"*.[c|h]\" -exec cp \"{}\" "
-    //   + cache_dir.string() + "src \\;";
+    //   + target_cache_dir.string() + "src \\;";
     // utils::new_exec(cmd.c_str());
 
     fs::recursive_directory_iterator it(target), eod;
@@ -344,42 +367,59 @@ int main(int argc, char* argv[]) {
       if (is_regular_file(p)) {
         if (p.extension() == ".c" || p.extension() == ".h") {
           // std::cout << "Copying from " << p.string() << " to " << "..." << "\n";
-          fs::copy_file(p, cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
+          fs::copy_file(p, target_cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
         }
       }
     }
     
     // process and put "cpp" folder
-    for (fs::directory_entry &e : fs::directory_iterator(cache_dir / "src")) {
+    for (fs::directory_entry &e : fs::directory_iterator(target_cache_dir / "src")) {
       fs::path p = e.path();
       fs::path filename = p.filename();
       if (p.extension() == ".c") {
         std::string cmd = "clang -E " + p.string()
-          + " >> " + (cache_dir / "cpp" / p.filename()).string();
+          + " >> " + (target_cache_dir / "cpp" / p.filename()).string();
         utils::new_exec(cmd.c_str());
       }
     }
     
     // create tag file
-    fs::path tagfile = cache_dir / "tags";
+    fs::path tagfile = target_cache_dir / "tags";
     std::cout << "Creating tagfile .." << "\n";
-    create_tagfile((cache_dir / "cpp").string(), (cache_dir / "tags").string());
+    create_tagfile((target_cache_dir / "cpp").string(), (target_cache_dir / "tags").string());
     std::cout << "Creating Snippet DB .." << "\n";
     // this will call srcml
-    SnippetDB::Instance()->Create(tagfile.string(), (cache_dir / "snippet").string());
+    SnippetDB::Instance()->Create(tagfile.string(), (target_cache_dir / "snippet").string());
     exit(0);
   }
 
 
-  if (!fs::exists(cache_dir)) {
+  if (!fs::exists(target_cache_dir)) {
     std::cerr << "The benchmark is not processed. Consider run helium --extract /path/to/benchmark" << "\n";
     exit(1);
   }
 
-  // load_tagfile((cache_dir / "cpp").string());
-  ctags_load((cache_dir / "tags").string());
-  load_snippet_db((cache_dir / "snippet").string());
-  load_header_resolver((cache_dir / "src").string());
+  // load_tagfile((target_cache_dir / "cpp").string());
+  ctags_load((target_cache_dir / "tags").string());
+  load_snippet_db((target_cache_dir / "snippet").string());
+  load_header_resolver((target_cache_dir / "src").string());
+
+  if (HeliumOptions::Instance()->Has("info")) {
+    // print out information about the benchmark
+    // - which cache file
+    // - # of func
+    // - # of tok
+    // - LOC
+    // - # of snippets
+    std::cout << "Information about benchmark " << target.string() << "\n";
+    std::cout << "Using cache: " << target_cache_dir.string() << "\n";
+    std::cout << "# of files: " << " TODO 8/32" << "\n";
+    std::cout << "# of snippets: TODO " << SnippetDB::Instance()->numOfSnippet() << "\n";
+    std::cout << "# of tokens: " << "TODO 330" << "\n";
+    std::cout << "LOC: " << "TODO 8k" << "\n";
+    exit(0);
+  }
+
 
   // check if the snippet database has been generated
   
@@ -393,14 +433,14 @@ int main(int argc, char* argv[]) {
   // check_light_utilities();
   // check_target_folder(cpped.string());
   if (HeliumOptions::Instance()->Has("create-tagfile")) {
-    create_tagfile(folder, "tags");
+    create_tagfile(target_str, "tags");
     exit(0);
   }
 
   if (HeliumOptions::Instance()->Has("create-snippet-db")) {
     std::string tmpdir = utils::create_tmp_dir();
     std::string tagfile = tmpdir+"/tags";
-    create_tagfile(folder, tmpdir+"/tags");
+    create_tagfile(target_str, tmpdir+"/tags");
     // std::cout << "created tagfile: " << tagfile  << "\n";
     SnippetDB::Instance()->Create(tagfile, "snippets");
     exit(0);
@@ -409,11 +449,11 @@ int main(int argc, char* argv[]) {
 
 
   if (HeliumOptions::Instance()->Has("show-ast")) {
-    if (!utils::file_exists(folder)) {
+    if (!utils::file_exists(target_str)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
     }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(target_str);
     XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
     for (XMLNode func : func_nodes) {
       AST ast(func);
@@ -423,11 +463,11 @@ int main(int argc, char* argv[]) {
   }
 
   if (HeliumOptions::Instance()->Has("show-cfg")) {
-    if (!utils::file_exists(folder)) {
+    if (!utils::file_exists(target_str)) {
       std::cerr << "only works for a single file.\n";
       exit(1);
     }
-    XMLDoc *doc = XMLDocReader::CreateDocFromFile(folder);
+    XMLDoc *doc = XMLDocReader::CreateDocFromFile(target_str);
     XMLNodeList func_nodes = find_nodes(*doc, NK_Function);
     for (XMLNode func : func_nodes) {
       AST ast(func);

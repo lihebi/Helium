@@ -23,8 +23,6 @@ HeliumOptions::HeliumOptions() {
   general_options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("verbose,v", "verbose mode")
-    ("setup", "setup")
-    ("extract", "extract")
 
     ("config,f", po::value<std::string>(), "config file")
 
@@ -38,6 +36,16 @@ HeliumOptions::HeliumOptions() {
     ("slice", po::value<std::string>(),
      "slice to use, as the code selection. THIS WILL SET THE CODE SELECTION METHOD TO SLICE")
     ("slice-file", po::value<std::string>(), "the slice file, this will be used as a mask on the AST")
+    ;
+
+
+  po::options_description primary_options("Primary");
+  primary_options.add_options()
+    ("setup", "setup")
+    ("extract", "extract")
+    ("ls-cache", "show cached projects")
+    ("rm-cache", "remove cache")
+    ("info", "information about the benchmark")
     ;
 
   po::options_description util_options("Utils");
@@ -168,10 +176,12 @@ HeliumOptions::HeliumOptions() {
   
   po::options_description hidden("Hidden options");
   hidden.add_options()
-    ("folder", "project folder")
+    ("target", "target benchmark folder or file")
     ;
+  
   m_cmdline_options
     .add(general_options)
+    .add(primary_options)
     .add(util_options)
     .add(config_options)
     .add(print_options)
@@ -184,8 +194,9 @@ HeliumOptions::HeliumOptions() {
   // this is the message that will show for help messages
   m_help_options
     .add(general_options)
-    .add(util_options)
-    .add(config_options)
+    .add(primary_options)
+    // .add(util_options)
+    // .add(config_options)
     ;
 
   m_config_options
@@ -194,7 +205,7 @@ HeliumOptions::HeliumOptions() {
     .add(debug_options)
     ;
   // this "folder" option include only one item
-  m_positional.add("folder", 1);
+  m_positional.add("target", 1);
 }
 
 void HeliumOptions::ParseCommandLine(int argc, char* argv[])

@@ -1,0 +1,92 @@
+#+TITLE: Helium  Command Line  Interface
+
+
+
+*  Overveiw
+Some Guideline
+- /path/to/bench represents a benchmark folder or a single source file
+
+The Interface:
+- [X] helium :: output help message
+  - TODO better output message!
+- [X] helium --setup :: set up everything
+- [X] helium --extract /path/to/bench  :: create cache
+- [X] helium --show-cache :: show cached projects
+- [ ] helium --info /path/to/bench :: output the general information about
+     benchmark. Match the cache by the longest matching.
+  - which cache file
+  - # of func
+  - # of tok
+  - LOC
+  - # of snippets
+- [ ] helium --tokenize /path/to/a.c :: output
+  - token.txt
+  - distribution.txt
+- [ ] helium-generate-random-sel token.txt distribution.txt :: generate sel.txt
+- [ ] helium --selection sel.txt /path/to/a.c :: with the selection, output the generated program
+  - output to ~/.helium.d/generate/
+
+
+#+BEGIN_EXAMPLE
+~/.helium.d
+|-- cache
+    |-- _home_hebi_benchmark_projblue
+        |-- snippet
+            |-- index.db
+            |-- code
+                |-- 1.txt
+                |-- 2.txt
+        |-- cpp
+            |-- a.c
+            |-- b.c
+        |-- src
+        |-- tags
+    |-- _home_hebi_benchmark_projred
+|-- generate
+    |-- UUID-DSFJ837-FJ839J-JI783AC
+        |-- sel.txt
+        |-- 
+#+END_EXAMPLE
+
+* Token Selection
+The token should be represented as range of source code.  For each
+cache, there should be one token file. Every token should have a
+unique ID.
+
+| ID | start_loc | end_loc | kind |
+|----+-----------+---------+------|
+|  0 | 3,8       | 3,10    | ID   |
+|  1 |           |         | Expr |
+|  2 |           |         | Decl |
+
+Distribution file
+
+| ID | kind      | Name | start_loc | end_loc |
+|----+-----------+------+-----------+---------|
+|  0 | procedure | foo  | 3,1       | 8,2     |
+|  1 | if        | NA   | 5,2       | 7,0     |
+|  2 | switch    |      |           |         |
+|  3 | loop      |      |           |         |
+
+The selection file should be a list of IDs.
+We need  to control
+1. number of tokens
+2. distribution of tokens: this using the token ID and the distribution file
+
+* Cache
+process the file or project, and create snippet database for it. The
+result will be in =~/.helium.d/cache/XXX= where =XXX= is named by the
+absolute path of proj or file with slashes replaced by
+underline. E.g. =/path/to/file= would become =_path_to_file=. Inside
+this folder, there will be a =index.db= and =code/= folder containing
+=xx.txt=
+
+The tree looks like this:
+
+
+When running helium, first check if this folder exist. If yes,
+continue. Otherwise prompt for creating it. When creating this, first
+check if it exists, if yes, prompt for replacing or not =y/N=.
+
+* Future
+- helium should utilize compilation database to have precise compitaion support
