@@ -3,7 +3,12 @@
 
 #include <string>
 #include <vector>
+#include <set>
+#include <map>
 
+// #include "helium/parser/benchmark_manager.h"
+
+class BenchmarkManager;
 
 namespace v2 {
 
@@ -13,6 +18,7 @@ namespace v2 {
   class Stmt;
   class Decl;
   class DeclStmt;
+  class ASTNodeBase;
   
   /**
    * You can get TranslationUnitDecl from this
@@ -23,20 +29,63 @@ namespace v2 {
   public:
     ASTContext(std::string filename) {}
     ~ASTContext() {}
+    void setTranslationUnitDecl(TranslationUnitDecl *unit) {
+      Unit = unit;
+    }
     TranslationUnitDecl *getTranslationUnitDecl() {return Unit;}
+    int getLevel(ASTNodeBase *node) {return Levels[node];}
+    BenchmarkManager *getBenchmarkManager() {return Manager;}
+    std::vector<ASTNodeBase*> getNodes() {return Nodes;}
+    /**
+     * compute and fill in the Levels variable
+     */
+    void computeLevels();
+    /**
+     * traversal and fill the Nodes with pre-order traversal
+     */
+    void populateNodes();
   private:
     TranslationUnitDecl *Unit = nullptr;
+    std::vector<ASTNodeBase*> Nodes;
+    std::map<ASTNodeBase*, int> Levels;
+    BenchmarkManager *Manager;
+    // int level=-1;
+    // root will have level 0
+    // level will increase
   };
 
+
+  // I need to travese the AST
+  // - so that I can keep the first-order of all nodes into the ASTContext
+  // - and also the levels information
+  // Or do i need to keep everything in ASTContext?
+  // I can just write a visitor to dump nodes
+
+  class ASTNodeBase {
+  public:
+    ASTNodeBase(ASTContext *ctx) : Ctx(ctx) {}
+    ~ASTNodeBase() {}
+    virtual std::string label() {return "";}
+  protected:
+    ASTContext *Ctx = nullptr;
+  };
+
+  class TextNode : public ASTNodeBase {
+  public:
+    TextNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), text(text) {}
+    ~TextNode() {}
+  private:
+    std::string text;
+  };
 
   /**
    * Decls
    */
 
   
-  class Decl {
+  class Decl : public ASTNodeBase {
   public:
-    Decl() {}
+    Decl(ASTContext *ctx) : ASTNodeBase(ctx) {}
     ~Decl() {}
     virtual void dump() {}
   };
@@ -45,7 +94,7 @@ namespace v2 {
   public:
     // TranslationUnitDecl(std::vector<DeclStmt*> decls,
     //                     std::vector<FunctionDecl*> funcs) {}
-    TranslationUnitDecl(std::vector<Decl*> decls) : decls(decls) {}
+    TranslationUnitDecl(ASTContext *ctx, std::vector<Decl*> decls) : Decl(ctx), decls(decls) {}
     ~TranslationUnitDecl() {}
     virtual void dump();
   private:
@@ -57,9 +106,9 @@ namespace v2 {
    * Stmts
    */
 
-  class Stmt {
+  class Stmt : public ASTNodeBase {
   public:
-    Stmt() {}
+    Stmt(ASTContext *ctx) : ASTNodeBase(ctx) {}
     ~Stmt() {}
     virtual void dump() {}
   };
@@ -69,7 +118,7 @@ namespace v2 {
    */
   class DeclStmt : public Stmt, public Decl {
   public:
-    DeclStmt(std::string text) {}
+    DeclStmt(ASTContext *ctx, std::string text) : Stmt(ctx), Decl(ctx) {}
     ~DeclStmt() {}
   };
 
@@ -78,13 +127,13 @@ namespace v2 {
    */
   class ExprStmt : public Stmt {
   public:
-    ExprStmt() {}
+    ExprStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ExprStmt() {}
   };
 
   class CompoundStmt : public Stmt {
   public:
-    CompoundStmt() {}
+    CompoundStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~CompoundStmt() {}
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
@@ -95,7 +144,7 @@ namespace v2 {
 
   class FunctionDecl : public Decl {
   public:
-    FunctionDecl(std::string name, Stmt *body) : name(name), body(body) {}
+    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body) : Decl(ctx), name(name), body(body) {}
     ~FunctionDecl() {}
     virtual void dump();
   private:
@@ -105,42 +154,42 @@ namespace v2 {
 
   class ForStmt : public Stmt {
   public:
-    ForStmt(Expr *Init, Expr *Cond, Expr *Inc, Stmt *body) {}
+    ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *body) : Stmt(ctx) {}
     ~ForStmt() {}
   };
 
   class WhileStmt : public Stmt {
   public:
-    WhileStmt(Expr *cond, Stmt *body) {}
+    WhileStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
     ~WhileStmt() {}
   };
 
   class DoStmt : public Stmt {
   public:
-    DoStmt(Expr *cond, Stmt *body) {}
+    DoStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
     ~DoStmt() {}
   };
 
   class BreakStmt : public Stmt {
   public:
-    BreakStmt() {}
+    BreakStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~BreakStmt() {}
   };
   class ContinueStmt : public Stmt {
   public:
-    ContinueStmt() {}
+    ContinueStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ContinueStmt() {}
   };
   class ReturnStmt : public Stmt {
   public:
-    ReturnStmt() {}
+    ReturnStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ReturnStmt() {}
   };
 
   class IfStmt : public Stmt {
   public:
-    IfStmt(Expr *cond, Stmt *thenstmt, Stmt *elsestmt)
-      : cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {}
+    IfStmt(ASTContext *ctx, Expr *cond, Stmt *thenstmt, Stmt *elsestmt)
+      : Stmt(ctx), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {}
     ~IfStmt() {}
     void setElse(Stmt *stmt) {
       elsestmt = stmt;
@@ -153,7 +202,7 @@ namespace v2 {
 
   class SwitchStmt : public Stmt {
   public:
-    SwitchStmt(Expr *cond, Stmt *body) {}
+    SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
     ~SwitchStmt() {}
     void AddCase(Stmt *casestmt) {}
   };
@@ -163,7 +212,7 @@ namespace v2 {
    */
   class SwitchCase : public Stmt {
   public:
-    SwitchCase() {}
+    SwitchCase(ASTContext *ctx) : Stmt(ctx) {}
     ~SwitchCase() {}
     void Add(Stmt *stmt) {}
   };
@@ -183,13 +232,13 @@ namespace v2 {
    */
   class CaseStmt : public SwitchCase {
   public:
-    CaseStmt(Expr *cond) {}
+    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx) {}
     ~CaseStmt() {}
   };
 
   class DefaultStmt : public SwitchCase {
   public:
-    DefaultStmt() {}
+    DefaultStmt(ASTContext *ctx) : SwitchCase(ctx) {}
     ~DefaultStmt() {}
   };
 
@@ -203,6 +252,5 @@ namespace v2 {
     ~Expr() {}
   };
 
-};
-
+}
 #endif /* AST_V2_H */

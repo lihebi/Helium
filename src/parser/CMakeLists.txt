@@ -2,6 +2,8 @@ add_library(HeliumParser
 
   ast_v2.cc
   parser.cc
+  grammar_patching.cc
+  benchmark_manager.cc
 
   
   ast.cc

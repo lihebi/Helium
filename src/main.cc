@@ -15,6 +15,7 @@
 #include "helium/utils/fs_utils.h"
 #include "helium/utils/utils.h"
 
+#include "helium/parser/benchmark_manager.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -367,19 +368,19 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
   SnippetDB::Instance()->Create(tagfile.string(), (target_cache_dir / "snippet").string());
 
   // create token database file
-  std::cout << "Creating tokens.db .." << "\n";
-  it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
-  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-    if (p.extension() == ".c") {
-      std::cout << "parsing " << p.string() << "\n";
-      Parser *parser = new Parser(p.string());
-      v2::TranslationUnitDecl *unit = parser->getTranslationUnit();
-      if (unit) {
-        unit->dump();
-      }
-      // std::cout << "should output" << "\n";
-    }
-  }
+  // std::cout << "Creating tokens.db .." << "\n";
+  // it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
+  // BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+  //   if (p.extension() == ".c") {
+  //     std::cout << "parsing " << p.string() << "\n";
+  //     Parser *parser = new Parser(p.string());
+  //     v2::TranslationUnitDecl *unit = parser->getTranslationUnit();
+  //     if (unit) {
+  //       unit->dump();
+  //     }
+  //     // std::cout << "should output" << "\n";
+  //   }
+  // }
 }
 
 
@@ -521,7 +522,7 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-  if (HeliumOptions::Instance()->Has("tokenzie")) {
+  if (HeliumOptions::Instance()->Has("tokenize")) {
     // get the target. we need to check if the target exists in the cache
     // - if not exist, prompt to cache it and exit
     // - if exist, do the work!
@@ -533,6 +534,9 @@ int main(int argc, char* argv[]) {
     // The tokens must also contains
 
     // produce a tokens.db in cache/XXX folder
+    BenchmarkManager *bench_manager = new BenchmarkManager(target_cache_dir / "cpp");
+    // get tokens
+    bench_manager->dumpTokens();
     exit(0);
   }
 
@@ -557,6 +561,26 @@ int main(int argc, char* argv[]) {
     }
     exit(0);
   }
+
+
+  std::cerr << "Specify tokenize or selection to run." << "\n";
+  exit(1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 
   // check if the snippet database has been generated

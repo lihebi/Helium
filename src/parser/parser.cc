@@ -6,16 +6,15 @@
 
 
 using std::vector;
+using namespace v2;
 
 // rename this file to srcmlparser.cc
-
-using namespace v2;
 
 Parser::Parser(std::string filename) {
     XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
     XMLNode root = doc->document_element();
-    // root is unit
-    unit = ParseTranslationUnitDecl(root);
+    Ctx = new ASTContext(filename);
+    Ctx->setTranslationUnitDecl(ParseTranslationUnitDecl(root));
 }
 
 TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
@@ -34,12 +33,12 @@ TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
     }
   }
   // std::cout << decls.size() << "\n";
-  return new TranslationUnitDecl(decls);
+  return new TranslationUnitDecl(Ctx, decls);
 }
 
 DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
   std::string text = get_text(decl);
-  return new DeclStmt(text);
+  return new DeclStmt(Ctx, text);
 }
 
 FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
@@ -47,12 +46,12 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   XMLNode block = node.child("block");
   CompoundStmt *comp = ParseCompoundStmt(block);
   std::string name = function_get_name(node);
-  return new FunctionDecl(name, comp);
+  return new FunctionDecl(Ctx, name, comp);
 }
 
 CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
   match(node, "block");
-  CompoundStmt *ret = new CompoundStmt();
+  CompoundStmt *ret = new CompoundStmt(Ctx);
   for (XMLNode n : element_children(node)) {
     std::string NodeName = n.name();
     Stmt *stmt = ParseStmt(n);
@@ -81,11 +80,11 @@ Stmt *Parser::ParseStmt(XMLNode node) {
   } else if (NodeName == "while") {
     ret = ParseWhileStmt(node);
   } else if (NodeName == "break") {
-    ret = new BreakStmt();
+    ret = new BreakStmt(Ctx);
   } else if (NodeName == "continue") {
-    ret = new ContinueStmt();
+    ret = new ContinueStmt(Ctx);
   } else if (NodeName == "return") {
-    ret = new ReturnStmt();
+    ret = new ReturnStmt(Ctx);
   }
   return ret;
 }
@@ -121,7 +120,7 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   if (elsenode) {
     elsestmt = ParseBlockAsStmt(elsenode.child("block"));
   }
-  return new IfStmt(condexpr, thenstmt, elsestmt);
+  return new IfStmt(Ctx, condexpr, thenstmt, elsestmt);
 }
 
 /**
@@ -163,7 +162,7 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
 SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
   match(node, "switch");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
-  SwitchStmt *ret = new SwitchStmt(cond, NULL);
+  SwitchStmt *ret = new SwitchStmt(Ctx, cond, NULL);
   for(XMLNode c : node.child("block").children("case")) {
     CaseStmt *casestmt = ParseCaseStmt(c);
     ret->AddCase(casestmt);
@@ -184,7 +183,7 @@ SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
  */
 CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   Expr *cond = ParseExpr(node.child("expr"));
-  CaseStmt *ret = new CaseStmt(cond);
+  CaseStmt *ret = new CaseStmt(Ctx, cond);
   XMLNode n = node;
   while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
@@ -196,7 +195,7 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   return ret;
 }
 DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
-  DefaultStmt *ret = new DefaultStmt();
+  DefaultStmt *ret = new DefaultStmt(Ctx);
   XMLNode n = node;
   while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
@@ -212,7 +211,7 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
   match(node, "while");
   Expr *cond = ParseExpr(while_get_condition_expr(node));
   Stmt *body = ParseBlockAsStmt(while_get_block(node));
-  return new WhileStmt(cond, body);
+  return new WhileStmt(Ctx, cond, body);
 }
 
 /**
@@ -239,14 +238,14 @@ ForStmt *Parser::ParseForStmt(XMLNode node) {
   Expr *cond = ParseExpr(node.child("control").child("condition"));
   Expr *inc = ParseExpr(node.child("control").child("incr"));
   Stmt *block = ParseBlockAsStmt(node.child("block"));
-  return new ForStmt(init, cond, inc, block);
+  return new ForStmt(Ctx, init, cond, inc, block);
 }
 
 DoStmt *Parser::ParseDoStmt(XMLNode node) {
   match(node, "do");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
   Stmt *block = ParseBlockAsStmt(node.child("block"));
-  return new DoStmt(cond, block);
+  return new DoStmt(Ctx, cond, block);
 }
 
 Expr *Parser::ParseExpr(XMLNode node) {

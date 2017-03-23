@@ -46,6 +46,34 @@ We need  to control
 1. number of tokens
 2. distribution of tokens: this using the token ID and the distribution file
 
+** A simple approach
+Generate ID for leaf nodes of AST. 
+Print the AST, and ask for the selection.
+
+In this case, the table is different: there'll be no line number staffs. So the table is not necessary.
+The token database will contains the following:
+
+| id | kind | file |
+|----+------+------|
+|  1 | ID   |      |
+|  2 | ID   |      |
+|  3 | Expr |      |
+
+| distID | kind     | name | file |
+|--------+----------+------+------|
+|      1 | function |      |      |
+|      2 | if       |      |      |
+
+| distID | id |
+|--------+----|
+|      1 |  1 |
+|        |  2 |
+|        |  3 |
+|        |  4 |
+|      2 |  1 |
+|        |  5 |
+
+
 * Cache
 process the file or project, and create snippet database for it. The
 result will be in =~/.helium.d/cache/XXX= where =XXX= is named by the

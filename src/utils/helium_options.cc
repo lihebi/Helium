@@ -46,7 +46,7 @@ HeliumOptions::HeliumOptions() {
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")
     ("info", "information about the benchmark")
-    // ("toknize", "tokenize the program")
+    ("tokenize", "tokenize the program")
     ("selection", po::value<std::string>(), "selection of tokens")
     ;
 
