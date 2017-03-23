@@ -1,0 +1,63 @@
+#+TITLE: Helium Cache Design
+
+
+#+BEGIN_EXAMPLE
+~/.helium.d
+|-- cache
+    |-- _home_hebi_benchmark_projblue
+        |-- src
+        |-- snippet.db
+        |-- code
+            |-- 1.txt
+            |-- 2.txt
+        |-- tags
+        |-- tokens.db
+    |-- _home_hebi_benchmark_projred
+|-- generate
+    |-- UUID-DSFJ837-FJ839J-JI783AC
+        |-- sel.txt
+        |-- 
+#+END_EXAMPLE
+
+* Token Selection
+The line and column number is based on the pre-processed file.
+
+The token should be represented as range of source code.  For each
+cache, there should be one token file. Every token should have a
+unique ID.
+
+| id | kind | file | line | col | end_line | end_col |
+|----+------+------+------+-----+----------+---------|
+|  0 | ID   | a.c  |    3 |   8 |        3 |      10 |
+|  1 | Expr | b.c  |      |     |          |         |
+|  2 | Decl | b.c  |      |     |          |         |
+
+Distribution file
+
+| id | kind      | Name | file | line | col | end_line | end_col |
+|----+-----------+------+------+------+-----+----------+---------|
+|  0 | procedure | foo  | a.c  |    3 |   1 |        8 |       2 |
+|  1 | if        | NA   | a.c  |    5 |   2 |        7 |       0 |
+|  2 | switch    |      | b.c  |      |     |          |         |
+|  3 | loop      |      |      |      |     |          |         |
+
+The selection file should be a list of IDs.
+We need  to control
+1. number of tokens
+2. distribution of tokens: this using the token ID and the distribution file
+
+* Cache
+process the file or project, and create snippet database for it. The
+result will be in =~/.helium.d/cache/XXX= where =XXX= is named by the
+absolute path of proj or file with slashes replaced by
+underline. E.g. =/path/to/file= would become =_path_to_file=. Inside
+this folder, there will be a =index.db= and =code/= folder containing
+=xx.txt=
+
+The tree looks like this:
+
+
+When running helium, first check if this folder exist. If yes,
+continue. Otherwise prompt for creating it. When creating this, first
+check if it exists, if yes, prompt for replacing or not =y/N=.
+

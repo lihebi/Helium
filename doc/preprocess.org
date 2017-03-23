@@ -1,0 +1,21 @@
+#+TITLE: Helium Pre-process
+
+* Why we need pre-process
+- SrcML doesn't do preprocess
+- Conditional compilation often contains unbalanced parenthesis, hard for srcML.
+- macros is so flexible, e.g. declare macro to define a variable.
+
+* How to use pre-processor?
+** TODO how clang implement pre-processor?
+
+To use a pre-processor, the only thing needs to be considered is
+- where to find the header files?
+  - system include path
+  - linux headers
+  - local headers:
+    - It is typically specified in Makefile for all the source files to used
+    - or maybe it is specified in a concrete command for a single source file
+    - So the solution: include all the folders!
+- generate header files
+  - autoconf will generate config.h based on current machine, we can do that
+  - cmake will try to find packages and their headers. TODO
