@@ -42,10 +42,12 @@ HeliumOptions::HeliumOptions() {
   po::options_description primary_options("Primary");
   primary_options.add_options()
     ("setup", "setup")
-    ("extract", "extract")
+    ("create-cache", "create preprocessed files, snippetdb, tagfile, src, tokens.db in cache folder")
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")
     ("info", "information about the benchmark")
+    // ("toknize", "tokenize the program")
+    ("selection", po::value<std::string>(), "selection of tokens")
     ;
 
   po::options_description util_options("Utils");

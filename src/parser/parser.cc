@@ -5,6 +5,8 @@
 #include "helium/parser/xmlnode_helper.h"
 
 
+using std::vector;
+
 // rename this file to srcmlparser.cc
 
 using namespace v2;
@@ -13,23 +15,26 @@ Parser::Parser(std::string filename) {
     XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
     XMLNode root = doc->document_element();
     // root is unit
-    ParseTranslationUnitDecl(root);
+    unit = ParseTranslationUnitDecl(root);
 }
 
 TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
   match(unit, "unit");
-  std::vector<DeclStmt*> decls;
-  std::vector<FunctionDecl*> funcs;
+  // std::vector<DeclStmt*> decls;
+  // std::vector<FunctionDecl*> funcs;
+  vector<Decl*> decls;
   for (XMLNode node : unit.children()) {
     if (std::string(node.name()) == "decl_stmt") {
       DeclStmt *decl = ParseDeclStmt(node);
       decls.push_back(decl);
     } else if (std::string(node.name()) == "function") {
       FunctionDecl *func = ParseFunctionDecl(node);
-      funcs.push_back(func);
+      // funcs.push_back(func);
+      decls.push_back(func);
     }
   }
-  return new TranslationUnitDecl(decls, funcs);
+  // std::cout << decls.size() << "\n";
+  return new TranslationUnitDecl(decls);
 }
 
 DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
@@ -41,7 +46,8 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // constructnig children
   XMLNode block = node.child("block");
   CompoundStmt *comp = ParseCompoundStmt(block);
-  return new FunctionDecl(comp);
+  std::string name = function_get_name(node);
+  return new FunctionDecl(name, comp);
 }
 
 CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
@@ -109,9 +115,12 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   }
   XMLNode elseifnode = node.child("elseif");
   if (elseifnode) {
-    elsestmt = ParseElseIfAsIfStmt(elseifnode.child("if"));
+    elsestmt = ParseElseIfAsIfStmt(elseifnode);
   }
-  elsestmt = ParseBlockAsStmt(if_get_else(node));
+  XMLNode elsenode = node.child("else");
+  if (elsenode) {
+    elsestmt = ParseBlockAsStmt(elsenode.child("block"));
+  }
   return new IfStmt(condexpr, thenstmt, elsestmt);
 }
 
@@ -132,7 +141,8 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
 IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
   match(node, "elseif");
   IfStmt *ifstmt = ParseIfStmt(node.child("if"));
-  XMLNode next = node.parent().next_sibling();
+  // XMLNode next = node.next_sibling();
+  XMLNode next = next_element_sibling(node);
   Stmt *elsestmt = nullptr;
   if (next) {
     if (std::string(next.name()) == "elseif") {
@@ -141,6 +151,7 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
       elsestmt = ParseBlockAsStmt(next.child("block"));
     } else {
       // error();
+      // std::cout << next.name() << "\n";
       assert(0);
     }
   }
@@ -210,13 +221,14 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
  * type="pseudo"
  */
 Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
-  XMLNode block = node.child("block");
+  match(node, "block");
+  // XMLNode block = node.child("block");
   Stmt *ret = nullptr;
-  if (std::string(block.attribute("type").value()) == "pseudo") {
-    XMLNode child = block.first_child();
+  if (std::string(node.attribute("type").value()) == "pseudo") {
+    XMLNode child = node.first_child();
     ret = ParseStmt(child);
   } else {
-    ret = ParseCompoundStmt(block);
+    ret = ParseCompoundStmt(node);
   }
   return ret;
 }
@@ -241,4 +253,10 @@ Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
   match(node, "expr");
   return new Expr(get_text(node));
+}
+
+
+void Parser::match(XMLNode node, std::string tag) {
+  // std::cout << "parser cannot match: " << tag << " vs " << node.name() << "\n";
+  assert(tag == node.name());
 }

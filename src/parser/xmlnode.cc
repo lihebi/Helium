@@ -223,6 +223,7 @@ XMLNode next_element_sibling(XMLNode node) {
     if (n.type() == pugi::node_element) {
       return n;
     }
+    n = n.next_sibling();
   }
   return XMLNode();
 }

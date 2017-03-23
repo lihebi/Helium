@@ -8,10 +8,13 @@
 #include "helium/parser/xml_doc_reader.h"
 #include "helium/parser/ast_node.h"
 
+#include "helium/parser/parser.h"
+
 #include "helium/utils/helium_options.h"
 #include "helium/parser/point_of_interest.h"
 #include "helium/utils/fs_utils.h"
 #include "helium/utils/utils.h"
+
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -19,6 +22,9 @@
 #include <gtest/gtest.h>
 
 namespace fs = boost::filesystem;
+
+using std::vector;
+using std::string;
 
 static void
 create_tagfile(const std::string& folder, const std::string& file) {
@@ -218,6 +224,193 @@ void load_slice() {
   }
 }
 
+
+
+
+
+
+
+
+/********************************
+ * New staff
+ *******************************/
+
+
+
+void create_cache(fs::path target, fs::path target_cache_dir) {
+  // TODO commented out for easy debugging
+  // if (fs::exists(target_cache_dir)) {
+  //   std::cout << "Cache exists: " << target_cache_dir.string() << "\n";
+  //   std::cout << "Replace? [y/N] " << std::flush;
+  //   char c = getchar();
+  //   if (c != 'y' && c != 'Y') {
+  //     std::cout << "Cancelled." << "\n";
+  //     exit(1);
+  //   }
+  // }
+  fs::remove_all(target_cache_dir);
+  fs::create_directories(target_cache_dir);
+  fs::create_directories(target_cache_dir / "src");
+  fs::create_directories(target_cache_dir / "code");
+  fs::create_directories(target_cache_dir / "cpp");
+  // DEPRECATED
+  fs::create_directories(target_cache_dir / "snippet");
+
+  // copy only source files. Keep directory structure
+  fs::recursive_directory_iterator it(target), eod;
+  BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+    if (is_regular_file(p)) {
+      if (p.extension() == ".c" || p.extension() == ".h") {
+        // std::cout << "Copying from " << p.string() << " to " << "..." << "\n";
+        // fs::copy_file(p, target_cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
+        fs::path to = target_cache_dir / "src" / fs::relative(p, target);
+        fs::create_directories(to.parent_path());
+        // std::cout << "Copy " << p.string()
+        //           << " To: " << to.string()
+        //           << "\n";
+        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));
+      }
+    }
+  }
+    
+  // running pre-processor
+  std::cout << "Running Pre-processor .." << "\n";
+  it = fs::recursive_directory_iterator(target_cache_dir / "src");
+  vector<fs::path> dirs;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_directory(p)) {
+      dirs.push_back(p);
+    }
+  }
+
+  std::string include_cmd;
+  for (auto &p : dirs) {
+    include_cmd += "-I" + p.string() + " ";
+  }
+
+  std::string cpp_cmd = "clang -E " + include_cmd;
+    
+  it = fs::recursive_directory_iterator(target_cache_dir / "src");
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_regular_file(p)) {
+      fs::path to = target_cache_dir / "cpp" / fs::relative(p, target_cache_dir / "src");
+      fs::create_directories(to.parent_path());
+      std::string cmd = cpp_cmd + " " + p.string()
+        + " >> " + to.string();
+      utils::new_exec(cmd.c_str());
+    }
+  }
+
+  // remove extra things added by preprocessor using include files
+  std::cout << "Removing extra for cpp-ed file .." << "\n";
+  it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_regular_file(p)) {
+      std::ifstream is;
+      is.open(p.string());
+      std::string code;
+      if (is.is_open()) {
+        std::string line;
+        std::string output;
+        bool b = false;
+        while(getline(is, line)) {
+          if (!line.empty() && line[0] == '#') {
+            // this might be a line marker
+            vector<string> v = utils::split(line);
+            if (v.size() < 3) continue;
+            string filename = v[2];
+            if (filename.empty() || filename[0] != '"' || filename.back() != '"') continue;
+            filename = filename.substr(1);
+            filename.pop_back();
+            fs::path file(filename);
+            fs::path newp = fs::relative(p, target_cache_dir / "cpp");
+            fs::path newfile = fs::relative(file, target_cache_dir / "src");
+            if (newfile.string() == newp.string()) {
+              b = true;
+              output += line + "\n";
+            } else {
+              b = false;
+            }
+          } else {
+            if (b) {
+              output += line + "\n";
+            }
+          }
+        }
+        is.close();
+        // output to the same file
+        utils::write_file(p.string(), output);
+      }
+    }
+  }
+    
+    
+  // for (fs::directory_entry &e : fs::directory_iterator(target_cache_dir / "src")) {
+  //   fs::path p = e.path();
+  //   fs::path filename = p.filename();
+  //   if (p.extension() == ".c") {
+  //     std::string cmd = "clang -E " + p.string()
+  //       + " -I" + (target_cache_dir/"src").string() // include path
+  //       + " >> " + (target_cache_dir / "cpp" / p.filename()).string();
+  //     std::cout << "running cmd: " << cmd << "\n";
+  //     utils::new_exec(cmd.c_str());
+  //   }
+  // }
+    
+  // create tag file
+  fs::path tagfile = target_cache_dir / "tags";
+  std::cout << "Creating tagfile .." << "\n";
+  create_tagfile((target_cache_dir / "cpp").string(), (target_cache_dir / "tags").string());
+    
+  std::cout << "Creating snippet.db .." << "\n";
+  // // this will call srcml
+  SnippetDB::Instance()->Create(tagfile.string(), (target_cache_dir / "snippet").string());
+
+  // create token database file
+  std::cout << "Creating tokens.db .." << "\n";
+  it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".c") {
+      std::cout << "parsing " << p.string() << "\n";
+      Parser *parser = new Parser(p.string());
+      v2::TranslationUnitDecl *unit = parser->getTranslationUnit();
+      if (unit) {
+        unit->dump();
+      }
+      // std::cout << "should output" << "\n";
+    }
+  }
+}
+
+
+
+
+
+
+int deprecated_show_instrument_code() {
+  std::string code = HeliumOptions::Instance()->GetString("show-instrument-code");
+  if (code.empty()) {
+    std::cerr << "EE: Code is empty." << "\n";
+    return 1;
+  }
+  if (code.back() != ';') {
+    std::cerr << "EE: code must be a decl_stmt, must end with semicolon" << "\n";
+    return 1;
+  }
+  XMLDoc *doc = XMLDocReader::CreateDocFromString(code, "");
+  XMLNode decl_node = find_first_node_bfs(doc->document_element(), "decl");
+  Decl *decl = DeclFactory::CreateDecl(decl_node);
+  Type *type = decl->GetType();
+  std::string var = decl->GetName();
+  std::string output = type->GetOutputCode(var);
+  std::string input = type->GetInputCode(var);
+  std::cout << "// Output:" << "\n";
+  std::cout << output << "\n";
+  std::cout << "// Input:" << "\n";
+  std::cout << input << "\n";
+  return 0;
+}
+
 int main(int argc, char* argv[]) {
   utils::seed_rand();
   const char *home = getenv("HOME");
@@ -233,50 +426,23 @@ int main(int argc, char* argv[]) {
 
   if (HeliumOptions::Instance()->Has("help")) {
     HeliumOptions::Instance()->PrintHelp();
-    exit(0);
-  }
-
+    exit(0);}
 
   if (HeliumOptions::Instance()->Has("show-instrument-code")) {
-    std::string code = HeliumOptions::Instance()->GetString("show-instrument-code");
-    if (code.empty()) {
-      std::cerr << "EE: Code is empty." << "\n";
-      exit(1);
-    }
-    if (code.back() != ';') {
-      std::cerr << "EE: code must be a decl_stmt, must end with semicolon" << "\n";
-      exit(1);
-    }
-    XMLDoc *doc = XMLDocReader::CreateDocFromString(code, "");
-    XMLNode decl_node = find_first_node_bfs(doc->document_element(), "decl");
-    Decl *decl = DeclFactory::CreateDecl(decl_node);
-    Type *type = decl->GetType();
-    std::string var = decl->GetName();
-    std::string output = type->GetOutputCode(var);
-    std::string input = type->GetInputCode(var);
-    std::cout << "// Output:" << "\n";
-    std::cout << output << "\n";
-    std::cout << "// Input:" << "\n";
-    std::cout << input << "\n";
-    exit(0);
-  }
+    exit(deprecated_show_instrument_code());}
 
   fs::path user_home(getenv("HOME"));
   fs::path helium_home = user_home / ".helium.d";
   if (!fs::exists(helium_home)) {
-    fs::create_directory(helium_home);
-  }
+    fs::create_directory(helium_home);}
   fs::path cache_dir = helium_home / "cache";
 
   if (HeliumOptions::Instance()->Has("ls-cache")) {
     for (fs::directory_entry &e : fs::directory_iterator(cache_dir)) {
       fs::path p = e.path();
       if (fs::is_directory(p)) {
-        std::cout << p.filename().string() << "\n";
-      }
-    }
-    exit(0);
-  }
+        std::cout << p.filename().string() << "\n";}}
+    exit(0);}
   if (HeliumOptions::Instance()->Has("rm-cache")) {
     std::string toremove = HeliumOptions::Instance()->GetString("target");
     if (fs::exists(cache_dir / toremove)) {
@@ -284,10 +450,7 @@ int main(int argc, char* argv[]) {
       exit(0);
     } else {
       std::cerr << "No such cache: " << toremove << "\n";
-      exit(1);
-    }
-  }
-  
+      exit(1);}}
 
   fs::path systag = helium_home / "systype.tags";
   if (!fs::exists(systag)) {
@@ -318,86 +481,24 @@ int main(int argc, char* argv[]) {
   // Reading target folder. This is the parameter
   std::string target_str = HeliumOptions::Instance()->GetString("target");
   target_str = utils::escape_tide(target_str);
-  // the folder argument contains:
-  // 1. cpped
-  // 2. src
-  // 3. snippets
   fs::path target(target_str);
-  // fs::path cpped = target / "cpped";
-  // fs::path src = target / "src";
-  // fs::path snippets = target / "snippets";
   if (!fs::exists(target)) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
-    exit(1);
-  }
-
+    exit(1);}
 
   // change relative to absolute
   std::string target_cache_dir_name = fs::canonical(target).string();
   std::replace(target_cache_dir_name.begin(), target_cache_dir_name.end(), '/', '_');
   fs::path target_cache_dir(helium_home / "cache" / target_cache_dir_name);
 
-  if (HeliumOptions::Instance()->Has("extract")) {
-    if (fs::exists(target_cache_dir)) {
-      std::cout << "Cache exists: " << target_cache_dir.string() << "\n";
-      std::cout << "Replace? [y/N] " << std::flush;
-      char c = getchar();
-      if (c != 'y' && c != 'Y') {
-        std::cout << "Cancelled." << "\n";
-        exit(1);
-      }
-    }
-    fs::remove_all(target_cache_dir);
-    fs::create_directories(target_cache_dir);
-    fs::create_directories(target_cache_dir / "cpp");
-    fs::create_directories(target_cache_dir / "src");
-    fs::create_directories(target_cache_dir / "snippet");
-    // preprocess and put everything in "cpp" folder
-    std::cout << "Preprocessing .." << "\n";
-
-    // put source files into "src" folder
-    // std::string cmd = "find "
-    //   + target.string()
-    //   + " -name \"*.[c|h]\" -exec cp \"{}\" "
-    //   + target_cache_dir.string() + "src \\;";
-    // utils::new_exec(cmd.c_str());
-
-    fs::recursive_directory_iterator it(target), eod;
-    BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-      if (is_regular_file(p)) {
-        if (p.extension() == ".c" || p.extension() == ".h") {
-          // std::cout << "Copying from " << p.string() << " to " << "..." << "\n";
-          fs::copy_file(p, target_cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
-        }
-      }
-    }
-    
-    // process and put "cpp" folder
-    for (fs::directory_entry &e : fs::directory_iterator(target_cache_dir / "src")) {
-      fs::path p = e.path();
-      fs::path filename = p.filename();
-      if (p.extension() == ".c") {
-        std::string cmd = "clang -E " + p.string()
-          + " >> " + (target_cache_dir / "cpp" / p.filename()).string();
-        utils::new_exec(cmd.c_str());
-      }
-    }
-    
-    // create tag file
-    fs::path tagfile = target_cache_dir / "tags";
-    std::cout << "Creating tagfile .." << "\n";
-    create_tagfile((target_cache_dir / "cpp").string(), (target_cache_dir / "tags").string());
-    std::cout << "Creating Snippet DB .." << "\n";
-    // this will call srcml
-    SnippetDB::Instance()->Create(tagfile.string(), (target_cache_dir / "snippet").string());
-    exit(0);
-  }
-
+  if (HeliumOptions::Instance()->Has("create-cache")) {
+    create_cache(target, target_cache_dir);
+    exit(0);}
 
   if (!fs::exists(target_cache_dir)) {
-    std::cerr << "The benchmark is not processed. Consider run helium --extract /path/to/benchmark" << "\n";
-    exit(1);
-  }
+    std::cerr << "The benchmark is not processed."
+              << "Run helium --create-cache /path/to/benchmark" << "\n";
+    exit(1);}
 
   // load_tagfile((target_cache_dir / "cpp").string());
   ctags_load((target_cache_dir / "tags").string());
@@ -417,6 +518,43 @@ int main(int argc, char* argv[]) {
     std::cout << "# of snippets: TODO " << SnippetDB::Instance()->numOfSnippet() << "\n";
     std::cout << "# of tokens: " << "TODO 330" << "\n";
     std::cout << "LOC: " << "TODO 8k" << "\n";
+    exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("tokenzie")) {
+    // get the target. we need to check if the target exists in the cache
+    // - if not exist, prompt to cache it and exit
+    // - if exist, do the work!
+    // Do the work by scanning through all the source files in cache/NAME/cpp folder in alphabet order
+    // this order can be altered later, maybe to support keep the directory hierarchy of source files to allow
+    // source files of same name, but it is important to keep in mind that the order should be the same
+    // for all the services that use the IDs of tokens.
+    //
+    // The tokens must also contains
+
+    // produce a tokens.db in cache/XXX folder
+    exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("selection")) {
+    fs::path sel = HeliumOptions::Instance()->GetString("selection");
+    if (fs::exists(sel)) {
+      // this is a list of IDs
+      std::ifstream is;
+      std::set<int> ids;
+      is.open(sel.string());
+      if (is.is_open()) {
+        int id=-1;
+        while (is) {
+          is >> id;
+        }
+        ids.insert(id);
+      }
+      // now we got ids, and we can start to run Helium!
+      std::cout << "Got " << ids.size() << " IDs in the selection." << "\n";
+      std::cout << "Running Helium .." << "\n";
+      // TODO run Helium
+    }
     exit(0);
   }
 

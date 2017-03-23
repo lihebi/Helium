@@ -25,11 +25,12 @@ public:
   v2::ForStmt *ParseForStmt(XMLNode node);
   v2::DoStmt *ParseDoStmt(XMLNode node);
   v2::Expr *ParseExpr(XMLNode node);
+
+  v2::TranslationUnitDecl *getTranslationUnit() {return unit;}
 private:
-  void match(XMLNode node, std::string tag) {
-    assert(tag == node.name());
-  }
-  v2::ASTContext *Context;
+  void match(XMLNode node, std::string tag);
+  v2::ASTContext *Context = nullptr;
+  v2::TranslationUnitDecl *unit = nullptr;
 };
 
 #endif /* PARSER_H */

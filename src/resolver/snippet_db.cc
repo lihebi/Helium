@@ -382,8 +382,7 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
     // std::cout  << "\n";
     res = tagsNext(tag, entry);
   }
-  std::cout  << "\n";
-  std::cout << "total snippet: " << snippet_id + 1  << "\n";
+  std::cout << "\ntotal snippet: " << snippet_id + 1  << "\n";
   int define_ct = 0;
   int func_ct = 0;
   int struct_ct = 0;
@@ -407,14 +406,14 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
       other_ct++; break;
     }
   }
-  std::cout << "define snippet: " << define_ct  << "\n";
-  std::cout << "function snippet: " << func_ct  << "\n";
-  std::cout << "struct snippet: " << struct_ct  << "\n";
-  std::cout << "enum snippet: " << enum_ct  << "\n";
-  std::cout << "enum member snippet: " << enum_mem_ct  << "\n";
-  std::cout << "typedef snippet: " << typedef_ct  << "\n";
-  std::cout << "variable snippet: " << var_ct  << "\n";
-  std::cout << "other snippet: " << other_ct  << "\n";
+  // std::cout << "define snippet: " << define_ct  << "\n";
+  // std::cout << "function snippet: " << func_ct  << "\n";
+  // std::cout << "struct snippet: " << struct_ct  << "\n";
+  // std::cout << "enum snippet: " << enum_ct  << "\n";
+  // std::cout << "enum member snippet: " << enum_mem_ct  << "\n";
+  // std::cout << "typedef snippet: " << typedef_ct  << "\n";
+  // std::cout << "variable snippet: " << var_ct  << "\n";
+  // std::cout << "other snippet: " << other_ct  << "\n";
   for (Snippet *s : all_snippets) {
     delete s;
   }

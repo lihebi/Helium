@@ -3,13 +3,19 @@ project(helium)
 
 set(CMAKE_CXX_STANDARD 11)
 
+# set(CMAKE_CXX_FLAGS "-pg -g")
+
 # https://github.com/ninja-build/ninja/wiki/FAQ
 # ninja runs in parallel, so buffer the output for each thread
 # clang would detect that its output is not directed to a terminal
 # thus do not print the color
 # so force it to use color
-Add_compile_options(-fcolor-diagnostics)
+# Add_compile_options(-fcolor-diagnostics)
 Add_compile_options(-g)
+
+# remove this to avoid profiling overhead
+# Add_compile_options(-pg)
+# Add_compile_options(-lprofiler)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

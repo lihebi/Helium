@@ -25,7 +25,7 @@ namespace v2 {
     ~ASTContext() {}
     TranslationUnitDecl *getTranslationUnitDecl() {return Unit;}
   private:
-    TranslationUnitDecl *Unit;
+    TranslationUnitDecl *Unit = nullptr;
   };
 
 
@@ -38,13 +38,18 @@ namespace v2 {
   public:
     Decl() {}
     ~Decl() {}
+    virtual void dump() {}
   };
 
   class TranslationUnitDecl : public Decl {
   public:
-    TranslationUnitDecl(std::vector<DeclStmt*> decls,
-                        std::vector<FunctionDecl*> funcs) {}
+    // TranslationUnitDecl(std::vector<DeclStmt*> decls,
+    //                     std::vector<FunctionDecl*> funcs) {}
+    TranslationUnitDecl(std::vector<Decl*> decls) : decls(decls) {}
     ~TranslationUnitDecl() {}
+    virtual void dump();
+  private:
+    std::vector<Decl*> decls;
   };
 
 
@@ -56,12 +61,13 @@ namespace v2 {
   public:
     Stmt() {}
     ~Stmt() {}
+    virtual void dump() {}
   };
 
   /**
    * Adapter class for mixing declarations with statements
    */
-  class DeclStmt : public Stmt {
+  class DeclStmt : public Stmt, public Decl {
   public:
     DeclStmt(std::string text) {}
     ~DeclStmt() {}
@@ -89,8 +95,12 @@ namespace v2 {
 
   class FunctionDecl : public Decl {
   public:
-    FunctionDecl(Stmt *body) {}
+    FunctionDecl(std::string name, Stmt *body) : name(name), body(body) {}
     ~FunctionDecl() {}
+    virtual void dump();
+  private:
+    std::string name;
+    Stmt *body = nullptr;
   };
 
   class ForStmt : public Stmt {
@@ -179,8 +189,8 @@ namespace v2 {
 
   class DefaultStmt : public SwitchCase {
   public:
-    DefaultStmt();
-    ~DefaultStmt();
+    DefaultStmt() {}
+    ~DefaultStmt() {}
   };
 
   /**
