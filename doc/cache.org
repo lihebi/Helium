@@ -61,3 +61,51 @@ When running helium, first check if this folder exist. If yes,
 continue. Otherwise prompt for creating it. When creating this, first
 check if it exists, if yes, prompt for replacing or not =y/N=.
 
+* Snippet DB
+** snippet
+This table corresponds to the snippet code, one piece of code per entry.
+
+| Column Name | Type    | Size | PKey          | Null | Remarks |
+|-------------+---------+------+---------------+------+---------|
+| ID          | INT     |      | PRIMARY KEY 1 |      |         |
+| filename    | VARCHAR |  500 |               |      |         |
+| linum       | INT     |      |               |      |         |
+
+
+** signature
+A snippet might have many signature:
+- a structure name
+- a typedef
+- members of an enumerator
+
+| Column Name | Type    | Size | PKey          | Null | Remarks |
+|-------------+---------+------+---------------+------+---------|
+| ID          | INT     |      | PRIMARY KEY 1 |      |         |
+| keyword     | VARCHAR |  100 |               |      |         |
+| kind        | VARCHAR |    1 |               |      |         |
+| snippet_id  | int     |      |               |      |         |
+
+** dependence
+A snippet depends upon another
+| Column Name     | Type | Size | PKey          | Null | Remarks |
+|-----------------+------+------+---------------+------+---------|
+| ID              | int  |      | PRIMARY KEY 1 |      |         |
+| from_snippet_id | int  |      |               |      |         |
+| to_snippet_id   | int  |      |               |      |         |
+
+** callgraph
+Call graph of functions
+| Column Name     | Type | Size | PKey          | Null | Remarks |
+|-----------------+------+------+---------------+------+---------|
+| ID              | int  |      | PRIMARY KEY 1 |      |         |
+| from_snippet_id | int  |      |               |      |         |
+| to_snippet_id   | int  |      |               |      |         |
+
+
+** header_dep
+The header dependence of files.
+| Column Name | Type    | Size | PKey          | Null | Remarks |
+|-------------+---------+------+---------------+------+---------|
+| ID          | int     |      | PRIMARY KEY 1 |      |         |
+| from_file   | VARCHAR |  100 |               |      |         |
+| to_file     | VARCHAR |  100 |               |      |         |
