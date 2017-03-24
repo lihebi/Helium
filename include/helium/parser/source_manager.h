@@ -37,6 +37,12 @@ public:
   // void dumpTokens();
   void dumpASTs();
   void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
+
+  /**
+   * Perform grammar patch based on this->selection.
+   * Thus you need to call select first.
+   */
+  void grammarPatch();
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
@@ -53,6 +59,8 @@ private:
   std::map<v2::ASTContext*, fs::path> AST2FileMap;
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;
+
+  std::set<v2::ASTNodeBase*> selection;
 };
 
 

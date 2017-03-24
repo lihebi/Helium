@@ -127,7 +127,8 @@ line column
 # x.c
 #+END_EXAMPLE
 
-*** TODO GrammarPatcher
+*** DONE GrammarPatcher
+    CLOSED: [2017-03-24 Fri 17:56]
 - I'll have another visitor called GrammarPatcher that, well this is
   tricky, goes from bottom to top of AST.
   - The input is the selection.
@@ -135,6 +136,8 @@ line column
   - Starting from the lowest level, get the parent, get its children
     in selection, and visit the parent node (not considering lazy
     evaluation for now). Put the parent into selection, and continue.
+
+- Another visitor, ParentIndexer, that creates parent and sibling relationship among nodes.
 
 *** TODO random selection of distribution
 - for random generate of selection with consideration of distribution

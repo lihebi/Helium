@@ -1,10 +1,10 @@
-#include "helium/parser/grammar_patching.h"
+// #include "helium/parser/grammar_patching.h"
 
 
-void GrammarPatcher::grammarPatch() {
-  // TODO
-}
-std::string GrammarPatcher::generatePartialProgram() {
-  // TODO
-  return "";
-}
+// void GrammarPatcher::grammarPatch() {
+//   // TODO
+// }
+// std::string GrammarPatcher::generatePartialProgram() {
+//   // TODO
+//   return "";
+// }

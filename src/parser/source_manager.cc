@@ -134,10 +134,16 @@ void SourceManager::select(std::map<std::string, std::set<std::pair<int,int> > >
             Printer printer(os);
             token->accept(&printer);
             std::cout << "Found selected token: " << os.str() << "\n";
+            this->selection.insert(token);
           }
         }
       }
     }
   }
   // maybe here: get/set the distribution information
+  std::cout << "Total selected tokens: " << this->selection.size() << "\n";
+}
+
+void SourceManager::grammarPatch() {
+  std::cout << "Doing grammar patching on " << selection.size() << " selected tokens .." << "\n";
 }

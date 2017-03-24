@@ -87,7 +87,7 @@ namespace v2 {
     // virtual void accept(Visitor *visitor) {
     //   visitor->visit(this);
     // }
-    virtual void accept(Visitor *visitor) = 0;
+    virtual void accept(Visitor *visitor, void *data=nullptr) = 0;
     ASTContext *getASTContext() {return Ctx;}
     SourceLocation getBeginLoc() {return BeginLoc;}
     SourceLocation getEndLoc() {return EndLoc;}
@@ -102,8 +102,8 @@ namespace v2 {
     TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : ASTNodeBase(ctx, begin, end), Text(text) {}
     ~TokenNode() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     std::string getText() {return Text;}
   private:
@@ -139,8 +139,8 @@ namespace v2 {
       : Decl(ctx, begin, end), decls(decls) {}
     ~TranslationUnitDecl() {}
     std::vector<ASTNodeBase*> getDecls() {return decls;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   private:
     std::vector<ASTNodeBase*> decls;
@@ -166,8 +166,8 @@ namespace v2 {
     DeclStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : Stmt(ctx, begin, end) {}
     ~DeclStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   };
 
@@ -179,8 +179,8 @@ namespace v2 {
     ExprStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
       : Stmt(ctx, begin, end) {}
     ~ExprStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   };
 
@@ -193,8 +193,8 @@ namespace v2 {
       stmts.push_back(stmt);
     }
     std::vector<Stmt*> getBody() {return stmts;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   private:
     std::vector<Stmt*> stmts;
@@ -208,8 +208,8 @@ namespace v2 {
     }
     ~FunctionDecl() {}
     Stmt *getBody() {return body;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     std::string getName() {return name;}
     TokenNode *getReturnTypeNode() {return ReturnTypeNode;}
@@ -238,8 +238,8 @@ namespace v2 {
     Expr *getCond() {return Cond;}
     Expr *getInc() {return Inc;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getForNode() {return ForNode;}
   private:
@@ -259,8 +259,8 @@ namespace v2 {
     ~WhileStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getWhileNode() {return WhileNode;}
   private:
@@ -277,8 +277,8 @@ namespace v2 {
     ~DoStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getDoNode() {return DoNode;}
     TokenNode *getWhileNode() {return WhileNode;}
@@ -293,16 +293,16 @@ namespace v2 {
   public:
     BreakStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~BreakStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   };
   class ContinueStmt : public Stmt {
   public:
     ContinueStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~ContinueStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   };
   class ReturnStmt : public Stmt {
@@ -311,8 +311,8 @@ namespace v2 {
       : Stmt(ctx, begin, end), ReturnNode(ReturnNode) {
     }
     ~ReturnStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     Expr *getValue() {return Value;}
     TokenNode *getReturnNode() {return ReturnNode;}
@@ -336,8 +336,8 @@ namespace v2 {
     Expr *getCond() {return cond;}
     Stmt *getThen() {return thenstmt;}
     Stmt *getElse() {return elsestmt;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getIfNode() {return IfNode;}
     TokenNode *getElseNode() {return ElseNode;}
@@ -360,8 +360,8 @@ namespace v2 {
     void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
     std::vector<SwitchCase*> getCases() {return Cases;}
     Expr *getCond() {return Cond;}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getSwitchNode() {return SwitchNode;}
   private:
@@ -402,8 +402,8 @@ namespace v2 {
       : SwitchCase(ctx, begin, end), Cond(cond), CaseNode(CaseNode) {
     }
     ~CaseStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getCaseNode() {return CaseNode;}
     Expr *getCond() {return Cond;}
@@ -418,8 +418,8 @@ namespace v2 {
       : SwitchCase(ctx, begin, end), DefaultNode(DefaultNode) {
     }
     ~DefaultStmt() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
     TokenNode *getDefaultNode() {return DefaultNode;}
   private:
@@ -435,8 +435,8 @@ namespace v2 {
     Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : ASTNodeBase(ctx, begin, end) {}
     ~Expr() {}
-    virtual void accept(Visitor *visitor) {
-      visitor->visit(this);
+    virtual void accept(Visitor *visitor, void *data=nullptr) {
+      visitor->visit(this, data);
     }
   };
 
