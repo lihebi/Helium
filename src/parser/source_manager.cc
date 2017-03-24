@@ -1,8 +1,13 @@
 #include "helium/parser/source_manager.h"
 
 #include "helium/parser/parser.h"
+#include "helium/utils/string_utils.h"
 
 using namespace v2;
+
+using std::string;
+using std::vector;
+using std::set;
 
 SourceManager::SourceManager(fs::path cppfolder) {
   fs::recursive_directory_iterator it(cppfolder), eod;
@@ -49,11 +54,16 @@ SourceManager::SourceManager(fs::path cppfolder) {
 //   }
 // }
 
+
+
 void SourceManager::dumpASTs() {
   for (ASTContext *ast : ASTs) {
+    std::cout << "== AST:" << "\n";
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-    Printer *printer = new Printer(std::cout);
+ std::ostringstream os;
+    Printer *printer = new Printer(os);
     printer->visit(unit);
+    std::cout << Printer::PrettyPrint(os.str()) << "\n";
   }
 }
 

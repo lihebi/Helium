@@ -119,6 +119,8 @@ public:
   virtual void visit(v2::CaseStmt *case_stmt);
   virtual void visit(v2::DefaultStmt *def_stmt);
   virtual void visit(v2::Expr *expr);
+
+  static std::string PrettyPrint(std::string aststr);
 private:
   std::ostream &os;
 };
