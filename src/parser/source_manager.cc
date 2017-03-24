@@ -190,7 +190,8 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
           utils::trim(file);
         } else {
           vector<string> v = utils::split(line);
-          if (v.size() == 2) {
+          // the third is ID, not used here
+          if (v.size() >= 2) {
             selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
           }
         }
