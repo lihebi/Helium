@@ -13,6 +13,8 @@
 
 // #include "helium/parser/source_manager.h"
 
+#include "helium/parser/source_location.h"
+
 class SourceManager;
 
 
@@ -86,8 +88,12 @@ namespace v2 {
     // }
     virtual void accept(Visitor *visitor) = 0;
     ASTContext *getASTContext() {return Ctx;}
+    SourceLocation getBeginLoc() {return BeginLoc;}
+    SourceLocation getEndLoc() {return EndLoc;}
   protected:
     ASTContext *Ctx = nullptr;
+    SourceLocation BeginLoc;
+    SourceLocation EndLoc;
   };
 
   class TokenNode : public ASTNodeBase {
