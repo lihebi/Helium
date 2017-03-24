@@ -80,7 +80,8 @@ namespace v2 {
 
   class ASTNodeBase {
   public:
-    ASTNodeBase(ASTContext *ctx) : Ctx(ctx) {}
+    ASTNodeBase(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : Ctx(ctx), BeginLoc(begin), EndLoc(end)  {}
     ~ASTNodeBase() {}
     virtual std::string label() {return "";}
     // virtual void accept(Visitor *visitor) {
@@ -98,7 +99,8 @@ namespace v2 {
 
   class TokenNode : public ASTNodeBase {
   public:
-    TokenNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), Text(text) {}
+    TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end), Text(text) {}
     ~TokenNode() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
@@ -123,7 +125,8 @@ namespace v2 {
   
   class Decl : public ASTNodeBase {
   public:
-    Decl(ASTContext *ctx) : ASTNodeBase(ctx) {}
+    Decl(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end) {}
     ~Decl() {}
   };
 
@@ -131,7 +134,9 @@ namespace v2 {
   public:
     // TranslationUnitDecl(std::vector<DeclStmt*> decls,
     //                     std::vector<FunctionDecl*> funcs) {}
-    TranslationUnitDecl(ASTContext *ctx, std::vector<ASTNodeBase*> decls) : Decl(ctx), decls(decls) {}
+    TranslationUnitDecl(ASTContext *ctx, std::vector<ASTNodeBase*> decls,
+                        SourceLocation begin, SourceLocation end)
+      : Decl(ctx, begin, end), decls(decls) {}
     ~TranslationUnitDecl() {}
     std::vector<ASTNodeBase*> getDecls() {return decls;}
     virtual void accept(Visitor *visitor) {
@@ -148,7 +153,8 @@ namespace v2 {
 
   class Stmt : public ASTNodeBase {
   public:
-    Stmt(ASTContext *ctx) : ASTNodeBase(ctx) {}
+    Stmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end) {}
     ~Stmt() {}
   };
 
@@ -157,7 +163,8 @@ namespace v2 {
    */
   class DeclStmt : public Stmt {
   public:
-    DeclStmt(ASTContext *ctx, std::string text) : Stmt(ctx) {}
+    DeclStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end) {}
     ~DeclStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
@@ -169,7 +176,8 @@ namespace v2 {
    */
   class ExprStmt : public Stmt {
   public:
-    ExprStmt(ASTContext *ctx) : Stmt(ctx) {}
+    ExprStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end) {}
     ~ExprStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
@@ -178,7 +186,8 @@ namespace v2 {
 
   class CompoundStmt : public Stmt {
   public:
-    CompoundStmt(ASTContext *ctx) : Stmt(ctx) {}
+    CompoundStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end) {}
     ~CompoundStmt() {}
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
@@ -193,8 +202,8 @@ namespace v2 {
 
   class FunctionDecl : public Decl {
   public:
-    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body)
-      : Decl(ctx), name(name), body(body) {
+    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body, SourceLocation begin, SourceLocation end)
+      : Decl(ctx, begin, end), name(name), body(body) {
       // TODO populate the three token nodes
     }
     ~FunctionDecl() {}
@@ -220,9 +229,9 @@ namespace v2 {
 
   class ForStmt : public Stmt {
   public:
-    ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *Body)
-      : Stmt(ctx), Init(Init), Cond(Cond), Inc(Inc), Body(Body) {
-      ForNode = new TokenNode(ctx, "for");
+    ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *Body, TokenNode *ForNode,
+            SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), Init(Init), Cond(Cond), Inc(Inc), Body(Body), ForNode(ForNode) {
     }
     ~ForStmt() {}
     Expr *getInit() {return Init;}
@@ -243,9 +252,9 @@ namespace v2 {
 
   class WhileStmt : public Stmt {
   public:
-    WhileStmt(ASTContext *ctx, Expr *cond, Stmt *Body)
-      : Stmt(ctx), Cond(cond), Body(Body) {
-      WhileNode = new TokenNode(ctx, "while");
+    WhileStmt(ASTContext *ctx, Expr *cond, Stmt *Body, TokenNode *WhileNode,
+              SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), Cond(cond), Body(Body), WhileNode(WhileNode) {
     }
     ~WhileStmt() {}
     Expr *getCond() {return Cond;}
@@ -262,8 +271,9 @@ namespace v2 {
 
   class DoStmt : public Stmt {
   public:
-    DoStmt(ASTContext *ctx, Expr *cond, Stmt *body)
-      : Stmt(ctx), Cond(cond), Body(body) {}
+    DoStmt(ASTContext *ctx, Expr *cond, Stmt *body, TokenNode *DoNode, TokenNode *WhileNode,
+           SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), Cond(cond), Body(body), DoNode(DoNode), WhileNode(WhileNode) {}
     ~DoStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
@@ -281,7 +291,7 @@ namespace v2 {
 
   class BreakStmt : public Stmt {
   public:
-    BreakStmt(ASTContext *ctx) : Stmt(ctx) {}
+    BreakStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~BreakStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
@@ -289,7 +299,7 @@ namespace v2 {
   };
   class ContinueStmt : public Stmt {
   public:
-    ContinueStmt(ASTContext *ctx) : Stmt(ctx) {}
+    ContinueStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~ContinueStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
@@ -297,8 +307,8 @@ namespace v2 {
   };
   class ReturnStmt : public Stmt {
   public:
-    ReturnStmt(ASTContext *ctx) : Stmt(ctx) {
-      ReturnNode = new TokenNode(ctx, "return");
+    ReturnStmt(ASTContext *ctx, TokenNode *ReturnNode, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), ReturnNode(ReturnNode) {
     }
     ~ReturnStmt() {}
     virtual void accept(Visitor *visitor) {
@@ -313,12 +323,11 @@ namespace v2 {
 
   class IfStmt : public Stmt {
   public:
-    IfStmt(ASTContext *ctx, Expr *cond, Stmt *thenstmt, Stmt *elsestmt)
-      : Stmt(ctx), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {
-      IfNode = new TokenNode(ctx, "if");
-      if (elsestmt) {
-        ElseNode = new TokenNode(ctx, "else");
-      }
+    IfStmt(ASTContext *ctx, Expr *cond, Stmt *thenstmt, Stmt *elsestmt,
+           TokenNode *IfNode, TokenNode *ElseNode,
+           SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt),
+        IfNode(IfNode), ElseNode(ElseNode) {
     }
     ~IfStmt() {}
     void setElse(Stmt *stmt) {
@@ -343,9 +352,9 @@ namespace v2 {
   class SwitchStmt : public Stmt {
   public:
     // FIXME body??
-    SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body)
-      : Stmt(ctx), Cond(cond) {
-      SwitchNode = new TokenNode(ctx, "switch");
+    SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body, TokenNode *SwitchNode,
+               SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), Cond(cond), SwitchNode(SwitchNode) {
     }
     ~SwitchStmt() {}
     void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
@@ -366,7 +375,7 @@ namespace v2 {
    */
   class SwitchCase : public Stmt {
   public:
-    SwitchCase(ASTContext *ctx) : Stmt(ctx) {}
+    SwitchCase(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~SwitchCase() {}
     void Add(Stmt *stmt) {Body.push_back(stmt);}
     std::vector<Stmt*> getBody() {return Body;}
@@ -389,8 +398,8 @@ namespace v2 {
    */
   class CaseStmt : public SwitchCase {
   public:
-    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx), Cond(cond) {
-      CaseNode = new TokenNode(ctx, "case");
+    CaseStmt(ASTContext *ctx, Expr *cond, TokenNode *CaseNode, SourceLocation begin, SourceLocation end)
+      : SwitchCase(ctx, begin, end), Cond(cond), CaseNode(CaseNode) {
     }
     ~CaseStmt() {}
     virtual void accept(Visitor *visitor) {
@@ -399,14 +408,14 @@ namespace v2 {
     TokenNode *getCaseNode() {return CaseNode;}
     Expr *getCond() {return Cond;}
   private:
-    TokenNode *CaseNode = nullptr;
     Expr *Cond = nullptr;
+    TokenNode *CaseNode = nullptr;
   };
 
   class DefaultStmt : public SwitchCase {
   public:
-    DefaultStmt(ASTContext *ctx) : SwitchCase(ctx) {
-      DefaultNode = new TokenNode(ctx, "default");
+    DefaultStmt(ASTContext *ctx, TokenNode *DefaultNode, SourceLocation begin, SourceLocation end)
+      : SwitchCase(ctx, begin, end), DefaultNode(DefaultNode) {
     }
     ~DefaultStmt() {}
     virtual void accept(Visitor *visitor) {
@@ -423,7 +432,8 @@ namespace v2 {
 
   class Expr : public ASTNodeBase {
   public:
-    Expr(ASTContext *ctx, std::string text) : ASTNodeBase(ctx) {}
+    Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end) {}
     ~Expr() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);

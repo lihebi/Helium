@@ -168,7 +168,8 @@ public:
   virtual void visit(v2::Expr *expr);
 private:
   int id = 0;
-  std::map<v2::ASTNodeBase*,int> IdMap;
+  std::map<v2::ASTNodeBase*,int> IdMap; // ID start from 0
+  std::vector<v2::ASTNodeBase*> Tokens; // this is actually ID->Node implemented in vector
 };
 
 #endif /* VISITOR_H */

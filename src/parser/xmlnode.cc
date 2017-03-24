@@ -1015,6 +1015,9 @@ XMLNode switch_get_block(XMLNode node) {
 XMLNode do_get_condition_expr(XMLNode node) {
   return node.child("condition").child("expr");
 }
+XMLNode do_get_condition(XMLNode node) {
+  return node.child("condition");
+}
 XMLNode do_get_block(XMLNode node) {
   return node.child("block");
 }

@@ -188,6 +188,7 @@ XMLNode switch_get_block(XMLNode node);
 // NodeList switch_get_content(Node node);
 // do
 XMLNode do_get_condition_expr(XMLNode);
+XMLNode do_get_condition(XMLNode node);
 XMLNode do_get_block(XMLNode);
 
 // while

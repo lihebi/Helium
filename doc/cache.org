@@ -93,7 +93,8 @@ I'll also implement a visitor called =TokenVisitor= that visitor all
 the tokens of AST, and assign the IDs for each of them.
 
 
-*** TODO SourceRange
+*** DONE SourceRange
+    CLOSED: [2017-03-24 Fri 12:40]
 To get the location, I'll add =SourceRange= class and add instances to
 each of the AST Nodes (including the =TokenNode=).
 

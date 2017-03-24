@@ -361,15 +361,6 @@ get_node_line(pugi::xml_node node) {
   return -1;
 }
 
-/**
- * node is in some srcml document.
- * From the root of node, find the first node on linum.
- * TODO NOW
- * FIXME test it.
- */
-// pugi::xml_node get_node_on_line(pugi::xml_node node, int linum) {
-//   pugi::xml_node node = node.select_node("//*[@pos:line="+linum+"]").node();
-// }
 
 
 /*
@@ -393,6 +384,53 @@ get_node_last_line(pugi::xml_node node) {
   }
   return -1;
 }
+
+std::pair<int, int> get_node_position(pugi::xml_node node) {
+  std::string line_str = node.attribute("pos:line").value();
+  std::string column_str = node.attribute("pos:column").value();
+  if (line_str.empty() || column_str.empty()) {
+    return std::make_pair(-1,-1);
+  }
+  return std::make_pair(stoi(line_str), stoi(column_str));
+}
+
+std::pair<int, int> get_node_begin_position(pugi::xml_node node) {
+  assert(node);
+  assert(node.root().child("unit").attribute("xmlns:pos"));
+  int line = -1;
+  int column = -1;
+  if (node.attribute("pos:line")) {
+    // return atoi(node.attribute("pos:line").value());
+    line = atoi(node.attribute("pos:line").value());
+    column = atoi(node.attribute("pos:column").value());
+  } else {
+    pugi::xml_node n = node.select_node(".//*[@pos:line]").node();
+    if (n) {
+      // return atoi(n.attribute("pos:line").value());
+      line = atoi(n.attribute("pos:line").value());
+      column = atoi(n.attribute("pos:column").value());
+    }
+  }
+  return std::make_pair(line, column);
+}
+
+std::pair<int, int> get_node_end_position(pugi::xml_node node) {
+  assert(node);
+  assert(node.root().child("unit").attribute("xmlns:pos"));
+  pugi::xml_node n = node.select_node("(.//*[@pos:line])[last()]").node();
+  int line = -1;
+  int column = -1;
+  if (n) {
+    line = atoi(n.attribute("pos:line").value());
+    column = atoi(n.attribute("pos:column").value());
+  } else if (node.attribute("pos:line")) {
+    line = atoi(node.attribute("pos:line").value());
+    column = atoi(node.attribute("pos:column").value());
+  }
+  return std::make_pair(line, column);
+}
+
+
 
 /**
  * Disabled because absolute path

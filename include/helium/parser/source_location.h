@@ -7,22 +7,23 @@
  */
 class SourceLocation {
 public:
-  SourceLocation() {}
+  SourceLocation(int line, int column)
+    : line(line), column(column) {}
   ~SourceLocation() {}
 private:
   int line = -1;
   int column = -1;
 };
 
-class SourceRange {
-public:
-  SourceRange() {}
-  ~SourceRange() {}
-  SourceLocation getBegin() {return Begin;}
-  SourceLocation getEnd() {return End;}
-private:
-  SourceLocation Begin;
-  SourceLocation End;
-};
+// class SourceRange {
+// public:
+//   SourceRange() {}
+//   ~SourceRange() {}
+//   SourceLocation getBegin() {return Begin;}
+//   SourceLocation getEnd() {return End;}
+// private:
+//   SourceLocation Begin;
+//   SourceLocation End;
+// };
 
 #endif /* SOURCE_LOCATION_H */

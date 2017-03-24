@@ -52,6 +52,10 @@ bool in_node(XMLNode node, XMLNodeKind kind);
 int get_node_line(pugi::xml_node node);
 int get_node_last_line(pugi::xml_node node);
 
+std::pair<int, int> get_node_position(pugi::xml_node node);
+std::pair<int, int> get_node_begin_position(pugi::xml_node node);
+std::pair<int, int> get_node_end_position(pugi::xml_node node);
+
 /*******************************
  ** find nodes
  *******************************/

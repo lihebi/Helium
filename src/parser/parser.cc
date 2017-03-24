@@ -32,13 +32,23 @@ TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
       decls.push_back(func);
     }
   }
+
+  // get the source location of unit
+  std::pair<int, int> begin = get_node_begin_position(unit);
+  std::pair<int, int> end = get_node_end_position(unit);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
   // std::cout << decls.size() << "\n";
-  return new TranslationUnitDecl(Ctx, decls);
+  return new TranslationUnitDecl(Ctx, decls, BeginLoc, EndLoc);
 }
 
 DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
   std::string text = get_text(decl);
-  return new DeclStmt(Ctx, text);
+  std::pair<int, int> begin = get_node_begin_position(decl);
+  std::pair<int, int> end = get_node_end_position(decl);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new DeclStmt(Ctx, text, BeginLoc, EndLoc);
 }
 
 FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
@@ -46,12 +56,20 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   XMLNode block = node.child("block");
   CompoundStmt *comp = ParseCompoundStmt(block);
   std::string name = function_get_name(node);
-  return new FunctionDecl(Ctx, name, comp);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new FunctionDecl(Ctx, name, comp, BeginLoc, EndLoc);
 }
 
 CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
   match(node, "block");
-  CompoundStmt *ret = new CompoundStmt(Ctx);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  CompoundStmt *ret = new CompoundStmt(Ctx, BeginLoc, EndLoc);
   for (XMLNode n : element_children(node)) {
     std::string NodeName = n.name();
     Stmt *stmt = ParseStmt(n);
@@ -65,6 +83,10 @@ CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
  */
 Stmt *Parser::ParseStmt(XMLNode node) {
   std::string NodeName = node.name();
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
   Stmt *ret = nullptr;
   if (NodeName == "decl_stmt") {
     ret = ParseDeclStmt(node);
@@ -80,11 +102,14 @@ Stmt *Parser::ParseStmt(XMLNode node) {
   } else if (NodeName == "while") {
     ret = ParseWhileStmt(node);
   } else if (NodeName == "break") {
-    ret = new BreakStmt(Ctx);
+    ret = new BreakStmt(Ctx, BeginLoc, EndLoc);
   } else if (NodeName == "continue") {
-    ret = new ContinueStmt(Ctx);
+    ret = new ContinueStmt(Ctx, BeginLoc, EndLoc);
   } else if (NodeName == "return") {
-    ret = new ReturnStmt(Ctx);
+    SourceLocation TokenBeginLoc(begin.first, begin.second);
+    SourceLocation TokenEndLoc(begin.first, begin.second + strlen("return"));
+    TokenNode *ReturnNode = new TokenNode(Ctx, "return", TokenBeginLoc, TokenEndLoc);
+    ret = new ReturnStmt(Ctx, ReturnNode, BeginLoc, EndLoc);
   }
   return ret;
 }
@@ -120,7 +145,25 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   if (elsenode) {
     elsestmt = ParseBlockAsStmt(elsenode.child("block"));
   }
-  return new IfStmt(Ctx, condexpr, thenstmt, elsestmt);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+
+  // TokenNode
+  std::pair<int, int> if_begin = get_node_begin_position(node);
+  SourceLocation IfNodeBegin(if_begin.first, if_begin.second);
+  SourceLocation IfNodeEnd(if_begin.first, if_begin.second + strlen("if"));
+  TokenNode *IfNode = new TokenNode(Ctx, "if", IfNodeBegin, IfNodeEnd);
+  
+  TokenNode *ElseNode = nullptr;
+  if (elsestmt) {
+    std::pair<int,int> else_begin = get_node_begin_position(elsenode);
+    SourceLocation ElseNodeBegin(else_begin.first, else_begin.second);
+    SourceLocation ElseNodeEnd(else_begin.first, else_begin.second + strlen("else"));
+    ElseNode = new TokenNode(Ctx, "else", ElseNodeBegin, ElseNodeEnd);
+  }
+  return new IfStmt(Ctx, condexpr, thenstmt, elsestmt, IfNode, ElseNode, BeginLoc, EndLoc);
 }
 
 /**
@@ -162,7 +205,17 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
 SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
   match(node, "switch");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
-  SwitchStmt *ret = new SwitchStmt(Ctx, cond, NULL);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+
+  // SwitchNode
+  SourceLocation SwitchNodeBegin(begin.first, begin.second);
+  SourceLocation SwitchNodeEnd(begin.first, begin.second + strlen("switch"));
+  TokenNode *SwitchNode = new TokenNode(Ctx, "switch", SwitchNodeBegin, SwitchNodeEnd);
+  
+  SwitchStmt *ret = new SwitchStmt(Ctx, cond, NULL, SwitchNode, BeginLoc, EndLoc);
   for(XMLNode c : node.child("block").children("case")) {
     CaseStmt *casestmt = ParseCaseStmt(c);
     ret->AddCase(casestmt);
@@ -183,7 +236,15 @@ SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
  */
 CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   Expr *cond = ParseExpr(node.child("expr"));
-  CaseStmt *ret = new CaseStmt(Ctx, cond);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  // CaseNode
+  SourceLocation CaseNodeBegin(begin.first, begin.second);
+  SourceLocation CaseNodeEnd(begin.first, begin.second = strlen("case"));
+  TokenNode *CaseNode = new TokenNode(Ctx, "case", CaseNodeBegin, CaseNodeEnd);
+  CaseStmt *ret = new CaseStmt(Ctx, cond, CaseNode, BeginLoc, EndLoc);
   XMLNode n = node;
   while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
@@ -195,7 +256,16 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
   return ret;
 }
 DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
-  DefaultStmt *ret = new DefaultStmt(Ctx);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  // DefaultNode
+  SourceLocation DefaultNodeBegin(begin.first, begin.second);
+  SourceLocation DefaultNodeEnd(begin.first, begin.second + strlen("default"));
+  TokenNode *DefaultNode = new TokenNode(Ctx, "default", DefaultNodeBegin, DefaultNodeEnd);
+  
+  DefaultStmt *ret = new DefaultStmt(Ctx, DefaultNode, BeginLoc, EndLoc);
   XMLNode n = node;
   while ((n = next_element_sibling(n))) {
     if (std::string(n.name()) == "case" ||
@@ -205,13 +275,6 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
     ret->Add(ParseStmt(n));
   }
   return ret;
-}
-
-WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
-  match(node, "while");
-  Expr *cond = ParseExpr(while_get_condition_expr(node));
-  Stmt *body = ParseBlockAsStmt(while_get_block(node));
-  return new WhileStmt(Ctx, cond, body);
 }
 
 /**
@@ -238,20 +301,69 @@ ForStmt *Parser::ParseForStmt(XMLNode node) {
   Expr *cond = ParseExpr(node.child("control").child("condition"));
   Expr *inc = ParseExpr(node.child("control").child("incr"));
   Stmt *block = ParseBlockAsStmt(node.child("block"));
-  return new ForStmt(Ctx, init, cond, inc, block);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+
+  // make up for for token
+  SourceLocation TokenBeginLoc(begin.first, begin.second);
+  SourceLocation TokenEndLoc(begin.first, begin.second + strlen("for"));
+  TokenNode *ForNode = new TokenNode(Ctx, "for", TokenBeginLoc, TokenEndLoc);
+  
+  return new ForStmt(Ctx, init, cond, inc, block, ForNode, BeginLoc, EndLoc);
 }
+
+WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
+  match(node, "while");
+  Expr *cond = ParseExpr(while_get_condition_expr(node));
+  Stmt *body = ParseBlockAsStmt(while_get_block(node));
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  // WhileNode
+  SourceLocation TokenBeginLoc(begin.first, begin.second);
+  SourceLocation TokenEndLoc(begin.first, begin.second + strlen("while"));
+  TokenNode *WhileNode = new TokenNode(Ctx, "while", TokenBeginLoc, TokenEndLoc);
+  return new WhileStmt(Ctx, cond, body, WhileNode, BeginLoc, EndLoc);
+}
+
 
 DoStmt *Parser::ParseDoStmt(XMLNode node) {
   match(node, "do");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
   Stmt *block = ParseBlockAsStmt(node.child("block"));
-  return new DoStmt(Ctx, cond, block);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+
+  // DoNode
+  SourceLocation TokenBeginLoc(begin.first, begin.second);
+  SourceLocation TokenEndLoc(begin.first, begin.second + strlen("do"));
+  TokenNode *DoNode = new TokenNode(Ctx, "do", TokenBeginLoc, TokenEndLoc);
+
+  // WhileNode: this is not precise
+  XMLNode blockNode = do_get_block(node);
+  XMLNode condNode = do_get_condition(node);
+  std::pair<int, int> block_end = get_node_end_position(blockNode);
+  SourceLocation WhileBeginLoc(block_end.first, block_end.second);
+  std::pair<int, int> cond_begin = get_node_begin_position(condNode);
+  SourceLocation WhileEndLoc(cond_begin.first, cond_begin.second);
+  TokenNode *WhileNode = new TokenNode(Ctx, "while", WhileBeginLoc, WhileEndLoc);
+  
+  return new DoStmt(Ctx, cond, block, DoNode, WhileNode, BeginLoc, EndLoc);
 }
 
 Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
   match(node, "expr");
-  return new Expr(Ctx, get_text(node));
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
 }
 
 

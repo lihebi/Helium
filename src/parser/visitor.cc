@@ -273,6 +273,7 @@ void Printer::visit(Expr *expr){
 
 void TokenVisitor::visit(v2::TokenNode *token) {
   IdMap[token] = id;
+  Tokens.push_back(token);
   id++;
 }
 void TokenVisitor::visit(v2::TranslationUnitDecl *unit) {
@@ -293,10 +294,12 @@ void TokenVisitor::visit(v2::FunctionDecl *function) {
 }
 void TokenVisitor::visit(v2::DeclStmt *decl_stmt) {
   IdMap[decl_stmt] = id;
+  Tokens.push_back(decl_stmt);
   id++;
 }
 void TokenVisitor::visit(v2::ExprStmt *expr_stmt) {
   IdMap[expr_stmt] = id;
+  Tokens.push_back(expr_stmt);
   id++;
 }
 void TokenVisitor::visit(v2::CompoundStmt *comp_stmt) {
@@ -337,14 +340,17 @@ void TokenVisitor::visit(v2::DoStmt *do_stmt) {
 }
 void TokenVisitor::visit(v2::BreakStmt *break_stmt) {
   IdMap[break_stmt] = id;
+  Tokens.push_back(break_stmt);
   id++;
 }
 void TokenVisitor::visit(v2::ContinueStmt *cont_stmt) {
   IdMap[cont_stmt] = id;
+  Tokens.push_back(cont_stmt);
   id++;
 }
 void TokenVisitor::visit(v2::ReturnStmt *ret_stmt) {
   IdMap[ret_stmt] = id;
+  Tokens.push_back(ret_stmt);
   id++;
 }
 void TokenVisitor::visit(v2::IfStmt *if_stmt) {
@@ -387,5 +393,6 @@ void TokenVisitor::visit(v2::DefaultStmt *def_stmt) {
 }
 void TokenVisitor::visit(v2::Expr *expr) {
   IdMap[expr] = id;
+  Tokens.push_back(expr);
   id++;
 }
