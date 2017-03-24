@@ -15,6 +15,7 @@
 
 class SourceManager;
 
+
 namespace v2 {
 
   class TranslationUnitDecl;
@@ -25,6 +26,14 @@ namespace v2 {
   class DeclStmt;
   class ASTNodeBase;
   
+  /**
+   * \addtogroup ast
+   * \ingroup parser
+   *
+   * ast group is a subgroup of parser group
+   * @{
+   */
+
   /**
    * You can get TranslationUnitDecl from this
    * This also contains the source manager
@@ -346,5 +355,10 @@ namespace v2 {
     }
   };
 
+  /** @}*/
+
 }
+
+
+
 #endif /* AST_V2_H */

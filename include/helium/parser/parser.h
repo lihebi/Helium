@@ -5,6 +5,17 @@
 #include <string>
 #include "helium/parser/xmlnode.h"
 
+/**
+ * \defgroup parser
+ * Parser converts source code to AST. When consuming srcml output, we convert that output to AST.
+ */
+
+/**
+ * \ingroup parser
+ * \brief Parser for SrcML.
+ *
+ * This is the only place related to SrcML (hopefully)
+ */
 class Parser {
 public:
   Parser(std::string filename);

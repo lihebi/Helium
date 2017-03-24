@@ -13,6 +13,9 @@
 namespace fs = boost::filesystem;
 
 
+/**
+ * \ingroup parser
+ */
 class SourceManager {
 public:
   /**

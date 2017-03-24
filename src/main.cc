@@ -22,6 +22,8 @@
 
 #include <gtest/gtest.h>
 
+
+
 namespace fs = boost::filesystem;
 
 using std::vector;
@@ -412,6 +414,11 @@ int deprecated_show_instrument_code() {
   return 0;
 }
 
+/**
+ * \mainpage Helium Reference Manual
+ *
+ * You might want to browse the important classes. The modules page shows some grouped classes.
+ */
 int main(int argc, char* argv[]) {
   utils::seed_rand();
   const char *home = getenv("HOME");

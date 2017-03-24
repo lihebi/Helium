@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 
+
 namespace v2 {
   class ASTNodeBase;
   class TranslationUnitDecl;
@@ -29,6 +30,18 @@ namespace v2 {
   class Expr;
 }
 
+
+/**
+ * \defgroup visitor
+ * \ingroup parser
+ * Visitors for AST
+ */
+
+/**
+ * \ingroup visitor
+ *
+ * visitor interface
+ */
 class Visitor {
 public:
   Visitor() {}
@@ -57,6 +70,8 @@ public:
 
 /**
  * compute the levels
+ *
+ * \ingroup visitor
  */
 class LevelVisitor : public Visitor {
 public:
@@ -92,6 +107,7 @@ private:
 };
 
 /**
+ * \ingroup visitor
  *  use this to replace the dump method
  */
 class Printer : public  Visitor {
