@@ -37,6 +37,9 @@ public:
     return this->line == rhs.line && this->column == rhs.column;
   }
   friend std::ostream& operator<<(std::ostream &os, const SourceLocation &loc);
+  
+  int getLine() {return line;}
+  int getColumn() {return column;}
 private:
   int line = -1;
   int column = -1;

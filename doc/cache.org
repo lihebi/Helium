@@ -142,6 +142,76 @@ line column
 *** TODO random selection of distribution
 - for random generate of selection with consideration of distribution
 
+tokens
+| token ID | file | token Loc | scopes |
+|----------+------+-----------+--------|
+|        3 | a.c  | (3,8)     |        |
+
+relation
+| token ID | scope ID |
+|----------+----------|
+|        3 |        1 |
+|        3 |        2 |
+
+scopes
+
+| scope ID | scope name | file | loc               |
+|----------+------------+------+-------------------|
+|        1 | if         | a.c  | if.beginLoc       |
+|        2 | while      | a.c  | while.beginLoc    |
+|        3 | function   | a.c  | function.beginLoc |
+
+Given these three tables as "distribution table", given a selection of
+#+BEGIN_EXAMPLE
+# file
+line column
+line column
+line column
+line column
+#+END_EXAMPLE
+
+- First convert it to token IDs.
+- Then find scope IDss
+- Input distribution requirement:
+  - # of tokens
+  - # in if
+  - # in while
+  - # in function
+  - in same function
+  - in same if
+  - in same while
+  - in same file
+  - in different file
+- Generate approach
+  - Interactive
+    - random select token IDs
+    - see if it satisfy the requirement, if not, remove /extra/, and generate more to feed
+  - another approach (prefered): generate many, simply check requirement, select good ones
+
+The report:
+
+| # tokens | # function | # if | # while | # |
+|----------+------------+------+---------+---|
+|        2 |            |      |         |   |
+|        3 |            |      |         |   |
+|        4 |            |      |         |   |
+|        5 |            |      |         |   |
+
+raw data format:
+
+| #tok | #patch | #file | #per(file) | #proc | #per(proc) | #if | #per(if) | #loop | #per(loop) | # switch | #per(switch) | result |
+|------+--------+-------+------------+-------+------------+-----+----------+-------+------------+----------+--------------+--------|
+|      |        |       |            |       |            |     |          |       |            |          |              |        |
+
+- metrics
+  - while
+  - for
+  - do
+  - if
+  - switch
+  - proc
+  - file
+
 *** TODO Generator
 Another visitor, the Generator, visit each node and output program. This is also very tricky:
 - If I use SrcML's XML structure to generate, it is hard to "remove" something

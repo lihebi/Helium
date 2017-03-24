@@ -36,13 +36,46 @@ public:
   // }
   // void dumpTokens();
   void dumpASTs();
-  void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
+  // void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
+  void select(std::set<v2::ASTNodeBase*> selection) {
+    this->selection = selection;
+  }
+  std::set<v2::ASTNodeBase*> generateRandomSelection();
 
   /**
    * Perform grammar patch based on this->selection.
    * Thus you need to call select first.
    */
   void grammarPatch();
+
+  /**
+   * DEPRECATED
+   * Get the UUID of a node.
+   * This will be: filename_ID
+   * If the node is an internal node of AST, the ID will be -1
+   */
+  std::string getTokenUUID(v2::ASTNodeBase* node);
+  fs::path getTokenFile(v2::ASTNodeBase* node);
+  int getTokenId(v2::ASTNodeBase* node);
+  /**
+   * Dump selection into a file, and can be later load.
+   * The dump information is more than the hand written one. It will contain the ID of the token.
+   * The format will be:
+   *
+   * #file
+   * line column ID
+   * line column
+   */
+  void dumpSelection(std::ostream &os, std::set<v2::ASTNodeBase*> selection);
+  /**
+   * load selection from file.
+   * The format is:
+   *
+   * #file
+   * line column
+   * line column
+   */
+  std::set<v2::ASTNodeBase*> loadSelection(fs::path sel_file);
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
@@ -57,6 +90,10 @@ private:
 
   std::map<fs::path, v2::ASTContext*> File2ASTMap;
   std::map<v2::ASTContext*, fs::path> AST2FileMap;
+
+  // token visitor, always available because it is useful
+  std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+  
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;
 

@@ -194,6 +194,10 @@ public:
   virtual void visit(v2::Expr *expr, void *data=nullptr);
   std::vector<v2::ASTNodeBase*> getTokens() {return Tokens;}
   std::map<v2::ASTNodeBase*,int> getIdMap() {return IdMap;}
+  int getId(v2::ASTNodeBase *node) {
+    if (IdMap.count(node) == 1) return IdMap[node];
+    return -1;
+  }
 private:
   int id = 0;
   std::map<v2::ASTNodeBase*,int> IdMap; // ID start from 0
@@ -250,6 +254,7 @@ public:
   ~StandAloneGrammarPatcher() {}
   void process();
   std::set<v2::ASTNodeBase*> matchMin(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> sel);
+  std::set<v2::ASTNodeBase*> getPatch() {return patch;}
 private:
   v2::ASTContext *AST = nullptr;
   std::set<v2::ASTNodeBase*> selection;

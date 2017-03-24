@@ -3,6 +3,8 @@
 #include "helium/parser/parser.h"
 #include "helium/utils/string_utils.h"
 
+#include "helium/utils/rand_utils.h"
+
 using namespace v2;
 
 using std::string;
@@ -98,8 +100,105 @@ fs::path SourceManager::matchFile(fs::path file) {
   return ret;
 }
 
-void SourceManager::select(std::map<std::string, std::set<std::pair<int,int> > > selection) {
-  // TODO lcoate which AST(s)
+void SourceManager::grammarPatch() {
+  std::cout << "Doing grammar patching on " << selection.size() << " selected tokens .." << "\n";
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    StandAloneGrammarPatcher *patcher = new StandAloneGrammarPatcher(ast, selection);
+    patcher->process();
+    set<ASTNodeBase*> patch = patcher->getPatch();
+    // FIXME examine the result
+  }
+}
+
+
+std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
+  // Here I can enforce some criteria, such as intro-procedure
+  set<ASTNodeBase*> ret;
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TokenVisitor *tokenVisitor = new TokenVisitor();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(tokenVisitor);
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    // random select some tokens
+    // vector<ASTNodeBase*> token_vector(tokens.begin(), tokens.end());
+    // first, random get # of tokens
+    // Then, random get tokens
+    int num = utils::rand_int(0, tokens.size());
+    while (ret.size() < num) {
+      int idx = utils::rand_int(0, tokens.size());
+      ret.insert(tokens[idx]);
+    }
+  }
+  return ret;
+}
+
+std::string SourceManager::getTokenUUID(v2::ASTNodeBase* node) {
+  ASTContext *ast = node->getASTContext();
+  std::string ret;
+  if (AST2FileMap.count(ast) == 0) {
+    return "";
+  }
+  fs::path file = AST2FileMap[ast];
+  ret += file.string();
+  TokenVisitor *tokenVisitor = AST2TokenVisitorMap[ast];
+  int id = tokenVisitor->getId(node);
+  ret += "_" + std::to_string(id);
+  return ret;
+}
+
+fs::path SourceManager::getTokenFile(v2::ASTNodeBase* node) {
+  ASTContext *ast = node->getASTContext();
+  std::string ret;
+  if (AST2FileMap.count(ast) == 1) {
+    return AST2FileMap[ast];
+  }
+  return fs::path("");
+}
+int SourceManager::getTokenId(v2::ASTNodeBase* node) {
+  ASTContext *ast = node->getASTContext();
+  if (AST2TokenVisitorMap.count(ast) != 0) {
+    TokenVisitor *tokenVisitor = AST2TokenVisitorMap[ast];
+    return tokenVisitor->getId(node);
+  }
+  return -1;
+}
+
+
+
+std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
+  map<string, set<pair<int,int> > > selection;
+  if (fs::exists(sel_file)) {
+    // this is a list of IDs
+    std::ifstream is;
+    is.open(sel_file.string());
+    if (is.is_open()) {
+      // int line,column;
+      // while (is >> line >> column) {
+      //   selection.insert(std::make_pair(line, column));
+      // }
+      std::string line;
+      std::string file;
+      set<int> sel;
+      while (std::getline(is, line)) {
+        utils::trim(line);
+        if (line.empty()) {
+          continue;
+        } else if (line[0] == '#') {
+          file = line.substr(1);
+          utils::trim(file);
+        } else {
+          vector<string> v = utils::split(line);
+          if (v.size() == 2) {
+            selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
+          }
+        }
+      }
+    }
+  }
+
+  set<ASTNodeBase*> ret;
   for (auto sel : selection) {
     fs::path file = matchFile(sel.first);
     if (!file.empty()) {
@@ -134,16 +233,32 @@ void SourceManager::select(std::map<std::string, std::set<std::pair<int,int> > >
             Printer printer(os);
             token->accept(&printer);
             std::cout << "Found selected token: " << os.str() << "\n";
-            this->selection.insert(token);
+            ret.insert(token);
           }
         }
       }
     }
   }
   // maybe here: get/set the distribution information
-  std::cout << "Total selected tokens: " << this->selection.size() << "\n";
+  std::cout << "Total selected tokens: " << ret.size() << "\n";
+  return ret;
 }
 
-void SourceManager::grammarPatch() {
-  std::cout << "Doing grammar patching on " << selection.size() << " selected tokens .." << "\n";
+
+void SourceManager::dumpSelection(std::ostream &os, std::set<v2::ASTNodeBase*> selection) {
+  // dump to os
+  for (auto &m : AST2TokenVisitorMap) {
+    ASTContext *ast = m.first;
+    TokenVisitor *tokenVisitor = m.second;
+    fs::path file = AST2FileMap[ast];
+    // output filename
+    os << "# " << file.string() << "\n";
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    for (ASTNodeBase *token : tokens) {
+      if (selection.count(token) == 1) {
+        SourceLocation loc = token->getBeginLoc();
+        os << loc.getLine() << " " << loc.getColumn() << " " << tokenVisitor->getId(token) << "\n";
+      }
+    }
+  }
 }

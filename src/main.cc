@@ -551,45 +551,22 @@ int main(int argc, char* argv[]) {
 
   if (HeliumOptions::Instance()->Has("selection")) {
     fs::path sel = HeliumOptions::Instance()->GetString("selection");
-    // std::set<std::pair<int,int> > selection; // selection of (line,column) pairs
-    map<string, set<pair<int,int> > > selection;
-    if (fs::exists(sel)) {
-      // this is a list of IDs
-      std::ifstream is;
-      is.open(sel.string());
-      if (is.is_open()) {
-        // int line,column;
-        // while (is >> line >> column) {
-        //   selection.insert(std::make_pair(line, column));
-        // }
-        std::string line;
-        std::string file;
-        set<int> sel;
-        while (std::getline(is, line)) {
-          utils::trim(line);
-          if (line.empty()) {
-            continue;
-          } else if (line[0] == '#') {
-            file = line.substr(1);
-            utils::trim(file);
-          } else {
-            vector<string> v = utils::split(line);
-            if (v.size() == 2) {
-              selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
-            }
-          }
-        }
-      }
-      // now we got ids, and we can start to run Helium!
-      std::cout << "Got " << selection.size() << " in the selection." << "\n";
-      std::cout << "Running Helium .." << "\n";
-      // TODO run Helium
-      std::cout << "Mapping to AST nodes .." << "\n";
-      // TokenVisitor *tokenVisitor = new TokenVisitor();
-      SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
-      sourceManager->select(selection);
-    }
+    // now we got ids, and we can start to run Helium!
+    SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+    std::set<v2::ASTNodeBase*> selection = sourceManager->loadSelection(sel);
+    sourceManager->select(selection);
+    std::cout << "Run grammar patching .." << "\n";
+    sourceManager->grammarPatch();
+    std::cout << "Done" << "\n";
     exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("random-selection")) {
+    // generate random selection
+    // and output to standard output (can be load back)
+    SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+    std::set<v2::ASTNodeBase*> selection = sourceManager->generateRandomSelection();
+    sourceManager->dumpSelection(std::cout, selection);
   }
 
 
