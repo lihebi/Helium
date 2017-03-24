@@ -166,6 +166,8 @@ public:
   virtual void visit(v2::CaseStmt *case_stmt);
   virtual void visit(v2::DefaultStmt *def_stmt);
   virtual void visit(v2::Expr *expr);
+  std::vector<v2::ASTNodeBase*> getTokens() {return Tokens;}
+  std::map<v2::ASTNodeBase*,int> getIdMap() {return IdMap;}
 private:
   int id = 0;
   std::map<v2::ASTNodeBase*,int> IdMap; // ID start from 0

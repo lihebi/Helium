@@ -102,10 +102,31 @@ The process is as follows:
 - TokenVisitor is called, and assign IDs for all tokens
 - Build a map for ID <-> SourceRange
 
-*** TODO Test Selection Process
+*** DONE Test Selection Process
+    CLOSED: [2017-03-24 Fri 14:29]
 The selection process:
 - for test, I list a list of source location
 - helium read the location and map to the IDs. Using the IDs, it then map to the AST nodes
+
+Selection.txt format:
+- if filename start from a _, assume it is a folder
+- The source file name in SourceManager will be:
+  - target cache dir / "cpp"
+  - relative path, e.g. src_a.c
+  - will match the file name by a suffix
+    - if src/a.c and a.c dep/src/a.c all exists, and provide name:
+    - a.c :: will match a.c
+    - src_a.c :: will match src/a.c
+    - dep_src_a.c :: will match dep/src/a.c
+#+BEGIN_EXAMPLE
+# src/a.c
+line column
+line column
+# dep/libc/b.c
+line column
+# x.c
+#+END_EXAMPLE
+
 *** TODO GrammarPatcher
 - I'll have another visitor called GrammarPatcher that, well this is
   tricky, goes from bottom to top of AST.

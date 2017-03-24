@@ -28,6 +28,9 @@ namespace fs = boost::filesystem;
 
 using std::vector;
 using std::string;
+using std::set;
+using std::map;
+using std::pair;
 
 static void
 create_tagfile(const std::string& folder, const std::string& file) {
@@ -548,22 +551,43 @@ int main(int argc, char* argv[]) {
 
   if (HeliumOptions::Instance()->Has("selection")) {
     fs::path sel = HeliumOptions::Instance()->GetString("selection");
+    // std::set<std::pair<int,int> > selection; // selection of (line,column) pairs
+    map<string, set<pair<int,int> > > selection;
     if (fs::exists(sel)) {
       // this is a list of IDs
       std::ifstream is;
-      std::set<int> ids;
       is.open(sel.string());
       if (is.is_open()) {
-        int id=-1;
-        while (is) {
-          is >> id;
+        // int line,column;
+        // while (is >> line >> column) {
+        //   selection.insert(std::make_pair(line, column));
+        // }
+        std::string line;
+        std::string file;
+        set<int> sel;
+        while (std::getline(is, line)) {
+          utils::trim(line);
+          if (line.empty()) {
+            continue;
+          } else if (line[0] == '#') {
+            file = line.substr(1);
+            utils::trim(file);
+          } else {
+            vector<string> v = utils::split(line);
+            if (v.size() == 2) {
+              selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
+            }
+          }
         }
-        ids.insert(id);
       }
       // now we got ids, and we can start to run Helium!
-      std::cout << "Got " << ids.size() << " IDs in the selection." << "\n";
+      std::cout << "Got " << selection.size() << " in the selection." << "\n";
       std::cout << "Running Helium .." << "\n";
       // TODO run Helium
+      std::cout << "Mapping to AST nodes .." << "\n";
+      // TokenVisitor *tokenVisitor = new TokenVisitor();
+      SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+      sourceManager->select(selection);
     }
     exit(0);
   }

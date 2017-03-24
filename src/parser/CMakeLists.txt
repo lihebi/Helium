@@ -4,6 +4,7 @@ add_library(HeliumParser
   parser.cc
   grammar_patching.cc
   source_manager.cc
+  source_location.cc
   visitor.cc
 
   

@@ -36,11 +36,21 @@ public:
   // }
   // void dumpTokens();
   void dumpASTs();
+  void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
 private:
+  /**
+   * Match a file in files and return the best match. Empty if no match.
+   */
+  fs::path matchFile(fs::path file);
   // this class holds all ASTs
   // it also determines the ID of ast nodes
   // each AST node should have an unique ID
-  std::vector<v2::ASTContext*> ASTs;
+  // std::vector<v2::ASTContext*> ASTs;
+  fs::path cppfolder;
+  // std::vector<fs::path> files;
+
+  std::map<fs::path, v2::ASTContext*> File2ASTMap;
+  std::map<v2::ASTContext*, fs::path> AST2FileMap;
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;
 };

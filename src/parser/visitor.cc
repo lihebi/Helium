@@ -356,6 +356,8 @@ void TokenVisitor::visit(v2::ReturnStmt *ret_stmt) {
 void TokenVisitor::visit(v2::IfStmt *if_stmt) {
   TokenNode *token = if_stmt->getIfNode();
   if (token) token->accept(this);
+  Expr *expr = if_stmt->getCond();
+  if (expr) expr->accept(this);
   Stmt *then_stmt = if_stmt->getThen();
   if (then_stmt) then_stmt->accept(this);
   token = if_stmt->getElseNode();
