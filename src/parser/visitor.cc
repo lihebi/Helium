@@ -266,3 +266,126 @@ void Printer::visit(DefaultStmt *def_stmt){
 void Printer::visit(Expr *expr){
   os << "(expr_stmt)";
 }
+
+
+
+
+
+void TokenVisitor::visit(v2::TokenNode *token) {
+  IdMap[token] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::TranslationUnitDecl *unit) {
+  std::vector<ASTNodeBase*> nodes = unit->getDecls();
+  for (ASTNodeBase *node : nodes) {
+    if (node) node->accept(this);
+  }
+}
+void TokenVisitor::visit(v2::FunctionDecl *function) {
+  TokenNode *token = function->getReturnTypeNode();
+  if (token) token->accept(this);
+  token = function->getNameNode();
+  if (token) token->accept(this);
+  token = function->getParamNode();
+  if (token) token->accept(this);
+  Stmt *body = function->getBody();
+  body->accept(this);
+}
+void TokenVisitor::visit(v2::DeclStmt *decl_stmt) {
+  IdMap[decl_stmt] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::ExprStmt *expr_stmt) {
+  IdMap[expr_stmt] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::CompoundStmt *comp_stmt) {
+  std::vector<Stmt*> stmts = comp_stmt->getBody();
+  for (Stmt *stmt : stmts) {
+    if (stmt) stmt->accept(this);
+  }
+}
+void TokenVisitor::visit(v2::ForStmt *for_stmt) {
+  TokenNode *token = for_stmt->getForNode();
+  if (token) token->accept(this);
+  Expr *init = for_stmt->getInit();
+  if (init) init->accept(this);
+  Expr *cond = for_stmt->getCond();
+  if (cond) cond->accept(this);
+  Expr *inc = for_stmt->getInc();
+  if (inc) inc->accept(this);
+  Stmt *body = for_stmt->getBody();
+  if (body) body->accept(this);
+}
+void TokenVisitor::visit(v2::WhileStmt *while_stmt) {
+  TokenNode *token = while_stmt->getWhileNode();
+  if (token) token->accept(this);
+  Expr *cond = while_stmt->getCond();
+  if (cond) cond->accept(this);
+  Stmt *body = while_stmt->getBody();
+  if (body) body->accept(this);
+}
+void TokenVisitor::visit(v2::DoStmt *do_stmt) {
+  TokenNode *token = do_stmt->getDoNode();
+  if (token) token->accept(this);
+  Stmt *body = do_stmt->getBody();
+  if (body) body->accept(this);
+  token = do_stmt->getWhileNode();
+  if (token) token->accept(this);
+  Expr *cond = do_stmt->getCond();
+  if (cond) cond->accept(this);
+}
+void TokenVisitor::visit(v2::BreakStmt *break_stmt) {
+  IdMap[break_stmt] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::ContinueStmt *cont_stmt) {
+  IdMap[cont_stmt] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::ReturnStmt *ret_stmt) {
+  IdMap[ret_stmt] = id;
+  id++;
+}
+void TokenVisitor::visit(v2::IfStmt *if_stmt) {
+  TokenNode *token = if_stmt->getIfNode();
+  if (token) token->accept(this);
+  Stmt *then_stmt = if_stmt->getThen();
+  if (then_stmt) then_stmt->accept(this);
+  token = if_stmt->getElseNode();
+  if (token) token->accept(this);
+  Stmt *else_stmt = if_stmt->getElse();
+  if (else_stmt) else_stmt->accept(this);
+}
+void TokenVisitor::visit(v2::SwitchStmt *switch_stmt) {
+  TokenNode *token = switch_stmt->getSwitchNode();
+  if (token) token->accept(this);
+  Expr *cond = switch_stmt->getCond();
+  if (cond) cond->accept(this);
+  std::vector<SwitchCase*> cases = switch_stmt->getCases();
+  for (SwitchCase *c : cases) {
+    c->accept(this);
+  }
+}
+void TokenVisitor::visit(v2::CaseStmt *case_stmt) {
+  TokenNode *token = case_stmt->getCaseNode();
+  if (token) token->accept(this);
+  Expr *cond = case_stmt->getCond();
+  if (cond) cond->accept(this);
+  vector<Stmt*> body = case_stmt->getBody();
+  for (Stmt *stmt : body) {
+    if (stmt) stmt->accept(this);
+  }
+}
+void TokenVisitor::visit(v2::DefaultStmt *def_stmt) {
+  TokenNode *token = def_stmt->getDefaultNode();
+  if (token) token->accept(this);
+  vector<Stmt*> body = def_stmt->getBody();
+  for (Stmt *stmt : body) {
+    if (stmt) stmt->accept(this);
+  }
+}
+void TokenVisitor::visit(v2::Expr *expr) {
+  IdMap[expr] = id;
+  id++;
+}

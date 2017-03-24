@@ -145,4 +145,30 @@ private:
   std::ostream &os;
 };
 
+class TokenVisitor : public Visitor {
+public:
+  TokenVisitor() {}
+  ~TokenVisitor() {}
+  virtual void visit(v2::TokenNode *token);
+  virtual void visit(v2::TranslationUnitDecl *unit);
+  virtual void visit(v2::FunctionDecl *function);
+  virtual void visit(v2::DeclStmt *decl_stmt);
+  virtual void visit(v2::ExprStmt *expr_stmt);
+  virtual void visit(v2::CompoundStmt *comp_stmt);
+  virtual void visit(v2::ForStmt *for_stmt);
+  virtual void visit(v2::WhileStmt *while_stmt);
+  virtual void visit(v2::DoStmt *do_stmt);
+  virtual void visit(v2::BreakStmt *break_stmt);
+  virtual void visit(v2::ContinueStmt *cont_stmt);
+  virtual void visit(v2::ReturnStmt *ret_stmt);
+  virtual void visit(v2::IfStmt *if_stmt);
+  virtual void visit(v2::SwitchStmt *switch_stmt);
+  virtual void visit(v2::CaseStmt *case_stmt);
+  virtual void visit(v2::DefaultStmt *def_stmt);
+  virtual void visit(v2::Expr *expr);
+private:
+  int id = 0;
+  std::map<v2::ASTNodeBase*,int> IdMap;
+};
+
 #endif /* VISITOR_H */

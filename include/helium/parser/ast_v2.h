@@ -383,7 +383,7 @@ namespace v2 {
    */
   class CaseStmt : public SwitchCase {
   public:
-    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx) {
+    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx), Cond(cond) {
       CaseNode = new TokenNode(ctx, "case");
     }
     ~CaseStmt() {}
@@ -391,8 +391,10 @@ namespace v2 {
       visitor->visit(this);
     }
     TokenNode *getCaseNode() {return CaseNode;}
+    Expr *getCond() {return Cond;}
   private:
     TokenNode *CaseNode = nullptr;
+    Expr *Cond = nullptr;
   };
 
   class DefaultStmt : public SwitchCase {
