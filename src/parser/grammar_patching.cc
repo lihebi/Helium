@@ -6,4 +6,5 @@ void GrammarPatcher::grammarPatch() {
 }
 std::string GrammarPatcher::generatePartialProgram() {
   // TODO
+  return "";
 }

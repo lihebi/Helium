@@ -6,9 +6,14 @@
 #include <set>
 #include <map>
 
-// #include "helium/parser/benchmark_manager.h"
+#include <ostream>
 
-class BenchmarkManager;
+#include "helium/parser/visitor.h"
+// class Visitor;
+
+// #include "helium/parser/source_manager.h"
+
+class SourceManager;
 
 namespace v2 {
 
@@ -34,7 +39,8 @@ namespace v2 {
     }
     TranslationUnitDecl *getTranslationUnitDecl() {return Unit;}
     int getLevel(ASTNodeBase *node) {return Levels[node];}
-    BenchmarkManager *getBenchmarkManager() {return Manager;}
+    void setSourceManager(SourceManager *manager) {Manager=manager;}
+    SourceManager *getSourceManager() {return Manager;}
     std::vector<ASTNodeBase*> getNodes() {return Nodes;}
     /**
      * compute and fill in the Levels variable
@@ -48,7 +54,7 @@ namespace v2 {
     TranslationUnitDecl *Unit = nullptr;
     std::vector<ASTNodeBase*> Nodes;
     std::map<ASTNodeBase*, int> Levels;
-    BenchmarkManager *Manager;
+    SourceManager *Manager = nullptr;
     // int level=-1;
     // root will have level 0
     // level will increase
@@ -66,17 +72,22 @@ namespace v2 {
     ASTNodeBase(ASTContext *ctx) : Ctx(ctx) {}
     ~ASTNodeBase() {}
     virtual std::string label() {return "";}
+    // virtual void accept(Visitor *visitor) {
+    //   visitor->visit(this);
+    // }
+    virtual void accept(Visitor *visitor) = 0;
+    ASTContext *getASTContext() {return Ctx;}
   protected:
     ASTContext *Ctx = nullptr;
   };
 
-  class TextNode : public ASTNodeBase {
-  public:
-    TextNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), text(text) {}
-    ~TextNode() {}
-  private:
-    std::string text;
-  };
+  // class TextNode : public ASTNodeBase {
+  // public:
+  //   TextNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), text(text) {}
+  //   ~TextNode() {}
+  // private:
+  //   std::string text;
+  // };
 
   /**
    * Decls
@@ -87,18 +98,20 @@ namespace v2 {
   public:
     Decl(ASTContext *ctx) : ASTNodeBase(ctx) {}
     ~Decl() {}
-    virtual void dump() {}
   };
 
   class TranslationUnitDecl : public Decl {
   public:
     // TranslationUnitDecl(std::vector<DeclStmt*> decls,
     //                     std::vector<FunctionDecl*> funcs) {}
-    TranslationUnitDecl(ASTContext *ctx, std::vector<Decl*> decls) : Decl(ctx), decls(decls) {}
+    TranslationUnitDecl(ASTContext *ctx, std::vector<ASTNodeBase*> decls) : Decl(ctx), decls(decls) {}
     ~TranslationUnitDecl() {}
-    virtual void dump();
+    std::vector<ASTNodeBase*> getDecls() {return decls;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   private:
-    std::vector<Decl*> decls;
+    std::vector<ASTNodeBase*> decls;
   };
 
 
@@ -110,16 +123,18 @@ namespace v2 {
   public:
     Stmt(ASTContext *ctx) : ASTNodeBase(ctx) {}
     ~Stmt() {}
-    virtual void dump() {}
   };
 
   /**
    * Adapter class for mixing declarations with statements
    */
-  class DeclStmt : public Stmt, public Decl {
+  class DeclStmt : public Stmt {
   public:
-    DeclStmt(ASTContext *ctx, std::string text) : Stmt(ctx), Decl(ctx) {}
+    DeclStmt(ASTContext *ctx, std::string text) : Stmt(ctx) {}
     ~DeclStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
   /**
@@ -129,6 +144,9 @@ namespace v2 {
   public:
     ExprStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ExprStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
   class CompoundStmt : public Stmt {
@@ -138,6 +156,10 @@ namespace v2 {
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
     }
+    std::vector<Stmt*> getBody() {return stmts;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   private:
     std::vector<Stmt*> stmts;
   };
@@ -146,7 +168,11 @@ namespace v2 {
   public:
     FunctionDecl(ASTContext *ctx, std::string name, Stmt *body) : Decl(ctx), name(name), body(body) {}
     ~FunctionDecl() {}
-    virtual void dump();
+    Stmt *getBody() {return body;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+    std::string getName() {return name;}
   private:
     std::string name;
     Stmt *body = nullptr;
@@ -154,36 +180,76 @@ namespace v2 {
 
   class ForStmt : public Stmt {
   public:
-    ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *body) : Stmt(ctx) {}
+    ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *Body)
+      : Stmt(ctx), Init(Init), Cond(Cond), Inc(Inc), Body(Body) {}
     ~ForStmt() {}
+    Expr *getInit() {return Init;}
+    Expr *getCond() {return Cond;}
+    Expr *getInc() {return Inc;}
+    Stmt *getBody() {return Body;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+  private:
+    Expr *Init = nullptr;
+    Expr *Cond = nullptr;
+    Expr *Inc = nullptr;
+    Stmt *Body = nullptr;
   };
 
   class WhileStmt : public Stmt {
   public:
-    WhileStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
+    WhileStmt(ASTContext *ctx, Expr *cond, Stmt *Body)
+      : Stmt(ctx), Cond(cond), Body(Body) {}
     ~WhileStmt() {}
+    Expr *getCond() {return Cond;}
+    Stmt *getBody() {return Body;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+  private:
+    Expr *Cond;
+    Stmt *Body;
   };
 
   class DoStmt : public Stmt {
   public:
-    DoStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
+    DoStmt(ASTContext *ctx, Expr *cond, Stmt *body)
+      : Stmt(ctx), Cond(cond), Body(body) {}
     ~DoStmt() {}
+    Expr *getCond() {return Cond;}
+    Stmt *getBody() {return Body;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+  private:
+    Expr *Cond;
+    Stmt *Body;
   };
 
   class BreakStmt : public Stmt {
   public:
     BreakStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~BreakStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
   class ContinueStmt : public Stmt {
   public:
     ContinueStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ContinueStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
   class ReturnStmt : public Stmt {
   public:
     ReturnStmt(ASTContext *ctx) : Stmt(ctx) {}
     ~ReturnStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
   class IfStmt : public Stmt {
@@ -194,6 +260,12 @@ namespace v2 {
     void setElse(Stmt *stmt) {
       elsestmt = stmt;
     }
+    Expr *getCond() {return cond;}
+    Stmt *getThen() {return thenstmt;}
+    Stmt *getElse() {return elsestmt;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   private:
     Expr *cond;
     Stmt *thenstmt;
@@ -202,9 +274,19 @@ namespace v2 {
 
   class SwitchStmt : public Stmt {
   public:
-    SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body) : Stmt(ctx) {}
+    // FIXME body??
+    SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body)
+      : Stmt(ctx), Cond(cond) {}
     ~SwitchStmt() {}
-    void AddCase(Stmt *casestmt) {}
+    void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
+    std::vector<SwitchCase*> getCases() {return Cases;}
+    Expr *getCond() {return Cond;}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+  private:
+    Expr *Cond = nullptr;
+    std::vector<SwitchCase*> Cases;
   };
 
   /**
@@ -214,7 +296,10 @@ namespace v2 {
   public:
     SwitchCase(ASTContext *ctx) : Stmt(ctx) {}
     ~SwitchCase() {}
-    void Add(Stmt *stmt) {}
+    void Add(Stmt *stmt) {Body.push_back(stmt);}
+    std::vector<Stmt*> getBody() {return Body;}
+  protected:
+    std::vector<Stmt*> Body;
   };
 
   /**
@@ -234,22 +319,31 @@ namespace v2 {
   public:
     CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx) {}
     ~CaseStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
   class DefaultStmt : public SwitchCase {
   public:
     DefaultStmt(ASTContext *ctx) : SwitchCase(ctx) {}
     ~DefaultStmt() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
   /**
    * Exprs
    */
 
-  class Expr {
+  class Expr : public ASTNodeBase {
   public:
-    Expr(std::string text) {}
+    Expr(ASTContext *ctx, std::string text) : ASTNodeBase(ctx) {}
     ~Expr() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
   };
 
 }

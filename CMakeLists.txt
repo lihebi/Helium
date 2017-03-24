@@ -3,6 +3,8 @@ project(helium)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "-O0")
 # set(CMAKE_CXX_FLAGS "-pg -g")
 
 # https://github.com/ninja-build/ninja/wiki/FAQ

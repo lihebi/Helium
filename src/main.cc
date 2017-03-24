@@ -15,7 +15,7 @@
 #include "helium/utils/fs_utils.h"
 #include "helium/utils/utils.h"
 
-#include "helium/parser/benchmark_manager.h"
+#include "helium/parser/source_manager.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -534,9 +534,8 @@ int main(int argc, char* argv[]) {
     // The tokens must also contains
 
     // produce a tokens.db in cache/XXX folder
-    BenchmarkManager *bench_manager = new BenchmarkManager(target_cache_dir / "cpp");
-    // get tokens
-    bench_manager->dumpTokens();
+    SourceManager *source_manager = new SourceManager(target_cache_dir / "cpp");
+    source_manager->dumpASTs();
     exit(0);
   }
 

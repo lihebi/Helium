@@ -21,7 +21,7 @@ TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
   match(unit, "unit");
   // std::vector<DeclStmt*> decls;
   // std::vector<FunctionDecl*> funcs;
-  vector<Decl*> decls;
+  vector<ASTNodeBase*> decls;
   for (XMLNode node : unit.children()) {
     if (std::string(node.name()) == "decl_stmt") {
       DeclStmt *decl = ParseDeclStmt(node);
@@ -251,7 +251,7 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
 Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
   match(node, "expr");
-  return new Expr(get_text(node));
+  return new Expr(Ctx, get_text(node));
 }
 
 
