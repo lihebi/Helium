@@ -74,6 +74,57 @@ The token database will contains the following:
 |        |  5 |
 
 
+** Non-DB approach
+OK! I got the idea.
+
+*** TODO TokenNode
+I'll have a special kind of AST Node called =TokenNode= inherit from
+=ASTNodeBase=.  Each type of node will be able to get the token
+node. For example, =IfStmt= will have a method called
+- getIfTokenNode()
+- getElseTokenNode()
+- getParenTokenNode()
+
+
+*** TODO TokenVisitor
+I'll also implement a visitor called =TokenVisitor= that visitor all
+the tokens of AST, and assign the IDs for each of them.
+
+
+*** TODO SourceRange
+To get the location, I'll add =SourceRange= class and add instances to
+each of the AST Nodes (including the =TokenNode=).
+
+The process is as follows:
+- TokenVisitor is called, and assign IDs for all tokens
+- Build a map for ID <-> SourceRange
+
+*** TODO Test Selection Process
+The selection process:
+- for test, I list a list of source location
+- helium read the location and map to the IDs. Using the IDs, it then map to the AST nodes
+*** TODO GrammarPatcher
+- I'll have another visitor called GrammarPatcher that, well this is
+  tricky, goes from bottom to top of AST.
+  - The input is the selection.
+  - It can get the levels using the level-visitor.
+  - Starting from the lowest level, get the parent, get its children
+    in selection, and visit the parent node (not considering lazy
+    evaluation for now). Put the parent into selection, and continue.
+
+*** TODO random selection of distribution
+- for random generate of selection with consideration of distribution
+
+*** TODO Generator
+Another visitor, the Generator, visit each node and output program. This is also very tricky:
+- If I use SrcML's XML structure to generate, it is hard to "remove" something
+- If I create string, many things are not modeled such as parenthesis.
+
+I'll go with /hybrid/ method: use srcml for most of the part, and fine
+tune to create string for the part that is omitted, e.g. the Inc expr
+of forstmt.
+
+
 * Cache
 process the file or project, and create snippet database for it. The
 result will be in =~/.helium.d/cache/XXX= where =XXX= is named by the
