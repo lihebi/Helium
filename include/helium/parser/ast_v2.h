@@ -90,6 +90,18 @@ namespace v2 {
     ASTContext *Ctx = nullptr;
   };
 
+  class TokenNode : public ASTNodeBase {
+  public:
+    TokenNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), Text(text) {}
+    ~TokenNode() {}
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
+    }
+    std::string getText() {return Text;}
+  private:
+    std::string Text;
+  };
+
   // class TextNode : public ASTNodeBase {
   // public:
   //   TextNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), text(text) {}
@@ -175,22 +187,37 @@ namespace v2 {
 
   class FunctionDecl : public Decl {
   public:
-    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body) : Decl(ctx), name(name), body(body) {}
+    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body)
+      : Decl(ctx), name(name), body(body) {
+      // TODO populate the three token nodes
+    }
     ~FunctionDecl() {}
     Stmt *getBody() {return body;}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
     std::string getName() {return name;}
+    TokenNode *getReturnTypeNode() {return ReturnTypeNode;}
+    TokenNode *getNameNode() {return NameNode;}
+    TokenNode *getParamNode() {return ParamNode;}
   private:
     std::string name;
     Stmt *body = nullptr;
+    TokenNode *ReturnTypeNode = nullptr;
+    TokenNode *NameNode = nullptr;
+    // not sure if param node is useful
+    // (HEBI: param, although is omitable, should never be ommited)
+    // (HEBI: what if selection is across multiple function?? Which as main??)
+    // (HEBI: what if selection is across multiple files? There will be multiple translation unit, aka mulitple ASTs)
+    TokenNode *ParamNode = nullptr;
   };
 
   class ForStmt : public Stmt {
   public:
     ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *Body)
-      : Stmt(ctx), Init(Init), Cond(Cond), Inc(Inc), Body(Body) {}
+      : Stmt(ctx), Init(Init), Cond(Cond), Inc(Inc), Body(Body) {
+      ForNode = new TokenNode(ctx, "for");
+    }
     ~ForStmt() {}
     Expr *getInit() {return Init;}
     Expr *getCond() {return Cond;}
@@ -199,26 +226,32 @@ namespace v2 {
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getForNode() {return ForNode;}
   private:
     Expr *Init = nullptr;
     Expr *Cond = nullptr;
     Expr *Inc = nullptr;
     Stmt *Body = nullptr;
+    TokenNode *ForNode = nullptr;
   };
 
   class WhileStmt : public Stmt {
   public:
     WhileStmt(ASTContext *ctx, Expr *cond, Stmt *Body)
-      : Stmt(ctx), Cond(cond), Body(Body) {}
+      : Stmt(ctx), Cond(cond), Body(Body) {
+      WhileNode = new TokenNode(ctx, "while");
+    }
     ~WhileStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getWhileNode() {return WhileNode;}
   private:
     Expr *Cond;
     Stmt *Body;
+    TokenNode *WhileNode = nullptr;
   };
 
   class DoStmt : public Stmt {
@@ -231,9 +264,13 @@ namespace v2 {
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getDoNode() {return DoNode;}
+    TokenNode *getWhileNode() {return WhileNode;}
   private:
     Expr *Cond;
     Stmt *Body;
+    TokenNode *DoNode = nullptr;
+    TokenNode *WhileNode = nullptr;
   };
 
   class BreakStmt : public Stmt {
@@ -254,17 +291,29 @@ namespace v2 {
   };
   class ReturnStmt : public Stmt {
   public:
-    ReturnStmt(ASTContext *ctx) : Stmt(ctx) {}
+    ReturnStmt(ASTContext *ctx) : Stmt(ctx) {
+      ReturnNode = new TokenNode(ctx, "return");
+    }
     ~ReturnStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    Expr *getValue() {return Value;}
+    TokenNode *getReturnNode() {return ReturnNode;}
+  private:
+    Expr *Value = nullptr;
+    TokenNode *ReturnNode = nullptr;
   };
 
   class IfStmt : public Stmt {
   public:
     IfStmt(ASTContext *ctx, Expr *cond, Stmt *thenstmt, Stmt *elsestmt)
-      : Stmt(ctx), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {}
+      : Stmt(ctx), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt) {
+      IfNode = new TokenNode(ctx, "if");
+      if (elsestmt) {
+        ElseNode = new TokenNode(ctx, "else");
+      }
+    }
     ~IfStmt() {}
     void setElse(Stmt *stmt) {
       elsestmt = stmt;
@@ -275,17 +324,23 @@ namespace v2 {
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getIfNode() {return IfNode;}
+    TokenNode *getElseNode() {return ElseNode;}
   private:
-    Expr *cond;
-    Stmt *thenstmt;
-    Stmt *elsestmt;
+    Expr *cond = nullptr;
+    Stmt *thenstmt = nullptr;
+    Stmt *elsestmt = nullptr;
+    TokenNode *IfNode = nullptr;
+    TokenNode *ElseNode = nullptr;
   };
 
   class SwitchStmt : public Stmt {
   public:
     // FIXME body??
     SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body)
-      : Stmt(ctx), Cond(cond) {}
+      : Stmt(ctx), Cond(cond) {
+      SwitchNode = new TokenNode(ctx, "switch");
+    }
     ~SwitchStmt() {}
     void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
     std::vector<SwitchCase*> getCases() {return Cases;}
@@ -293,9 +348,11 @@ namespace v2 {
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getSwitchNode() {return SwitchNode;}
   private:
     Expr *Cond = nullptr;
     std::vector<SwitchCase*> Cases;
+    TokenNode *SwitchNode = nullptr;
   };
 
   /**
@@ -326,20 +383,30 @@ namespace v2 {
    */
   class CaseStmt : public SwitchCase {
   public:
-    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx) {}
+    CaseStmt(ASTContext *ctx, Expr *cond) : SwitchCase(ctx) {
+      CaseNode = new TokenNode(ctx, "case");
+    }
     ~CaseStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getCaseNode() {return CaseNode;}
+  private:
+    TokenNode *CaseNode = nullptr;
   };
 
   class DefaultStmt : public SwitchCase {
   public:
-    DefaultStmt(ASTContext *ctx) : SwitchCase(ctx) {}
+    DefaultStmt(ASTContext *ctx) : SwitchCase(ctx) {
+      DefaultNode = new TokenNode(ctx, "default");
+    }
     ~DefaultStmt() {}
     virtual void accept(Visitor *visitor) {
       visitor->visit(this);
     }
+    TokenNode *getDefaultNode() {return DefaultNode;}
+  private:
+    TokenNode *DefaultNode = nullptr;
   };
 
   /**

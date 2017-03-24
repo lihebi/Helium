@@ -40,6 +40,11 @@ string Printer::PrettyPrint(string ast) {
 }
 
 
+void LevelVisitor::visit(v2::TokenNode *token) {
+  Levels[token] = lvl;
+  return;
+}
+
 void LevelVisitor::visit(v2::TranslationUnitDecl *unit) {
   Levels[unit] = lvl;
   std::vector<ASTNodeBase*> decls = unit->getDecls();
@@ -166,7 +171,10 @@ void LevelVisitor::visit(v2::Expr *expr) {
 
 
 
-
+void Printer::visit(TokenNode *token) {
+  assert(token);
+  os << "(token " + token->getText() << ")";
+}
 
 void Printer::visit(TranslationUnitDecl *unit) {
   os << "(unit ";

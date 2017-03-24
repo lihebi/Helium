@@ -9,6 +9,7 @@
 
 namespace v2 {
   class ASTNodeBase;
+  class TokenNode;
   class TranslationUnitDecl;
   class FunctionDecl;
   class Decl;
@@ -47,6 +48,7 @@ public:
   Visitor() {}
   virtual ~Visitor() {}
   // virtual void visit(v2::ASTNodeBase *node) = 0;
+  virtual void visit(v2::TokenNode *token) = 0;
   virtual void visit(v2::TranslationUnitDecl *unit) = 0;
   virtual void visit(v2::FunctionDecl *function) = 0;
   // virtual void visit(v2::Decl *decl) = 0;
@@ -79,6 +81,7 @@ public:
   ~LevelVisitor() {}
 
   // virtual void visit(v2::ASTNodeBase *node);
+  virtual void visit(v2::TokenNode *token);
   virtual void visit(v2::TranslationUnitDecl *unit);
   virtual void visit(v2::FunctionDecl *function);
   // virtual void visit(v2::Decl *decl);
@@ -115,6 +118,7 @@ public:
   Printer(std::ostream &os) : os(os) {}
   ~Printer() {}
 
+  virtual void visit(v2::TokenNode *token);
   // virtual void visit(v2::ASTNodeBase *node);
   virtual void visit(v2::TranslationUnitDecl *unit);
   virtual void visit(v2::FunctionDecl *function);

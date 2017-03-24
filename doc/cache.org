@@ -77,7 +77,8 @@ The token database will contains the following:
 ** Non-DB approach
 OK! I got the idea.
 
-*** TODO TokenNode
+*** DONE TokenNode
+    CLOSED: [2017-03-24 Fri 03:20]
 I'll have a special kind of AST Node called =TokenNode= inherit from
 =ASTNodeBase=.  Each type of node will be able to get the token
 node. For example, =IfStmt= will have a method called
