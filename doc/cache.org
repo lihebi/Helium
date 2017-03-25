@@ -213,7 +213,8 @@ raw data format:
   - proc
   - file
 
-*** TODO Generator
+*** DONE Generator
+    CLOSED: [2017-03-25 Sat 00:29]
 Another visitor, the Generator, visit each node and output program. This is also very tricky:
 - If I use SrcML's XML structure to generate, it is hard to "remove" something
 - If I create string, many things are not modeled such as parenthesis.
@@ -221,6 +222,11 @@ Another visitor, the Generator, visit each node and output program. This is also
 I'll go with /hybrid/ method: use srcml for most of the part, and fine
 tune to create string for the part that is omitted, e.g. the Inc expr
 of forstmt.
+
+*** TODO ParenNode
+*** TODO lazy evaluation
+*** TODO variable resolving and including declaration
+*** TODO Semantic checking such as break continue, for init decl
 
 
 * Cache

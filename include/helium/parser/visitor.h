@@ -403,7 +403,7 @@ private:
  */
 class Generator : public Visitor {
 public:
-  Generator() {}
+  Generator(std::set<v2::ASTNodeBase*> selection) : selection(selection) {}
   ~Generator() {}
   virtual void visit(v2::TokenNode *token, void *data=nullptr);
   virtual void visit(v2::TranslationUnitDecl *unit, void *data=nullptr);
@@ -423,6 +423,8 @@ public:
   virtual void visit(v2::DefaultStmt *def_stmt, void *data=nullptr);
   virtual void visit(v2::Expr *expr, void *data=nullptr);
 private:
+  std::string code;
+  std::set<v2::ASTNodeBase*> selection;
 };
 
 

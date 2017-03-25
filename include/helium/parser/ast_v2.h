@@ -164,11 +164,14 @@ namespace v2 {
   class DeclStmt : public Stmt {
   public:
     DeclStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end) {}
+      : Stmt(ctx, begin, end), Text(text) {}
     ~DeclStmt() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+    std::string getText() {return Text;}
+  private:
+    std::string Text;
   };
 
   /**
@@ -176,12 +179,15 @@ namespace v2 {
    */
   class ExprStmt : public Stmt {
   public:
-    ExprStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end) {}
+    ExprStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), Text(text) {}
     ~ExprStmt() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+    std::string getText() {return Text;}
+  private:
+    std::string Text;
   };
 
   class CompoundStmt : public Stmt {
@@ -433,11 +439,14 @@ namespace v2 {
   class Expr : public ASTNodeBase {
   public:
     Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
-      : ASTNodeBase(ctx, begin, end) {}
+      : ASTNodeBase(ctx, begin, end), Text(text) {}
     ~Expr() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+    std::string getText() {return Text;}
+  private:
+    std::string Text;
   };
 
   /** @}*/

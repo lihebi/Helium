@@ -285,12 +285,12 @@ void TokenVisitor::visit(v2::TranslationUnitDecl *unit, void *data) {
   }
 }
 void TokenVisitor::visit(v2::FunctionDecl *function, void *data) {
-  TokenNode *token = function->getReturnTypeNode();
-  if (token) token->accept(this);
-  token = function->getNameNode();
-  if (token) token->accept(this);
-  token = function->getParamNode();
-  if (token) token->accept(this);
+  TokenNode *ReturnNode = function->getReturnTypeNode();
+  if (ReturnNode) ReturnNode->accept(this);
+  TokenNode *NameNode = function->getNameNode();
+  if (NameNode) NameNode->accept(this);
+  TokenNode *ParamNode = function->getParamNode();
+  if (ParamNode) ParamNode->accept(this);
   Stmt *body = function->getBody();
   if (body) body->accept(this);
 }
@@ -1086,20 +1086,149 @@ void Distributor::visit(v2::Expr *expr, void *data) {}
 
 
 // TODO
-void Generator::visit(v2::TokenNode *token, void *data) {}
-void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {}
-void Generator::visit(v2::FunctionDecl *function, void *data) {}
-void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {}
-void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {}
-void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {}
-void Generator::visit(v2::ForStmt *for_stmt, void *data) {}
-void Generator::visit(v2::WhileStmt *while_stmt, void *data) {}
-void Generator::visit(v2::DoStmt *do_stmt, void *data) {}
-void Generator::visit(v2::BreakStmt *break_stmt, void *data) {}
-void Generator::visit(v2::ContinueStmt *cont_stmt, void *data) {}
-void Generator::visit(v2::ReturnStmt *ret_stmt, void *data) {}
-void Generator::visit(v2::IfStmt *if_stmt, void *data) {}
-void Generator::visit(v2::SwitchStmt *switch_stmt, void *data) {}
-void Generator::visit(v2::CaseStmt *case_stmt, void *data) {}
-void Generator::visit(v2::DefaultStmt *def_stmt, void *data) {}
-void Generator::visit(v2::Expr *expr, void *data) {}
+void Generator::visit(v2::TokenNode *token, void *data) {
+  if (selection.count(token) == 1) {
+    code += token->getText();
+  }
+}
+void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {
+  std::vector<ASTNodeBase*> nodes = unit->getDecls();
+  for (ASTNodeBase *node : nodes) {
+    if (node) node->accept(this);
+  }
+}
+void Generator::visit(v2::FunctionDecl *function, void *data) {
+  TokenNode *ReturnNode = function->getReturnTypeNode();
+  if (ReturnNode) ReturnNode->accept(this);
+  TokenNode *NameNode = function->getNameNode();
+  if (NameNode) NameNode->accept(this);
+  // param node should handle parenthesis
+  TokenNode *ParamNode = function->getParamNode();
+  if (ParamNode) ParamNode->accept(this);
+  // compound should handle curly braces
+  Stmt *body = function->getBody();
+  if (body) body->accept(this);
+}
+void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {
+  if (selection.count(decl_stmt) == 1) {
+    code += decl_stmt->getText() + ";\n";
+  }
+}
+void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {
+  if (selection.count(expr_stmt) == 1) {
+    code += expr_stmt->getText() + ";\n";
+  }
+}
+void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
+  // FIXME ParenNode
+  code += "{\n";
+  std::vector<Stmt*> stmts = comp_stmt->getBody();
+  for (Stmt *stmt : stmts) {
+    if (stmt) stmt->accept(this);
+  }
+  code += "}\n";
+}
+void Generator::visit(v2::ForStmt *for_stmt, void *data) {
+  TokenNode *token = for_stmt->getForNode();
+  if (token) token->accept(this);
+  Expr *init = for_stmt->getInit();
+  if (init) init->accept(this);
+  Expr *cond = for_stmt->getCond();
+  if (cond) cond->accept(this);
+  Expr *inc = for_stmt->getInc();
+  if (inc) inc->accept(this);
+  Stmt *body = for_stmt->getBody();
+  if (body) body->accept(this);
+}
+void Generator::visit(v2::WhileStmt *while_stmt, void *data) {
+  TokenNode *token = while_stmt->getWhileNode();
+  if (token) token->accept(this);
+  Expr *cond = while_stmt->getCond();
+  if (cond) cond->accept(this);
+  Stmt *body = while_stmt->getBody();
+  if (body) body->accept(this);
+}
+void Generator::visit(v2::DoStmt *do_stmt, void *data) {
+  TokenNode *token = do_stmt->getDoNode();
+  if (token) token->accept(this);
+  Stmt *body = do_stmt->getBody();
+  if (body) body->accept(this);
+  token = do_stmt->getWhileNode();
+  if (token) token->accept(this);
+  Expr *cond = do_stmt->getCond();
+  if (cond) cond->accept(this);
+}
+void Generator::visit(v2::BreakStmt *break_stmt, void *data) {
+  if (selection.count(break_stmt)) {
+    code += "break;\n";
+  }
+}
+void Generator::visit(v2::ContinueStmt *cont_stmt, void *data) {
+  if (selection.count(cont_stmt)) {
+    code += "continue;\n";
+  }
+}
+void Generator::visit(v2::ReturnStmt *ret_stmt, void *data) {
+  TokenNode *ReturnNode = ret_stmt->getReturnNode();
+  if (ReturnNode) ReturnNode->accept(this);
+  Expr *expr = ret_stmt->getValue();
+  if (expr) expr->accept(this);
+  code += ";\n";
+}
+void Generator::visit(v2::IfStmt *if_stmt, void *data) {
+  TokenNode *IfNode = if_stmt->getIfNode();
+  if (IfNode) IfNode->accept(this);
+  Expr *expr = if_stmt->getCond();
+  if (expr) expr->accept(this);
+  if (selection.count(IfNode) == 1) {
+    code += "{";
+  }
+  Stmt *then_stmt = if_stmt->getThen();
+  if (then_stmt) then_stmt->accept(this);
+  if (selection.count(IfNode) == 1) {
+    code += "}";
+  }
+  TokenNode *ElseNode = if_stmt->getElseNode();
+  if (ElseNode) ElseNode->accept(this);
+  if (selection.count(ElseNode) == 1) {
+    code += "{";
+  }
+  Stmt *else_stmt = if_stmt->getElse();
+  if (else_stmt) else_stmt->accept(this);
+  if (selection.count(ElseNode) == 1) {
+    code += "}";
+  }
+}
+void Generator::visit(v2::SwitchStmt *switch_stmt, void *data) {
+  TokenNode *SwitchNode = switch_stmt->getSwitchNode();
+  if (SwitchNode) SwitchNode->accept(this);
+  Expr *cond = switch_stmt->getCond();
+  if (cond) cond->accept(this);
+  std::vector<SwitchCase*> cases = switch_stmt->getCases();
+  for (SwitchCase *c : cases) {
+    if (c) c->accept(this);
+  }
+}
+void Generator::visit(v2::CaseStmt *case_stmt, void *data) {
+  TokenNode *token = case_stmt->getCaseNode();
+  if (token) token->accept(this);
+  Expr *cond = case_stmt->getCond();
+  if (cond) cond->accept(this);
+  vector<Stmt*> body = case_stmt->getBody();
+  for (Stmt *stmt : body) {
+    if (stmt) stmt->accept(this);
+  }
+}
+void Generator::visit(v2::DefaultStmt *def_stmt, void *data) {
+  TokenNode *token = def_stmt->getDefaultNode();
+  if (token) token->accept(this);
+  vector<Stmt*> body = def_stmt->getBody();
+  for (Stmt *stmt : body) {
+    if (stmt) stmt->accept(this);
+  }
+}
+void Generator::visit(v2::Expr *expr, void *data) {
+  if (selection.count(expr) == 1) {
+    code += expr->getText();
+  }
+}

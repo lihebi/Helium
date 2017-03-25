@@ -99,58 +99,6 @@ int main() {
 
 
 
-* Current Experiment Running
-** DONE helium1 running new build rate testing on 515 projects, with:
-   CLOSED: [2016-11-14 Mon 15:12]
-   - correct segment LOC
-   - correct removing of compile error and continue
-** TODO Pick some high buildrate projects, remove segment per poi limit, and see low large the context can be.
-** TODO [#A] Write up the experiment section
-** DONE [#A] Implement the removing algorithm
-   CLOSED: [2016-11-14 Mon 18:44]
-** TODO [#A] Use automatic patching tools
-** DONE [#A] polymorph overflow benchmarks
-   CLOSED: [2016-11-14 Mon 18:44]
-  - argv -f output
-** TODO [#A] ncompress overflow benchmark
-** TODO Assertion experiment
-** TODO The new example in paper
-** DONE [#A] infinite loop
-   CLOSED: [2016-11-14 Mon 16:53]
-** DONE VM2 running 99999 preprocessing, timeout 1h
-   CLOSED: [2016-11-14 Mon 15:12]
-** DONE From the 515 projects, run on randomly selected nodes. Each run for 100 segments. Record everything
-   CLOSED: [2016-11-14 Mon 15:13]
-The parameter setting:
-helium
---run-test=false
---segment-per-poi-limit=100
---valid-poi-limit=100
-** DONE Make the paper example working
-   CLOSED: [2016-11-13 Sun 01:38]
-** All three buffer overflow benchmark
-** DONE Merge if transfer is the same
-   CLOSED: [2016-11-13 Sun 10:34]
-** Pairwise testing, for struct!
-** DONE Testing parallel
-   CLOSED: [2016-11-13 Sun 01:37]
-** Testing timeout explicit record
-** DONE If [else]
-   CLOSED: [2016-11-12 Sat 16:30]
-** CANCELED [optional] From the 515 projects, run on randomly selected a set of *leaf* selection (within same function). Build them.
-   CLOSED: [2016-11-10 Thu 12:44]
-** DONE VM1 running 9999 preprocessing, timeout 30m, record success to result.txt, from z to a
-   CLOSED: [2016-11-09 Wed 23:36]
-** DONE VM3 running 9999 preprocessing, timeout 30m, record success to result.txt
-   CLOSED: [2016-11-09 Wed 23:36]
-** DONE record the time and error for each benchmark
-   CLOSED: [2016-11-09 Wed 23:36]
-** DONE Generate POI that is randomly selected
-   CLOSED: [2016-11-10 Thu 00:23]
-** DONE [#A] NULL dereference
-   CLOSED: [2016-11-12 Sat 15:50]
-** DONE addr_y=nil
-   CLOSED: [2016-11-12 Sat 15:49]
 
 
 ** Add merge-everything option, for debugging ...
@@ -165,23 +113,10 @@ helium
 ** TODO more buffer-overflow
 ** TODO grammar patching implementation and evaluation
 ** TODO input code into function
-** DONE build rate use random selection of AST nodes or failure point
-   CLOSED: [2016-12-08 Thu 09:47]
-** DONE timeout limit everywhere
-   CLOSED: [2016-12-08 Thu 09:47]
-** SIR
-** ffmpeg
-** putty
-* DONE [#A] Loop bugs
-  CLOSED: [2016-12-08 Thu 09:47] SCHEDULED: <2016-10-20 Thu>
-* DONE remove duplicated TYPE snippet, but not variable
-  CLOSED: [2016-12-08 Thu 09:48]
 
 * CANCELED add option to control helium_dump_compile_error
   CLOSED: [2016-12-08 Thu 09:48]
 
-* DONE extract generated init code into functions, to avoid i,ii,iii problems.
-  CLOSED: [2016-12-08 Thu 09:48]
 * TODO The heap size recorder
   can only work for the variables that I generate input code for.
   - it does not take into account other variables, which might be used
@@ -199,51 +134,8 @@ helium
 * TODO compare static
   In paper writing, don't forget to conduct a detailed comparison to
   static inferencing.
-* DONE Run tests in parrel
-  CLOSED: [2016-12-08 Thu 09:49] SCHEDULED: <2016-10-23 Sun>
 * TODO transfer function with successfully runs
 * TODO failure condition generation
-* DONE sample program for other type of bugs
-  CLOSED: [2016-12-08 Thu 09:49]
-* DONE all type input generation, e.g. struct
-  CLOSED: [2016-12-08 Thu 09:49] SCHEDULED: <2016-10-19 Wed>
 * TODO Helium use fs::path instead of string for all
   SCHEDULED: <2016-10-20 Thu>
 * TODO Helium utils thread exec refactoring
-* DONE Make the server working
-  CLOSED: [2016-11-08 Tue 20:20] SCHEDULED: <2016-10-22 Sat>
-* DONE the new 4 benchmarks, trigger all of them
-  CLOSED: [2016-11-08 Tue 20:21]
-* DONE Oracle for buffer overflow really working
-  CLOSED: [2016-10-25 Tue 23:43] SCHEDULED: <2016-10-20 Thu>
-* DONE Add small examples to test each components
-  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-22 Sat>
-* DONE oracle
-  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-23 Sun>
-* DONE snippet script refactor
-  CLOSED: [2016-10-25 Tue 16:08] SCHEDULED: <2016-10-22 Sat>
-* DONE better documentation support
-  CLOSED: [2016-10-23 Sun 13:19] SCHEDULED: <2016-10-22 Sat>
-* DONE More benchmarks
-  CLOSED: [2016-11-08 Tue 20:20]
-* DONE Z3
-  CLOSED: [2016-10-26 Wed 11:25] SCHEDULED: <2016-10-20 Thu>
-* DONE assuming not execute
-  CLOSED: [2016-10-25 Tue 23:42]
-* DONE predefined invariant integration
-  CLOSED: [2016-10-25 Tue 17:05] SCHEDULED: <2016-10-20 Thu>
-* DONE bug studies
-  CLOSED: [2016-10-22 Sat 14:39]
-* DONE More concrete details for the risks
-  CLOSED: [2016-10-22 Sat 14:39] SCHEDULED: <2016-10-22 Sat>
-* DONE AST generate code: not only selected
-  CLOSED: [2016-10-22 Sat 14:35]
-* DONE Input Output Data format unify
-  CLOSED: [2016-10-22 Sat 14:30]
-* DONE transfer function no constant
-* DONE transfer function infer only when data is more than a limit
-* DONE switch case control flow graph
-  SCHEDULED: <2016-10-13 Thu>
-* DONE switch code selection and test coverage, test Helium getopt code
-  SCHEDULED: <2016-10-15 Sat>
-
