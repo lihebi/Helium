@@ -1076,3 +1076,30 @@ void Distributor::visit(v2::DefaultStmt *def_stmt, void *data) {
   }
 }
 void Distributor::visit(v2::Expr *expr, void *data) {}
+
+
+
+
+
+
+
+
+
+// TODO
+void Generator::visit(v2::TokenNode *token, void *data) {}
+void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {}
+void Generator::visit(v2::FunctionDecl *function, void *data) {}
+void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {}
+void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {}
+void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {}
+void Generator::visit(v2::ForStmt *for_stmt, void *data) {}
+void Generator::visit(v2::WhileStmt *while_stmt, void *data) {}
+void Generator::visit(v2::DoStmt *do_stmt, void *data) {}
+void Generator::visit(v2::BreakStmt *break_stmt, void *data) {}
+void Generator::visit(v2::ContinueStmt *cont_stmt, void *data) {}
+void Generator::visit(v2::ReturnStmt *ret_stmt, void *data) {}
+void Generator::visit(v2::IfStmt *if_stmt, void *data) {}
+void Generator::visit(v2::SwitchStmt *switch_stmt, void *data) {}
+void Generator::visit(v2::CaseStmt *case_stmt, void *data) {}
+void Generator::visit(v2::DefaultStmt *def_stmt, void *data) {}
+void Generator::visit(v2::Expr *expr, void *data) {}
