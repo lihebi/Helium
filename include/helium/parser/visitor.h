@@ -305,4 +305,93 @@ private:
   std::set<v2::ASTNodeBase*> patch;
 };
 
+
+/**
+ * Compute the distribution of tokens, e.g. inside which if, which function
+ *
+ * This is also going to be bi-direction.
+ *
+ * map<Node, set> maps a node to all the tokens it contains. Notice that this node should be the representative nodes, like if, switch, loop.
+ * set<Node> if_nodes;
+ * set<Node> switch_nodes;
+ * set<Node> for_nodes;
+ * set<Node> do_nodes;
+ * set<Node> while_nodes;
+ * set<Node> func_nodes;
+ */
+class Distributor : public Visitor {
+public:
+  Distributor() {}
+  ~Distributor() {}
+  virtual void visit(v2::TokenNode *token, void *data=nullptr);
+  virtual void visit(v2::TranslationUnitDecl *unit, void *data=nullptr);
+  virtual void visit(v2::FunctionDecl *function, void *data=nullptr);
+  virtual void visit(v2::DeclStmt *decl_stmt, void *data=nullptr);
+  virtual void visit(v2::ExprStmt *expr_stmt, void *data=nullptr);
+  virtual void visit(v2::CompoundStmt *comp_stmt, void *data=nullptr);
+  virtual void visit(v2::ForStmt *for_stmt, void *data=nullptr);
+  virtual void visit(v2::WhileStmt *while_stmt, void *data=nullptr);
+  virtual void visit(v2::DoStmt *do_stmt, void *data=nullptr);
+  virtual void visit(v2::BreakStmt *break_stmt, void *data=nullptr);
+  virtual void visit(v2::ContinueStmt *cont_stmt, void *data=nullptr);
+  virtual void visit(v2::ReturnStmt *ret_stmt, void *data=nullptr);
+  virtual void visit(v2::IfStmt *if_stmt, void *data=nullptr);
+  virtual void visit(v2::SwitchStmt *switch_stmt, void *data=nullptr);
+  virtual void visit(v2::CaseStmt *case_stmt, void *data=nullptr);
+  virtual void visit(v2::DefaultStmt *def_stmt, void *data=nullptr);
+  virtual void visit(v2::Expr *expr, void *data=nullptr);
+
+  /**
+   * get how many functions enclosing these nodes
+   * Note these nodes may not belong to this AST
+   */
+  int getDistFunc(std::set<v2::ASTNodeBase*> sel) {
+    return getDist(sel, func_nodes);
+  }
+  int getDistIf(std::set<v2::ASTNodeBase*> sel) {
+    return getDist(sel, if_nodes);
+  }
+  int getDistLoop(std::set<v2::ASTNodeBase*> sel) {
+    std::set<v2::ASTNodeBase*> loop_nodes;
+    loop_nodes.insert(for_nodes.begin(), for_nodes.end());
+    loop_nodes.insert(for_nodes.begin(), while_nodes.end());
+    loop_nodes.insert(for_nodes.begin(), do_nodes.end());
+    return getDist(sel, loop_nodes);
+  }
+  int getDistSwitch(std::set<v2::ASTNodeBase*> sel) {
+    return getDist(sel, switch_nodes);
+  }
+
+  /**
+   * Generic function for get distribution
+   */
+  int getDist(std::set<v2::ASTNodeBase*> sel, std::set<v2::ASTNodeBase*> nodes) {
+    int ret=0;
+    for (auto *node : nodes) {
+      for (auto *s : sel) {
+        if (ContainMap[node].count(s)) {
+          ret++;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+  
+private:
+  void addTo(v2::ASTNodeBase *from, v2::ASTNodeBase *to) {
+    if (ContainMap.count(from) == 1) {
+      std::set<v2::ASTNodeBase*> tmp = ContainMap[from];
+      ContainMap[to].insert(tmp.begin(), tmp.end());
+    }
+  }
+  std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ContainMap;
+  std::set<v2::ASTNodeBase*> if_nodes;
+  std::set<v2::ASTNodeBase*> switch_nodes;
+  std::set<v2::ASTNodeBase*> for_nodes;
+  std::set<v2::ASTNodeBase*> do_nodes;
+  std::set<v2::ASTNodeBase*> while_nodes;
+  std::set<v2::ASTNodeBase*> func_nodes;
+};
+
 #endif /* VISITOR_H */

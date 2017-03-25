@@ -46,7 +46,7 @@ public:
    * Perform grammar patch based on this->selection.
    * Thus you need to call select first.
    */
-  void grammarPatch();
+  std::set<v2::ASTNodeBase*> grammarPatch();
 
   /**
    * DEPRECATED
@@ -58,16 +58,6 @@ public:
   fs::path getTokenFile(v2::ASTNodeBase* node);
   int getTokenId(v2::ASTNodeBase* node);
   /**
-   * Dump selection into a file, and can be later load.
-   * The dump information is more than the hand written one. It will contain the ID of the token.
-   * The format will be:
-   *
-   * #file
-   * line column ID
-   * line column
-   */
-  void dumpSelection(std::ostream &os, std::set<v2::ASTNodeBase*> selection);
-  /**
    * load selection from file.
    * The format is:
    *
@@ -76,11 +66,32 @@ public:
    * line column
    */
   std::set<v2::ASTNodeBase*> loadSelection(fs::path sel_file);
+  /**
+   * Dump selection into a file, and can be later load.
+   * The dump information is more than the hand written one. It will contain the ID of the token.
+   * The format will be:
+   *
+   * #file
+   * line column ID
+   * line column
+   */
+  void dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os);
+  void analyzeDistribution(std::set<v2::ASTNodeBase*> selection,
+                           std::set<v2::ASTNodeBase*> patch,
+                           std::ostream &os);
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
    */
   fs::path matchFile(fs::path file);
+  int getDistFile(std::set<v2::ASTNodeBase*> sel);
+  int getDistProc(std::set<v2::ASTNodeBase*> sel);
+  int getDistIf(std::set<v2::ASTNodeBase*> sel);
+  int getDistLoop(std::set<v2::ASTNodeBase*> sel);
+  int getDistSwitch(std::set<v2::ASTNodeBase*> sel);
+
+
+
   // this class holds all ASTs
   // it also determines the ID of ast nodes
   // each AST node should have an unique ID
@@ -93,6 +104,7 @@ private:
 
   // token visitor, always available because it is useful
   std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+  std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
   
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;

@@ -28,7 +28,20 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
     }
   }
 
-  
+  // std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TokenVisitor *tokenVisitor = new TokenVisitor();
+    Distributor *distributor = new Distributor();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(tokenVisitor);
+    unit->accept(distributor);
+    AST2TokenVisitorMap[ast] = tokenVisitor;
+    AST2DistributorMap[ast] = distributor;
+  }
+
   // extract all nodes, and assign ids
 
   // should not get nodes from ASTContext directly
@@ -100,15 +113,18 @@ fs::path SourceManager::matchFile(fs::path file) {
   return ret;
 }
 
-void SourceManager::grammarPatch() {
+std::set<ASTNodeBase*> SourceManager::grammarPatch() {
   std::cout << "Doing grammar patching on " << selection.size() << " selected tokens .." << "\n";
+  std::set<ASTNodeBase*> ret;
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
     StandAloneGrammarPatcher *patcher = new StandAloneGrammarPatcher(ast, selection);
     patcher->process();
     set<ASTNodeBase*> patch = patcher->getPatch();
     // FIXME examine the result
+    ret.insert(patch.begin(), patch.end());
   }
+  return ret;
 }
 
 
@@ -246,7 +262,7 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
 }
 
 
-void SourceManager::dumpSelection(std::ostream &os, std::set<v2::ASTNodeBase*> selection) {
+void SourceManager::dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os) {
   // dump to os
   for (auto &m : AST2TokenVisitorMap) {
     ASTContext *ast = m.first;
@@ -262,4 +278,99 @@ void SourceManager::dumpSelection(std::ostream &os, std::set<v2::ASTNodeBase*> s
       }
     }
   }
+}
+
+typedef struct Distribution {
+  int tok;
+  int patch;
+  int file;
+  double per_file;
+  int proc;
+  double per_proc;
+  int IF;
+  double per_IF;
+  int loop;
+  double per_loop;
+  int SWITCH;
+  double per_SWITCH;
+  bool result;
+  void dump(std::ostream &os) {
+    os << "#tok,#patch,"
+       << "#file,#per(file),#proc,#per(proc),#if,#per(if),"
+       << "#loop,#per(loop),#switch,#per(switch),"
+       << "#res" << "\n";
+    os << tok << "," << patch << ","
+       << file << "," << per_file << "," << proc << "," << per_proc << "," << IF << "," << per_IF << ","
+       << loop << "," << per_loop << "," << SWITCH << "," << per_SWITCH << ","
+       << result << "\n";
+  }
+} Distribution;
+
+// #tok | #patch |
+// #file | #per(file) | #proc | #per(proc) | #if | #per(if)
+// #loop | #per(loop) | # switch | #per(switch)
+// result
+void SourceManager::analyzeDistribution(std::set<v2::ASTNodeBase*> selection,
+                                        std::set<v2::ASTNodeBase*> patch,
+                                        std::ostream &os) {
+  Distribution dist = {0};
+  // TODO populate these information
+  dist.tok = selection.size();
+  dist.patch = patch.size();
+  dist.file = getDistFile(selection);
+  dist.per_file = (double)dist.tok / dist.file;
+  dist.proc = getDistProc(selection);
+  dist.per_proc = (double)dist.tok / dist.proc;
+  dist.IF = getDistIf(selection);
+  dist.per_IF = (double)dist.tok / dist.IF;
+  dist.loop = getDistLoop(selection);
+  dist.per_loop = (double)dist.tok / dist.loop;
+  dist.SWITCH = getDistSwitch(selection);
+  dist.per_SWITCH = (double)dist.tok / dist.SWITCH;
+  // TODO result
+  // dist.result;
+  dist.dump(os);
+}
+
+
+// TODO use the visitor "distributor" to compute the distribution database!
+int SourceManager::getDistFile(set<ASTNodeBase*> sel) {
+  set<ASTContext*> asts;
+  for (auto *node : sel) {
+    asts.insert(node->getASTContext());
+  }
+  return asts.size();
+}
+int SourceManager::getDistProc(set<ASTNodeBase*> sel) {
+  int ret = 0;
+  for (auto &m : AST2DistributorMap) {
+    // OMG Proc vs Func the name is not consistent ..
+    int num = m.second->getDistFunc(sel);
+    ret += num;
+  }
+  return ret;
+}
+int SourceManager::getDistIf(set<ASTNodeBase*> sel) {
+  int ret=0;
+  for (auto &m : AST2DistributorMap) {
+    int num = m.second->getDistIf(sel);
+    ret += num;
+  }
+  return ret;
+}
+int SourceManager::getDistLoop(set<ASTNodeBase*> sel) {
+  int ret=0;
+  for (auto &m : AST2DistributorMap) {
+    int num = m.second->getDistLoop(sel);
+    ret += num;
+  }
+  return ret;
+}
+int SourceManager::getDistSwitch(set<ASTNodeBase*> sel) {
+  int ret=0;
+  for (auto &m : AST2DistributorMap) {
+    int num = m.second->getDistSwitch(sel);
+    ret += num;
+  }
+  return ret;
 }

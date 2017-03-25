@@ -48,6 +48,7 @@ HeliumOptions::HeliumOptions() {
     ("info", "information about the benchmark")
     ("tokenize", "tokenize the program")
     ("selection", po::value<std::string>(), "selection of tokens")
+    // ("distribution", po::value<std::string>(), "analyze the distribution of a selection file")
     ;
 
   po::options_description util_options("Utils");

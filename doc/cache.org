@@ -139,7 +139,8 @@ line column
 
 - Another visitor, ParentIndexer, that creates parent and sibling relationship among nodes.
 
-*** TODO random selection of distribution
+*** DONE random selection of distribution
+    CLOSED: [2017-03-24 Fri 21:12]
 - for random generate of selection with consideration of distribution
 
 tokens

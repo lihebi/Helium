@@ -555,9 +555,13 @@ int main(int argc, char* argv[]) {
     SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
     std::set<v2::ASTNodeBase*> selection = sourceManager->loadSelection(sel);
     sourceManager->select(selection);
-    std::cout << "Run grammar patching .." << "\n";
-    sourceManager->grammarPatch();
-    std::cout << "Done" << "\n";
+    std::cout << "Run grammar patching on " << selection.size() << " selected tokens .." << "\n";
+    std::set<v2::ASTNodeBase*> patch = sourceManager->grammarPatch();
+    std::cout << "Done. Patch size: " << patch.size() << "\n";
+
+    // analyze the distribution and print to std::cout
+    sourceManager->analyzeDistribution(selection, patch, std::cout);
+    
     exit(0);
   }
 
@@ -566,8 +570,16 @@ int main(int argc, char* argv[]) {
     // and output to standard output (can be load back)
     SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
     std::set<v2::ASTNodeBase*> selection = sourceManager->generateRandomSelection();
-    sourceManager->dumpSelection(std::cout, selection);
+    sourceManager->dumpSelection(selection, std::cout);
   }
+
+  // if (HeliumOptions::Instance()->Has("distribution")) {
+  //   // analyze the distribution of a selection.
+  //   fs::path sel_file = HeliumOptions::Instance()->GetString("distribution");
+  //   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+  //   std::set<v2::ASTNodeBase*> selection = sourceManager->loadSelection(sel);
+  //   sourceManager->analyzeDitribution(selection, std::cout);
+  // }
 
 
   std::cerr << "Specify tokenize or selection to run." << "\n";
