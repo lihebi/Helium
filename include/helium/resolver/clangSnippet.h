@@ -55,7 +55,12 @@ void clangSnippetLoadDb(fs::path target_cache_dir);
  */
 void clangSnippetInsertDb();
 
+
+// query
+
 std::string clangSnippetGetCode(std::string file, std::string kind, int line);
+
+std::set<std::string> clangSnippetGetCallee(std::string caller);
 
 
 #endif /* CLANG_SNIPPET_H */

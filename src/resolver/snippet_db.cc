@@ -11,6 +11,7 @@
 #include "helium/resolver/resolver.h"
 
 #include "helium/resolver/snippet_db.h"
+#include "helium/resolver/clangSnippet.h"
 #include "helium/parser/xml_doc_reader.h"
 
 #include "helium/utils/dot.h"
@@ -127,10 +128,16 @@ std::map<int, std::set<int> > SnippetDB::constructCG(std::map<std::string, std::
     for (int snippet_id : snippet_ids) {
       std::string code = GetCode(snippet_id);
       // TODO NOW use clang to build call graph
-      std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
-      for (std::string call : calls) {
-        if (all_functions.count(call) == 1) {
-          cg[snippet_id].insert(all_functions[call].begin(), all_functions[call].end());
+      // std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
+      // for (std::string call : calls) {
+      //   if (all_functions.count(call) == 1) {
+      //     cg[snippet_id].insert(all_functions[call].begin(), all_functions[call].end());
+      //   }
+      // }
+      std::set<std::string> callees = clangSnippetGetCallee(func_name);
+      for (std::string callee : callees) {
+        if (all_functions.count(callee) == 1) {
+          cg[snippet_id].insert(all_functions[callee].begin(), all_functions[callee].end());
         }
       }
     }
@@ -159,16 +166,19 @@ void SnippetDB::createCG() {
    */
   std::map<std::string, std::set<int> > all_functions = queryFunctions();
   std::map<int, std::set<int> > cg = constructCG(all_functions);
+
   /**
    * Insert into db
    */
   const char* format = "insert into callgraph values (%d, %d, %d);";
   char buf[BUFSIZ];
   int id=0;
+  int count=0;
   for (auto m : cg) {
     int from_id = m.first;
     std::set<int> to_ids = m.second;
     for (int to_id : to_ids) {
+      count++;
       snprintf(buf, BUFSIZ, format, id, from_id, to_id);
       id++;
       char *errmsg = NULL;
@@ -181,6 +191,7 @@ void SnippetDB::createCG() {
       }
     }
   }
+  std::cout << "Created " << count << " call graph entries." << "\n";
 }
 
 /**
