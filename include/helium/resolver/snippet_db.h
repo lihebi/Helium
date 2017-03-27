@@ -4,7 +4,14 @@
 #include "snippet.h"
 #include <sqlite3.h>
 
+/**
+ * \defgroup resolver
+ */
+
 // filename, linenumber, (keyword, kind)s
+/**
+ * \ingroup resolver
+ */
 class SnippetMeta {
 public:
   SnippetMeta() {}
@@ -31,6 +38,7 @@ public:
 };
 
 /**
+ * \ingroup resolver
  * This class is a singleton.
  * The database must be loaded, or created, before calling any methods.
  */
@@ -44,6 +52,7 @@ public:
   }
   void Load(std::string folder);
   void Create(std::string tagfile, std::string output_folder);
+  void CreateV2(fs::path target_cache_dir);
   std::set<int> LookUp(std::string key, std::set<SnippetKind> kinds={});
   std::set<int> LookUp(std::set<std::string> keys, std::set<SnippetKind> kinds={});
   /**
@@ -107,6 +116,7 @@ private:
    */
   std::string m_db_folder;
   sqlite3 *m_db = NULL;
+  std::string m_code_folder;
   /**
    * Cache
    */

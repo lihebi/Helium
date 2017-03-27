@@ -7,6 +7,7 @@
 #include "helium/parser/xmlnode.h"
 #include "helium/parser/xmlnode_helper.h"
 #include "helium/resolver/system_resolver.h"
+#include "helium/resolver/clangSnippet.h"
 
 #include "helium/parser/xml_doc_reader.h"
 
@@ -177,6 +178,79 @@ std::vector<std::string> query_code(const std::string& code, const std::string& 
   return result;
 }
 
+/**
+ * FIXME typedef, enum member
+ */
+Snippet::Snippet(const CtagsEntry &entry, fs::path target_cache_dir) : m_entry(entry) {
+  SnippetKind type = char_to_snippet_kind(entry.GetType());
+  m_filename = entry.GetFileName();
+  m_line_number = entry.GetLineNumber();
+  switch(type) {
+  case SK_Function: {
+    m_main_kind = SK_Function;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "function", m_line_number);
+    // m_code = clang_get_code(m_filename, m_line_number, "function", target_cache_dir);
+    m_sig[entry.GetName()].insert(SK_Function);
+    break;
+  }
+  case SK_Structure: {
+    m_main_kind = SK_Structure;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "struct", m_line_number);
+    m_sig[entry.GetName()].insert(SK_Structure);
+    break;
+  }
+  case SK_Enum: {
+    m_main_kind = SK_Enum;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "enum", m_line_number);
+    m_sig[entry.GetName()].insert(SK_Enum);
+    break;
+  }
+  case SK_Union: {
+    m_main_kind = SK_Union;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "union", m_line_number);
+    m_sig[entry.GetName()].insert(SK_Union);
+    break;
+  }
+  case SK_Variable: {
+    m_main_kind = SK_Variable;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "var", m_line_number);
+    m_sig[entry.GetName()].insert(SK_Variable);
+    break;
+  }
+  case SK_Typedef: {
+    m_main_kind = SK_Typedef;
+    m_main_name = entry.GetName();
+    m_code = clangSnippetGetCode(m_filename, "typedef", m_line_number);
+    break;
+  }
+  default:
+    // should we reach here?
+    // yes, we should. But, we are not getting anything interesting.
+    // this is because we don't care about 'm' type
+    // null snippet?
+    // this is SK_Const, or more likely, SK_Member
+    m_code = ""; // this indicate the snippet is invalid.
+    return;
+  }
+
+  // if (m_sig.empty()) {
+  //   // std::cout << "WARNING: No Sig Found!"  << "\n";
+  //   // FIXME should I add this for everyone?
+  //   // typedef RETSIGTYPE (*sig_type) OF((int));
+  //   m_sig.emplace(entry.GetName(), type);
+  // }
+  if (m_sig.count(entry.GetName()) == 0) {
+    // m_sig.emplace(entry.GetName(), type);
+    m_sig[entry.GetName()].insert(type);
+  }
+  m_loc = std::count(m_code.begin(), m_code.end(), '\n');
+}
+
 Snippet::Snippet(const CtagsEntry& entry) : m_entry(entry) {
   helium_print_trace("Snippet::Snippet");
   /**
@@ -191,16 +265,6 @@ Snippet::Snippet(const CtagsEntry& entry) : m_entry(entry) {
     m_main_kind = SK_Function;
     m_main_name = entry.GetName();
     m_code = get_func_code(entry);
-    // int loc = std::count(m_code.begin(), m_code.end(), '\n');
-    // if (loc == 222) {
-    //   std::cout << "1064: ";
-    //   std::cout << "function: ";
-    //   std::cout <<m_main_name << ":";
-    //   std::cout << entry.GetFileName()  << "\n";
-    //   std::cout << entry.GetLineNumber()  << "\n";
-    //   std::cout << loc  << "\n";
-    // }
-    // m_sig.emplace(entry.GetName(), SK_Function);
     m_sig[entry.GetName()].insert(SK_Function);
     break;
   }
@@ -492,6 +556,7 @@ std::string get_func_code(const CtagsEntry& entry) {
   std::string filename = entry.GetFileName();
   return get_code_enclosing_line(filename, line_number, "function");
 }
+
 
 /**
  * Use filename and line number to match a <enum> that contains the line.

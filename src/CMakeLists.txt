@@ -7,7 +7,9 @@ add_subdirectory(workflow)
 
 
 add_executable(helium
-        main.cc)
+  main.cc
+  # clangSnippet.cpp
+  )
 target_link_libraries(helium
         HeliumUtils
         HeliumParser

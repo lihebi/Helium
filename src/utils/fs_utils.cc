@@ -181,6 +181,8 @@ namespace utils {
     if (os.is_open()) {
       os << content;
       os.close();
+    } else {
+      std::cerr << "Cannot open file " << file << "\n";
     }
   }
 
@@ -219,6 +221,31 @@ namespace utils {
       is.close();
     }
     return code;
+  }
+  
+  std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn) {
+    std::ifstream is;
+    is.open(file);
+    int l=0;
+    std::string ret;
+    if (is.is_open()) {
+      std::string line;
+      while(getline(is, line)) {
+        l++;
+        if (l < beginLine) {
+        } else if (l==beginLine) {
+          ret += line.substr(beginColumn-1) + "\n";
+        } else if (l>beginLine && l < endLine) {
+          ret += line + "\n";
+        } else if (l== endLine) {
+          ret += line.substr(0, endColumn);
+        } else {
+          break;
+        }
+      }
+      is.close();
+    }
+    return ret;
   }
 
   /**

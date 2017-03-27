@@ -26,6 +26,7 @@ namespace utils {
   void write_file(const std::string& file, const std::string& content);
   void append_file(const std::string& file, const std::string& content);
   std::string read_file(const std::string& file);
+  std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn);
   // folders
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);

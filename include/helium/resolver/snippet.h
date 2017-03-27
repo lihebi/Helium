@@ -8,6 +8,13 @@
 #include <assert.h>
 #include <readtags.h>
 
+
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
+namespace fs = boost::filesystem;
+
+
 /*******************************
  ** ctags
  *******************************/
@@ -130,9 +137,17 @@ std::string get_typedef_code(const CtagsEntry& entry);
 
 typedef std::map<std::string, std::set<SnippetKind> > SnippetSignature;
 
+// std::string clang_get_func_code(const CtagsEntry &entry, fs::path target_cache_dir);
+// std::string clang_get_struct_code(const CtagsEntry &entry, fs::path target_cache_dir);
+// std::string clang_get_enum_code(const CtagsEntry &entry, fs::path target_cache_dir);
+// std::string clang_get_typedef_code(const CtagsEntry &entry, fs::path target_cache_dir);
+// std::string clang_get_union_code(const CtagsEntry &entry, fs::path target_cache_dir);
+// std::string clang_get_var_code(const CtagsEntry &entry, fs::path target_cache_dir);
+
 class Snippet {
 public:
   Snippet(const CtagsEntry& entry);
+  Snippet(const CtagsEntry &entry, fs::path target_cache_dir);
   virtual ~Snippet();
   std::string GetName() const;
   // TODO do we really need this, since we already has the more powerful signature?

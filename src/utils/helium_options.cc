@@ -42,18 +42,27 @@ HeliumOptions::HeliumOptions() {
   po::options_description primary_options("Primary");
   primary_options.add_options()
     ("setup", "setup")
-    ("create-cache", "create preprocessed files, snippetdb, tagfile, src, tokens.db in cache folder")
+    ("create-cache", "create preprocessed files, tagfile in cache folder")
+    // call the following tools in sequence
+    ("create-cpp", "preprocess")
+    ("create-tagfile", "create tagfile")
+    ("create-clang-snippet", "clang snippet")
+    ("create-snippet", "snippet db")
+    
+    ("dry-snippet-dep", "when creating dependence of snippet, only output the number of queries but not do it.")
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")
     ("info", "information about the benchmark")
     ("tokenize", "tokenize the program")
     ("selection", po::value<std::string>(), "selection of tokens")
+    ("dummy-loop", "run a dummy loop for testing profilers")
     // ("distribution", po::value<std::string>(), "analyze the distribution of a selection file")
+    ("clang-snippet", "extract snippet index using clang")
     ;
 
   po::options_description util_options("Utils");
   util_options.add_options()
-    ("create-tagfile", "create tag file")
+    // ("create-tagfile", "create tag file")
     ("create-snippet-db", "create snippet database")
     ("create-header-dep", "create header dependence table")
     

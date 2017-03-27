@@ -17,12 +17,15 @@
 
 #include "helium/parser/source_manager.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
+#include "helium/resolver/clangSnippet.h"
+
 
 #include <gtest/gtest.h>
+#include <sqlite3.h>
 
 
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 
 namespace fs = boost::filesystem;
 
@@ -241,47 +244,30 @@ void load_slice() {
  * New staff
  *******************************/
 
-
-
-void create_cache(fs::path target, fs::path target_cache_dir) {
-  // TODO commented out for easy debugging
-  // if (fs::exists(target_cache_dir)) {
-  //   std::cout << "Cache exists: " << target_cache_dir.string() << "\n";
-  //   std::cout << "Replace? [y/N] " << std::flush;
-  //   char c = getchar();
-  //   if (c != 'y' && c != 'Y') {
-  //     std::cout << "Cancelled." << "\n";
-  //     exit(1);
-  //   }
-  // }
-  fs::remove_all(target_cache_dir);
-  fs::create_directories(target_cache_dir);
-  fs::create_directories(target_cache_dir / "src");
-  fs::create_directories(target_cache_dir / "code");
-  fs::create_directories(target_cache_dir / "cpp");
-  // DEPRECATED
-  fs::create_directories(target_cache_dir / "snippet");
-
+void create_src(fs::path target, fs::path target_cache_dir) {
+  fs::path src = target_cache_dir / "src";
+  if (fs::exists(src)) fs::remove_all(src);
+  fs::create_directories(src);
   // copy only source files. Keep directory structure
   fs::recursive_directory_iterator it(target), eod;
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
     if (is_regular_file(p)) {
       if (p.extension() == ".c" || p.extension() == ".h") {
-        // std::cout << "Copying from " << p.string() << " to " << "..." << "\n";
-        // fs::copy_file(p, target_cache_dir / "src" / p.filename(), fs::copy_option::overwrite_if_exists);
         fs::path to = target_cache_dir / "src" / fs::relative(p, target);
         fs::create_directories(to.parent_path());
-        // std::cout << "Copy " << p.string()
-        //           << " To: " << to.string()
-        //           << "\n";
-        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));
-      }
-    }
-  }
-    
-  // running pre-processor
-  std::cout << "Running Pre-processor .." << "\n";
-  it = fs::recursive_directory_iterator(target_cache_dir / "src");
+        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));}}}}
+
+/**
+ * 1. create cpp folder
+ * 2. preprocess src and put into cpp folder
+ * 3. post-process cpp files
+ */
+void create_cpp(fs::path target_cache_dir) {
+  fs::path cpp = target_cache_dir / "cpp";
+  fs::path src = target_cache_dir / "src";
+  if (fs::exists(cpp)) fs::remove_all(cpp);
+  fs::create_directories(cpp);
+  fs::recursive_directory_iterator it(src), eod;
   vector<fs::path> dirs;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (fs::is_directory(p)) {
@@ -301,14 +287,15 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
     if (fs::is_regular_file(p)) {
       fs::path to = target_cache_dir / "cpp" / fs::relative(p, target_cache_dir / "src");
       fs::create_directories(to.parent_path());
+      // redirect the clang preprocessor stderr to /dev/null
       std::string cmd = cpp_cmd + " " + p.string()
-        + " >> " + to.string();
+        + " >> " + to.string() + " 2>/dev/null";
       utils::new_exec(cmd.c_str());
     }
   }
 
   // remove extra things added by preprocessor using include files
-  std::cout << "Removing extra for cpp-ed file .." << "\n";
+  // std::cout << "Removing extra for cpp-ed file .." << "\n";
   it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (fs::is_regular_file(p)) {
@@ -333,7 +320,8 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
             fs::path newfile = fs::relative(file, target_cache_dir / "src");
             if (newfile.string() == newp.string()) {
               b = true;
-              output += line + "\n";
+              // I don't need the line marker line, because clang will complain when process it
+              // output += line + "\n";
             } else {
               b = false;
             }
@@ -349,44 +337,57 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
       }
     }
   }
-    
-    
-  // for (fs::directory_entry &e : fs::directory_iterator(target_cache_dir / "src")) {
-  //   fs::path p = e.path();
-  //   fs::path filename = p.filename();
-  //   if (p.extension() == ".c") {
-  //     std::string cmd = "clang -E " + p.string()
-  //       + " -I" + (target_cache_dir/"src").string() // include path
-  //       + " >> " + (target_cache_dir / "cpp" / p.filename()).string();
-  //     std::cout << "running cmd: " << cmd << "\n";
-  //     utils::new_exec(cmd.c_str());
-  //   }
-  // }
-    
-  // create tag file
-  fs::path tagfile = target_cache_dir / "tags";
-  std::cout << "Creating tagfile .." << "\n";
-  create_tagfile((target_cache_dir / "cpp").string(), (target_cache_dir / "tags").string());
-    
-  std::cout << "Creating snippet.db .." << "\n";
-  // // this will call srcml
-  SnippetDB::Instance()->Create(tagfile.string(), (target_cache_dir / "snippet").string());
-
-  // create token database file
-  // std::cout << "Creating tokens.db .." << "\n";
-  // it = fs::recursive_directory_iterator(target_cache_dir / "cpp");
-  // BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-  //   if (p.extension() == ".c") {
-  //     std::cout << "parsing " << p.string() << "\n";
-  //     Parser *parser = new Parser(p.string());
-  //     v2::TranslationUnitDecl *unit = parser->getTranslationUnit();
-  //     if (unit) {
-  //       unit->dump();
-  //     }
-  //     // std::cout << "should output" << "\n";
-  //   }
-  // }
 }
+
+/**
+ * create tagfile in target cache folder
+ */
+void create_tagfile(fs::path target_cache_dir) {
+  // create tag file
+  std::cout << "Creating tagfile .." << "\n";
+  fs::path tagfile = target_cache_dir / "tagfile";
+  fs::path cppfolder = target_cache_dir / "cpp";
+  if (fs::exists(tagfile)) fs::remove(tagfile);
+  create_tagfile(cppfolder.string(), tagfile.string());
+}
+
+/**
+ * Create clang snippet database for snippets
+ */
+void create_clang_snippet(fs::path target_cache_dir) {
+  std::cout << "Creating clang snippet .." << "\n";
+  clangSnippetRun(target_cache_dir / "cpp");
+  clangSnippetCreateDb(target_cache_dir / "clangSnippet.db");
+  clangSnippetLoadDb(target_cache_dir / "clangSnippet.db");
+  clangSnippetInsertDb();
+}
+
+/**
+ * create general snippet db
+ */
+void create_snippet_db(fs::path target_cache_dir) {
+  std::cout << "Creating snippet.db .." << "\n";
+  fs::path tagfile = target_cache_dir/"tagfile";
+  fs::path snippet_folder = target_cache_dir/"snippet";
+  // // this will call srcml
+  // SnippetDB::Instance()->Create(tagfile.string(), snippet_folder.string());
+  // to create snippet db, we need
+  // - tagfile
+  // - output db file
+  // - code folder
+  // clang db folder
+  clangSnippetLoadDb(target_cache_dir / "clangSnippet.db");
+  SnippetDB::Instance()->CreateV2(target_cache_dir);
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -434,6 +435,17 @@ int main(int argc, char* argv[]) {
   HeliumOptions::Instance()->ParseCommandLine(argc, argv);
   HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
 
+  if (HeliumOptions::Instance()->Has("dummy-loop")) {
+    std::cout << "run dummy loop" << "\n";
+    for (int i=0;i<1000;i++) {
+      for (int j=0;j<1000;j++) {
+        for (int k=0;k<1000;k++) {
+          // i+j+k;
+        }
+      }
+    }
+    exit(0);
+  }
 
   if (HeliumOptions::Instance()->Has("help")) {
     HeliumOptions::Instance()->PrintHelp();
@@ -502,9 +514,48 @@ int main(int argc, char* argv[]) {
   std::replace(target_cache_dir_name.begin(), target_cache_dir_name.end(), '/', '_');
   fs::path target_cache_dir(helium_home / "cache" / target_cache_dir_name);
 
+
+
+  // (HEBI: Create Cache)
+
+
   if (HeliumOptions::Instance()->Has("create-cache")) {
-    create_cache(target, target_cache_dir);
-    exit(0);}
+    if (fs::exists(target_cache_dir)) fs::remove_all(target_cache_dir);
+    fs::create_directories(target_cache_dir);
+    create_src(target, target_cache_dir);
+    create_cpp(target_cache_dir);
+    create_tagfile(target_cache_dir);
+    create_clang_snippet(target_cache_dir);
+    create_snippet_db(target_cache_dir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-cpp")) {
+    create_src(target, target_cache_dir);
+    create_cpp(target_cache_dir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-tagfile")) {
+    create_tagfile(target_cache_dir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-clang-snippet")) {
+    create_clang_snippet(target_cache_dir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-snippet")) {
+    create_snippet_db(target_cache_dir);
+    exit(0);
+  }
+
+
+
+
+
+
+  
+
+
+  
 
   if (!fs::exists(target_cache_dir)) {
     std::cerr << "The benchmark is not processed."
@@ -531,6 +582,7 @@ int main(int argc, char* argv[]) {
     std::cout << "LOC: " << "TODO 8k" << "\n";
     exit(0);
   }
+
 
   if (HeliumOptions::Instance()->Has("tokenize")) {
     // get the target. we need to check if the target exists in the cache
@@ -573,6 +625,7 @@ int main(int argc, char* argv[]) {
     sourceManager->dumpSelection(selection, std::cout);
   }
 
+
   // if (HeliumOptions::Instance()->Has("distribution")) {
   //   // analyze the distribution of a selection.
   //   fs::path sel_file = HeliumOptions::Instance()->GetString("distribution");
@@ -613,10 +666,10 @@ int main(int argc, char* argv[]) {
   
   // check_light_utilities();
   // check_target_folder(cpped.string());
-  if (HeliumOptions::Instance()->Has("create-tagfile")) {
-    create_tagfile(target_str, "tags");
-    exit(0);
-  }
+  // if (HeliumOptions::Instance()->Has("create-tagfile")) {
+  //   create_tagfile(target_str, "tags");
+  //   exit(0);
+  // }
 
   if (HeliumOptions::Instance()->Has("create-snippet-db")) {
     std::string tmpdir = utils::create_tmp_dir();

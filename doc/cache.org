@@ -244,6 +244,11 @@ When running helium, first check if this folder exist. If yes,
 continue. Otherwise prompt for creating it. When creating this, first
 check if it exists, if yes, prompt for replacing or not =y/N=.
 
+* Clang Snippet
+| name | type     | begin_line | begin_column | end_line | end_column |
+|------+----------+------------+--------------+----------+------------|
+| foo  | function |          3 |            1 |       10 |          8 |
+
 * Snippet DB
 ** snippet
 This table corresponds to the snippet code, one piece of code per entry.

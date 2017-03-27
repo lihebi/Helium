@@ -22,10 +22,11 @@ extract_id_to_resolve(std::string code) {
   // print_trace("extract_id_to_resolve");
 
   // Before doing the pattern matching, I want to first remove comments
-  XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
-  assert(doc);
-  code = get_text_except(doc->document_element(), NK_Comment);
-  delete doc;
+  // UPDATE I don't have comment after pre-processing, removing this
+  // XMLDoc *doc = XMLDocReader::CreateDocFromString(code);
+  // assert(doc);
+  // code = get_text_except(doc->document_element(), NK_Comment);
+  // delete doc;
   
   static boost::regex id_reg("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b");
   boost::smatch match;

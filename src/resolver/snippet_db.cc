@@ -15,6 +15,8 @@
 
 #include "helium/utils/dot.h"
 
+#include "helium/utils/helium_options.h"
+
 using namespace utils;
 
 SnippetDB *SnippetDB::m_instance = NULL;
@@ -124,6 +126,7 @@ std::map<int, std::set<int> > SnippetDB::constructCG(std::map<std::string, std::
     std::set<int> snippet_ids = m.second;
     for (int snippet_id : snippet_ids) {
       std::string code = GetCode(snippet_id);
+      // TODO NOW use clang to build call graph
       std::vector<std::string> calls = XMLDocReader::QueryCode(code, "//call/name");
       for (std::string call : calls) {
         if (all_functions.count(call) == 1) {
@@ -182,6 +185,8 @@ void SnippetDB::createCG() {
 
 /**
  * Traverse through the snippet table and build the dependence table.
+ * I'm going to create a dry run to collect all dependence
+ * So that I can provide a nice progress indicator instead of dot dot dot
  */
 void SnippetDB::createDep() {
   // select * from snippet order by ID
@@ -191,18 +196,46 @@ void SnippetDB::createDep() {
   // 3. query for the ids, => snippet IDs
   // select snippet_ID from signature where key=<Keyword>
   // 4. add dependence
-  std::cout << "creating dependence .."  << "\n";
+  std::cout << "== creating dependence .."  << "\n";
   int dependence_id = 0;
   int rc = 0;
   std::vector<int> snippet_ids = queryInt("select ID from snippet");
+  std::cout << "== Total snippet: " << snippet_ids.size() << "\n";
+
+
+  int total_query = 0;
   for (int id : snippet_ids) {
-    std::cout << '.' << std::flush;
-    std::string code_file = m_db_folder + "/code/"+std::to_string(id) + ".txt";
+    // std::string code_file = m_db_folder + "/code/"+std::to_string(id) + ".txt";
+    std::string code_file = m_code_folder + "/" + std::to_string(id) + ".txt";
+    std::string code = utils::read_file(code_file);
+    std::set<std::string> names;
+    names = extract_id_to_resolve(code);
+    total_query += names.size();
+  }
+  std::cout << "== Total SQL query: " << total_query << "\n";
+
+  if (HeliumOptions::Instance()->Has("dry-snippet-dep")) {
+    std::cout << "== dry-snippet-dep active, skip." << "\n";
+    return;
+  }
+
+  int snippet_count = 0;
+  int query_count = 0;
+  for (int id : snippet_ids) {
+    snippet_count++;
+    // std::cout << '.' << std::flush;
+    // std::string code_file = m_db_folder + "/code/"+std::to_string(id) + ".txt";
+    std::string code_file = m_code_folder + "/" + std::to_string(id) + ".txt";
     std::string code = utils::read_file(code_file);
     // FIXME NOW This is very bad!
     // The code may contains comments!
-    std::set<std::string> names = extract_id_to_resolve(code);
+    std::set<std::string> names;
+    names = extract_id_to_resolve(code);
+    // std::cout << names.size() << "\n";
     for (std::string name : names) {
+      query_count++;
+      std::cout << "\33[2K" << "\r" << snippet_count << "/" << snippet_ids.size()
+                << "\t" << query_count << "/" << total_query << std::flush;
       /**
        * prepare stmt, execute, and construct dependence
        */
@@ -306,6 +339,83 @@ int get_num_total_entry(tagFile *tag) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+// (HEBI: New create db)
+
+void SnippetDB::CreateV2(fs::path target_cache_dir) {
+  fs::path tagfile = target_cache_dir / "tagfile";
+  fs::path dbfile = target_cache_dir / "snippet.db";
+  fs::path code_dir = target_cache_dir / "code";
+
+  // FIXME DEPRECATED
+  m_code_folder = code_dir.string();
+  fs::create_directories(code_dir);
+  // fs::path clang_dbfile = target_cache_dir / "clangSnippet.db";
+  // sqlite3 *db = nullptr;
+  if (fs::exists(dbfile)) fs::remove(dbfile);
+  sqlite3_open(dbfile.string().c_str(), &m_db);
+  assert(m_db);
+  createTable();
+  tagFile *tag = NULL;
+  tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
+  tag = tagsOpen(tagfile.c_str(), info);
+  if (info->status.opened != true) {
+    assert(false);
+  }
+  free(info);
+  // getting total number of tag entries
+  int num = get_num_total_entry(tag);
+  std::cout << "Total number of entry: " << num << "\n";
+  tagEntry *entry = (tagEntry*)malloc(sizeof(tagEntry));
+  tagResult res = tagsFirst(tag, entry);
+
+  int snippet_id = 0;
+  std::vector<Snippet*> all_snippets;
+  int count=0;
+  while (res == TagSuccess) {
+    count++;
+    std::cout << "\33[2K" << "\r" << count  << "/" << num
+              << std::flush;
+
+    CtagsEntry ctags_entry(entry);
+    Snippet *snippet = new Snippet(ctags_entry, target_cache_dir);
+    if (snippet != NULL) {
+      if (snippet->IsValid()) {
+        snippet_id = insertSnippet(snippet);
+        // std::string code_file = output_folder + "/code/" + std::to_string(snippet_id) + ".txt";
+        fs::path code_file = code_dir / (std::to_string(snippet_id) + ".txt").c_str();
+
+        // std::cout << "writing code file " << code_file << "\n";
+        utils::write_file(code_file.string(), snippet->GetCode());
+      }
+      all_snippets.push_back(snippet);
+      // delete snippet;
+    }
+    // std::cout  << "\n";
+    res = tagsNext(tag, entry);
+  }
+  std::cout << "\ntotal snippet: " << snippet_id + 1  << "\n";
+  for (Snippet *s : all_snippets) {
+    delete s;
+  }
+  // TODO print out snippet details, like how many functions, defines, structures, etc.
+  createDep();
+  createCG();
+  sqlite3_close_v2(m_db);
+}
+
 /**
  * According to, and only to, the tagfile, create a database of snippets.
  * The output will be:
@@ -313,7 +423,7 @@ int get_num_total_entry(tagFile *tag) {
  * output_folder/code/<number>.txt
  */
 void SnippetDB::Create(std::string tagfile, std::string output_folder) {
-  std::cerr << "creating snippet db ..."  << "\n";
+  // std::cerr << "creating snippet db ..."  << "\n";
   if (utils::exists(output_folder)) {
     utils::remove_folder(output_folder);
   }
@@ -324,10 +434,10 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
   assert(m_db);
   createTable();
   m_db_folder = output_folder;
+  m_code_folder = output_folder + "/code";
   /**
    * Opening tag file
    */
-  std::cerr << "opening tag file ..."  << "\n";
   tagFile *tag = NULL;
   tagFileInfo *info = (tagFileInfo*)malloc(sizeof(tagFileInfo));
   tag = tagsOpen(tagfile.c_str(), info);
@@ -340,7 +450,6 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
    * Iterating tag file
    */
 
-  std::cout << "iterating .."  << "\n";
   // getting total number of tag entries
   int num = get_num_total_entry(tag);
   std::cout << "Total number of entry: " << num << "\n";
@@ -356,9 +465,7 @@ void SnippetDB::Create(std::string tagfile, std::string output_folder) {
      * Inserting database
      */
     // std::cout << '.' << std::flush;
-    std::cout << "\33[2K" << "\r" << count  << " / " << num
-              // << " : " << entry->name << " "
-              // << entry->file << ":" << entry->address.lineNumber
+    std::cout << "\33[2K" << "\r" << count  << "/" << num
               << std::flush;
 
     CtagsEntry ctags_entry(entry);
@@ -460,6 +567,7 @@ void SnippetDB::PrintCG() {
  *******************************/
 void SnippetDB::Load(std::string folder) {
   m_db_folder = folder;
+  m_code_folder = folder + "/code";
   std::string db_file = folder + "/index.db";
   sqlite3_open(db_file.c_str(), &m_db);
 
@@ -580,7 +688,8 @@ std::string SnippetDB::GetCode(int snippet_id) {
   if (m_snippet_code_cache.count(snippet_id) == 1) {
     return m_snippet_code_cache[snippet_id];
   }
-  std::string code_file = m_db_folder+"/code/"+std::to_string(snippet_id) + ".txt";
+  // std::string code_file = m_db_folder+"/code/"+std::to_string(snippet_id) + ".txt";
+  std::string code_file = m_code_folder + "/" + std::to_string(snippet_id) + ".txt";
   assert(utils::exists(code_file));
   m_snippet_code_cache[snippet_id] = utils::read_file(code_file);
   return m_snippet_code_cache[snippet_id];
