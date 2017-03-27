@@ -100,8 +100,9 @@ SnippetKind char_to_snippet_kind(char t) {
   case 'm': return SK_Member;
   case 'x': return SK_Other;
   default: {
-    std::cerr <<t  << "\n";
-    assert(false);
+    std::cerr << "Unrecoganized ctags snippet kind: " << t  << "\n";
+    // n
+    // assert(false);
   }
   }
 }

@@ -159,13 +159,20 @@ std::map<int, std::set<int> > SnippetDB::constructCG(std::map<std::string, std::
  */
 void SnippetDB::createCG() {
   sqlite3 *db = m_db;
-  std::cout << "create_callgraph"  << "\n";
+  std::cout << "creating callgraph .."  << "\n";
   assert(db);
   /**
    * Process all functions
    */
   std::map<std::string, std::set<int> > all_functions = queryFunctions();
   std::map<int, std::set<int> > cg = constructCG(all_functions);
+
+
+  // get total count
+  int total = 0;
+  for (auto m : cg) {
+    total += m.second.size();
+  }
 
   /**
    * Insert into db
@@ -179,6 +186,8 @@ void SnippetDB::createCG() {
     std::set<int> to_ids = m.second;
     for (int to_id : to_ids) {
       count++;
+      std::cout << "\33[2K" << "\r" << count  << "/" << total
+                << std::flush;
       snprintf(buf, BUFSIZ, format, id, from_id, to_id);
       id++;
       char *errmsg = NULL;

@@ -522,10 +522,15 @@ int main(int argc, char* argv[]) {
   if (HeliumOptions::Instance()->Has("create-cache")) {
     if (fs::exists(target_cache_dir)) fs::remove_all(target_cache_dir);
     fs::create_directories(target_cache_dir);
+    std::cout << "== Creating src .." << "\n";
     create_src(target, target_cache_dir);
+    std::cout << "== Creating cpp .." << "\n";
     create_cpp(target_cache_dir);
+    std::cout << "== Creating tagfile .." << "\n";
     create_tagfile(target_cache_dir);
+    std::cout << "== Creating clang snippet .." << "\n";
     create_clang_snippet(target_cache_dir);
+    std::cout << "== Creating snippet db .." << "\n";
     create_snippet_db(target_cache_dir);
     exit(0);
   }
