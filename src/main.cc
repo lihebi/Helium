@@ -434,6 +434,10 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
       sourceManager->analyzeDistribution(sel, {}, std::cout);
+
+      sourceManager->grammarPatch();
+      std::string prog = sourceManager->generateProgram(sel);
+      std::cout << prog << "\n";
     }
   }
 }

@@ -49,6 +49,12 @@ public:
   std::set<v2::ASTNodeBase*> grammarPatch();
 
   /**
+   * Generate program based on selection of nodes.
+   * These nodes might be in different AST
+   */
+  std::string generateProgram(std::set<v2::ASTNodeBase*>);
+
+  /**
    * DEPRECATED
    * Get the UUID of a node.
    * This will be: filename_ID

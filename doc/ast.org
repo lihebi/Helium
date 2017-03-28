@@ -11,7 +11,8 @@ I'll go with /hybrid/ method: use srcml for most of the part, and fine
 tune to create string for the part that is omitted, e.g. the Inc expr
 of forstmt.
 
-*** TODO ParenNode
+*** DONE ParenNode
+    CLOSED: [2017-03-28 Tue 14:44]
 *** TODO lazy evaluation
 *** TODO variable resolving and including declaration
 *** TODO Semantic checking such as break continue, for init decl

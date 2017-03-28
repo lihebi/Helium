@@ -376,3 +376,23 @@ int SourceManager::getDistSwitch(set<ASTNodeBase*> sel) {
   }
   return ret;
 }
+
+
+
+
+std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
+  std::string ret="";
+  // this is basically go from root
+  // perform pre-order travesal
+  for (auto &m : File2ASTMap) {
+    Generator *generator =  new Generator(sel);
+    // generator->setSelection(sel);
+    ASTContext *ast = m.second;
+    TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
+    decl->accept(generator);
+    std::string prog = generator->getProgram();
+    // TODO many ASTs
+    ret += prog;
+  }
+  return ret;
+}

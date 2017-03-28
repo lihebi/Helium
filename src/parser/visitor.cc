@@ -705,7 +705,7 @@ std::set<ASTNodeBase*> StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *paren
   GrammarPatcher grammarPatcher;
   PatchData data;
   data.selection = sel;
-  parent->accept(&grammarPatcher, &data);
+  if (parent) parent->accept(&grammarPatcher, &data);
   return grammarPatcher.getPatch();
 }
 
@@ -1088,7 +1088,7 @@ void Distributor::visit(v2::Expr *expr, void *data) {}
 // TODO
 void Generator::visit(v2::TokenNode *token, void *data) {
   if (selection.count(token) == 1) {
-    code += token->getText();
+    Prog += token->getText();
   }
 }
 void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {
@@ -1111,22 +1111,22 @@ void Generator::visit(v2::FunctionDecl *function, void *data) {
 }
 void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {
   if (selection.count(decl_stmt) == 1) {
-    code += decl_stmt->getText() + ";\n";
+    Prog += decl_stmt->getText() + ";\n";
   }
 }
 void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {
   if (selection.count(expr_stmt) == 1) {
-    code += expr_stmt->getText() + ";\n";
+    Prog += expr_stmt->getText() + ";\n";
   }
 }
 void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
   // FIXME ParenNode
-  code += "{\n";
+  Prog += "{\n";
   std::vector<Stmt*> stmts = comp_stmt->getBody();
   for (Stmt *stmt : stmts) {
     if (stmt) stmt->accept(this);
   }
-  code += "}\n";
+  Prog += "}\n";
 }
 void Generator::visit(v2::ForStmt *for_stmt, void *data) {
   TokenNode *token = for_stmt->getForNode();
@@ -1160,12 +1160,12 @@ void Generator::visit(v2::DoStmt *do_stmt, void *data) {
 }
 void Generator::visit(v2::BreakStmt *break_stmt, void *data) {
   if (selection.count(break_stmt)) {
-    code += "break;\n";
+    Prog += "break;\n";
   }
 }
 void Generator::visit(v2::ContinueStmt *cont_stmt, void *data) {
   if (selection.count(cont_stmt)) {
-    code += "continue;\n";
+    Prog += "continue;\n";
   }
 }
 void Generator::visit(v2::ReturnStmt *ret_stmt, void *data) {
@@ -1173,7 +1173,7 @@ void Generator::visit(v2::ReturnStmt *ret_stmt, void *data) {
   if (ReturnNode) ReturnNode->accept(this);
   Expr *expr = ret_stmt->getValue();
   if (expr) expr->accept(this);
-  code += ";\n";
+  Prog += ";\n";
 }
 void Generator::visit(v2::IfStmt *if_stmt, void *data) {
   TokenNode *IfNode = if_stmt->getIfNode();
@@ -1181,22 +1181,22 @@ void Generator::visit(v2::IfStmt *if_stmt, void *data) {
   Expr *expr = if_stmt->getCond();
   if (expr) expr->accept(this);
   if (selection.count(IfNode) == 1) {
-    code += "{";
+    Prog += "{";
   }
   Stmt *then_stmt = if_stmt->getThen();
   if (then_stmt) then_stmt->accept(this);
   if (selection.count(IfNode) == 1) {
-    code += "}";
+    Prog += "}";
   }
   TokenNode *ElseNode = if_stmt->getElseNode();
   if (ElseNode) ElseNode->accept(this);
   if (selection.count(ElseNode) == 1) {
-    code += "{";
+    Prog += "{";
   }
   Stmt *else_stmt = if_stmt->getElse();
   if (else_stmt) else_stmt->accept(this);
   if (selection.count(ElseNode) == 1) {
-    code += "}";
+    Prog += "}";
   }
 }
 void Generator::visit(v2::SwitchStmt *switch_stmt, void *data) {
@@ -1229,6 +1229,6 @@ void Generator::visit(v2::DefaultStmt *def_stmt, void *data) {
 }
 void Generator::visit(v2::Expr *expr, void *data) {
   if (selection.count(expr) == 1) {
-    code += expr->getText();
+    Prog += expr->getText();
   }
 }

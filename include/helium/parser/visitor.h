@@ -422,8 +422,16 @@ public:
   virtual void visit(v2::CaseStmt *case_stmt, void *data=nullptr);
   virtual void visit(v2::DefaultStmt *def_stmt, void *data=nullptr);
   virtual void visit(v2::Expr *expr, void *data=nullptr);
+
+  void setSelection(std::set<v2::ASTNodeBase*> sel) {
+    selection = sel;
+  }
+
+  std::string getProgram() {
+    return Prog;
+  }
 private:
-  std::string code;
+  std::string Prog;
   std::set<v2::ASTNodeBase*> selection;
 };
 
