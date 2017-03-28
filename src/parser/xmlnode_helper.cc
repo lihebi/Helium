@@ -394,6 +394,9 @@ std::pair<int, int> get_node_position(pugi::xml_node node) {
   return std::make_pair(stoi(line_str), stoi(column_str));
 }
 
+/**
+ * find the first pos:line
+ */
 std::pair<int, int> get_node_begin_position(pugi::xml_node node) {
   assert(node);
   assert(node.root().child("unit").attribute("xmlns:pos"));
@@ -414,6 +417,10 @@ std::pair<int, int> get_node_begin_position(pugi::xml_node node) {
   return std::make_pair(line, column);
 }
 
+/**
+ * find the last pos:line
+ * TODO should I ge the beginning of next? will that be more accurate?
+ */
 std::pair<int, int> get_node_end_position(pugi::xml_node node) {
   assert(node);
   assert(node.root().child("unit").attribute("xmlns:pos"));

@@ -116,14 +116,23 @@ fs::path SourceManager::matchFile(fs::path file) {
 }
 
 std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
-  std::cout << "Doing grammar patching on " << sel.size() << " selected tokens .." << "\n";
+  std::cout << "[SourceManager] Doing grammar patching on " << sel.size() << " selected tokens .." << "\n";
   std::set<ASTNodeBase*> ret = sel;
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
+    fs::path file = m.first;
+    // std::cout << "Patching for " << file.string() << "\n";
+    
+    // TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    // std::ostringstream oss;
+    // Printer *printer = new Printer(oss);
+    // unit->accept(printer);
+    // std::cout << Printer::PrettyPrint(oss.str()) << "\n";
+
+    
     StandAloneGrammarPatcher *patcher = new StandAloneGrammarPatcher(ast, sel);
     patcher->process();
     set<ASTNodeBase*> patch = patcher->getPatch();
-    std::cout << "Patch size:" << patch.size() << "\n";
     // FIXME examine the result
     ret.insert(patch.begin(), patch.end());
   }
@@ -252,7 +261,7 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
             std::ostringstream os;
             Printer printer(os);
             token->accept(&printer);
-            std::cout << "Found selected token: " << os.str() << "\n";
+            std::cout << "[SourceManager] Found selected token: " << os.str() << "\n";
             ret.insert(token);
           }
         }
@@ -260,7 +269,7 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
     }
   }
   // maybe here: get/set the distribution information
-  std::cout << "Total selected tokens: " << ret.size() << "\n";
+  // std::cout << "Total selected tokens: " << ret.size() << "\n";
   return ret;
 }
 

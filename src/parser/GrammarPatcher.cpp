@@ -225,6 +225,7 @@ void GrammarPatcher::visit(v2::IfStmt *if_stmt, void *data) {
     // expr->accept(this);
   }
   Stmt *then_stmt = if_stmt->getThen();
+  assert(then_stmt);
   // must have the then
   if (then_stmt) {
     // if (selection.count(then_stmt) == 0) {

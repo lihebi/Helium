@@ -51,6 +51,17 @@ DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
   return new DeclStmt(Ctx, text, BeginLoc, EndLoc);
 }
 
+/**
+ * Make a TokenNode out of an XMLNode
+ */
+TokenNode *make_token_node(ASTContext *ctx, XMLNode node, std::string text) {
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_begin_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new TokenNode(ctx, text, BeginLoc, EndLoc);
+}
+
 FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // constructnig children
   XMLNode block = node.child("block");
@@ -60,7 +71,15 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
-  return new FunctionDecl(Ctx, name, comp, BeginLoc, EndLoc);
+
+  // TokenNodes
+  TokenNode *ReturnTypeNode = make_token_node(Ctx, node.child("type"), get_text(node.child("type")));
+  TokenNode *NameNode = make_token_node(Ctx, node.child("name"), get_text(node.child("name")));
+  // caution: this contains parenthesis
+  TokenNode *ParamNode = make_token_node(Ctx, node.child("parameter_list"),
+                                         get_text(node.child("parameter_list")));
+
+  return new FunctionDecl(Ctx, name, ReturnTypeNode, NameNode, ParamNode, comp, BeginLoc, EndLoc);
 }
 
 CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
@@ -120,19 +139,16 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   XMLNode cond = if_get_condition_expr(node);
   Expr *condexpr = ParseExpr(cond);
   XMLNode then_node = if_get_then(node);
+  assert(then_node);
   Stmt *thenstmt = nullptr;
   Stmt *elsestmt = nullptr;
   if (then_node) {
-    if (std::string(then_node.name()) == "block") {
-      // CompoundStmt *compstmt = new CompoundStmt();
-      // for (XMLNode node : then_node.children()) {
-      //   compstmt->Add(ParseStmt(node));
-      // }
-      // thenstmt = compstmt;
-      thenstmt = ParseBlockAsStmt(then_node);
-    } else {
-      thenstmt = ParseStmt(then_node);
-    }
+    thenstmt = ParseBlockAsStmt(then_node.child("block"));
+    // if (std::string(then_node.name()) == "block") {
+    //   thenstmt = ParseBlockAsStmt(then_node);
+    // } else {
+    //   thenstmt = ParseStmt(then_node);
+    // }
   } else {
     std::cerr << "Error: no else for if." << "\n";
     exit(1);
@@ -284,6 +300,7 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
  * The block can be only a single statement.
  * In this case, srcml still output <block> but with attribute
  * type="pseudo"
+ * FIXME should I keep the block even if it is pseudo?
  */
 Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
   match(node, "block");

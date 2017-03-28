@@ -26,6 +26,7 @@ void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {
 void Generator::visit(v2::FunctionDecl *function, void *data) {
   TokenNode *ReturnNode = function->getReturnTypeNode();
   if (ReturnNode) ReturnNode->accept(this);
+  Prog += " ";
   TokenNode *NameNode = function->getNameNode();
   if (NameNode) NameNode->accept(this);
   // param node should handle parenthesis
@@ -48,7 +49,7 @@ void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {
 void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
   // Braces
   TokenNode *CompNode = comp_stmt->getCompNode();
-  if (selection.count(CompNode) == 1) {Prog += "{\n";}
+  if (selection.count(CompNode) == 1) {Prog += "{// comp\n";}
   std::vector<Stmt*> stmts = comp_stmt->getBody();
   for (Stmt *stmt : stmts) {
     if (stmt) stmt->accept(this);
@@ -139,7 +140,7 @@ void Generator::visit(v2::SwitchStmt *switch_stmt, void *data) {
   Expr *cond = switch_stmt->getCond();
   if (cond) cond->accept(this);
   if (selection.count(SwitchNode) == 1) Prog += ")";
-  if (selection.count(SwitchNode) == 1) Prog += "{";
+  if (selection.count(SwitchNode) == 1) Prog += "{// switch";
   std::vector<SwitchCase*> cases = switch_stmt->getCases();
   for (SwitchCase *c : cases) {
     if (c) c->accept(this);

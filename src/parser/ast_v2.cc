@@ -5,9 +5,3 @@
 
 using namespace v2;
 
-
-void ASTContext::computeLevels() {
-  
-}
-void ASTContext::populateNodes() {
-}

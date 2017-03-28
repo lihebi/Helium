@@ -53,14 +53,6 @@ namespace v2 {
     void setSourceManager(SourceManager *manager) {Manager=manager;}
     SourceManager *getSourceManager() {return Manager;}
     std::vector<ASTNodeBase*> getNodes() {return Nodes;}
-    /**
-     * compute and fill in the Levels variable
-     */
-    void computeLevels();
-    /**
-     * traversal and fill the Nodes with pre-order traversal
-     */
-    void populateNodes();
   private:
     TranslationUnitDecl *Unit = nullptr;
     std::vector<ASTNodeBase*> Nodes;
@@ -102,8 +94,8 @@ namespace v2 {
   public:
     TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : ASTNodeBase(ctx, begin, end), Text(text) {}
-    TokenNode(ASTContext *ctx, std::string text)
-      : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)) {}
+    // TokenNode(ASTContext *ctx, std::string text)
+    //   : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)), Text(text) {}
     ~TokenNode() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
@@ -212,7 +204,7 @@ namespace v2 {
   class CompoundStmt : public Stmt {
   public:
     CompoundStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end), CompNode(new TokenNode(ctx, "COMP_DUMMY")) {}
+      : Stmt(ctx, begin, end), CompNode(new TokenNode(ctx, "COMP_DUMMY", begin, end)) {}
     ~CompoundStmt() {}
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
@@ -237,8 +229,12 @@ namespace v2 {
 
   class FunctionDecl : public Decl {
   public:
-    FunctionDecl(ASTContext *ctx, std::string name, Stmt *body, SourceLocation begin, SourceLocation end)
-      : Decl(ctx, begin, end), name(name), body(body) {
+    FunctionDecl(ASTContext *ctx, std::string name,
+                 TokenNode *ReturnTypeNode, TokenNode *NameNode, TokenNode *ParamNode,
+                 Stmt *body, SourceLocation begin, SourceLocation end)
+      : Decl(ctx, begin, end), name(name),
+        ReturnTypeNode(ReturnTypeNode), NameNode(NameNode), ParamNode(ParamNode),
+        body(body) {
       // TODO populate the three token nodes
     }
     ~FunctionDecl() {}
@@ -256,7 +252,6 @@ namespace v2 {
     }
   private:
     std::string name;
-    Stmt *body = nullptr;
     TokenNode *ReturnTypeNode = nullptr;
     TokenNode *NameNode = nullptr;
     // not sure if param node is useful
@@ -264,6 +259,7 @@ namespace v2 {
     // (HEBI: what if selection is across multiple function?? Which as main??)
     // (HEBI: what if selection is across multiple files? There will be multiple translation unit, aka mulitple ASTs)
     TokenNode *ParamNode = nullptr;
+    Stmt *body = nullptr;
   };
 
   class ForStmt : public Stmt {

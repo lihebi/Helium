@@ -424,7 +424,7 @@ int deprecated_show_instrument_code() {
  * _home_hebi_XXX_name
  */
 void helium_run(fs::path helium_home, std::string helium_target_name) {
-  std::cout << "Helium Running .." << "\n";
+  // std::cout << "Helium Running .." << "\n";
   fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
   fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
   fs::recursive_directory_iterator it(target_sel_dir), eod;
@@ -433,24 +433,26 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       // read the sel file
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
-      std::cout << "== Sel size: " << sel.size() << "\n";
+      std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << p.string() << "\n";
       // dumping
       for (v2::ASTNodeBase *node : sel) {
         node->dump(std::cout);
       }
       std::cout << "\n";
-      std::cout << "== Distribution:" << "\n";
-      sourceManager->analyzeDistribution(sel, {}, std::cout);
-      sel = sourceManager->grammarPatch(sel);
+      
+      // std::cout << "[main] Distribution:" << "\n";
+      // sourceManager->analyzeDistribution(sel, {}, std::cout);
 
-      std::cout << "== Patch size: "<< sel.size() << "\n";
+      std::cout << "[main] Doing Grammar Patching .." << "\n";
+      sel = sourceManager->grammarPatch(sel);
+      std::cout << "[main] Patch size: "<< sel.size() << "\n";
       for (v2::ASTNodeBase *node : sel) {
         node->dump(std::cout);
       }
       std::cout << "\n";
       
       std::string prog = sourceManager->generateProgram(sel);
-      std::cout << "== Prog:" << "\n";
+      std::cout << "[main] Program:" << "\n";
       std::cout << prog << "\n";
     }
   }
@@ -699,11 +701,11 @@ int main(int argc, char* argv[]) {
   // (HEBI: Running)
   // Put the selection file in specific folder, Helium will find them itself.
 
-  std::cout << "Running Helium on " << target.string() << " .." << "\n";
+  std::cout << "[main] Running Helium on " << target.string() << " .." << "\n";
   fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
   helium_run(helium_home, target_cache_dir_name);
 
-  std::cout << "End Of Helium" << "\n";
+  std::cout << "[main] End Of Helium" << "\n";
   exit(0);
 
 
