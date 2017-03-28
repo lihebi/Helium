@@ -37,16 +37,16 @@ public:
   // void dumpTokens();
   void dumpASTs();
   // void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
-  void select(std::set<v2::ASTNodeBase*> selection) {
-    this->selection = selection;
-  }
+  // void select(std::set<v2::ASTNodeBase*> selection) {
+  //   this->selection = selection;
+  // }
   std::set<v2::ASTNodeBase*> generateRandomSelection();
 
   /**
    * Perform grammar patch based on this->selection.
    * Thus you need to call select first.
    */
-  std::set<v2::ASTNodeBase*> grammarPatch();
+  std::set<v2::ASTNodeBase*> grammarPatch(std::set<v2::ASTNodeBase*> sel);
 
   /**
    * Generate program based on selection of nodes.
@@ -70,6 +70,7 @@ public:
    * #file
    * line column
    * line column
+   * TODO change such utility function to static to avoid mis-use
    */
   std::set<v2::ASTNodeBase*> loadSelection(fs::path sel_file);
   /**
@@ -115,7 +116,7 @@ private:
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;
 
-  std::set<v2::ASTNodeBase*> selection;
+  // std::set<v2::ASTNodeBase*> selection;
 };
 
 

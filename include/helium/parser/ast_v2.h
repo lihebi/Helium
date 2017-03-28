@@ -91,6 +91,7 @@ namespace v2 {
     ASTContext *getASTContext() {return Ctx;}
     SourceLocation getBeginLoc() {return BeginLoc;}
     SourceLocation getEndLoc() {return EndLoc;}
+    virtual void dump(std::ostream &os) = 0;
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
@@ -101,11 +102,17 @@ namespace v2 {
   public:
     TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : ASTNodeBase(ctx, begin, end), Text(text) {}
+    TokenNode(ASTContext *ctx, std::string text)
+      : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)) {}
     ~TokenNode() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
     std::string getText() {return Text;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " TokenNode: " << Text << ")";
+    }
   private:
     std::string Text;
   };
@@ -142,6 +149,10 @@ namespace v2 {
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "TranslationUnitDecl)";
+    }
   private:
     std::vector<ASTNodeBase*> decls;
   };
@@ -170,6 +181,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     std::string getText() {return Text;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "DeclStmt)";
+    }
   private:
     std::string Text;
   };
@@ -186,6 +201,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     std::string getText() {return Text;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "ExprStmt)";
+    }
   private:
     std::string Text;
   };
@@ -193,7 +212,7 @@ namespace v2 {
   class CompoundStmt : public Stmt {
   public:
     CompoundStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end) {}
+      : Stmt(ctx, begin, end), CompNode(new TokenNode(ctx, "COMP_DUMMY")) {}
     ~CompoundStmt() {}
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
@@ -202,7 +221,17 @@ namespace v2 {
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+
+    TokenNode *getCompNode() {return CompNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "CompStmt)";
+    }
   private:
+    // signature node. Even if compound statement do not have a
+    // keyword, I need one to record if I select it or not
+    // This is very useful to make the braces correct
+    TokenNode *CompNode = nullptr;
     std::vector<Stmt*> stmts;
   };
 
@@ -221,6 +250,10 @@ namespace v2 {
     TokenNode *getReturnTypeNode() {return ReturnTypeNode;}
     TokenNode *getNameNode() {return NameNode;}
     TokenNode *getParamNode() {return ParamNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "FunctionDecl)";
+    }
   private:
     std::string name;
     Stmt *body = nullptr;
@@ -248,6 +281,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     TokenNode *getForNode() {return ForNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "ForStmt)";
+    }
   private:
     Expr *Init = nullptr;
     Expr *Cond = nullptr;
@@ -269,6 +306,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     TokenNode *getWhileNode() {return WhileNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "WhileStmt)";
+    }
   private:
     Expr *Cond;
     Stmt *Body;
@@ -288,6 +329,10 @@ namespace v2 {
     }
     TokenNode *getDoNode() {return DoNode;}
     TokenNode *getWhileNode() {return WhileNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << "DoStmt)";
+    }
   private:
     Expr *Cond;
     Stmt *Body;
@@ -302,6 +347,10 @@ namespace v2 {
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
     }
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " BreakStmt)";
+    }
   };
   class ContinueStmt : public Stmt {
   public:
@@ -309,6 +358,10 @@ namespace v2 {
     ~ContinueStmt() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
       visitor->visit(this, data);
+    }
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " ContinueStmt)";
     }
   };
   class ReturnStmt : public Stmt {
@@ -322,6 +375,10 @@ namespace v2 {
     }
     Expr *getValue() {return Value;}
     TokenNode *getReturnNode() {return ReturnNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " ReturnStmt)";
+    }
   private:
     Expr *Value = nullptr;
     TokenNode *ReturnNode = nullptr;
@@ -347,6 +404,10 @@ namespace v2 {
     }
     TokenNode *getIfNode() {return IfNode;}
     TokenNode *getElseNode() {return ElseNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " IfStmt)";
+    }
   private:
     Expr *cond = nullptr;
     Stmt *thenstmt = nullptr;
@@ -370,6 +431,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     TokenNode *getSwitchNode() {return SwitchNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " SwitchStmt)";
+    }
   private:
     Expr *Cond = nullptr;
     std::vector<SwitchCase*> Cases;
@@ -413,6 +478,10 @@ namespace v2 {
     }
     TokenNode *getCaseNode() {return CaseNode;}
     Expr *getCond() {return Cond;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " CaseStmt)";
+    }
   private:
     Expr *Cond = nullptr;
     TokenNode *CaseNode = nullptr;
@@ -428,6 +497,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     TokenNode *getDefaultNode() {return DefaultNode;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " DefaultStmt)";
+    }
   private:
     TokenNode *DefaultNode = nullptr;
   };
@@ -445,6 +518,10 @@ namespace v2 {
       visitor->visit(this, data);
     }
     std::string getText() {return Text;}
+    virtual void dump(std::ostream &os) {
+      os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+         << " Expr)";
+    }
   private:
     std::string Text;
   };

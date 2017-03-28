@@ -2,10 +2,17 @@ add_library(HeliumParser
 
   ast_v2.cc
   parser.cc
-  # grammar_patching.cc
   source_manager.cc
   source_location.cc
-  visitor.cc
+  # visitor.cc
+  Distributor.cpp
+  Generator.cpp
+  GrammarPatcher.cpp
+  LevelVisitor.cpp
+  ParentIndexer.cpp
+  Printer.cpp
+  TokenVisitor.cpp
+  
 
   
   ast.cc

@@ -433,10 +433,24 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       // read the sel file
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
+      std::cout << "== Sel size: " << sel.size() << "\n";
+      // dumping
+      for (v2::ASTNodeBase *node : sel) {
+        node->dump(std::cout);
+      }
+      std::cout << "\n";
+      std::cout << "== Distribution:" << "\n";
       sourceManager->analyzeDistribution(sel, {}, std::cout);
+      sel = sourceManager->grammarPatch(sel);
 
-      sourceManager->grammarPatch();
+      std::cout << "== Patch size: "<< sel.size() << "\n";
+      for (v2::ASTNodeBase *node : sel) {
+        node->dump(std::cout);
+      }
+      std::cout << "\n";
+      
       std::string prog = sourceManager->generateProgram(sel);
+      std::cout << "== Prog:" << "\n";
       std::cout << prog << "\n";
     }
   }
@@ -641,18 +655,21 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
+
+  // DEPRECATED
   if (HeliumOptions::Instance()->Has("selection")) {
     fs::path sel = HeliumOptions::Instance()->GetString("selection");
     // now we got ids, and we can start to run Helium!
     SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
     std::set<v2::ASTNodeBase*> selection = sourceManager->loadSelection(sel);
-    sourceManager->select(selection);
+    // DEPRECATED
+    // sourceManager->select(selection);
     std::cout << "Run grammar patching on " << selection.size() << " selected tokens .." << "\n";
-    std::set<v2::ASTNodeBase*> patch = sourceManager->grammarPatch();
-    std::cout << "Done. Patch size: " << patch.size() << "\n";
+    // std::set<v2::ASTNodeBase*> patch = sourceManager->grammarPatch();
+    // std::cout << "Done. Patch size: " << patch.size() << "\n";
 
     // analyze the distribution and print to std::cout
-    sourceManager->analyzeDistribution(selection, patch, std::cout);
+    // sourceManager->analyzeDistribution(selection, patch, std::cout);
     
     exit(0);
   }

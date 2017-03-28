@@ -115,14 +115,15 @@ fs::path SourceManager::matchFile(fs::path file) {
   return ret;
 }
 
-std::set<ASTNodeBase*> SourceManager::grammarPatch() {
-  std::cout << "Doing grammar patching on " << selection.size() << " selected tokens .." << "\n";
-  std::set<ASTNodeBase*> ret;
+std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
+  std::cout << "Doing grammar patching on " << sel.size() << " selected tokens .." << "\n";
+  std::set<ASTNodeBase*> ret = sel;
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
-    StandAloneGrammarPatcher *patcher = new StandAloneGrammarPatcher(ast, selection);
+    StandAloneGrammarPatcher *patcher = new StandAloneGrammarPatcher(ast, sel);
     patcher->process();
     set<ASTNodeBase*> patch = patcher->getPatch();
+    std::cout << "Patch size:" << patch.size() << "\n";
     // FIXME examine the result
     ret.insert(patch.begin(), patch.end());
   }
