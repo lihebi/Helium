@@ -354,8 +354,8 @@ public:
   int getDistLoop(std::set<v2::ASTNodeBase*> sel) {
     std::set<v2::ASTNodeBase*> loop_nodes;
     loop_nodes.insert(for_nodes.begin(), for_nodes.end());
-    loop_nodes.insert(for_nodes.begin(), while_nodes.end());
-    loop_nodes.insert(for_nodes.begin(), do_nodes.end());
+    loop_nodes.insert(while_nodes.begin(), while_nodes.end());
+    loop_nodes.insert(do_nodes.begin(), do_nodes.end());
     return getDist(sel, loop_nodes);
   }
   int getDistSwitch(std::set<v2::ASTNodeBase*> sel) {

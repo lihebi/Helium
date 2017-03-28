@@ -158,7 +158,10 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   
   TokenNode *ElseNode = nullptr;
   if (elsestmt) {
-    std::pair<int,int> else_begin = get_node_begin_position(elsenode);
+    // this might be <else> or <elseif>
+    std::pair<int,int> else_begin;
+    if (elsenode) else_begin = get_node_begin_position(elsenode);
+    else if (elseifnode) else_begin = get_node_begin_position(elseifnode);
     SourceLocation ElseNodeBegin(else_begin.first, else_begin.second);
     SourceLocation ElseNodeEnd(else_begin.first, else_begin.second + strlen("else"));
     ElseNode = new TokenNode(Ctx, "else", ElseNodeBegin, ElseNodeEnd);

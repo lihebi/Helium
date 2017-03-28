@@ -190,23 +190,23 @@ void load_tagfile(std::string folder) {
   }
 }
 
-void load_snippet_db(std::string snippet_db_folder) {
-  // std::string snippet_db_folder = HeliumOptions::Instance()->GetString("snippet-db-folder");
-  if (snippet_db_folder.empty()) {
-    if (HeliumOptions::Instance()->Has("verbose")) {
-      std::cout
-        << "Using default snippet folder: './snippets/'."
-        << "If not desired, set via '-s' option."  << "\n";
-    }
-    snippet_db_folder = "snippets";
-    // assert(false);
-  }
-  if (!utils::exists(snippet_db_folder)) {
-    std::cout << "EE: Snippet folder " << snippet_db_folder << " does not exist."  << "\n";
-    exit(1);
-  }
-  SnippetDB::Instance()->Load(snippet_db_folder);
-}
+// void load_snippet_db(std::string snippet_db_folder) {
+//   // std::string snippet_db_folder = HeliumOptions::Instance()->GetString("snippet-db-folder");
+//   if (snippet_db_folder.empty()) {
+//     if (HeliumOptions::Instance()->Has("verbose")) {
+//       std::cout
+//         << "Using default snippet folder: './snippets/'."
+//         << "If not desired, set via '-s' option."  << "\n";
+//     }
+//     snippet_db_folder = "snippets";
+//     // assert(false);
+//   }
+//   if (!utils::exists(snippet_db_folder)) {
+//     std::cout << "EE: Snippet folder " << snippet_db_folder << " does not exist."  << "\n";
+//     exit(1);
+//   }
+//   SnippetDB::Instance()->Load(snippet_db_folder);
+// }
 
 void load_header_resolver(std::string src_folder) {
   // HeaderResolver::Instance()->Load(folder);
@@ -418,6 +418,28 @@ int deprecated_show_instrument_code() {
   return 0;
 }
 
+
+/**
+ * helium_target_name : the name helium represents a benchmark
+ * _home_hebi_XXX_name
+ */
+void helium_run(fs::path helium_home, std::string helium_target_name) {
+  std::cout << "Helium Running .." << "\n";
+  fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
+  fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
+  fs::recursive_directory_iterator it(target_sel_dir), eod;
+  BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+    if (is_regular_file(p)) {
+      // read the sel file
+      SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+      std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
+      sourceManager->analyzeDistribution(sel, {}, std::cout);
+    }
+  }
+}
+
+
+
 /**
  * \mainpage Helium Reference Manual
  *
@@ -520,7 +542,10 @@ int main(int argc, char* argv[]) {
 
 
   if (HeliumOptions::Instance()->Has("create-cache")) {
+    // remove folder
     if (fs::exists(target_cache_dir)) fs::remove_all(target_cache_dir);
+
+    // create everything
     fs::create_directories(target_cache_dir);
     std::cout << "== Creating src .." << "\n";
     create_src(target, target_cache_dir);
@@ -532,6 +557,11 @@ int main(int argc, char* argv[]) {
     create_clang_snippet(target_cache_dir);
     std::cout << "== Creating snippet db .." << "\n";
     create_snippet_db(target_cache_dir);
+
+    // output a flag file that indicate cache is created But when
+    // invoking the following tools along after this, it will not be
+    // deleted, so still marked valid
+    utils::write_file((target_cache_dir/"valid").string(), "");
     exit(0);
   }
   if (HeliumOptions::Instance()->Has("create-cpp")) {
@@ -568,8 +598,9 @@ int main(int argc, char* argv[]) {
     exit(1);}
 
   // load_tagfile((target_cache_dir / "cpp").string());
-  ctags_load((target_cache_dir / "tags").string());
-  load_snippet_db((target_cache_dir / "snippet").string());
+  ctags_load((target_cache_dir / "tagfile").string());
+  // load_snippet_db((target_cache_dir / "snippet").string());
+  SnippetDB::Instance()->Load(target_cache_dir / "snippet.db", target_cache_dir / "code");
   load_header_resolver((target_cache_dir / "src").string());
 
   if (HeliumOptions::Instance()->Has("info")) {
@@ -640,11 +671,19 @@ int main(int argc, char* argv[]) {
   // }
 
 
-  std::cerr << "Specify tokenize or selection to run." << "\n";
-  exit(1);
+  // std::cerr << "Specify tokenize or selection to run." << "\n";
+  // exit(1);
 
 
+  // (HEBI: Running)
+  // Put the selection file in specific folder, Helium will find them itself.
 
+  std::cout << "Running Helium on " << target.string() << " .." << "\n";
+  fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
+  helium_run(helium_home, target_cache_dir_name);
+
+  std::cout << "End Of Helium" << "\n";
+  exit(0);
 
 
 

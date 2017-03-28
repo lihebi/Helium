@@ -94,9 +94,11 @@ fs::path SourceManager::matchFile(fs::path file) {
     // compare filename and move to parent
     // see how many times it is compared
     fs::path relf = fs::relative(f, cppfolder);
+    // file in sel.txt
     fs::path file1 = file;
+    // our records
     fs::path file2 = relf;
-    while (file1.filename() == file2.filename()) {
+    while (file1.filename() == file2.filename() && !file1.empty()) {
       file1 = file1.parent_path();
       file2 = file2.parent_path();
     }

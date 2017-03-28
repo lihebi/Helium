@@ -585,11 +585,12 @@ void SnippetDB::PrintCG() {
 /********************************
  * CallGraph
  *******************************/
-void SnippetDB::Load(std::string folder) {
-  m_db_folder = folder;
-  m_code_folder = folder + "/code";
-  std::string db_file = folder + "/index.db";
-  sqlite3_open(db_file.c_str(), &m_db);
+void SnippetDB::Load(fs::path db_file, fs::path code_dir) {
+  // m_db_folder = folder;
+  // m_code_folder = folder + "/code";
+  // std::string db_file = folder + "/index.db";
+  CodeDir = code_dir;
+  sqlite3_open(db_file.string().c_str(), &m_db);
 
   loadCG();
 }

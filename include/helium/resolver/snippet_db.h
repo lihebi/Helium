@@ -50,7 +50,8 @@ public:
     }
     return m_instance;
   }
-  void Load(std::string folder);
+  // void Load(std::string folder);
+  void Load(fs::path db_file, fs::path code_dir);
   void Create(std::string tagfile, std::string output_folder);
   void CreateV2(fs::path target_cache_dir);
   std::set<int> LookUp(std::string key, std::set<SnippetKind> kinds={});
@@ -117,6 +118,9 @@ private:
   std::string m_db_folder;
   sqlite3 *m_db = NULL;
   std::string m_code_folder;
+  // new folders
+  // fs::path DBFile;
+  fs::path CodeDir;
   /**
    * Cache
    */
