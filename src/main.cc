@@ -429,10 +429,12 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
   fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
   fs::recursive_directory_iterator it(target_sel_dir), eod;
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-    if (is_regular_file(p)) {
+    // must be .sel file
+    if (is_regular_file(p) && p.extension() == ".sel") {
       // read the sel file
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
+      std::cout << "---------------------" << "\n";
       std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << p.string() << "\n";
       // dumping
       for (v2::ASTNodeBase *node : sel) {
@@ -552,9 +554,10 @@ int main(int argc, char* argv[]) {
     exit(1);}
 
   // change relative to absolute
-  std::string target_cache_dir_name = fs::canonical(target).string();
-  std::replace(target_cache_dir_name.begin(), target_cache_dir_name.end(), '/', '_');
-  fs::path target_cache_dir(helium_home / "cache" / target_cache_dir_name);
+  std::string target_dir_name = fs::canonical(target).string();
+  std::replace(target_dir_name.begin(), target_dir_name.end(), '/', '_');
+  fs::path target_cache_dir(helium_home / "cache" / target_dir_name);
+  fs::path target_sel_dir(helium_home / "sel" / target_dir_name);
 
 
 
@@ -639,25 +642,6 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-
-  if (HeliumOptions::Instance()->Has("tokenize")) {
-    // get the target. we need to check if the target exists in the cache
-    // - if not exist, prompt to cache it and exit
-    // - if exist, do the work!
-    // Do the work by scanning through all the source files in cache/NAME/cpp folder in alphabet order
-    // this order can be altered later, maybe to support keep the directory hierarchy of source files to allow
-    // source files of same name, but it is important to keep in mind that the order should be the same
-    // for all the services that use the IDs of tokens.
-    //
-    // The tokens must also contains
-
-    // produce a tokens.db in cache/XXX folder
-    SourceManager *source_manager = new SourceManager(target_cache_dir / "cpp");
-    source_manager->dumpASTs();
-    exit(0);
-  }
-
-
   // DEPRECATED
   if (HeliumOptions::Instance()->Has("selection")) {
     fs::path sel = HeliumOptions::Instance()->GetString("selection");
@@ -676,12 +660,56 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-  if (HeliumOptions::Instance()->Has("random-selection")) {
-    // generate random selection
-    // and output to standard output (can be load back)
+  // DEPRECATED
+  // if (HeliumOptions::Instance()->Has("random-selection")) {
+  //   // generate random selection
+  //   // and output to standard output (can be load back)
+  //   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+  //   std::set<v2::ASTNodeBase*> selection = sourceManager->generateRandomSelection();
+  //   sourceManager->dumpSelection(selection, std::cout);
+  // }
+
+  if (HeliumOptions::Instance()->Has("create-selection")) {
+    // create selection
+    // create selection folder if not exist
+    if (!fs::exists(target_sel_dir)) fs::create_directories(target_sel_dir);
     SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
-    std::set<v2::ASTNodeBase*> selection = sourceManager->generateRandomSelection();
-    sourceManager->dumpSelection(selection, std::cout);
+    std::set<v2::ASTNodeBase*> selection;
+    // create and overwrite random/ folder
+    fs::remove_all(target_sel_dir / "random");
+    fs::create_directories(target_sel_dir / "random");
+    std::ofstream os;
+    os.open((target_sel_dir / "random" / "1.sel").string().c_str());
+    selection = sourceManager->generateRandomSelection();
+    sourceManager->dumpSelection(selection, os);
+    os.close();
+
+    os.open((target_sel_dir / "random" / "2.sel").string().c_str());
+    selection = sourceManager->generateRandomSelection();
+    sourceManager->dumpSelection(selection, os);
+    os.close();
+
+    // create and overwrite one/ two/ folder
+    fs::remove_all(target_sel_dir / "one");
+    fs::create_directories(target_sel_dir / "one");
+    fs::remove_all(target_sel_dir / "two");
+    fs::create_directories(target_sel_dir / "two");
+    // create sample.sel
+    fs::remove(target_sel_dir / "sample.sel");
+    utils::write_file((target_sel_dir / "sample.sel").string(),
+                      "# a.c\n\n# first line must be # /path/to/file\n\
+# anything start with # is comment\n\
+# two numbers are treated as valid selection\n\n\
+8 3");
+
+    std::cout << "Files written to " << target_sel_dir.string() << "\n";
+    exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("dump-ast")) {
+    SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+    sourceManager->dumpASTs();
+    exit(0);
   }
 
 
@@ -702,8 +730,8 @@ int main(int argc, char* argv[]) {
   // Put the selection file in specific folder, Helium will find them itself.
 
   std::cout << "[main] Running Helium on " << target.string() << " .." << "\n";
-  fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
-  helium_run(helium_home, target_cache_dir_name);
+  // fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
+  helium_run(helium_home, target_dir_name);
 
   std::cout << "[main] End Of Helium" << "\n";
   exit(0);

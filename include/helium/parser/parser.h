@@ -36,6 +36,7 @@ public:
   v2::ForStmt *ParseForStmt(XMLNode node);
   v2::DoStmt *ParseDoStmt(XMLNode node);
   v2::Expr *ParseExpr(XMLNode node);
+  v2::Stmt *ParseExprStmt(XMLNode node);
 
   v2::ASTContext *getASTContext() {return Ctx;}
 private:

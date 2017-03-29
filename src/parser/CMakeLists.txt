@@ -4,7 +4,7 @@ add_library(HeliumParser
   parser.cc
   source_manager.cc
   source_location.cc
-  # visitor.cc
+  visitor.cpp
   Distributor.cpp
   Generator.cpp
   GrammarPatcher.cpp

@@ -52,12 +52,14 @@ HeliumOptions::HeliumOptions() {
     ("dry-snippet-dep", "when creating dependence of snippet, only output the number of queries but not do it.")
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")
-    ("info", "information about the benchmark")
-    ("tokenize", "tokenize the program")
-    ("selection", po::value<std::string>(), "selection of tokens")
+    // ("info", "information about the benchmark")
+    // ("tokenize", "tokenize the program")
+    // ("selection", po::value<std::string>(), "selection of tokens")
     ("dummy-loop", "run a dummy loop for testing profilers")
     // ("distribution", po::value<std::string>(), "analyze the distribution of a selection file")
-    ("clang-snippet", "extract snippet index using clang")
+    // ("clang-snippet", "extract snippet index using clang")
+    ("create-selection", "create selection folder and put manual.txt, sample.txt, random/1.txt, one/1.txt, two/1.txt etc")
+    ("dump-ast", "dump ast")
     ;
 
   po::options_description util_options("Utils");

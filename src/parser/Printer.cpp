@@ -103,9 +103,15 @@ void Printer::visit(ReturnStmt *ret_stmt, void *datat){
 void Printer::visit(IfStmt *if_stmt, void *datat){
   os << "(if_stmt \n";
   Stmt *then_stmt = if_stmt->getThen();
-  if (then_stmt) then_stmt->accept(this);
+  if (then_stmt) {
+    os << " T:";
+    then_stmt->accept(this);
+  }
   Stmt *else_stmt = if_stmt->getElse();
-  if (else_stmt) else_stmt->accept(this);
+  if (else_stmt) {
+    os << "F:";
+    else_stmt->accept(this);
+  }
   os << ")\n";
 }
 void Printer::visit(SwitchStmt *switch_stmt, void *datat){

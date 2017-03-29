@@ -73,19 +73,42 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
 
 
 
+// void SourceManager::dumpASTs() {
+//   for (auto m : File2ASTMap) {
+//     ASTContext *ast = m.second;
+//     std::cout << "== AST:" << "\n";
+//     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+//     std::ostringstream os;
+//     Printer *printer = new Printer(os);
+//     printer->visit(unit);
+//     std::cout << Printer::PrettyPrint(os.str()) << "\n";
+//   }
+// }
+
+// void SourceManager::dumpTokens() {
+//   for (auto &m : File2ASTMap) {
+//     ASTContext *ast = m.second;
+//     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+//     TokenDumper dumper(std::cout);
+//     unit->accept(&dumper);
+//   }
+// }
+
 void SourceManager::dumpASTs() {
-  for (auto m : File2ASTMap) {
+  for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
-    std::cout << "== AST:" << "\n";
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
     std::ostringstream os;
-    Printer *printer = new Printer(os);
-    printer->visit(unit);
+    ASTDumper dumper(os);
+    unit->accept(&dumper);
     std::cout << Printer::PrettyPrint(os.str()) << "\n";
   }
 }
 
 
+/**
+ * Match in the File2ASTMap to find the best match
+ */
 fs::path SourceManager::matchFile(fs::path file) {
   fs::path ret;
   fs::path remaining;
@@ -109,7 +132,7 @@ fs::path SourceManager::matchFile(fs::path file) {
       remaining = file2;
     } else if (remaining.size() > file2.size()) {
       remaining = file2;
-      ret = f;
+      ret = relf;
     }
   }
   return ret;
@@ -209,16 +232,19 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
       std::string line;
       std::string file;
       set<int> sel;
+      // first line must be # filename.c
+      std::getline(is, line);
+      utils::trim(line);
+      if (line.empty()) return {};
+      if (line[0] != '#') return {};
+      file = line.substr(1);
+      utils::trim(file);
+        
       while (std::getline(is, line)) {
         utils::trim(line);
-        if (line.empty()) {
-          continue;
-        } else if (line[0] == '#') {
-          file = line.substr(1);
-          utils::trim(file);
-        } else {
+        if (!line.empty() && line[0] != '#') {
           vector<string> v = utils::split(line);
-          // the third is ID, not used here
+          // Only first two are used. The third can be any comment
           if (v.size() >= 2) {
             selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
           }
@@ -286,7 +312,8 @@ void SourceManager::dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ost
     for (ASTNodeBase *token : tokens) {
       if (selection.count(token) == 1) {
         SourceLocation loc = token->getBeginLoc();
-        os << loc.getLine() << " " << loc.getColumn() << " " << tokenVisitor->getId(token) << "\n";
+        os << loc.getLine() << " " << loc.getColumn() << "\n";
+        // << " " << tokenVisitor->getId(token) << "\n";
       }
     }
   }

@@ -34,7 +34,10 @@ public:
   //     return -1;
   //   }
   // }
+  // void dumpASTs();
+  // dump tokens
   // void dumpTokens();
+  // dump AST, and also dump its location
   void dumpASTs();
   // void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
   // void select(std::set<v2::ASTNodeBase*> selection) {

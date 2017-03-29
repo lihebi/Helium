@@ -14,7 +14,7 @@ using namespace v2;
 // TODO
 void Generator::visit(v2::TokenNode *token, void *data) {
   if (selection.count(token) == 1) {
-    Prog += token->getText();
+    Prog += token->getText() + " ";
   }
 }
 void Generator::visit(v2::TranslationUnitDecl *unit, void *data) {
@@ -38,18 +38,18 @@ void Generator::visit(v2::FunctionDecl *function, void *data) {
 }
 void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {
   if (selection.count(decl_stmt) == 1) {
-    Prog += decl_stmt->getText() + "; // decl_stmt\n";
+    Prog += decl_stmt->getText() + ";\n";
   }
 }
 void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {
   if (selection.count(expr_stmt) == 1) {
-    Prog += expr_stmt->getText() + "; // expr_stmt\n";
+    Prog += expr_stmt->getText() + ";\n";
   }
 }
 void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
   // Braces
   TokenNode *CompNode = comp_stmt->getCompNode();
-  if (selection.count(CompNode) == 1) {Prog += "{// comp\n";}
+  if (selection.count(CompNode) == 1) {Prog += "{\n";}
   std::vector<Stmt*> stmts = comp_stmt->getBody();
   for (Stmt *stmt : stmts) {
     if (stmt) stmt->accept(this);

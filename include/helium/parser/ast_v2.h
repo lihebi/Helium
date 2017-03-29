@@ -84,12 +84,27 @@ namespace v2 {
     SourceLocation getBeginLoc() {return BeginLoc;}
     SourceLocation getEndLoc() {return EndLoc;}
     virtual void dump(std::ostream &os) = 0;
+    virtual std::string getNodeName() = 0;
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
     SourceLocation EndLoc;
   };
 
+  class Decl : public ASTNodeBase {
+  public:
+    Decl(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end) {}
+    ~Decl() {}
+  };
+
+  class Stmt : public ASTNodeBase {
+  public:
+    Stmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
+      : ASTNodeBase(ctx, begin, end) {}
+    ~Stmt() {}
+  };
+  
   class TokenNode : public ASTNodeBase {
   public:
     TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
@@ -105,28 +120,11 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " TokenNode: " << Text << ")";
     }
+    virtual std::string getNodeName() {
+      return "TokenNode";
+    }
   private:
     std::string Text;
-  };
-
-  // class TextNode : public ASTNodeBase {
-  // public:
-  //   TextNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx), text(text) {}
-  //   ~TextNode() {}
-  // private:
-  //   std::string text;
-  // };
-
-  /**
-   * Decls
-   */
-
-  
-  class Decl : public ASTNodeBase {
-  public:
-    Decl(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : ASTNodeBase(ctx, begin, end) {}
-    ~Decl() {}
   };
 
   class TranslationUnitDecl : public Decl {
@@ -145,21 +143,12 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "TranslationUnitDecl)";
     }
+    virtual std::string getNodeName() {return "TranslationUnitDecl";}
   private:
     std::vector<ASTNodeBase*> decls;
   };
 
 
-  /**
-   * Stmts
-   */
-
-  class Stmt : public ASTNodeBase {
-  public:
-    Stmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : ASTNodeBase(ctx, begin, end) {}
-    ~Stmt() {}
-  };
 
   /**
    * Adapter class for mixing declarations with statements
@@ -177,6 +166,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "DeclStmt)";
     }
+    virtual std::string getNodeName() {return "DeclStmt";}
   private:
     std::string Text;
   };
@@ -197,6 +187,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "ExprStmt)";
     }
+    virtual std::string getNodeName() {return "ExprStmt";}
   private:
     std::string Text;
   };
@@ -219,6 +210,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "CompStmt)";
     }
+    virtual std::string getNodeName() {return "CompStmt";}
   private:
     // signature node. Even if compound statement do not have a
     // keyword, I need one to record if I select it or not
@@ -250,6 +242,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "FunctionDecl)";
     }
+    virtual std::string getNodeName() {return "FunctionDecl";}
   private:
     std::string name;
     TokenNode *ReturnTypeNode = nullptr;
@@ -281,6 +274,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "ForStmt)";
     }
+    virtual std::string getNodeName() {return "ForStmt";}
   private:
     Expr *Init = nullptr;
     Expr *Cond = nullptr;
@@ -306,6 +300,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "WhileStmt)";
     }
+    virtual std::string getNodeName() {return "WhileStmt";}
   private:
     Expr *Cond;
     Stmt *Body;
@@ -329,6 +324,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "DoStmt)";
     }
+    virtual std::string getNodeName() {return "DoStmt";}
   private:
     Expr *Cond;
     Stmt *Body;
@@ -347,6 +343,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " BreakStmt)";
     }
+    virtual std::string getNodeName() {return "BreakStmt";}
   };
   class ContinueStmt : public Stmt {
   public:
@@ -359,6 +356,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " ContinueStmt)";
     }
+    virtual std::string getNodeName() {return "ContinueStmt";}
   };
   class ReturnStmt : public Stmt {
   public:
@@ -375,6 +373,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " ReturnStmt)";
     }
+    virtual std::string getNodeName() {return "ReturnStmt";}
   private:
     Expr *Value = nullptr;
     TokenNode *ReturnNode = nullptr;
@@ -404,6 +403,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " IfStmt)";
     }
+    virtual std::string getNodeName() {return "IfStmt";}
   private:
     Expr *cond = nullptr;
     Stmt *thenstmt = nullptr;
@@ -431,6 +431,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " SwitchStmt)";
     }
+    virtual std::string getNodeName() {return "SwitchStmt";}
   private:
     Expr *Cond = nullptr;
     std::vector<SwitchCase*> Cases;
@@ -478,6 +479,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " CaseStmt)";
     }
+    virtual std::string getNodeName() {return "CaseStmt";}
   private:
     Expr *Cond = nullptr;
     TokenNode *CaseNode = nullptr;
@@ -497,6 +499,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " DefaultStmt)";
     }
+    virtual std::string getNodeName() {return "DefaultStmt";}
   private:
     TokenNode *DefaultNode = nullptr;
   };
@@ -518,6 +521,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << " Expr)";
     }
+    virtual std::string getNodeName() {return "Expr";}
   private:
     std::string Text;
   };

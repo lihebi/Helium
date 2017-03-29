@@ -109,6 +109,8 @@ Stmt *Parser::ParseStmt(XMLNode node) {
   Stmt *ret = nullptr;
   if (NodeName == "decl_stmt") {
     ret = ParseDeclStmt(node);
+  } else if (NodeName == "expr_stmt") {
+    ret = ParseExprStmt(node);
   } else if (NodeName == "stmt") {
     // FIXME srcml does not only contain these two
     // e.g. it might directly be a if statement
@@ -131,6 +133,16 @@ Stmt *Parser::ParseStmt(XMLNode node) {
     ret = new ReturnStmt(Ctx, ReturnNode, BeginLoc, EndLoc);
   }
   return ret;
+}
+
+Stmt *Parser::ParseExprStmt(XMLNode node) {
+  match(node, "expr_stmt");
+  std::string text = get_text(node);
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new ExprStmt(Ctx, text, BeginLoc, EndLoc);
 }
 
 
@@ -306,12 +318,13 @@ Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
   match(node, "block");
   // XMLNode block = node.child("block");
   Stmt *ret = nullptr;
-  if (std::string(node.attribute("type").value()) == "pseudo") {
-    XMLNode child = node.first_child();
-    ret = ParseStmt(child);
-  } else {
-    ret = ParseCompoundStmt(node);
-  }
+  // if (std::string(node.attribute("type").value()) == "pseudo") {
+  //   XMLNode child = node.first_child();
+  //   ret = ParseStmt(child);
+  // } else {
+  //   ret = ParseCompoundStmt(node);
+  // }
+  ret = ParseCompoundStmt(node);
   return ret;
 }
 
