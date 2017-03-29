@@ -139,41 +139,44 @@ public:
   virtual void visit(v2::DefaultStmt *def_stmt, void *data=nullptr);
   virtual void visit(v2::Expr *expr, void *data=nullptr);
 
-  virtual void visit_pre(v2::TokenNode *token) {}
-  virtual void visit_pre(v2::TranslationUnitDecl *unit) {}
-  virtual void visit_pre(v2::FunctionDecl *function) {}
-  virtual void visit_pre(v2::DeclStmt *decl_stmt) {}
-  virtual void visit_pre(v2::ExprStmt *expr_stmt) {}
-  virtual void visit_pre(v2::CompoundStmt *comp_stmt) {}
-  virtual void visit_pre(v2::ForStmt *for_stmt) {}
-  virtual void visit_pre(v2::WhileStmt *while_stmt) {}
-  virtual void visit_pre(v2::DoStmt *do_stmt) {}
-  virtual void visit_pre(v2::BreakStmt *break_stmt) {}
-  virtual void visit_pre(v2::ContinueStmt *cont_stmt) {}
-  virtual void visit_pre(v2::ReturnStmt *ret_stmt) {}
-  virtual void visit_pre(v2::IfStmt *if_stmt) {}
-  virtual void visit_pre(v2::SwitchStmt *switch_stmt) {}
-  virtual void visit_pre(v2::CaseStmt *case_stmt) {}
-  virtual void visit_pre(v2::DefaultStmt *def_stmt) {}
-  virtual void visit_pre(v2::Expr *expr) {}
+  virtual void visit_pre_general(v2::ASTNodeBase *node) = 0;
+  virtual void visit_post_general(v2::ASTNodeBase *node) = 0;
 
-  virtual void visit_post(v2::TokenNode *token) {}
-  virtual void visit_post(v2::TranslationUnitDecl *unit) {}
-  virtual void visit_post(v2::FunctionDecl *function) {}
-  virtual void visit_post(v2::DeclStmt *decl_stmt) {}
-  virtual void visit_post(v2::ExprStmt *expr_stmt) {}
-  virtual void visit_post(v2::CompoundStmt *comp_stmt) {}
-  virtual void visit_post(v2::ForStmt *for_stmt) {}
-  virtual void visit_post(v2::WhileStmt *while_stmt) {}
-  virtual void visit_post(v2::DoStmt *do_stmt) {}
-  virtual void visit_post(v2::BreakStmt *break_stmt) {}
-  virtual void visit_post(v2::ContinueStmt *cont_stmt) {}
-  virtual void visit_post(v2::ReturnStmt *ret_stmt) {}
-  virtual void visit_post(v2::IfStmt *if_stmt) {}
-  virtual void visit_post(v2::SwitchStmt *switch_stmt) {}
-  virtual void visit_post(v2::CaseStmt *case_stmt) {}
-  virtual void visit_post(v2::DefaultStmt *def_stmt) {}
-  virtual void visit_post(v2::Expr *expr) {}
+  virtual void visit_pre(v2::TokenNode *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::TranslationUnitDecl *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::FunctionDecl *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::DeclStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::ExprStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::CompoundStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::ForStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::WhileStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::DoStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::BreakStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::ContinueStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::ReturnStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::IfStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::SwitchStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::CaseStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::DefaultStmt *node) {visit_pre_general(node);}
+  virtual void visit_pre(v2::Expr *node) {visit_pre_general(node);}
+
+  virtual void visit_post(v2::TokenNode *node) {visit_post_general(node);}
+  virtual void visit_post(v2::TranslationUnitDecl *node) {visit_post_general(node);}
+  virtual void visit_post(v2::FunctionDecl *node) {visit_post_general(node);}
+  virtual void visit_post(v2::DeclStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::ExprStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::CompoundStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::ForStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::WhileStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::DoStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::BreakStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::ContinueStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::ReturnStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::IfStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::SwitchStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::CaseStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::DefaultStmt *node) {visit_post_general(node);}
+  virtual void visit_post(v2::Expr *node) {visit_post_general(node);}
 };
 
 class ASTDumper : public CRTPVisitor<ASTDumper> {
@@ -181,8 +184,8 @@ public:
   ASTDumper(std::ostream &os) : os(os) {}
   ~ASTDumper() {}
 
-  void visit_pre_general(v2::ASTNodeBase *node);
-  void visit_post_general(v2::ASTNodeBase *node);
+  virtual void visit_pre_general(v2::ASTNodeBase *node);
+  virtual void visit_post_general(v2::ASTNodeBase *node);
 
   virtual void visit_pre(v2::TokenNode *token);
   virtual void visit_pre(v2::TranslationUnitDecl *unit);
@@ -223,9 +226,79 @@ private:
   std::ostream &os;
 };
 
+class LevelVisitorV2 : public CRTPVisitor<LevelVisitorV2> {
+public:
+  LevelVisitorV2() {}
+  virtual ~LevelVisitorV2() {}
+  virtual void visit_pre_general(v2::ASTNodeBase *node) {Levels[node]=lvl; lvl++;}
+  virtual void visit_post_general(v2::ASTNodeBase *node) {lvl--;}
+
+  // TODO why i can not use parent visit_pre and visit_post funcitons?
+  // TODO why i have to define in the cpp file instead of here?
+  virtual void visit_pre(v2::TokenNode *node);
+  virtual void visit_pre(v2::TranslationUnitDecl *node);
+  virtual void visit_pre(v2::FunctionDecl *node);
+  virtual void visit_pre(v2::DeclStmt *node);
+  virtual void visit_pre(v2::ExprStmt *node);
+  virtual void visit_pre(v2::CompoundStmt *node);
+  virtual void visit_pre(v2::ForStmt *node);
+  virtual void visit_pre(v2::WhileStmt *node);
+  virtual void visit_pre(v2::DoStmt *node);
+  virtual void visit_pre(v2::BreakStmt *node);
+  virtual void visit_pre(v2::ContinueStmt *node);
+  virtual void visit_pre(v2::ReturnStmt *node);
+  virtual void visit_pre(v2::IfStmt *node);
+  virtual void visit_pre(v2::SwitchStmt *node);
+  virtual void visit_pre(v2::CaseStmt *node);
+  virtual void visit_pre(v2::DefaultStmt *node);
+  virtual void visit_pre(v2::Expr *node);
+
+  virtual void visit_post(v2::TokenNode *node);
+  virtual void visit_post(v2::TranslationUnitDecl *node);
+  virtual void visit_post(v2::FunctionDecl *node);
+  virtual void visit_post(v2::DeclStmt *node);
+  virtual void visit_post(v2::ExprStmt *node);
+  virtual void visit_post(v2::CompoundStmt *node);
+  virtual void visit_post(v2::ForStmt *node);
+  virtual void visit_post(v2::WhileStmt *node);
+  virtual void visit_post(v2::DoStmt *node);
+  virtual void visit_post(v2::BreakStmt *node);
+  virtual void visit_post(v2::ContinueStmt *node);
+  virtual void visit_post(v2::ReturnStmt *node);
+  virtual void visit_post(v2::IfStmt *node);
+  virtual void visit_post(v2::SwitchStmt *node);
+  virtual void visit_post(v2::CaseStmt *node);
+  virtual void visit_post(v2::DefaultStmt *node);
+  virtual void visit_post(v2::Expr *node);
+
+  std::map<v2::ASTNodeBase*, int> getLevels() {return Levels;}
+  int getLevel(v2::ASTNodeBase *node) {
+    if (Levels.count(node) == 1) {
+      return Levels[node];
+    } else {
+      return -1;
+    }
+  }
+  v2::ASTNodeBase *getLowestLevelNode(std::set<v2::ASTNodeBase*> nodes) {
+    int retlvl=-1;
+    v2::ASTNodeBase *ret = nullptr;
+    for (auto *node : nodes) {
+      int lvl = getLevel(node);
+      if (retlvl < lvl) {
+        retlvl = lvl;
+        ret = node;
+      }
+    }
+    return ret;
+  }
+private:
+  std::map<v2::ASTNodeBase*, int> Levels;
+  int lvl=0;
+};
+
 
 /**
- * compute the levels
+ * DEPRECATED compute the levels
  *
  * \ingroup visitor
  */
@@ -406,6 +479,9 @@ public:
   void process();
   void matchMin(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> sel);
   std::set<v2::ASTNodeBase*> getPatch() {return Patch;}
+
+  bool validAlone(v2::ASTNodeBase* node);
+  
 private:
   v2::ASTContext *AST = nullptr;
   std::set<v2::ASTNodeBase*> Selection;

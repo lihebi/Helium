@@ -18,7 +18,7 @@ std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> GlobalSkip;
 void StandAloneGrammarPatcher::process() {
   // std::cout << "StandAloneGrammarPatcher::process" << "\n";
   // get the lowest level nodes
-  LevelVisitor *levelVisitor = new LevelVisitor();
+  LevelVisitorV2 *levelVisitor = new LevelVisitorV2();
   TranslationUnitDecl *unit = AST->getTranslationUnitDecl();
   unit->accept(levelVisitor);
 
@@ -39,6 +39,13 @@ void StandAloneGrammarPatcher::process() {
   Patch = Worklist; // this is the result
 
   while (!Worklist.empty()) {
+    // DEBUG
+    // std::cout << "Worklist: ";
+    // for (ASTNodeBase *node : Worklist) {
+    //   node->dump(std::cout);
+    // }
+    // std::cout << "\n";
+    
     // std::cout << "Worklist size: " << worklist.size() << "\n";
     // print out what is inside worklist
     // for (ASTNodeBase *node : worklist) {
@@ -53,10 +60,16 @@ void StandAloneGrammarPatcher::process() {
     // stop!  this is not necessary when the node is popped up along
     // parents but it is necessary if only one node is originally
     // selected.
-    if (Worklist.empty()) {
-      matchMin(node, {});
-      break;
-    }
+    //
+    // FIXME this is buggy. The one selected might be a condition
+    // expression, itself cannot make a valid program statement. Also,
+    // When several branches merge, the parent might still no a valid
+    // statement.
+    // if (Worklist.empty() && validAlone(node)) {
+    //   matchMin(node, {});
+    //   break;
+    // }
+    
     ParentIndexer *parentIndexer = new ParentIndexer();
     unit->accept(parentIndexer);
     // for one of them, get all the siblings
@@ -73,7 +86,20 @@ void StandAloneGrammarPatcher::process() {
         }
       }
       siblings.insert(node);
+
+      // DEBUG
+      // std::cout << "Worklist: ";
+      // for (ASTNodeBase *node : Worklist) {
+      //   node->dump(std::cout);
+      // }
+      // std::cout << "\n";
+      
       matchMin(parent, siblings);
+
+      // this parent is valid by it own, aka statement
+      if (Worklist.empty() && validAlone(parent)) {
+        break;
+      }
       Worklist.insert(parent);
     }
   }
@@ -81,6 +107,13 @@ void StandAloneGrammarPatcher::process() {
   // for (auto m : GlobalSkip) {
   //   Patch.erase(m.first);
   // }
+}
+bool StandAloneGrammarPatcher::validAlone(v2::ASTNodeBase* node) {
+  if (dynamic_cast<v2::TokenNode*>(node)
+      || dynamic_cast<v2::CaseStmt*>(node)
+      || dynamic_cast<v2::DefaultStmt*>(node)
+      || dynamic_cast<v2::Expr*>(node)) return false;
+  else return true;
 }
 
 void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> sel) {
@@ -97,6 +130,8 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   // GrammarPatcher grammarPatcher(parent, sel);
   assert(parent);
 
+
+  // DEBUG
   // std::cout << "current matchMin: " << "\n";
   // std::cout << "parent: ";
   // parent->dump(std::cout);
@@ -169,7 +204,7 @@ void GrammarPatcher::visit(v2::CompoundStmt *comp_stmt, void *data) {
     GlobalSkip[comp_stmt] = *selection.begin();
   } else {
     // this actually should not happen
-    assert(false);
+    // assert(false);
     Patch.insert(CompNode);
   }
 }
@@ -187,6 +222,7 @@ void GrammarPatcher::visit(v2::ForStmt *for_stmt, void *data) {
     GlobalSkip[for_stmt] = body;
   } else {
     Patch.insert(ForNode);
+    // didn't patch init,condition,inc because they are optional
     Patch.insert(body);
     body->accept(this);
   }
@@ -251,7 +287,7 @@ void GrammarPatcher::visit(v2::IfStmt *if_stmt, void *data) {
   if (data) selection = static_cast<PatchData*>(data)->selection;
   TokenNode *IfNode = if_stmt->getIfNode();
   assert(IfNode);
-  Expr *expr = if_stmt->getCond();
+  Expr *cond = if_stmt->getCond();
   Stmt *then_stmt = if_stmt->getThen();
   assert(then_stmt);
   TokenNode *ElseNode = if_stmt->getElseNode();
@@ -264,7 +300,7 @@ void GrammarPatcher::visit(v2::IfStmt *if_stmt, void *data) {
     GlobalSkip[if_stmt] = else_stmt;
   } else {
     Patch.insert(IfNode);
-    Patch.insert(expr);
+    Patch.insert(cond);
     // must have the then
     Patch.insert(then_stmt);
     then_stmt->accept(this);

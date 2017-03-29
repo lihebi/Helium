@@ -38,12 +38,13 @@ void Generator::visit(v2::FunctionDecl *function, void *data) {
 }
 void Generator::visit(v2::DeclStmt *decl_stmt, void *data) {
   if (selection.count(decl_stmt) == 1) {
-    Prog += decl_stmt->getText() + ";\n";
+    Prog += decl_stmt->getText() + "\n";
   }
 }
 void Generator::visit(v2::ExprStmt *expr_stmt, void *data) {
   if (selection.count(expr_stmt) == 1) {
-    Prog += expr_stmt->getText() + ";\n";
+    // no need semi-colon because <expr_stmt>... ;</expr_stmt>
+    Prog += expr_stmt->getText() + "\n";
   }
 }
 void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
@@ -57,22 +58,29 @@ void Generator::visit(v2::CompoundStmt *comp_stmt, void *data) {
   if (selection.count(CompNode) == 1) {Prog += "}\n";}
 }
 void Generator::visit(v2::ForStmt *for_stmt, void *data) {
-  TokenNode *token = for_stmt->getForNode();
-  if (token) token->accept(this);
+  TokenNode *ForNode = for_stmt->getForNode();
+  assert(ForNode);
+  ForNode->accept(this);
+  if (selection.count(ForNode) == 1) Prog += "(";
   Expr *init = for_stmt->getInit();
   if (init) init->accept(this);
+  if (selection.count(ForNode) == 1) Prog += ";";
   Expr *cond = for_stmt->getCond();
   if (cond) cond->accept(this);
+  if (selection.count(ForNode) == 1) Prog += ";";
   Expr *inc = for_stmt->getInc();
   if (inc) inc->accept(this);
+  if (selection.count(ForNode) == 1) Prog += ")";
   Stmt *body = for_stmt->getBody();
   if (body) body->accept(this);
 }
 void Generator::visit(v2::WhileStmt *while_stmt, void *data) {
-  TokenNode *token = while_stmt->getWhileNode();
-  if (token) token->accept(this);
+  TokenNode *WhileNode = while_stmt->getWhileNode();
+  if (WhileNode) WhileNode->accept(this);
+  if (selection.count(WhileNode) == 1) Prog += "(";
   Expr *cond = while_stmt->getCond();
   if (cond) cond->accept(this);
+  if (selection.count(WhileNode) == 1) Prog += ")";
   Stmt *body = while_stmt->getBody();
   if (body) body->accept(this);
 }

@@ -343,3 +343,43 @@ void ASTDumper::visit_post(v2::SwitchStmt *node) {visit_post_general(node);os<<"
 void ASTDumper::visit_post(v2::CaseStmt *node) {visit_post_general(node);os<<"\n";}
 void ASTDumper::visit_post(v2::DefaultStmt *node) {visit_post_general(node);os<<"\n";}
 void ASTDumper::visit_post(v2::Expr *node) {visit_post_general(node);}
+
+
+
+
+
+void LevelVisitorV2::visit_pre(v2::TokenNode *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::TranslationUnitDecl *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::FunctionDecl *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::DeclStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::ExprStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::CompoundStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::ForStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::WhileStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::DoStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::BreakStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::ContinueStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::ReturnStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::IfStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::SwitchStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::CaseStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::DefaultStmt *node) {visit_pre_general(node);}
+void LevelVisitorV2::visit_pre(v2::Expr *node) {visit_pre_general(node);}
+
+void LevelVisitorV2::visit_post(v2::TokenNode *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::TranslationUnitDecl *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::FunctionDecl *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::DeclStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::ExprStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::CompoundStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::ForStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::WhileStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::DoStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::BreakStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::ContinueStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::ReturnStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::IfStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::SwitchStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::CaseStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::DefaultStmt *node) {visit_post_general(node);}
+void LevelVisitorV2::visit_post(v2::Expr *node) {visit_post_general(node);}

@@ -3,6 +3,7 @@
 #include "helium/parser/ast_v2.h"
 
 #include "helium/parser/xmlnode_helper.h"
+#include "helium/utils/string_utils.h"
 
 
 using std::vector;
@@ -99,6 +100,8 @@ CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
 
 /**
  * Parse all kinds of statements here
+ * FIXME this is very error-prone!
+ * I Need to list all the types of statements, otherwise it will not appear in AST
  */
 Stmt *Parser::ParseStmt(XMLNode node) {
   std::string NodeName = node.name();
@@ -111,6 +114,8 @@ Stmt *Parser::ParseStmt(XMLNode node) {
     ret = ParseDeclStmt(node);
   } else if (NodeName == "expr_stmt") {
     ret = ParseExprStmt(node);
+  } else if (NodeName == "block") {
+    ret = ParseCompoundStmt(node);
   } else if (NodeName == "stmt") {
     // FIXME srcml does not only contain these two
     // e.g. it might directly be a if statement
@@ -120,9 +125,16 @@ Stmt *Parser::ParseStmt(XMLNode node) {
     assert(0);
   } else if (NodeName == "if") {
     ret = ParseIfStmt(node);
+  } else if (NodeName == "switch") {
+    ret = ParseSwitchStmt(node);
+  } else if (NodeName == "for") {
+    ret = ParseForStmt(node);
+  } else if (NodeName == "do") {
+    ret = ParseDoStmt(node);
   } else if (NodeName == "while") {
     ret = ParseWhileStmt(node);
-  } else if (NodeName == "break") {
+  }
+  else if (NodeName == "break") {
     ret = new BreakStmt(Ctx, BeginLoc, EndLoc);
   } else if (NodeName == "continue") {
     ret = new ContinueStmt(Ctx, BeginLoc, EndLoc);
@@ -155,7 +167,8 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   Stmt *thenstmt = nullptr;
   Stmt *elsestmt = nullptr;
   if (then_node) {
-    thenstmt = ParseBlockAsStmt(then_node.child("block"));
+    // thenstmt = ParseBlockAsStmt(then_node.child("block"));
+    thenstmt = ParseCompoundStmt(then_node.child("block"));
     // if (std::string(then_node.name()) == "block") {
     //   thenstmt = ParseBlockAsStmt(then_node);
     // } else {
@@ -171,7 +184,8 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   }
   XMLNode elsenode = node.child("else");
   if (elsenode) {
-    elsestmt = ParseBlockAsStmt(elsenode.child("block"));
+    // elsestmt = ParseBlockAsStmt(elsenode.child("block"));
+    elsestmt = ParseCompoundStmt(elsenode.child("block"));
   }
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
@@ -221,7 +235,8 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
     if (std::string(next.name()) == "elseif") {
       elsestmt = ParseElseIfAsIfStmt(next);
     } else if (std::string(next.name()) == "else") {
-      elsestmt = ParseBlockAsStmt(next.child("block"));
+      // elsestmt = ParseBlockAsStmt(next.child("block"));
+      elsestmt = ParseCompoundStmt(next.child("block"));
     } else {
       // error();
       // std::cout << next.name() << "\n";
@@ -314,26 +329,28 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
  * type="pseudo"
  * FIXME should I keep the block even if it is pseudo?
  */
-Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
-  match(node, "block");
-  // XMLNode block = node.child("block");
-  Stmt *ret = nullptr;
-  // if (std::string(node.attribute("type").value()) == "pseudo") {
-  //   XMLNode child = node.first_child();
-  //   ret = ParseStmt(child);
-  // } else {
-  //   ret = ParseCompoundStmt(node);
-  // }
-  ret = ParseCompoundStmt(node);
-  return ret;
-}
+// Stmt *Parser::ParseBlockAsStmt(XMLNode node) {
+//   match(node, "block");
+//   // XMLNode block = node.child("block");
+//   Stmt *ret = nullptr;
+//   // if (std::string(node.attribute("type").value()) == "pseudo") {
+//   //   XMLNode child = node.first_child();
+//   //   ret = ParseStmt(child);
+//   // } else {
+//   //   ret = ParseCompoundStmt(node);
+//   // }
+//   ret = ParseCompoundStmt(node);
+//   return ret;
+// }
+
 
 ForStmt *Parser::ParseForStmt(XMLNode node) {
   match(node, "for");
-  Expr *init = ParseExpr(node.child("control").child("init"));
-  Expr *cond = ParseExpr(node.child("control").child("condition"));
+  Expr *init = ParseExprWithoutSemicolon(node.child("control").child("init"));
+  Expr *cond = ParseExprWithoutSemicolon(node.child("control").child("condition"));
   Expr *inc = ParseExpr(node.child("control").child("incr"));
-  Stmt *block = ParseBlockAsStmt(node.child("block"));
+  // Stmt *block = ParseBlockAsStmt(node.child("block"));
+  Stmt *block = ParseCompoundStmt(node.child("block"));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
@@ -350,7 +367,8 @@ ForStmt *Parser::ParseForStmt(XMLNode node) {
 WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
   match(node, "while");
   Expr *cond = ParseExpr(while_get_condition_expr(node));
-  Stmt *body = ParseBlockAsStmt(while_get_block(node));
+  // Stmt *body = ParseBlockAsStmt(while_get_block(node));
+  Stmt *body = ParseCompoundStmt(while_get_block(node));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
@@ -366,7 +384,8 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
 DoStmt *Parser::ParseDoStmt(XMLNode node) {
   match(node, "do");
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
-  Stmt *block = ParseBlockAsStmt(node.child("block"));
+  // Stmt *block = ParseBlockAsStmt(node.child("block"));
+  Stmt *block = ParseCompoundStmt(node.child("block"));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
@@ -391,12 +410,33 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
 
 Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
-  match(node, "expr");
+  // match(node, "expr");
+
+  // this might be many thing
+  // I'm going to handle here
+  // I'm not going to check the naem
+  // I assume the node passed in is going to be a expression
+  // so i just get the text.
+  // For example, it might be <init> <condition> <inc>, etc
+  // It might have semi-colon included
+  
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
   return new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
+}
+Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
+  std::pair<int, int> begin = get_node_begin_position(node);
+  std::pair<int, int> end = get_node_end_position(node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  // remove semicolon from text
+  std::string text = get_text(node);
+  utils::trim(text);
+  // FIXME error if no semicolon
+  if (text.back() == ';') text.pop_back();
+  return new Expr(Ctx, text, BeginLoc, EndLoc);
 }
 
 

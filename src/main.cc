@@ -433,6 +433,10 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
     if (is_regular_file(p) && p.extension() == ".sel") {
       // read the sel file
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+
+      // DEBUG
+      sourceManager->dumpASTs();
+      
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
       std::cout << "---------------------" << "\n";
       std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << p.string() << "\n";
