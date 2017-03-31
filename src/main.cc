@@ -451,6 +451,11 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
 
       std::cout << "[main] Doing Grammar Patching .." << "\n";
       sel = sourceManager->grammarPatch(sel);
+
+      sel = sourceManager->defUse(sel);
+      // I might want to do another grammar patching in case def use breaks it
+      sel = sourceManager->grammarPatch(sel);
+      
       std::cout << "[main] Patch size: "<< sel.size() << "\n";
       for (v2::ASTNodeBase *node : sel) {
         node->dump(std::cout);
@@ -460,6 +465,9 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       std::string prog = sourceManager->generateProgram(sel);
       std::cout << "[main] Program:" << "\n";
       std::cout << prog << "\n";
+
+      // put the program into main function
+      // TODO for function parameter, we need not include function header, but create variable??
     }
   }
 }

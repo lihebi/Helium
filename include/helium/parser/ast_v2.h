@@ -85,10 +85,14 @@ namespace v2 {
     SourceLocation getEndLoc() {return EndLoc;}
     virtual void dump(std::ostream &os) = 0;
     virtual std::string getNodeName() = 0;
+    std::set<std::string> getUsedVars() {return UsedVars;}
+    void addUsedVars(std::string var) {UsedVars.insert(var);}
+    void addUsedVars(std::set<std::string> var) {UsedVars.insert(var.begin(), var.end());}
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
     SourceLocation EndLoc;
+    std::set<std::string> UsedVars;
   };
 
   class Decl : public ASTNodeBase {
@@ -167,8 +171,11 @@ namespace v2 {
          << "DeclStmt)";
     }
     virtual std::string getNodeName() {return "DeclStmt";}
+    void setVars(std::set<std::string> vars) {this->vars = vars;}
+    std::set<std::string> getVars() {return vars;}
   private:
     std::string Text;
+    std::set<std::string> vars;
   };
 
   /**
@@ -243,6 +250,9 @@ namespace v2 {
          << "FunctionDecl)";
     }
     virtual std::string getNodeName() {return "FunctionDecl";}
+
+    void setVars(std::set<std::string> vars) {this->vars = vars;}
+    std::set<std::string> getVars() {return vars;}
   private:
     std::string name;
     TokenNode *ReturnTypeNode = nullptr;
@@ -253,6 +263,9 @@ namespace v2 {
     // (HEBI: what if selection is across multiple files? There will be multiple translation unit, aka mulitple ASTs)
     TokenNode *ParamNode = nullptr;
     Stmt *body = nullptr;
+
+    // TODO map to type
+    std::set<std::string> vars;
   };
 
   class ForStmt : public Stmt {
@@ -275,12 +288,17 @@ namespace v2 {
          << "ForStmt)";
     }
     virtual std::string getNodeName() {return "ForStmt";}
+
+    void setVars(std::set<std::string> vars) {this->vars = vars;}
+    std::set<std::string> getVars() {return vars;}
   private:
     Expr *Init = nullptr;
     Expr *Cond = nullptr;
     Expr *Inc = nullptr;
     Stmt *Body = nullptr;
     TokenNode *ForNode = nullptr;
+
+    std::set<std::string> vars;
   };
 
   class WhileStmt : public Stmt {
@@ -360,8 +378,8 @@ namespace v2 {
   };
   class ReturnStmt : public Stmt {
   public:
-    ReturnStmt(ASTContext *ctx, TokenNode *ReturnNode, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end), ReturnNode(ReturnNode) {
+    ReturnStmt(ASTContext *ctx, TokenNode *ReturnNode, Expr *Value, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), ReturnNode(ReturnNode), Value(Value) {
     }
     ~ReturnStmt() {}
     virtual void accept(Visitor *visitor, void *data=nullptr) {
@@ -375,8 +393,8 @@ namespace v2 {
     }
     virtual std::string getNodeName() {return "ReturnStmt";}
   private:
-    Expr *Value = nullptr;
     TokenNode *ReturnNode = nullptr;
+    Expr *Value = nullptr;
   };
 
   class IfStmt : public Stmt {

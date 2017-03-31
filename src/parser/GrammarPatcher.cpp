@@ -162,26 +162,42 @@ void GrammarPatcher::visit(v2::FunctionDecl *function, void *data) {
   // that will force to have a conditional to check
   // if no function, i can simply put everything into the main function
   // so now i'm going to disable the function level selection
-  assert(false && "Do not support function selection.");
+  //
+  // UPDATE However, if i don't do that, variable resolving will have problem
+  // I have to create declarations for them
+  // Now for build rate experiment purpose, I only want to get the function header
+  // Then i can simply put an empty main function.
+  // I don't necessary call it right now though.
+  //
+  // Another advantage to keep the function: I can keep the function header for all the things
+  // I know it will introduce the parameter, but that's the only thing,
+  // and the only bad thing is that the type of parameters might make it hard to compile.
+  // in terms of use, since the variable is not used, the value of them should not matter much.
+  // assert(false && "Do not support function selection.");
   
   std::set<ASTNodeBase*> selection;
   if (data) selection = static_cast<PatchData*>(data)->selection;
   // select the whole thing because I need to keep the signature of the function
   TokenNode *ReturnTypeNode = function->getReturnTypeNode();
-  if (ReturnTypeNode) Patch.insert(ReturnTypeNode);
+  assert(ReturnTypeNode);
   TokenNode *NameNode = function->getNameNode();
-  if (NameNode) Patch.insert(NameNode);
+  assert(NameNode);
   TokenNode *ParamNode = function->getParamNode();
-  if (ParamNode) Patch.insert(ParamNode);
+  assert(ParamNode);
   Stmt *body = function->getBody();
   assert(body);
   // body is special.
-  if (body) {
-    if (selection.count(body) == 0) {
-      // no selection data is passed in. Treat as no selection.
-      Patch.insert(body);
-      body->accept(this);
-    }
+  if (selection.size() == 1 && selection.count(body)==1) {
+    Patch.insert(body);
+    body->accept(this);
+    GlobalSkip[function] = body;
+  } else {
+    // no selection data is passed in. Treat as no selection.
+    Patch.insert(ReturnTypeNode);
+    Patch.insert(NameNode);
+    Patch.insert(ParamNode);
+    Patch.insert(body);
+    body->accept(this);
   }
 }
 void GrammarPatcher::visit(v2::DeclStmt *decl_stmt, void *data) {}

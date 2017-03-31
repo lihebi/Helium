@@ -383,3 +383,99 @@ void LevelVisitorV2::visit_post(v2::SwitchStmt *node) {visit_post_general(node);
 void LevelVisitorV2::visit_post(v2::CaseStmt *node) {visit_post_general(node);}
 void LevelVisitorV2::visit_post(v2::DefaultStmt *node) {visit_post_general(node);}
 void LevelVisitorV2::visit_post(v2::Expr *node) {visit_post_general(node);}
+
+
+
+void SymbolTableBuilder::insertDefUse(v2::ASTNodeBase *use) {
+  // for the use of variables, getvarid, and query symbol table
+  // get_var_ids() requires a XMLNode, not good at all
+  std::set<std::string> used_vars = use->getUsedVars();
+  for (std::string var : used_vars) {
+    v2::ASTNodeBase *def = Table.get(var);
+    if (def) {
+      Use2DefMap[use].insert(def);
+    }
+  }
+}
+
+/**
+ * Add symbols
+ */
+void SymbolTableBuilder::visit_pre(v2::FunctionDecl *node) {
+  Table.pushScope();
+  std::set<std::string> vars = node->getVars();
+  // FIXME add to function node or param node?
+  Table.add(vars, node);
+  insertDefUse(node);
+}
+void SymbolTableBuilder::visit_pre(v2::DeclStmt *node) {
+  // introduce symbols
+  std::set<std::string> vars = node->getVars();
+  Table.add(vars, node);
+  insertDefUse(node);
+}
+void SymbolTableBuilder::visit_pre(v2::ForStmt *node) {
+  Table.pushScope();
+  std::set<std::string> vars = node->getVars();
+  Table.add(vars, node);
+  insertDefUse(node);
+}
+/**
+ * Add scopes
+ */
+void SymbolTableBuilder::visit_pre(v2::IfStmt *node) {
+  // this is special
+  // it adds two scopes
+  // how should i do that?
+  // oh, wait
+  // it does not create any scope
+  // it is the then and else COMPOUND Statement that creates scope
+  // Yeah! do nothing here
+  insertDefUse(node);
+}
+void SymbolTableBuilder::visit_pre(v2::TranslationUnitDecl *node) {Table.pushScope();insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::CompoundStmt *node) {Table.pushScope();insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::WhileStmt *node) {Table.pushScope();insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::DoStmt *node) {Table.pushScope();insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::SwitchStmt *node) {Table.pushScope();insertDefUse(node);}
+
+/**
+ * Nothing
+ */
+void SymbolTableBuilder::visit_pre(v2::TokenNode *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::ExprStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::BreakStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::ContinueStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::ReturnStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::CaseStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::DefaultStmt *node) {insertDefUse(node);}
+void SymbolTableBuilder::visit_pre(v2::Expr *node) {insertDefUse(node);}
+
+/**
+ * Post, for all the pushed scope, pop it out
+ * TODO What i want to do with the symbol table?
+ * After the visit, the symbol table will contain nothing
+ * I must maintain what I want in between
+ */
+void SymbolTableBuilder::visit_post(v2::TranslationUnitDecl *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::FunctionDecl *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::CompoundStmt *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::ForStmt *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::WhileStmt *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::DoStmt *node) {Table.popScope();}
+void SymbolTableBuilder::visit_post(v2::SwitchStmt *node) {Table.popScope();}
+
+
+
+
+
+void SymbolTableBuilder::visit_post(v2::TokenNode *node) {}
+void SymbolTableBuilder::visit_post(v2::DeclStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::ExprStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::BreakStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::ContinueStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::ReturnStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::IfStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::CaseStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::DefaultStmt *node) {}
+void SymbolTableBuilder::visit_post(v2::Expr *node) {}

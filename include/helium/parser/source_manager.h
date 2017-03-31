@@ -50,6 +50,11 @@ public:
    * Thus you need to call select first.
    */
   std::set<v2::ASTNodeBase*> grammarPatch(std::set<v2::ASTNodeBase*> sel);
+  /**
+   * Def use analysis
+   * If some variable is used, include the node containing its declaration.
+   */
+  std::set<v2::ASTNodeBase*> defUse(std::set<v2::ASTNodeBase*> sel);
 
   /**
    * Generate program based on selection of nodes.

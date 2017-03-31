@@ -26,6 +26,7 @@ public:
   v2::FunctionDecl *ParseFunctionDecl(XMLNode func);
   v2::CompoundStmt *ParseCompoundStmt(XMLNode node);
   v2::Stmt *ParseStmt(XMLNode node);
+  v2::ReturnStmt *ParseReturnStmt(XMLNode node);
   v2::IfStmt *ParseIfStmt(XMLNode node);
   v2::IfStmt *ParseElseIfAsIfStmt(XMLNode node);
   v2::SwitchStmt *ParseSwitchStmt(XMLNode node);

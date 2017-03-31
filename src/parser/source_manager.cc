@@ -163,6 +163,28 @@ std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
 }
 
 
+std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel) {
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > use2def;
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    fs::path file = m.first;
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    SymbolTableBuilder *symbolTableBuilder = new SymbolTableBuilder();
+    unit->accept(symbolTableBuilder);
+    std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = symbolTableBuilder->getUse2DefMap();
+    use2def.insert(u2d.begin(), u2d.end());
+  }
+  // process sel
+  std::set<v2::ASTNodeBase*> ret = sel;
+  for (v2::ASTNodeBase *node : sel) {
+    if (use2def.count(node) == 1) {
+      std::set<ASTNodeBase*> tmp = use2def[node];
+      ret.insert(tmp.begin(), tmp.end());
+    }
+  }
+  return ret;
+}
+
 std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
   // Here I can enforce some criteria, such as intro-procedure
   set<ASTNodeBase*> ret;

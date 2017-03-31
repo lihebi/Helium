@@ -7,7 +7,6 @@
 #include <map>
 #include <set>
 
-
 namespace v2 {
   class ASTContext;
   
@@ -295,6 +294,107 @@ private:
   std::map<v2::ASTNodeBase*, int> Levels;
   int lvl=0;
 };
+
+
+
+namespace v2 {
+  class SymbolTable {
+  public:
+    SymbolTable() {}
+    ~SymbolTable() {}
+
+    void pushScope() {
+      Stack.push_back({});
+    }
+    void popScope() {
+      Stack.pop_back();
+    }
+
+    /**
+     * id is declared in node
+     */
+    void add(std::string id, v2::ASTNodeBase *node) {
+      Stack.back()[id] = node;
+    }
+    void add(std::set<std::string> ids, v2::ASTNodeBase *node) {
+      for (const std::string&id : ids) {
+        add(id, node);
+      }
+    }
+    v2::ASTNodeBase* get(std::string id) {
+      for (int i=Stack.size()-1;i>=0;i--) {
+        if (Stack[i].count(id) == 1) return Stack[i][id];
+      }
+      return nullptr;
+    }
+  private:
+    std::vector<std::map<std::string, v2::ASTNodeBase*> > Stack;
+  };
+};
+
+class SymbolTableBuilder : public CRTPVisitor<SymbolTableBuilder> {
+public:
+  SymbolTableBuilder() {}
+  virtual ~SymbolTableBuilder() {}
+  
+  virtual void visit_pre_general(v2::ASTNodeBase *node) {}
+  virtual void visit_post_general(v2::ASTNodeBase *node) {}
+
+  // TODO why i can not use parent visit_pre and visit_post funcitons?
+  // TODO why i have to define in the cpp file instead of here?
+  virtual void visit_pre(v2::TokenNode *node);
+  virtual void visit_pre(v2::TranslationUnitDecl *node);
+  virtual void visit_pre(v2::FunctionDecl *node);
+  virtual void visit_pre(v2::DeclStmt *node);
+  virtual void visit_pre(v2::ExprStmt *node);
+  virtual void visit_pre(v2::CompoundStmt *node);
+  virtual void visit_pre(v2::ForStmt *node);
+  virtual void visit_pre(v2::WhileStmt *node);
+  virtual void visit_pre(v2::DoStmt *node);
+  virtual void visit_pre(v2::BreakStmt *node);
+  virtual void visit_pre(v2::ContinueStmt *node);
+  virtual void visit_pre(v2::ReturnStmt *node);
+  virtual void visit_pre(v2::IfStmt *node);
+  virtual void visit_pre(v2::SwitchStmt *node);
+  virtual void visit_pre(v2::CaseStmt *node);
+  virtual void visit_pre(v2::DefaultStmt *node);
+  virtual void visit_pre(v2::Expr *node);
+
+  virtual void visit_post(v2::TokenNode *node);
+  virtual void visit_post(v2::TranslationUnitDecl *node);
+  virtual void visit_post(v2::FunctionDecl *node);
+  virtual void visit_post(v2::DeclStmt *node);
+  virtual void visit_post(v2::ExprStmt *node);
+  virtual void visit_post(v2::CompoundStmt *node);
+  virtual void visit_post(v2::ForStmt *node);
+  virtual void visit_post(v2::WhileStmt *node);
+  virtual void visit_post(v2::DoStmt *node);
+  virtual void visit_post(v2::BreakStmt *node);
+  virtual void visit_post(v2::ContinueStmt *node);
+  virtual void visit_post(v2::ReturnStmt *node);
+  virtual void visit_post(v2::IfStmt *node);
+  virtual void visit_post(v2::SwitchStmt *node);
+  virtual void visit_post(v2::CaseStmt *node);
+  virtual void visit_post(v2::DefaultStmt *node);
+  virtual void visit_post(v2::Expr *node);
+
+
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
+private:
+  void insertDefUse(v2::ASTNodeBase *use);
+  // this will be empty after traversal
+  v2::SymbolTable Table;
+  // this is the result
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > Use2DefMap;
+};
+
+
+
+
+
+
+
+
 
 
 /**
