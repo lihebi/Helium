@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "helium/parser/GrammarPatcher.h"
+
 #include "test_programs.h"
 
 #include <boost/filesystem.hpp>
@@ -124,16 +126,42 @@ TEST_F(VisitorTest, ParentIndexerTest) {
 }
 
 TEST_F(VisitorTest, GrammarPatcherTest) {
+  {
+    // set up indexer and matcher for selecting nodes
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[0];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+
+    {
+      // create selection
+      // if token
+      set<ASTNodeBase*> sel;
+      vector<ASTNodeBase*> v;
+      v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt/TokenNode");
+      ASSERT_GT(v.size(), 0);
+      sel.insert(v[0]);
+
+      v[0]->dump(std::cout);
+      
+      // create GrammarPatcher
+      StandAloneGrammarPatcher patcher(ast, sel);
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      EXPECT_EQ(patch.size(), 3);
+    }
+  }
 }
 
-TEST_F(VisitorTest, SymbolTableBuilderTest) {
-}
+// TEST_F(VisitorTest, SymbolTableBuilderTest) {
+// }
 
-TEST_F(VisitorTest, DistributorTest) {
-}
+// TEST_F(VisitorTest, DistributorTest) {
+// }
 
-TEST_F(VisitorTest, GeneratorTest) {
-}
+// TEST_F(VisitorTest, GeneratorTest) {
+// }
 
 
 

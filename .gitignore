@@ -44,3 +44,5 @@ tmp/*
 
 .idea
 cmake-build-debug
+
+gmon.out

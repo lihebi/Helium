@@ -4,8 +4,6 @@ add_subdirectory(type)
 add_subdirectory(utils)
 add_subdirectory(workflow)
 
-
-
 add_executable(helium
   main.cc
   # clangSnippet.cpp
