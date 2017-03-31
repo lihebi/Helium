@@ -79,7 +79,7 @@ namespace v2 {
     // virtual void accept(Visitor *visitor) {
     //   visitor->visit(this);
     // }
-    virtual void accept(Visitor *visitor, void *data=nullptr) = 0;
+    virtual void accept(Visitor *visitor) = 0;
     ASTContext *getASTContext() {return Ctx;}
     SourceLocation getBeginLoc() {return BeginLoc;}
     SourceLocation getEndLoc() {return EndLoc;}
@@ -116,8 +116,8 @@ namespace v2 {
     // TokenNode(ASTContext *ctx, std::string text)
     //   : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)), Text(text) {}
     ~TokenNode() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     std::string getText() {return Text;}
     virtual void dump(std::ostream &os) {
@@ -140,8 +140,8 @@ namespace v2 {
       : Decl(ctx, begin, end), decls(decls) {}
     ~TranslationUnitDecl() {}
     std::vector<ASTNodeBase*> getDecls() {return decls;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     virtual void dump(std::ostream &os) {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
@@ -162,8 +162,8 @@ namespace v2 {
     DeclStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : Stmt(ctx, begin, end), Text(text) {}
     ~DeclStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     std::string getText() {return Text;}
     virtual void dump(std::ostream &os) {
@@ -186,8 +186,8 @@ namespace v2 {
     ExprStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : Stmt(ctx, begin, end), Text(text) {}
     ~ExprStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     std::string getText() {return Text;}
     virtual void dump(std::ostream &os) {
@@ -208,8 +208,8 @@ namespace v2 {
       stmts.push_back(stmt);
     }
     std::vector<Stmt*> getBody() {return stmts;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
 
     TokenNode *getCompNode() {return CompNode;}
@@ -238,8 +238,8 @@ namespace v2 {
     }
     ~FunctionDecl() {}
     Stmt *getBody() {return body;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     std::string getName() {return name;}
     TokenNode *getReturnTypeNode() {return ReturnTypeNode;}
@@ -279,8 +279,8 @@ namespace v2 {
     Expr *getCond() {return Cond;}
     Expr *getInc() {return Inc;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getForNode() {return ForNode;}
     virtual void dump(std::ostream &os) {
@@ -310,8 +310,8 @@ namespace v2 {
     ~WhileStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getWhileNode() {return WhileNode;}
     virtual void dump(std::ostream &os) {
@@ -333,8 +333,8 @@ namespace v2 {
     ~DoStmt() {}
     Expr *getCond() {return Cond;}
     Stmt *getBody() {return Body;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getDoNode() {return DoNode;}
     TokenNode *getWhileNode() {return WhileNode;}
@@ -354,8 +354,8 @@ namespace v2 {
   public:
     BreakStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~BreakStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     virtual void dump(std::ostream &os) {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
@@ -367,8 +367,8 @@ namespace v2 {
   public:
     ContinueStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~ContinueStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     virtual void dump(std::ostream &os) {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
@@ -382,8 +382,8 @@ namespace v2 {
       : Stmt(ctx, begin, end), ReturnNode(ReturnNode), Value(Value) {
     }
     ~ReturnStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     Expr *getValue() {return Value;}
     TokenNode *getReturnNode() {return ReturnNode;}
@@ -412,8 +412,8 @@ namespace v2 {
     Expr *getCond() {return cond;}
     Stmt *getThen() {return thenstmt;}
     Stmt *getElse() {return elsestmt;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getIfNode() {return IfNode;}
     TokenNode *getElseNode() {return ElseNode;}
@@ -441,8 +441,8 @@ namespace v2 {
     void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
     std::vector<SwitchCase*> getCases() {return Cases;}
     Expr *getCond() {return Cond;}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getSwitchNode() {return SwitchNode;}
     virtual void dump(std::ostream &os) {
@@ -488,8 +488,8 @@ namespace v2 {
       : SwitchCase(ctx, begin, end), Cond(cond), CaseNode(CaseNode) {
     }
     ~CaseStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getCaseNode() {return CaseNode;}
     Expr *getCond() {return Cond;}
@@ -509,8 +509,8 @@ namespace v2 {
       : SwitchCase(ctx, begin, end), DefaultNode(DefaultNode) {
     }
     ~DefaultStmt() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     TokenNode *getDefaultNode() {return DefaultNode;}
     virtual void dump(std::ostream &os) {
@@ -531,8 +531,8 @@ namespace v2 {
     Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
       : ASTNodeBase(ctx, begin, end), Text(text) {}
     ~Expr() {}
-    virtual void accept(Visitor *visitor, void *data=nullptr) {
-      visitor->visit(this, data);
+    virtual void accept(Visitor *visitor) {
+      visitor->visit(this);
     }
     std::string getText() {return Text;}
     virtual void dump(std::ostream &os) {

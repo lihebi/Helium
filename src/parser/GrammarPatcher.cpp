@@ -1,4 +1,6 @@
+#include "helium/parser/GrammarPatcher.h"
 #include "helium/parser/visitor.h"
+
 #include "helium/parser/ast_v2.h"
 #include "helium/parser/source_manager.h"
 #include "helium/utils/string_utils.h"
@@ -18,7 +20,7 @@ std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> GlobalSkip;
 void StandAloneGrammarPatcher::process() {
   // std::cout << "StandAloneGrammarPatcher::process" << "\n";
   // get the lowest level nodes
-  LevelVisitorV2 *levelVisitor = new LevelVisitorV2();
+  LevelVisitor *levelVisitor = new LevelVisitor();
   TranslationUnitDecl *unit = AST->getTranslationUnitDecl();
   unit->accept(levelVisitor);
 
@@ -142,21 +144,26 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   // }
   // std::cout << "\n";
 
-  GrammarPatcher grammarPatcher;
+  GrammarPatcher patcher;
   PatchData data;
   data.selection = sel;
-  parent->accept(&grammarPatcher, &data);
-  std::set<v2::ASTNodeBase*> patch = grammarPatcher.getPatch();
+  patcher.setSelection(sel);
+  parent->accept(&patcher);
+  // patcher.patch(parent);
+  std::set<v2::ASTNodeBase*> patch = patcher.getPatch();
   this->Patch.insert(patch.begin(), patch.end());
 }
 
 
 
 
-// TODO
-void GrammarPatcher::visit(v2::TokenNode *token, void *data) {}
-void GrammarPatcher::visit(v2::TranslationUnitDecl *unit, void *data) {}
-void GrammarPatcher::visit(v2::FunctionDecl *function, void *data) {
+
+// high level
+void GrammarPatcher::visit(v2::TokenNode *node) {
+}
+void GrammarPatcher::visit(v2::TranslationUnitDecl *node) {
+}
+void GrammarPatcher::visit(v2::FunctionDecl *node) {
   // if function header is selected, it is hard
   // i have to generate a main function, and generate parameters, initialize them, and call the function
   // that will force to have a conditional to check
@@ -175,176 +182,101 @@ void GrammarPatcher::visit(v2::FunctionDecl *function, void *data) {
   // in terms of use, since the variable is not used, the value of them should not matter much.
   // assert(false && "Do not support function selection.");
   
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
+  // std::set<ASTNodeBase*> selection;
+  // if (data) selection = static_cast<PatchData*>(data)->selection;
   // select the whole thing because I need to keep the signature of the function
-  TokenNode *ReturnTypeNode = function->getReturnTypeNode();
+  TokenNode *ReturnTypeNode = node->getReturnTypeNode();
   assert(ReturnTypeNode);
-  TokenNode *NameNode = function->getNameNode();
+  TokenNode *NameNode = node->getNameNode();
   assert(NameNode);
-  TokenNode *ParamNode = function->getParamNode();
+  TokenNode *ParamNode = node->getParamNode();
   assert(ParamNode);
-  Stmt *body = function->getBody();
+  Stmt *body = node->getBody();
   assert(body);
   // body is special.
-  if (selection.size() == 1 && selection.count(body)==1) {
+  if (Selection.size() == 1 && Selection.count(body)==1) {
     Patch.insert(body);
-    body->accept(this);
-    GlobalSkip[function] = body;
+
+    GrammarPatcher patcher;
+    body->accept(&patcher);
+    merge(&patcher);
+    
+    GlobalSkip[node] = body;
   } else {
     // no selection data is passed in. Treat as no selection.
     Patch.insert(ReturnTypeNode);
     Patch.insert(NameNode);
     Patch.insert(ParamNode);
     Patch.insert(body);
-    body->accept(this);
+
+    GrammarPatcher patcher;
+    body->accept(&patcher);
+    merge(&patcher);
   }
 }
-void GrammarPatcher::visit(v2::DeclStmt *decl_stmt, void *data) {}
-void GrammarPatcher::visit(v2::ExprStmt *expr_stmt, void *data) {}
-/**
- * CompoundStmt ::= stmt*
- * No need to select anything
- */
-void GrammarPatcher::visit(v2::CompoundStmt *comp_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *CompNode = comp_stmt->getCompNode();
+void GrammarPatcher::visit(v2::CompoundStmt *node) {
+  TokenNode *CompNode = node->getCompNode();
   assert(CompNode);
-  if (selection.size() == 0) {
+  if (Selection.size() == 0) {
     // this should serve as a stop point for many matchMin
     Patch.insert(CompNode);
-  } else if (selection.size() == 1) {
+  } else if (Selection.size() == 1) {
     // lazy evaluation & replacement
     // FIXME verify the first in selection is a body statement
-    GlobalSkip[comp_stmt] = *selection.begin();
+    GlobalSkip[node] = *Selection.begin();
   } else {
     // this actually should not happen
     // assert(false);
     Patch.insert(CompNode);
   }
 }
-void GrammarPatcher::visit(v2::ForStmt *for_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *ForNode = for_stmt->getForNode();
-  assert(ForNode);
-  Stmt *body = for_stmt->getBody();
-  assert(body);
-
-  if (selection.size() == 1 && selection.count(body) ==1) {
-    Patch.insert(body);
-    body->accept(this);
-    GlobalSkip[for_stmt] = body;
-  } else {
-    Patch.insert(ForNode);
-    // didn't patch init,condition,inc because they are optional
-    Patch.insert(body);
-    body->accept(this);
-  }
-}
-void GrammarPatcher::visit(v2::WhileStmt *while_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *WhileNode = while_stmt->getWhileNode();
-  assert(WhileNode);
-  Stmt *body = while_stmt->getBody();
-  assert(body);
-  Expr *cond = while_stmt->getCond();
-  assert(cond);
-
-  if (selection.size() == 1 && selection.count(body) == 1) {
-    GlobalSkip[while_stmt] = body;
-  } else {
-    Patch.insert(WhileNode);
-    Patch.insert(cond);
-    Patch.insert(body);
-    body->accept(this);
-  }
-}
-void GrammarPatcher::visit(v2::DoStmt *do_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *DoNode = do_stmt->getDoNode();
-  assert(DoNode);
-  Stmt *body = do_stmt->getBody();
-  assert(body);
-  TokenNode *WhileNode = do_stmt->getWhileNode();
-  assert(WhileNode);
-  Expr *cond = do_stmt->getCond();
-  assert(cond);
-  if (selection.size() == 1 && selection.count(body) == 1) {
-    GlobalSkip[do_stmt] = body;
-  } else {
-    Patch.insert(DoNode);
-    Patch.insert(WhileNode);
-    Patch.insert(cond);
-    if (selection.count(body) == 0) {
-      Patch.insert(body);
-      body->accept(this);
-    }
-  }
-}
-void GrammarPatcher::visit(v2::BreakStmt *break_stmt, void *data) {}
-void GrammarPatcher::visit(v2::ContinueStmt *cont_stmt, void *data) {}
-void GrammarPatcher::visit(v2::ReturnStmt *ret_stmt, void *data) {
-  TokenNode *ReturnNode = ret_stmt->getReturnNode();
-  assert(ReturnNode);
-  Patch.insert(ReturnNode);
-  // add value because it is related to function signature
-  Expr *value = ret_stmt->getValue();
-  if (value) {
-    // value->accept(this);
-    Patch.insert(value);
-  }
-}
-void GrammarPatcher::visit(v2::IfStmt *if_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *IfNode = if_stmt->getIfNode();
+// condition
+void GrammarPatcher::visit(v2::IfStmt *node) {
+  TokenNode *IfNode = node->getIfNode();
   assert(IfNode);
-  Expr *cond = if_stmt->getCond();
-  Stmt *then_stmt = if_stmt->getThen();
+  Expr *cond = node->getCond();
+  Stmt *then_stmt = node->getThen();
   assert(then_stmt);
-  TokenNode *ElseNode = if_stmt->getElseNode();
-  Stmt *else_stmt = if_stmt->getElse();
+  TokenNode *ElseNode = node->getElseNode();
+  Stmt *else_stmt = node->getElse();
 
 
-  if (selection.size() == 1 && selection.count(then_stmt) == 1) {
-    GlobalSkip[if_stmt] = then_stmt;
-  } else if (selection.size() == 1 && selection.count(else_stmt) == 1) {
-    GlobalSkip[if_stmt] = else_stmt;
+  if (Selection.size() == 1 && Selection.count(then_stmt) == 1) {
+    GlobalSkip[node] = then_stmt;
+  } else if (Selection.size() == 1 && Selection.count(else_stmt) == 1) {
+    GlobalSkip[node] = else_stmt;
   } else {
     Patch.insert(IfNode);
     Patch.insert(cond);
     // must have the then
     Patch.insert(then_stmt);
-    then_stmt->accept(this);
-    if (selection.count(ElseNode) == 1 || selection.count(else_stmt) == 1) {
+    GrammarPatcher patcher;
+    then_stmt->accept(&patcher);
+    merge(&patcher);
+    if (Selection.count(ElseNode) == 1 || Selection.count(else_stmt) == 1) {
       assert(ElseNode);
       assert(else_stmt);
       Patch.insert(ElseNode);
       Patch.insert(else_stmt);
-      else_stmt->accept(this);
+      GrammarPatcher patcher;
+      else_stmt->accept(&patcher);
+      merge(&patcher);
     }
   }
 }
-
-void GrammarPatcher::visit(v2::SwitchStmt *switch_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *SwitchNode = switch_stmt->getSwitchNode();
+void GrammarPatcher::visit(v2::SwitchStmt *node) {
+  TokenNode *SwitchNode = node->getSwitchNode();
   assert(SwitchNode);
-  std::vector<SwitchCase*> cases = switch_stmt->getCases();
+  std::vector<SwitchCase*> cases = node->getCases();
   std::set<ASTNodeBase*> case_set(cases.begin(), cases.end());
-  Expr *cond = switch_stmt->getCond();
+  Expr *cond = node->getCond();
   assert(cond);
 
   // if more than one case is selected, switch is necessary
-  if (selection.size() == 1
-      && case_set.count(*selection.begin()) == 1
-      && GlobalSkip.count(*selection.begin()) == 1) {
-    GlobalSkip[switch_stmt] = *selection.begin();
+  if (Selection.size() == 1
+      && case_set.count(*Selection.begin()) == 1
+      && GlobalSkip.count(*Selection.begin()) == 1) {
+    GlobalSkip[node] = *Selection.begin();
   } else {
     Patch.insert(SwitchNode);
     Patch.insert(cond);
@@ -357,17 +289,15 @@ void GrammarPatcher::visit(v2::SwitchStmt *switch_stmt, void *data) {
   //   if (c) c->accept(this);
   // }
 }
-void GrammarPatcher::visit(v2::CaseStmt *case_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *CaseNode = case_stmt->getCaseNode();
-  Expr *cond = case_stmt->getCond();
+void GrammarPatcher::visit(v2::CaseStmt *node) {
+  TokenNode *CaseNode = node->getCaseNode();
+  Expr *cond = node->getCond();
   assert(CaseNode);
   assert(cond);
-  if (selection.count(CaseNode) == 0) {
+  if (Selection.count(CaseNode) == 0) {
     // FIXME this nullptr because in AST it maintain a list of statements
     // DO NOT USE THIS VALUE
-    GlobalSkip[case_stmt] = nullptr;
+    GlobalSkip[node] = nullptr;
   }
   Patch.insert(CaseNode);
   Patch.insert(cond);
@@ -377,17 +307,100 @@ void GrammarPatcher::visit(v2::CaseStmt *case_stmt, void *data) {
   //   if (stmt) stmt->accept(this);
   // }
 }
-void GrammarPatcher::visit(v2::DefaultStmt *def_stmt, void *data) {
-  std::set<ASTNodeBase*> selection;
-  if (data) selection = static_cast<PatchData*>(data)->selection;
-  TokenNode *DefaultNode = def_stmt->getDefaultNode();
-  if (selection.count(DefaultNode) == 0) {
+void GrammarPatcher::visit(v2::DefaultStmt *node) {
+  TokenNode *DefaultNode = node->getDefaultNode();
+  if (Selection.count(DefaultNode) == 0) {
     // FIXME this nullptr because in AST it maintain a list of statements
     // DO NOT USE THIS VALUE
-    GlobalSkip[def_stmt] = nullptr;
+    GlobalSkip[node] = nullptr;
   }
   assert(DefaultNode);
   Patch.insert(DefaultNode);
 }
-void GrammarPatcher::visit(v2::Expr *expr, void *data) {}
+// loop
+void GrammarPatcher::visit(v2::ForStmt *node) {
+  TokenNode *ForNode = node->getForNode();
+  assert(ForNode);
+  Stmt *body = node->getBody();
+  assert(body);
 
+  if (Selection.size() == 1 && Selection.count(body) ==1) {
+    Patch.insert(body);
+    GrammarPatcher patcher;
+    body->accept(&patcher);
+    merge(&patcher);
+    GlobalSkip[node] = body;
+  } else {
+    Patch.insert(ForNode);
+    // didn't patch init,condition,inc because they are optional
+    Patch.insert(body);
+    GrammarPatcher patcher;
+    body->accept(&patcher);
+    merge(&patcher);
+  }
+}
+void GrammarPatcher::visit(v2::WhileStmt *node) {
+  TokenNode *WhileNode = node->getWhileNode();
+  assert(WhileNode);
+  Stmt *body = node->getBody();
+  assert(body);
+  Expr *cond = node->getCond();
+  assert(cond);
+
+  if (Selection.size() == 1 && Selection.count(body) == 1) {
+    GlobalSkip[node] = body;
+  } else {
+    Patch.insert(WhileNode);
+    Patch.insert(cond);
+    Patch.insert(body);
+    GrammarPatcher patcher;
+    body->accept(&patcher);
+    merge(&patcher);
+  }
+}
+void GrammarPatcher::visit(v2::DoStmt *node) {
+  TokenNode *DoNode = node->getDoNode();
+  assert(DoNode);
+  Stmt *body = node->getBody();
+  assert(body);
+  TokenNode *WhileNode = node->getWhileNode();
+  assert(WhileNode);
+  Expr *cond = node->getCond();
+  assert(cond);
+  if (Selection.size() == 1 && Selection.count(body) == 1) {
+    GlobalSkip[node] = body;
+  } else {
+    Patch.insert(DoNode);
+    Patch.insert(WhileNode);
+    Patch.insert(cond);
+    if (Selection.count(body) == 0) {
+      Patch.insert(body);
+      GrammarPatcher patcher;
+      body->accept(&patcher);
+      merge(&patcher);
+    }
+  }
+}
+// single
+void GrammarPatcher::visit(v2::BreakStmt *node) {
+}
+void GrammarPatcher::visit(v2::ContinueStmt *node) {
+}
+void GrammarPatcher::visit(v2::ReturnStmt *node) {
+  TokenNode *ReturnNode = node->getReturnNode();
+  assert(ReturnNode);
+  Patch.insert(ReturnNode);
+  // add value because it is related to function signature
+  Expr *value = node->getValue();
+  if (value) {
+    // value->accept(this);
+    Patch.insert(value);
+  }
+}
+// expr stmt
+void GrammarPatcher::visit(v2::Expr *node) {
+}
+void GrammarPatcher::visit(v2::DeclStmt *node) {
+}
+void GrammarPatcher::visit(v2::ExprStmt *node) {
+}

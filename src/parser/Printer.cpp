@@ -11,7 +11,9 @@ using std::set;
 
 using namespace v2;
 
-string Printer::PrettyPrint(string ast) {
+
+
+string Printer::prettyPrint(string ast) {
   // join line if ) is on a single line
   vector<string> lines = utils::split(ast, '\n');
   vector<string> ret;
@@ -40,106 +42,98 @@ string Printer::PrettyPrint(string ast) {
   return retstr;
 }
 
-void Printer::visit(TokenNode *token, void *data) {
-  assert(token);
-  os << "(token " + token->getText() << ")";
+/**
+ * Printer
+ */
+void Printer::pre(v2::ASTNodeBase *node) {
+  oss << "(" << node->getBeginLoc().getLine() << ":" << node->getBeginLoc().getColumn() << " "
+     << node->getNodeName();
 }
-
-void Printer::visit(TranslationUnitDecl *unit, void *data) {
-  os << "(unit ";
-  std::vector<ASTNodeBase*> nodes = unit->getDecls();
-  for (ASTNodeBase *node : nodes) {
-    if (node) node->accept(this);
-  }
-  os << ")\n";
-}
-void Printer::visit(FunctionDecl *function, void *datan){
-  os << "(function:" << function->getName() << "\n";
-  Stmt *body = function->getBody();
-  body->accept(this);
-  os << ")\n";
-}
-void Printer::visit(DeclStmt *decl_stmt, void *datat){
-  os << "(decl_stmt)";
-}
-void Printer::visit(ExprStmt *expr_stmt, void *datat){
-  os << "(expr_stmt)";
-}
-void Printer::visit(CompoundStmt *comp_stmt, void *datat){
-  os << "(comp_stmt \n";
-  std::vector<Stmt*> stmts = comp_stmt->getBody();
-  for (Stmt *stmt : stmts) {
-    if (stmt) stmt->accept(this);
-  }
-  os << ")\n";
-}
-void Printer::visit(ForStmt *for_stmt, void *datat){
-  os << "(for_stmt \n";
-  Stmt *body = for_stmt->getBody();
-  if (body) body->accept(this);
-  os << ")\n";
-}
-void Printer::visit(WhileStmt *while_stmt, void *datat){
-  os << "(while_stmt \n";
-  Stmt *body = while_stmt->getBody();
-  if (body) body->accept(this);
-  os << ")\n";
-}
-void Printer::visit(DoStmt *do_stmt, void *datat){
-  os << "(do_stmt \n";
-  Stmt *body = do_stmt->getBody();
-  if (body) body->accept(this);
-  os << ")\n";
-}
-void Printer::visit(BreakStmt *break_stmt, void *datat){
-  os << "(break_stmt)";
-}
-void Printer::visit(ContinueStmt *cont_stmt, void *datat){
-  os << "(cont_stmt)";
-}
-void Printer::visit(ReturnStmt *ret_stmt, void *datat){
-  os << "(ret_stmt)";
-}
-void Printer::visit(IfStmt *if_stmt, void *datat){
-  os << "(if_stmt \n";
-  Stmt *then_stmt = if_stmt->getThen();
-  if (then_stmt) {
-    os << " T:";
-    then_stmt->accept(this);
-  }
-  Stmt *else_stmt = if_stmt->getElse();
-  if (else_stmt) {
-    os << "F:";
-    else_stmt->accept(this);
-  }
-  os << ")\n";
-}
-void Printer::visit(SwitchStmt *switch_stmt, void *datat){
-  os << "(switch_stmt \n";
-  std::vector<SwitchCase*> cases = switch_stmt->getCases();
-  for (SwitchCase *c : cases) {
-    c->accept(this);
-  }
-  os << ")\n";
-}
-void Printer::visit(CaseStmt *case_stmt, void *datat){
-  os << "(case_stmt ";
-  vector<Stmt*> body = case_stmt->getBody();
-  for (Stmt *stmt : body) {
-    if (stmt) stmt->accept(this);
-  }
-  os << ")\n";
-}
-void Printer::visit(DefaultStmt *def_stmt, void *datat){
-  os << "(def_stmt ";
-  vector<Stmt*> body = def_stmt->getBody();
-  for (Stmt *stmt : body) {
-    if (stmt) stmt->accept(this);
-  }
-  os << ")";
-}
-void Printer::visit(Expr *exp, void *datar){
-  os << "(expr_stmt)";
-}
+void Printer::post() {oss << ")";}
 
 
+void Printer::visit(v2::TokenNode *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::TranslationUnitDecl *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::FunctionDecl *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::IfStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::SwitchStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::CaseStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::DefaultStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::ForStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::WhileStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::DoStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::CompoundStmt *node) {
+  oss<<"\n";pre(node);oss<<"\n";
+  Visitor::visit(node);
+  post();oss<<"\n";
+}
+void Printer::visit(v2::BreakStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::ContinueStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::ReturnStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::Expr *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::DeclStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}
+void Printer::visit(v2::ExprStmt *node) {
+  pre(node);
+  Visitor::visit(node);
+  post();
+}

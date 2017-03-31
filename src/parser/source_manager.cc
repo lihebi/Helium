@@ -4,6 +4,7 @@
 #include "helium/utils/string_utils.h"
 
 #include "helium/utils/rand_utils.h"
+#include "helium/parser/GrammarPatcher.h"
 
 using namespace v2;
 
@@ -99,9 +100,9 @@ void SourceManager::dumpASTs() {
     ASTContext *ast = m.second;
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
     std::ostringstream os;
-    ASTDumper dumper(os);
-    unit->accept(&dumper);
-    std::cout << Printer::PrettyPrint(os.str()) << "\n";
+    Printer printer;
+    unit->accept(&printer);
+    std::cout << printer.getString() << "\n";
   }
 }
 
@@ -306,10 +307,9 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
           if (begin <= loc && loc <= end) {
             // this token is selected
             // print it out for now
-            std::ostringstream os;
-            Printer printer(os);
-            token->accept(&printer);
-            std::cout << "[SourceManager] Found selected token: " << os.str() << "\n";
+            std::cout << "[SourceManager] Found selected token: ";
+            token->dump(std::cout);
+            std::cout << "\n";
             ret.insert(token);
           }
         }

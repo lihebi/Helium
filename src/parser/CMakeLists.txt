@@ -12,7 +12,7 @@ add_library(HeliumParser
   ParentIndexer.cpp
   Printer.cpp
   TokenVisitor.cpp
-  
+  SymbolTableBuilder.cpp
 
   
   ast.cc
