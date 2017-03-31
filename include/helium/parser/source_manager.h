@@ -23,26 +23,7 @@ public:
    */
   SourceManager(fs::path cppfolder);
   ~SourceManager() {}
-  // void processProject(fs::path cppfolder);
-  // v2::ASTNodeBase *getNodeById(int id) {
-  //   return Nodes[id];
-  // }
-  // int getIdByNode(v2::ASTNodeBase *node) {
-  //   if (IDs.count(node) != 0) {
-  //     return IDs[node];
-  //   } else {
-  //     return -1;
-  //   }
-  // }
-  // void dumpASTs();
-  // dump tokens
-  // void dumpTokens();
-  // dump AST, and also dump its location
   void dumpASTs();
-  // void select(std::map<std::string, std::set<std::pair<int,int> > > selection);
-  // void select(std::set<v2::ASTNodeBase*> selection) {
-  //   this->selection = selection;
-  // }
   std::set<v2::ASTNodeBase*> generateRandomSelection();
 
   /**

@@ -79,7 +79,7 @@ void StandAloneGrammarPatcher::process() {
     // parent = getparent(sel)
     ASTNodeBase *parent = parentIndexer->getParent(node);
     if (parent) {
-      set<ASTNodeBase*> children = parentIndexer->getChildren(parent);
+      vector<ASTNodeBase*> children = parentIndexer->getChildren(parent);
       set<ASTNodeBase*> siblings;
       for (auto *c : children) {
         if (Worklist.count(c) == 1) {

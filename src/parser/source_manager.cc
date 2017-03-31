@@ -444,7 +444,8 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   // this is basically go from root
   // perform pre-order travesal
   for (auto &m : File2ASTMap) {
-    Generator *generator =  new Generator(sel);
+    Generator *generator =  new Generator();
+    generator->setSelection(sel);
     // generator->setSelection(sel);
     ASTContext *ast = m.second;
     TranslationUnitDecl *decl = ast->getTranslationUnitDecl();

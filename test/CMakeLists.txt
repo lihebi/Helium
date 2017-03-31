@@ -1,5 +1,6 @@
 add_executable(heliumtest
-        test_main.cc)
+  test_parser.cpp
+  test_main.cc)
 
 target_link_libraries(heliumtest
         HeliumUtils

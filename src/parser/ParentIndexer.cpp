@@ -12,11 +12,14 @@ using std::set;
 using namespace v2;
 
 void ParentIndexer::pre(v2::ASTNodeBase* node) {
-  ParentMap[node] = Stack.back();
-  ChildrenMap[Stack.back()].insert(node);
+  if (!Stack.empty()) {
+    ParentMap[node] = Stack.back();
+    ChildrenMap[Stack.back()].push_back(node);
+  }
   Stack.push_back(node);
 }
 void ParentIndexer::post() {
+  assert(!Stack.empty());
   Stack.pop_back();
 }
 // high level

@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <boost/algorithm/string/join.hpp>
 
 namespace v2 {
   class ASTContext;
@@ -74,6 +75,40 @@ public:
   virtual void visit(v2::ExprStmt *node);
 };
 
+
+class SimplePreorderVisitor : public Visitor {
+public:
+  SimplePreorderVisitor() {}
+  virtual ~SimplePreorderVisitor() {}
+  // high level
+  virtual void visit(v2::TokenNode *node);
+  virtual void visit(v2::TranslationUnitDecl *node);
+  virtual void visit(v2::FunctionDecl *node);
+  virtual void visit(v2::CompoundStmt *node);
+  // condition
+  virtual void visit(v2::IfStmt *node);
+  virtual void visit(v2::SwitchStmt *node);
+  virtual void visit(v2::CaseStmt *node);
+  virtual void visit(v2::DefaultStmt *node);
+  // loop
+  virtual void visit(v2::ForStmt *node);
+  virtual void visit(v2::WhileStmt *node);
+  virtual void visit(v2::DoStmt *node);
+  // single
+  virtual void visit(v2::BreakStmt *node);
+  virtual void visit(v2::ContinueStmt *node);
+  virtual void visit(v2::ReturnStmt *node);
+  // expr stmt
+  virtual void visit(v2::Expr *node);
+  virtual void visit(v2::DeclStmt *node);
+  virtual void visit(v2::ExprStmt *node);
+  std::vector<v2::ASTNodeBase*> getNodes() {
+    return Nodes;
+  }
+private:
+  std::vector<v2::ASTNodeBase*> Nodes;
+};
+
 /**
  * \ingroup visitor
  *  use this to replace the dump method
@@ -121,6 +156,8 @@ private:
 
 class LevelVisitor : public Visitor {
 public:
+  LevelVisitor() {}
+  virtual ~LevelVisitor() {}
   // high level
   virtual void visit(v2::TokenNode *node);
   virtual void visit(v2::TranslationUnitDecl *node);
@@ -299,11 +336,11 @@ public:
   virtual void visit(v2::ExprStmt *node);
 
   std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> getParentMap() {return ParentMap;}
-  std::set<v2::ASTNodeBase*> getChildren(v2::ASTNodeBase* parent) {
+  std::vector<v2::ASTNodeBase*> getChildren(v2::ASTNodeBase* parent) {
     if (ChildrenMap.count(parent) == 1) {
       return ChildrenMap[parent];
     }
-    return std::set<v2::ASTNodeBase*>();
+    return {};
   }
 
   v2::ASTNodeBase *getParent(v2::ASTNodeBase *node) {
@@ -314,7 +351,7 @@ private:
   void pre(v2::ASTNodeBase* node);
   void post();
   std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> ParentMap;
-  std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ChildrenMap;
+  std::map<v2::ASTNodeBase*, std::vector<v2::ASTNodeBase*> > ChildrenMap;
 
   std::vector<v2::ASTNodeBase*> Stack;
 };
@@ -424,8 +461,8 @@ private:
  */
 class Generator : public Visitor {
 public:
-  Generator(std::set<v2::ASTNodeBase*> selection) : selection(selection) {}
-  ~Generator() {}
+  Generator() {}
+  virtual ~Generator() {}
   // high level
   virtual void visit(v2::TokenNode *node);
   virtual void visit(v2::TranslationUnitDecl *node);
@@ -463,9 +500,66 @@ private:
 };
 
 
+/**
+ * This is simple AST matcher
+ * It is used in testing for locating the node I want.
+ * I'm going to visit each node, and get the full path of them
+ * Then just simply match.
+ *
+ * As input,
+ * Specify the full path of the node you want
+ * E.g. /DeclarationUnitDecl/Function/...
+ * 1. n-th: if the path match multiple nodes, return all of them. The order is TODO
+ * 2. return nullptr if no such node
+ */
+class Matcher : public Visitor {
+public:
+  Matcher() {}
+  virtual ~Matcher() {}
+  // high level
+  virtual void visit(v2::TokenNode *node);
+  virtual void visit(v2::TranslationUnitDecl *node);
+  virtual void visit(v2::FunctionDecl *node);
+  virtual void visit(v2::CompoundStmt *node);
+  // condition
+  virtual void visit(v2::IfStmt *node);
+  virtual void visit(v2::SwitchStmt *node);
+  virtual void visit(v2::CaseStmt *node);
+  virtual void visit(v2::DefaultStmt *node);
+  // loop
+  virtual void visit(v2::ForStmt *node);
+  virtual void visit(v2::WhileStmt *node);
+  virtual void visit(v2::DoStmt *node);
+  // single
+  virtual void visit(v2::BreakStmt *node);
+  virtual void visit(v2::ContinueStmt *node);
+  virtual void visit(v2::ReturnStmt *node);
+  // expr stmt
+  virtual void visit(v2::Expr *node);
+  virtual void visit(v2::DeclStmt *node);
+  virtual void visit(v2::ExprStmt *node);
 
+  std::vector<v2::ASTNodeBase*> match(std::string name) {
+    if (PathMap.count(name) == 1) {
+      return PathMap[name];
+    }
+    return {};
+  }
+  int size() {return PathMap.size();}
+  void dump(std::ostream &os) {
+    for (auto m : PathMap) {
+      os << m.first << m.second.size() << "\n";
+    }
+  }
 
-
-
+private:
+  void pre(v2::ASTNodeBase* node);
+  void post();
+  std::string currentName() {
+    return boost::algorithm::join(Stack, "/");
+  }
+  std::vector<std::string> Stack;
+  std::map<std::string, std::vector<v2::ASTNodeBase*> > PathMap;
+};
 
 #endif /* VISITOR_H */

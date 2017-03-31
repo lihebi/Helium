@@ -4,6 +4,8 @@
 #include "helium/utils/string_utils.h"
 #include <iostream>
 
+#include <gtest/gtest.h>
+
 using std::vector;
 using std::string;
 using std::map;
