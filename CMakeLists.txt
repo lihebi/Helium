@@ -4,12 +4,12 @@ project(helium)
 set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-O0 -pg -g")
+# set(CMAKE_CXX_FLAGS "-O0 -pg -g")
 # set(CMAKE_CXX_FLAGS "-pg -g")
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-# SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -g")
 
 # https://github.com/ninja-build/ninja/wiki/FAQ
 # ninja runs in parallel, so buffer the output for each thread

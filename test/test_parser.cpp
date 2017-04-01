@@ -38,6 +38,10 @@ protected:
   vector<ASTContext*> asts;
 };
 
+void dummy()  {
+  GrammarPatcher patcher;
+}
+
 // TEST_F(VisitorTest, ParserTest) {
 //   {
 //     ASTContext *ast = asts[0];
@@ -142,14 +146,45 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       vector<ASTNodeBase*> v;
       v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt/TokenNode");
       ASSERT_GT(v.size(), 0);
-      sel.insert(v[0]);
+      ASTNodeBase *iftoken = v[0];
+      ASTNodeBase *ifnode = indexer.getParent(iftoken);
+      ASSERT_EQ(indexer.getChildren(ifnode).size(), 3);
+      ASTNodeBase *condnode = indexer.getChildren(ifnode)[1];
+      ASTNodeBase *thencomp = indexer.getChildren(ifnode)[2];
+      ASSERT_TRUE(iftoken);
+      ASSERT_TRUE(ifnode);
+      ASSERT_TRUE(condnode);
+      ASSERT_TRUE(thencomp);
 
-      v[0]->dump(std::cout);
+      ASSERT_EQ(iftoken->getNodeName(), "TokenNode");
+      ASSERT_EQ(ifnode->getNodeName(), "IfStmt");
+      ASSERT_EQ(condnode->getNodeName(), "Expr");
+      ASSERT_EQ(thencomp->getNodeName(), "CompStmt");
+      ASTNodeBase *comp_dummy = dynamic_cast<CompoundStmt*>(thencomp)->getCompNode();
+      ASSERT_TRUE(comp_dummy);
       
+      sel.insert(iftoken);
+
       // create GrammarPatcher
       StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
       set<ASTNodeBase*> patch = patcher.getPatch();
-      EXPECT_EQ(patch.size(), 3);
+
+      // std::cout << "Patch: " << "\n";
+      // for (auto *node : patch) {
+      //   node->dump(std::cout);
+      //   std::cout << "\n";
+      // }
+      
+      EXPECT_EQ(patch.size(), 5);
+
+      // test the 4 components stored in patch
+      EXPECT_EQ(patch.count(ifnode), 1);
+      EXPECT_EQ(patch.count(iftoken), 1);
+      EXPECT_EQ(patch.count(condnode), 1);
+      EXPECT_EQ(patch.count(thencomp), 1);
+      EXPECT_EQ(patch.count(comp_dummy), 1);
+      
     }
   }
 }

@@ -144,6 +144,8 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   // }
   // std::cout << "\n";
 
+  Patch.insert(parent);
+
   GrammarPatcher patcher;
   PatchData data;
   data.selection = sel;
