@@ -6,6 +6,7 @@
 /**
  * It is passed by value. So the size is pretty critical.
  * But I'm not going to worry about this so much as I would like.
+ * line and column starts from 1
  */
 class SourceLocation {
 public:

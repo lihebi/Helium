@@ -4,6 +4,7 @@
 #include <string>
 
 #include "helium/parser/GrammarPatcher.h"
+#include "helium/utils/string_utils.h"
 
 #include "test_programs.h"
 
@@ -25,7 +26,10 @@ protected:
       fs::path source = dir / (std::to_string(i) + ".c");
       std::ofstream of (source.string());
       ASSERT_TRUE(of.is_open());
-      of << programs[i];
+      std::string prog = programs[i];
+      // remove white spaces so that i can count the location
+      utils::trim(prog);
+      of << prog;
       of.close();
       Parser *parser = new Parser(source.string());
       parsers.push_back(parser);
@@ -40,6 +44,7 @@ protected:
 
 void dummy()  {
   GrammarPatcher patcher;
+  Matcher matcher;
 }
 
 // TEST_F(VisitorTest, ParserTest) {
@@ -59,13 +64,16 @@ TEST_F(VisitorTest, LevelVisitorTest) {
     unit->accept(&visitor);
     unit->accept(&matcher);
     EXPECT_EQ(visitor.getLevel(unit), 0);
+
+    // matcher.dump(std::cout);
+
     vector<ASTNodeBase*> v;
-    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt");
+    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompoundStmt/IfStmt");
     // std::cout << matcher.size() << "\n";
     // matcher.dump(std::cout);
     ASSERT_EQ(v.size(), 1);
     EXPECT_EQ(visitor.getLevel(v[0]), 3);
-    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt/Expr");
+    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompoundStmt/IfStmt/Expr");
     ASSERT_EQ(v.size(), 1);
     EXPECT_EQ(visitor.getLevel(v[0]), 4);
   }
@@ -100,13 +108,13 @@ TEST_F(VisitorTest, ParentIndexerTest) {
     unit->accept(&indexer);
     unit->accept(&matcher);
     vector<ASTNodeBase*> v;
-    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt");
+    v = matcher.match("TranslationUnitDecl/FunctionDecl/CompoundStmt/IfStmt");
     // std::cout << matcher.size() << "\n";
     // matcher.dump(std::cout);
     ASSERT_EQ(v.size(), 1);
     ASTNodeBase *comp = indexer.getParent(v[0]);
     ASSERT_TRUE(comp);
-    EXPECT_EQ(comp->getNodeName(), "CompStmt");
+    EXPECT_EQ(comp->getNodeName(), "CompoundStmt");
     ASTNodeBase *func = indexer.getParent(comp);
     ASSERT_TRUE(func);
     EXPECT_EQ(func->getNodeName(), "FunctionDecl");
@@ -114,7 +122,7 @@ TEST_F(VisitorTest, ParentIndexerTest) {
     EXPECT_EQ(children.size(), 4); // int, foo, (), comp
     EXPECT_NE(std::find(children.begin(), children.end(), comp), children.end());
     children = indexer.getChildren(comp);
-    EXPECT_EQ(children.size(), 1);
+    EXPECT_EQ(children.size(), 2);
     children = indexer.getChildren(v[0]);
     // for (auto *c : children) {
     //   c->dump(std::cout);
@@ -123,14 +131,26 @@ TEST_F(VisitorTest, ParentIndexerTest) {
     ASSERT_EQ(children.size(), 3);
     EXPECT_EQ(children[0]->getNodeName(), "TokenNode");
     EXPECT_EQ(children[1]->getNodeName(), "Expr");
-    EXPECT_EQ(children[2]->getNodeName(), "CompStmt");
+    EXPECT_EQ(children[2]->getNodeName(), "CompoundStmt");
     // EXPECT_EQ(children[3]->getNodeName(), "TokenNode");
     // EXPECT_EQ(children[4]->getNodeName(), "CompStmt");
   }
 }
 
 TEST_F(VisitorTest, GrammarPatcherTest) {
+  // Program 1
+  // -------------------
+  // int foo() {
+  //   if (b>0) {
+  //     d=c+e;
+  //   }
+  // }
+  // -------------------
+  // - ifnode
+  // - IF, cond, comp
+  // - {}, expr_stmt
   {
+
     // set up indexer and matcher for selecting nodes
     ParentIndexer indexer;
     Matcher matcher;
@@ -139,52 +159,138 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
     unit->accept(&indexer);
     unit->accept(&matcher);
 
+    // DEBUG
+    // Printer printer;
+    // unit->accept(&printer);
+    // std::cout << printer.getString() << "\n";
+
+    
+    // level 1
+    ASTNodeBase *if_stmt = matcher.getNodeByLoc("IfStmt", 2);
+    // level 2
+    ASTNodeBase *if_token = matcher.getNodeByLoc("TokenNode", 2);
+    ASTNodeBase *if_cond = matcher.getNodeByLoc("Expr", 2);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 2);
+    // level 3
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 2, 1);
+
+    ASSERT_TRUE(if_stmt);
+    ASSERT_TRUE(if_token);
+    ASSERT_TRUE(if_cond);
+    ASSERT_TRUE(comp);
+    ASSERT_TRUE(comp_token);
+    // if_stmt->dump(std::cout);
+    ASSERT_EQ(if_stmt->getNodeName(), "IfStmt");
+    ASSERT_EQ(if_token->getNodeName(), "TokenNode");
+    ASSERT_EQ(if_cond->getNodeName(), "Expr");
+    ASSERT_EQ(comp->getNodeName(), "CompoundStmt");
+    ASSERT_EQ(comp_token->getNodeName(), "TokenNode");
     {
+      /**
+       * (HEBI: Test selection of if header token)
+       */
       // create selection
       // if token
+      // output:
+      // if (b>0) {}
+      // - ifnode
+      // - IF, cond, comp
+      // - {}
       set<ASTNodeBase*> sel;
-      vector<ASTNodeBase*> v;
-      v = matcher.match("TranslationUnitDecl/FunctionDecl/CompStmt/IfStmt/TokenNode");
-      ASSERT_GT(v.size(), 0);
-      ASTNodeBase *iftoken = v[0];
-      ASTNodeBase *ifnode = indexer.getParent(iftoken);
-      ASSERT_EQ(indexer.getChildren(ifnode).size(), 3);
-      ASTNodeBase *condnode = indexer.getChildren(ifnode)[1];
-      ASTNodeBase *thencomp = indexer.getChildren(ifnode)[2];
-      ASSERT_TRUE(iftoken);
-      ASSERT_TRUE(ifnode);
-      ASSERT_TRUE(condnode);
-      ASSERT_TRUE(thencomp);
-
-      ASSERT_EQ(iftoken->getNodeName(), "TokenNode");
-      ASSERT_EQ(ifnode->getNodeName(), "IfStmt");
-      ASSERT_EQ(condnode->getNodeName(), "Expr");
-      ASSERT_EQ(thencomp->getNodeName(), "CompStmt");
-      ASTNodeBase *comp_dummy = dynamic_cast<CompoundStmt*>(thencomp)->getCompNode();
-      ASSERT_TRUE(comp_dummy);
-      
-      sel.insert(iftoken);
+      sel.insert(if_token);
 
       // create GrammarPatcher
       StandAloneGrammarPatcher patcher(ast, sel);
       patcher.process();
       set<ASTNodeBase*> patch = patcher.getPatch();
 
-      // std::cout << "Patch: " << "\n";
-      // for (auto *node : patch) {
-      //   node->dump(std::cout);
-      //   std::cout << "\n";
-      // }
-      
       EXPECT_EQ(patch.size(), 5);
 
       // test the 4 components stored in patch
-      EXPECT_EQ(patch.count(ifnode), 1);
-      EXPECT_EQ(patch.count(iftoken), 1);
-      EXPECT_EQ(patch.count(condnode), 1);
-      EXPECT_EQ(patch.count(thencomp), 1);
-      EXPECT_EQ(patch.count(comp_dummy), 1);
+      EXPECT_EQ(patch.count(if_stmt), 1);
+      EXPECT_EQ(patch.count(if_token), 1);
+      EXPECT_EQ(patch.count(if_cond), 1);
+      EXPECT_EQ(patch.count(comp), 1);
+      EXPECT_EQ(patch.count(comp_token), 1);
+    }
+  }
+  // Program 2
+// int foo() {
+//   if (b>0) {
+//     d=c+e;
+//   } else if (b < 10) {
+//     a=8;
+//   }
+// }
+  {
+    // set up indexer and matcher for selecting nodes
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[1];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+
+    // DEBUG
+    // Printer printer;
+    // unit->accept(&printer);
+    // std::cout << printer.getString() << "\n";
+
+    // level 1
+    ASTNodeBase *if_stmt = matcher.getNodeByLoc("IfStmt", 2);
+    // level 2
+    ASTNodeBase *if_token = matcher.getNodeByLoc("TokenNode", 2);
+    ASTNodeBase *if_cond = matcher.getNodeByLoc("Expr", 2);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 2);
+    ASTNodeBase *else_token = matcher.getNodeByLoc("TokenNode", 4);
+    ASTNodeBase *if_stmt_2 = matcher.getNodeByLoc("IfStmt", 4);
+    // level 3
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 2, 1);
+    ASTNodeBase *if_token_2 = matcher.getNodeByLoc("TokenNode", 4, 1);
+    ASTNodeBase *if_cond_2 = matcher.getNodeByLoc("Expr", 4);
+    ASTNodeBase *comp_2 = matcher.getNodeByLoc("CompoundStmt", 4);
+    // level 4
+    ASTNodeBase *comp_token_2 = matcher.getNodeByLoc("TokenNode", 4, 2);
+    ASSERT_TRUE(comp_token_2);
+    /**
+     * (HEBI: Test selection of else in if)
+     */
+    {
+      /**
+       * Select:
+       * IF, ELSE
+       * output:
+       * if (b>0) {} else if (b<10) {}
+       * - if
+       * - IF, COND, comp, ELSE, if
+       * - {}, IF, COND, comp
+       * - {}
+       */
+      set<ASTNodeBase*> sel;
+      sel.insert(if_token);
+      sel.insert(else_token);
+
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
       
+      ASSERT_EQ(patch.size(), 11);
+
+      // level 1
+      EXPECT_EQ(patch.count(if_stmt), 1);
+      // level 2
+      EXPECT_EQ(patch.count(if_token), 1);
+      EXPECT_EQ(patch.count(if_cond), 1);
+      EXPECT_EQ(patch.count(comp), 1);
+      EXPECT_EQ(patch.count(else_token), 1);
+      EXPECT_EQ(patch.count(if_stmt_2), 1);
+      // level 3
+      EXPECT_EQ(patch.count(comp_token), 1);
+      EXPECT_EQ(patch.count(if_token_2), 1);
+      EXPECT_EQ(patch.count(if_cond_2), 1);
+      EXPECT_EQ(patch.count(comp_2), 1);
+      // level 4
+      EXPECT_EQ(patch.count(comp_token_2), 1);
     }
   }
 }

@@ -35,6 +35,8 @@ void Visitor::visit(v2::FunctionDecl *function) {
 void Visitor::visit(v2::DeclStmt *decl_stmt) {}
 void Visitor::visit(v2::ExprStmt *expr_stmt) {}
 void Visitor::visit(v2::CompoundStmt *comp_stmt) {
+  // token node
+  comp_stmt->getCompNode()->accept(this);
   std::vector<Stmt*> stmts = comp_stmt->getBody();
   for (Stmt *stmt : stmts) {
     if (stmt) stmt->accept(this);
@@ -202,6 +204,9 @@ void Matcher::pre(v2::ASTNodeBase* node) {
   Stack.push_back(name);
   // push to map
   PathMap[currentName()].push_back(node);
+
+  // nodes
+  Nodes.push_back(node);
 }
 void Matcher::post() {
   Stack.pop_back();
@@ -296,4 +301,49 @@ void Matcher::visit(v2::ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
+}
+
+
+
+v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line) {
+  for (auto *node : Nodes) {
+    SourceLocation begin = node->getBeginLoc();
+    if (node->getNodeName() == name && begin.getLine() == line) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line, int nth) {
+  for (auto *node : Nodes) {
+    SourceLocation begin = node->getBeginLoc();
+    if (node->getNodeName() == name && begin.getLine() == line) {
+      if (nth--<=0) {
+        return node;
+      }
+    }
+  }
+  return nullptr;
+}
+
+
+v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc) {
+  for (auto *node : Nodes) {
+    SourceLocation begin = node->getBeginLoc();
+    if (node->getNodeName() == name && begin == loc) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc, int nth) {
+  for (auto *node : Nodes) {
+    SourceLocation begin = node->getBeginLoc();
+    if (node->getNodeName() == name && begin == loc) {
+      if (nth--<=0) {
+        return node;
+      }
+    }
+  }
+  return nullptr;
 }

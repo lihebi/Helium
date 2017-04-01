@@ -217,7 +217,7 @@ namespace v2 {
       os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
          << "CompStmt)";
     }
-    virtual std::string getNodeName() {return "CompStmt";}
+    virtual std::string getNodeName() {return "CompoundStmt";}
   private:
     // signature node. Even if compound statement do not have a
     // keyword, I need one to record if I select it or not

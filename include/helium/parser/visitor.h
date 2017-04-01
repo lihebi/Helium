@@ -9,6 +9,8 @@
 #include <sstream>
 #include <boost/algorithm/string/join.hpp>
 
+#include "helium/parser/source_location.h"
+
 namespace v2 {
   class ASTContext;
   
@@ -511,6 +513,9 @@ private:
  * E.g. /DeclarationUnitDecl/Function/...
  * 1. n-th: if the path match multiple nodes, return all of them. The order is TODO
  * 2. return nullptr if no such node
+ *
+ * A second approach to match a node is through location and node name
+ * e.g. line 5, column 8, IfStmt
  */
 class Matcher : public Visitor {
 public:
@@ -552,6 +557,28 @@ public:
     }
   }
 
+  /**
+   * use line, don't care about column
+   * Must start on that line
+   */
+  v2::ASTNodeBase* getNodeByLoc(std::string name, int line);
+  /**
+   * nth: 0 means first, 1 means second
+   */
+  v2::ASTNodeBase* getNodeByLoc(std::string name, int line, int nth);
+  /**
+   * Use both line and column
+   */
+  v2::ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc);
+  v2::ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc, int nth);
+
+  /**
+   * Dump:
+   * - path to node map
+   * - all nodes
+   */
+  // void dump(std::ostream &os);
+
 private:
   void pre(v2::ASTNodeBase* node);
   void post();
@@ -560,6 +587,8 @@ private:
   }
   std::vector<std::string> Stack;
   std::map<std::string, std::vector<v2::ASTNodeBase*> > PathMap;
+
+  std::vector<v2::ASTNodeBase*> Nodes;
 };
 
 #endif /* VISITOR_H */
