@@ -364,6 +364,65 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       EXPECT_EQ(patch.count(expr_stmt), 1);
     }
   }
+  // Program 4
+  // ------------------------------
+  // int foo() {
+  //   while (a<c) {
+  //     a=b;
+  //     b=c;
+  //   }
+  // }
+  // ------------------------------
+  // - while
+  // - WHILE, cond, comp
+  // - {}, exprstmt, exprstmt
+  {
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[3];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+    // level 1
+    ASTNodeBase *while_stmt = matcher.getNodeByLoc("WhileStmt", 2);
+    // level 2
+    ASTNodeBase *while_token = matcher.getNodeByLoc("TokenNode", 2);
+    ASTNodeBase *cond = matcher.getNodeByLoc("Expr", 2);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 2);
+    // level 3
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 2, 1);
+    ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 3);
+    ASTNodeBase *expr_stmt_2 = matcher.getNodeByLoc("ExprStmt", 4);
+    ASSERT_TRUE(comp_token);
+    ASSERT_TRUE(expr_stmt);
+    ASSERT_TRUE(expr_stmt_2);
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(cond);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      // for (auto *node : patch) {
+      //   node->dump(std::cout);
+      //   std::cout << "\n";
+      // }
+      EXPECT_EQ(patch.size(), 5);
+      EXPECT_EQ(patch.count(while_stmt), 1);
+      EXPECT_EQ(patch.count(while_token), 1);
+      EXPECT_EQ(patch.count(cond), 1);
+      EXPECT_EQ(patch.count(comp), 1);
+      EXPECT_EQ(patch.count(comp_token), 1);
+    }
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(expr_stmt_2);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      EXPECT_EQ(patch.size(), 1);
+      EXPECT_EQ(patch.count(expr_stmt_2), 1);
+    }
+  }
 }
 
 // TEST_F(VisitorTest, SymbolTableBuilderTest) {
