@@ -24,13 +24,6 @@ void StandAloneGrammarPatcher::process() {
   TranslationUnitDecl *unit = AST->getTranslationUnitDecl();
   unit->accept(levelVisitor);
 
-  // std::cout << "Level Visitor Result:" << "\n";
-  // std::map<v2::ASTNodeBase*, int> levels = levelVisitor->getLevels();
-  // for (auto &m : levels) {
-  //   m.first->dump(std::cout);
-  //   std::cout << " " << m.second << "\n";
-  // }
-
   // first, clean up the selection: remove those not in this AST
   // otherwise there will be infinite loop in worklist
   for (ASTNodeBase *node : Selection) {
@@ -41,23 +34,11 @@ void StandAloneGrammarPatcher::process() {
   Patch = Worklist; // this is the result
 
   while (!Worklist.empty()) {
-    // DEBUG
-    // std::cout << "Worklist: ";
-    // for (ASTNodeBase *node : Worklist) {
-    //   node->dump(std::cout);
-    // }
-    // std::cout << "\n";
-    
-    // std::cout << "Worklist size: " << worklist.size() << "\n";
-    // print out what is inside worklist
-    // for (ASTNodeBase *node : worklist) {
-    //   node->dump(std::cout);
-    //   std::cout << " On level " << levelVisitor->getLevel(node) << "\n";
-    // }
 
     ASTNodeBase *node = levelVisitor->getLowestLevelNode(Worklist);
     if (!node) continue;
     Worklist.erase(node);
+    if (Worklist.empty() && validAlone(node)) break;
     // if this is the only one node left, we complete itself, and
     // stop!  this is not necessary when the node is popped up along
     // parents but it is necessary if only one node is originally
@@ -88,20 +69,10 @@ void StandAloneGrammarPatcher::process() {
         }
       }
       siblings.insert(node);
-
-      // DEBUG
-      // std::cout << "Worklist: ";
-      // for (ASTNodeBase *node : Worklist) {
-      //   node->dump(std::cout);
-      // }
-      // std::cout << "\n";
       
       matchMin(parent, siblings);
 
-      // this parent is valid by it own, aka statement
-      if (Worklist.empty() && validAlone(parent)) {
-        break;
-      }
+      Patch.insert(parent);
       Worklist.insert(parent);
     }
   }
@@ -143,8 +114,6 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   //   base->dump(std::cout);
   // }
   // std::cout << "\n";
-
-  Patch.insert(parent);
 
   GrammarPatcher patcher;
   PatchData data;

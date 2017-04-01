@@ -293,6 +293,77 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       EXPECT_EQ(patch.count(comp_token_2), 1);
     }
   }
+
+  // program 3
+  // ------------------------------
+  // int foo() {
+  //   for (int i=0;i<c;i++) {
+  //     a+=i;
+  //   }
+  // }
+  // ------------------------------
+  // - for
+  // - FOR, init, cond, inc, comp
+  // - {}, EXPR_STMT
+  {
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[2];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+    // level 1
+    ASTNodeBase *for_stmt = matcher.getNodeByLoc("ForStmt", 2);
+    // level 2
+    ASTNodeBase *for_token = matcher.getNodeByLoc("TokenNode", 2);
+    ASTNodeBase *init = matcher.getNodeByLoc("Expr", 2);
+    ASTNodeBase *cond = matcher.getNodeByLoc("Expr", 2, 1);
+    ASTNodeBase *inc = matcher.getNodeByLoc("Expr", 2, 2);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 2);
+    // level 3
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 2, 1);
+    ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 3);
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(for_token);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      ASSERT_EQ(patch.size(), 4);
+      EXPECT_EQ(patch.count(for_stmt), 1);
+      EXPECT_EQ(patch.count(for_token), 1);
+      EXPECT_EQ(patch.count(comp), 1);
+      EXPECT_EQ(patch.count(comp_token), 1);
+    }
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(expr_stmt);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      ASSERT_EQ(patch.size(), 1);
+      // EXPECT_EQ(patch.count(for_stmt), 1);
+      // EXPECT_EQ(patch.count(for_token), 1);
+      // EXPECT_EQ(patch.count(comp), 1);
+      // EXPECT_EQ(patch.count(comp_token), 1);
+      EXPECT_EQ(patch.count(expr_stmt), 1);
+    }
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(inc);
+      sel.insert(expr_stmt);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      ASSERT_EQ(patch.size(), 6);
+      EXPECT_EQ(patch.count(for_stmt), 1);
+      EXPECT_EQ(patch.count(for_token), 1);
+      EXPECT_EQ(patch.count(inc), 1);
+      EXPECT_EQ(patch.count(comp), 1);
+      EXPECT_EQ(patch.count(comp_token), 1);
+      EXPECT_EQ(patch.count(expr_stmt), 1);
+    }
+  }
 }
 
 // TEST_F(VisitorTest, SymbolTableBuilderTest) {
