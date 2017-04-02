@@ -77,12 +77,12 @@ void Generator::visit(v2::SwitchStmt *node){
   Expr *cond = node->getCond();
   if (cond) cond->accept(this);
   if (selection.count(SwitchNode) == 1) Prog += ")";
-  if (selection.count(SwitchNode) == 1) Prog += "{// switch";
+  if (selection.count(SwitchNode) == 1) Prog += "{\n";
   std::vector<SwitchCase*> cases = node->getCases();
   for (SwitchCase *c : cases) {
     if (c) c->accept(this);
   }
-  if (selection.count(SwitchNode) == 1) Prog += "}";
+  if (selection.count(SwitchNode) == 1) Prog += "}\n";
 }
 void Generator::visit(v2::CaseStmt *node){
   TokenNode *token = node->getCaseNode();

@@ -48,5 +48,15 @@ int foo(int a, int b) {
     b=c;
   }
 }
+)prefix",
+R"prefix(
+int foo() {
+  int a=8,b=9;
+  switch (a) {
+  case 1: a=9; b=10; break;
+  case 2: {a=b+1;}
+  default: break;
+  }
+}
 )prefix"
 };

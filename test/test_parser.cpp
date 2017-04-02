@@ -573,6 +573,74 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       EXPECT_EQ(patch.count(comp_token_2), 1);
     }
   }
+  // Program 7
+  // ------------------------------
+  // int foo() {
+  //   int a=8,b=9;
+  //   switch (a) {
+  //   case 1: a=9; b=10; break;
+  //   case 2: {a=b+1;}
+  //   default: break;
+  //   }
+  // }
+  // ------------------------------
+  // - declstmt, switch
+  // - SWITCH, cond, case, case, default
+  // - CASE, cond, exprstmt, exprstmt, break, CASE, cond, comp, DEFAULT, break
+  // - {}, exprstmt
+  {
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[6];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+    // level 0
+    ASTNodeBase *comp_0 = matcher.getNodeByLoc("CompoundStmt", 1);
+    // level 1
+    ASTNodeBase *comp_token_0 = matcher.getNodeByLoc("TokenNode", 1, 3);
+    ASTNodeBase *decl = matcher.getNodeByLoc("DeclStmt", 2);
+    ASTNodeBase *switch_stmt = matcher.getNodeByLoc("SwitchStmt", 3);
+    // level 2
+    ASTNodeBase *switch_token = matcher.getNodeByLoc("TokenNode", 3);
+    ASTNodeBase *switch_cond = matcher.getNodeByLoc("Expr", 3);
+    ASTNodeBase *case_1 = matcher.getNodeByLoc("CaseStmt", 4);
+    ASTNodeBase *case_2 = matcher.getNodeByLoc("CaseStmt", 5);
+    ASTNodeBase *default_stmt = matcher.getNodeByLoc("DefaultStmt", 6);
+    // level 3
+    ASTNodeBase *case_token = matcher.getNodeByLoc("TokenNode", 4);
+    ASTNodeBase *case_cond = matcher.getNodeByLoc("Expr", 4);
+    ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 4);
+    ASTNodeBase *expr_stmt_2 = matcher.getNodeByLoc("ExprStmt", 4, 1);
+    ASTNodeBase *break_stmt = matcher.getNodeByLoc("BreakStmt", 4);
+    ASTNodeBase *case_token_2 = matcher.getNodeByLoc("TokenNode", 5);
+    ASTNodeBase *case_cond_2 = matcher.getNodeByLoc("Expr", 5);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 5);
+    ASTNodeBase *default_token = matcher.getNodeByLoc("TokenNode", 6);
+    ASTNodeBase *break_stmt_2 = matcher.getNodeByLoc("BreakStmt", 6);
+    // level 4
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 5, 2);
+    ASTNodeBase *expr_stmt_3 = matcher.getNodeByLoc("ExprStmt", 5);
+    {
+      // switch
+      // output:
+      // switch(a) {}
+      set<ASTNodeBase*> sel;
+      sel.insert(switch_token);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      EXPECT_EQ(patch.size(), 3);
+      EXPECT_EQ(patch.count(switch_stmt), 1);
+      EXPECT_EQ(patch.count(switch_token), 1);
+      EXPECT_EQ(patch.count(switch_cond), 1);
+
+      // Generator gen;
+      // gen.setSelection(patch);
+      // unit->accept(&gen);
+      // std::cout << gen.getProgram() << "\n";
+    }
+  }
 }
 
 // TEST_F(VisitorTest, SymbolTableBuilderTest) {
