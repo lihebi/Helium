@@ -355,13 +355,22 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       StandAloneGrammarPatcher patcher(ast, sel);
       patcher.process();
       set<ASTNodeBase*> patch = patcher.getPatch();
-      ASSERT_EQ(patch.size(), 6);
+      // for (auto *node : patch) {
+      //   node->dump(std::cout);
+      //   std::cout << "\n";
+      // }
+      EXPECT_EQ(patch.size(), 4);
       EXPECT_EQ(patch.count(for_stmt), 1);
       EXPECT_EQ(patch.count(for_token), 1);
       EXPECT_EQ(patch.count(inc), 1);
-      EXPECT_EQ(patch.count(comp), 1);
-      EXPECT_EQ(patch.count(comp_token), 1);
+      EXPECT_EQ(patch.count(comp), 0);
+      EXPECT_EQ(patch.count(comp_token), 0);
       EXPECT_EQ(patch.count(expr_stmt), 1);
+
+      // Generator gen;
+      // gen.setSelection(patch);
+      // unit->accept(&gen);
+      // std::cout << gen.getProgram() << "\n";
     }
   }
   // Program 4
@@ -421,6 +430,147 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
       set<ASTNodeBase*> patch = patcher.getPatch();
       EXPECT_EQ(patch.size(), 1);
       EXPECT_EQ(patch.count(expr_stmt_2), 1);
+    }
+  }
+  // Program 6
+  // ------------------------------
+  // int foo(int a, int b) {      ... 1
+  //   int c=8;
+  //   while (a<c) {
+  //     a=b;
+  //     if (b>0) {
+  //       d=c+e;      ... 6
+  //     }
+  //     b=c;
+  //   }
+  // }
+  // ------------------------------
+  // - 0: ..., comp
+  // - {}, declstmt, while
+  // - WHILE, cond, comp
+  // - {}, exprstmt, if, exprstmt
+  // - IF, cond, comp
+  // - {}, exprstmt
+  {
+    ParentIndexer indexer;
+    Matcher matcher;
+    ASTContext *ast = asts[5];
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&indexer);
+    unit->accept(&matcher);
+
+    // Printer printer;
+    // unit->accept(&printer);
+    // std::cout << printer.getString() << "\n";
+
+    // level 0
+    ASTNodeBase *comp_0 = matcher.getNodeByLoc("CompoundStmt", 1);
+    // level 1
+    ASTNodeBase *comp_token_0 = matcher.getNodeByLoc("TokenNode", 1, 3);
+    ASTNodeBase *decl = matcher.getNodeByLoc("DeclStmt", 2);
+    ASTNodeBase *while_stmt = matcher.getNodeByLoc("WhileStmt", 3);
+    // level 2
+    ASTNodeBase *while_token = matcher.getNodeByLoc("TokenNode", 3);
+    ASTNodeBase *while_cond = matcher.getNodeByLoc("Expr", 3);
+    ASTNodeBase *comp = matcher.getNodeByLoc("CompoundStmt", 3);
+    // level 3
+    ASTNodeBase *comp_token = matcher.getNodeByLoc("TokenNode", 3, 1);
+    ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 4);
+    ASTNodeBase *if_stmt = matcher.getNodeByLoc("IfStmt", 5);
+    ASTNodeBase *expr_stmt_2 = matcher.getNodeByLoc("ExprStmt", 8);
+    // level 4
+    ASTNodeBase *if_token = matcher.getNodeByLoc("TokenNode", 5);
+    ASTNodeBase *if_cond = matcher.getNodeByLoc("Expr", 5);
+    ASTNodeBase *comp_2 = matcher.getNodeByLoc("CompoundStmt", 5);
+    // level 5
+    ASTNodeBase *comp_token_2 = matcher.getNodeByLoc("TokenNode", 5, 1);
+    ASTNodeBase *expr_stmt_3 = matcher.getNodeByLoc("ExprStmt", 6);
+    {
+      set<ASTNodeBase*> sel;
+      // int c=8;
+      // a = b;
+      // should output their own
+      sel.insert(decl);
+      sel.insert(expr_stmt);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+
+      // for (auto *node : patch) {
+      //   node->dump(std::cout);
+      //   std::cout << "\n";
+      // }
+
+      // Generator gen;
+      // gen.setSelection(patch);
+      // unit->accept(&gen);
+      // std::cout << gen.getProgram() << "\n";
+      
+      EXPECT_EQ(patch.size(), 4);
+      EXPECT_EQ(patch.count(comp_0), 1);
+      EXPECT_EQ(patch.count(comp_token_0), 1);
+      EXPECT_EQ(patch.count(decl), 1);
+      EXPECT_EQ(patch.count(expr_stmt), 1);
+    }
+    {
+
+      // std::cout << "======================" << "\n";
+      set<ASTNodeBase*> sel;
+      sel.insert(if_cond);
+      sel.insert(while_cond);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      EXPECT_EQ(patch.size(), 8);
+      EXPECT_EQ(patch.count(while_stmt), 1);
+      EXPECT_EQ(patch.count(while_token), 1);
+      EXPECT_EQ(patch.count(while_cond), 1);
+      EXPECT_EQ(patch.count(comp), 0);
+      EXPECT_EQ(patch.count(comp_token), 0);
+      EXPECT_EQ(patch.count(if_stmt), 1);
+      EXPECT_EQ(patch.count(if_token), 1);
+      EXPECT_EQ(patch.count(if_cond), 1);
+      EXPECT_EQ(patch.count(comp_2), 1);
+      EXPECT_EQ(patch.count(comp_token_2), 1);
+
+      // Generator gen;
+      // gen.setSelection(patch);
+      // unit->accept(&gen);
+      // std::cout << gen.getProgram() << "\n";
+    }
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(if_token);
+      sel.insert(decl);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      // for (auto *node : patch) {
+      //   node->dump(std::cout);
+      //   std::cout << "\n";
+      // }
+      EXPECT_EQ(patch.size(), 8);
+      EXPECT_EQ(patch.count(comp_0), 1);
+      EXPECT_EQ(patch.count(comp_token_0), 1);
+      EXPECT_EQ(patch.count(decl), 1);
+      EXPECT_EQ(patch.count(if_stmt), 1);
+      EXPECT_EQ(patch.count(if_token), 1);
+      EXPECT_EQ(patch.count(if_cond), 1);
+      EXPECT_EQ(patch.count(comp_2), 1);
+      EXPECT_EQ(patch.count(comp_token_2), 1);
+    }
+    {
+      set<ASTNodeBase*> sel;
+      sel.insert(if_token);
+      StandAloneGrammarPatcher patcher(ast, sel);
+      patcher.process();
+      set<ASTNodeBase*> patch = patcher.getPatch();
+      EXPECT_EQ(patch.size(), 5);
+      EXPECT_EQ(patch.count(if_stmt), 1);
+      EXPECT_EQ(patch.count(if_token), 1);
+      EXPECT_EQ(patch.count(if_cond), 1);
+      EXPECT_EQ(patch.count(comp_2), 1);
+      EXPECT_EQ(patch.count(comp_token_2), 1);
     }
   }
 }
