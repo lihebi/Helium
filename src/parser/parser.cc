@@ -181,7 +181,7 @@ ReturnStmt *Parser::ParseReturnStmt(XMLNode node) {
   Expr *value = ParseExpr(node.child("expr"));
   ReturnStmt *ret = new ReturnStmt(Ctx, ReturnNode, value, BeginLoc, EndLoc);
   
-  ret->addUsedVars(get_var_ids(node.child("expr")));
+  // ret->addUsedVars(get_var_ids(node.child("expr")));
   return ret;
 }
 
@@ -250,7 +250,7 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   }
 
   IfStmt *ret = new IfStmt(Ctx, condexpr, thenstmt, elsestmt, IfNode, ElseNode, BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(cond));
+  // ret->addUsedVars(get_var_ids(cond));
   return ret;
 }
 
@@ -314,7 +314,7 @@ SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
     ret->AddCase(ParseDefaultStmt(defnode));
   }
 
-  ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
+  // ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
   
   return ret;
 }
@@ -346,7 +346,7 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
     ret->Add(ParseStmt(n));
   }
 
-  ret->addUsedVars(get_var_ids(node.child("expr")));
+  // ret->addUsedVars(get_var_ids(node.child("expr")));
   return ret;
 }
 DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
@@ -395,6 +395,21 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
 ForStmt *Parser::ParseForStmt(XMLNode node) {
   match(node, "for");
   Expr *init = ParseExprWithoutSemicolon(node.child("control").child("init"));
+  // decls
+  std::set<std::string> vars;
+  XMLNodeList inits = for_get_init_decls_or_exprs(node);
+  for (XMLNode init : inits) {
+    std::string nodename = init.name();
+    if (nodename == "decl") {
+      std::string name = decl_get_name(init);
+      vars.insert(name);
+    }
+  }
+  // I should set the declaration of vars preciesly to for init expr
+  // ret->setVars(vars);
+  init->setVars(vars);
+
+  
   Expr *cond = ParseExprWithoutSemicolon(node.child("control").child("condition"));
   Expr *inc = ParseExpr(node.child("control").child("incr"));
   // Stmt *block = ParseBlockAsStmt(node.child("block"));
@@ -410,21 +425,10 @@ ForStmt *Parser::ParseForStmt(XMLNode node) {
   TokenNode *ForNode = new TokenNode(Ctx, "for", TokenBeginLoc, TokenEndLoc);
 
   ForStmt *ret = new ForStmt(Ctx, init, cond, inc, block, ForNode, BeginLoc, EndLoc);
-  // decls
-  std::set<std::string> vars;
-  XMLNodeList inits = for_get_init_decls_or_exprs(node);
-  for (XMLNode init : inits) {
-    std::string nodename = init.name();
-    if (nodename == "decl") {
-      std::string name = decl_get_name(init);
-      vars.insert(name);
-    }
-  }
-  ret->setVars(vars);
 
-  ret->addUsedVars(get_var_ids(node.child("control").child("init")));
-  ret->addUsedVars(get_var_ids(node.child("control").child("condition")));
-  ret->addUsedVars(get_var_ids(node.child("control").child("incr")));
+  // ret->addUsedVars(get_var_ids(node.child("control").child("init")));
+  // ret->addUsedVars(get_var_ids(node.child("control").child("condition")));
+  // ret->addUsedVars(get_var_ids(node.child("control").child("incr")));
   
   return ret;
 }
@@ -443,7 +447,7 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
   SourceLocation TokenEndLoc(begin.first, begin.second + strlen("while"));
   TokenNode *WhileNode = new TokenNode(Ctx, "while", TokenBeginLoc, TokenEndLoc);
   WhileStmt *ret = new WhileStmt(Ctx, cond, body, WhileNode, BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(while_get_condition_expr(node)));
+  // ret->addUsedVars(get_var_ids(while_get_condition_expr(node)));
   return ret;
 }
 
@@ -473,7 +477,7 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
   TokenNode *WhileNode = new TokenNode(Ctx, "while", WhileBeginLoc, WhileEndLoc);
   
   DoStmt *ret = new DoStmt(Ctx, cond, block, DoNode, WhileNode, BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
+  // ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
   return ret;
 }
 
@@ -493,7 +497,9 @@ Expr *Parser::ParseExpr(XMLNode node) {
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
-  return new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
+  Expr *ret = new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
+  ret->addUsedVars(get_var_ids(node));
+  return ret;
 }
 Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
   std::pair<int, int> begin = get_node_begin_position(node);

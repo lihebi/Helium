@@ -59,8 +59,11 @@ void SymbolTableBuilder::visit(v2::DefaultStmt *node) {
 // loop
 void SymbolTableBuilder::visit(v2::ForStmt *node) {
   Table.pushScope();
-  std::set<std::string> vars = node->getVars();
-  Table.add(vars, node);
+  // std::set<std::string> vars = node->getVars();
+  Expr *init = node->getInit();
+  std::set<std::string> vars = init->getVars();
+  // Table.add(vars, node);
+  Table.add(vars, init);
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();

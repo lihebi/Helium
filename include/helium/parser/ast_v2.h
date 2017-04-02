@@ -88,11 +88,16 @@ namespace v2 {
     std::set<std::string> getUsedVars() {return UsedVars;}
     void addUsedVars(std::string var) {UsedVars.insert(var);}
     void addUsedVars(std::set<std::string> var) {UsedVars.insert(var.begin(), var.end());}
+
+    void setVars(std::set<std::string> vars) {this->vars = vars;}
+    std::set<std::string> getVars() {return vars;}
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
     SourceLocation EndLoc;
     std::set<std::string> UsedVars;
+    // vars declared in this node
+    std::set<std::string> vars;
   };
 
   class Decl : public ASTNodeBase {
@@ -171,11 +176,11 @@ namespace v2 {
          << "DeclStmt)";
     }
     virtual std::string getNodeName() {return "DeclStmt";}
-    void setVars(std::set<std::string> vars) {this->vars = vars;}
-    std::set<std::string> getVars() {return vars;}
+    // void setVars(std::set<std::string> vars) {this->vars = vars;}
+    // std::set<std::string> getVars() {return vars;}
   private:
     std::string Text;
-    std::set<std::string> vars;
+    // std::set<std::string> vars;
   };
 
   /**
@@ -251,8 +256,8 @@ namespace v2 {
     }
     virtual std::string getNodeName() {return "FunctionDecl";}
 
-    void setVars(std::set<std::string> vars) {this->vars = vars;}
-    std::set<std::string> getVars() {return vars;}
+    // void setVars(std::set<std::string> vars) {this->vars = vars;}
+    // std::set<std::string> getVars() {return vars;}
   private:
     std::string name;
     TokenNode *ReturnTypeNode = nullptr;
@@ -265,7 +270,7 @@ namespace v2 {
     Stmt *body = nullptr;
 
     // TODO map to type
-    std::set<std::string> vars;
+    // std::set<std::string> vars;
   };
 
   class ForStmt : public Stmt {
@@ -289,8 +294,8 @@ namespace v2 {
     }
     virtual std::string getNodeName() {return "ForStmt";}
 
-    void setVars(std::set<std::string> vars) {this->vars = vars;}
-    std::set<std::string> getVars() {return vars;}
+    // void setVars(std::set<std::string> vars) {this->vars = vars;}
+    // std::set<std::string> getVars() {return vars;}
   private:
     Expr *Init = nullptr;
     Expr *Cond = nullptr;
@@ -298,7 +303,7 @@ namespace v2 {
     Stmt *Body = nullptr;
     TokenNode *ForNode = nullptr;
 
-    std::set<std::string> vars;
+    // std::set<std::string> vars;
   };
 
   class WhileStmt : public Stmt {

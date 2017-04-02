@@ -643,8 +643,220 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
   }
 }
 
-// TEST_F(VisitorTest, SymbolTableBuilderTest) {
-// }
+TEST(SymbolTableTest, DeclStmtTest) {
+  const char *program = R"prefix(
+int foo() {
+  int a;
+  int b,c=10;
+  while (a<c) {
+    a=b;
+    if (b>0) {
+      a=c;
+    } else {
+      a=8;
+    }
+  }
+}
+)prefix";
+  std::string prog = program;
+  utils::trim(prog);
+
+  fs::path dir = fs::temp_directory_path();
+  fs::create_directories(dir);
+
+  fs::path source = dir / "a.c";
+  std::ofstream of (source.string());
+  ASSERT_TRUE(of.is_open());
+  of << prog;
+  of.close();
+  Parser *parser = new Parser(source.string());
+  ASTContext *ast = parser->getASTContext();
+
+  ParentIndexer indexer;
+  Matcher matcher;
+  TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+  unit->accept(&indexer);
+  unit->accept(&matcher);
+
+  ASTNodeBase *decl_a = matcher.getNodeByLoc("DeclStmt", 2);
+  ASTNodeBase *decl_bc = matcher.getNodeByLoc("DeclStmt", 3);
+  ASTNodeBase *while_cond = matcher.getNodeByLoc("Expr", 4);
+  ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 5);
+  ASTNodeBase *if_cond = matcher.getNodeByLoc("Expr", 6);
+  ASTNodeBase *expr_stmt_2 = matcher.getNodeByLoc("ExprStmt", 7);
+  ASTNodeBase *expr_stmt_3 = matcher.getNodeByLoc("ExprStmt", 9);
+    
+  SymbolTableBuilder builder;
+  unit->accept(&builder);
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+
+  // for (auto m : u2d) {
+  //   m.first->dump(std::cout);
+  //   std::cout << " ==> ";
+  //   for (auto *node : m.second) {
+  //     node->dump(std::cout);
+  //   }
+  //   std::cout << "\n";
+  // }
+
+  EXPECT_EQ(u2d.size(), 5);
+  // while (a<c)
+  ASSERT_EQ(u2d.count(while_cond), 1);
+  EXPECT_EQ(u2d[while_cond].size(), 2);
+  EXPECT_EQ(u2d[while_cond].count(decl_a), 1);
+  EXPECT_EQ(u2d[while_cond].count(decl_bc), 1);
+  // a=b
+  ASSERT_EQ(u2d.count(expr_stmt), 1);
+  EXPECT_EQ(u2d[expr_stmt].size(), 2);
+  EXPECT_EQ(u2d[expr_stmt].count(decl_a), 1);
+  EXPECT_EQ(u2d[expr_stmt].count(decl_bc), 1);
+  // b>0
+  ASSERT_EQ(u2d.count(if_cond), 1);
+  EXPECT_EQ(u2d[if_cond].size(), 1);
+  EXPECT_EQ(u2d[if_cond].count(decl_bc), 1);
+  // a=c
+  ASSERT_EQ(u2d.count(expr_stmt_2), 1);
+  EXPECT_EQ(u2d[expr_stmt_2].size(), 2);
+  EXPECT_EQ(u2d[expr_stmt_2].count(decl_a), 1);
+  EXPECT_EQ(u2d[expr_stmt_2].count(decl_bc), 1);
+  // a=8
+  ASSERT_EQ(u2d.count(expr_stmt_3), 1);
+  EXPECT_EQ(u2d[expr_stmt_3].size(), 1);
+  EXPECT_EQ(u2d[expr_stmt_3].count(decl_a), 1);
+}
+
+TEST(SymbolTableTest, ParamTest) {
+  const char *program = R"prefix(
+int foo(int a, int b) {
+  while (a<b) {
+    a=b;
+    if (b>0) {
+      b=a;
+    }
+  }
+}
+)prefix";
+  std::string prog = program;
+  utils::trim(prog);
+
+  fs::path dir = fs::temp_directory_path();
+  fs::create_directories(dir);
+
+  fs::path source = dir / "a.c";
+  std::ofstream of (source.string());
+  ASSERT_TRUE(of.is_open());
+  of << prog;
+  of.close();
+  Parser *parser = new Parser(source.string());
+  ASTContext *ast = parser->getASTContext();
+
+  ParentIndexer indexer;
+  Matcher matcher;
+  TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+  unit->accept(&indexer);
+  unit->accept(&matcher);
+
+  ASTNodeBase *function_decl = matcher.getNodeByLoc("FunctionDecl", 1);
+  // a<b
+  ASTNodeBase *while_cond = matcher.getNodeByLoc("Expr", 2);
+  // a=b
+  ASTNodeBase *expr_stmt = matcher.getNodeByLoc("ExprStmt", 3);
+  // b>0
+  ASTNodeBase *if_cond = matcher.getNodeByLoc("Expr", 4);
+  // b=a
+  ASTNodeBase *expr_stmt_2 = matcher.getNodeByLoc("ExprStmt", 5);
+    
+  SymbolTableBuilder builder;
+  unit->accept(&builder);
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+  EXPECT_EQ(u2d.size(), 4);
+
+  ASSERT_EQ(u2d.count(while_cond), 1);
+  EXPECT_EQ(u2d[while_cond].count(function_decl), 1);
+  ASSERT_EQ(u2d.count(expr_stmt), 1);
+  EXPECT_EQ(u2d[expr_stmt].count(function_decl), 1);
+  ASSERT_EQ(u2d.count(if_cond), 1);
+  EXPECT_EQ(u2d[if_cond].count(function_decl), 1);
+  ASSERT_EQ(u2d.count(expr_stmt_2), 1);
+  EXPECT_EQ(u2d[expr_stmt_2].count(function_decl), 1);
+}
+
+TEST(SymbolTableTest, ForTest) {
+  const char *program = R"prefix(
+int foo() {
+  int c=8;
+  int i=7;
+  for (int i=0;i<c;i++) {
+    i++;
+  }
+}
+)prefix";
+  std::string prog = program;
+  utils::trim(prog);
+
+  fs::path dir = fs::temp_directory_path();
+  fs::create_directories(dir);
+
+  fs::path source = dir / "a.c";
+  std::ofstream of (source.string());
+  ASSERT_TRUE(of.is_open());
+  of << prog;
+  of.close();
+  Parser *parser = new Parser(source.string());
+  ASTContext *ast = parser->getASTContext();
+
+  ParentIndexer indexer;
+  Matcher matcher;
+  TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+  unit->accept(&indexer);
+  unit->accept(&matcher);
+
+  ASTNodeBase *decl_c = matcher.getNodeByLoc("DeclStmt", 2);
+  ASTNodeBase *decl_i = matcher.getNodeByLoc("DeclStmt", 3);
+  ASTNodeBase *for_init = matcher.getNodeByLoc("Expr", 4);
+  ASTNodeBase *for_cond = matcher.getNodeByLoc("Expr", 4, 1);
+  ASTNodeBase *for_inc = matcher.getNodeByLoc("Expr", 4, 2);
+  ASTNodeBase *for_body = matcher.getNodeByLoc("ExprStmt", 5);
+  
+  ASSERT_TRUE(decl_c);
+  ASSERT_TRUE(decl_i);
+  ASSERT_TRUE(for_init);
+  ASSERT_TRUE(for_cond);
+  ASSERT_TRUE(for_inc);
+  ASSERT_TRUE(for_body);
+
+  // std::cout << "for init: " << "\n";
+  // for_init->dump(std::cout);
+  // std::cout << "For cond: " << "\n";
+  // for_cond->dump(std::cout);
+  // std::cout << "For inc: " << "\n";
+  // for_inc->dump(std::cout);
+    
+  SymbolTableBuilder builder;
+  unit->accept(&builder);
+  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+  // for (auto &m : u2d) {
+  //   m.first->dump(std::cout);
+  //   std::cout << " ==> ";
+  //   for (auto *node : m.second) {
+  //     node->dump(std::cout);
+  //   }
+  //   std::cout << "\n";
+  // }
+  
+  EXPECT_EQ(u2d.size(), 3);
+
+  ASSERT_EQ(u2d.count(for_cond), 1);
+  EXPECT_EQ(u2d[for_cond].count(decl_i), 0);
+  EXPECT_EQ(u2d[for_cond].count(for_init), 1);
+  EXPECT_EQ(u2d[for_cond].count(decl_c), 1);
+  ASSERT_EQ(u2d.count(for_inc), 1);
+  EXPECT_EQ(u2d[for_inc].count(decl_i), 0);
+  EXPECT_EQ(u2d[for_inc].count(for_init), 1);
+  ASSERT_EQ(u2d.count(for_body), 1);
+  EXPECT_EQ(u2d[for_inc].count(decl_i), 0);
+  EXPECT_EQ(u2d[for_inc].count(for_init), 1);
+}
 
 // TEST_F(VisitorTest, DistributorTest) {
 // }
