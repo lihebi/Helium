@@ -82,7 +82,10 @@ namespace v2 {
     // void loadCode(fs::path p) {
     //   Code = utils::read_file(p.string());
     // }
-    virtual void readCode();
+    virtual void readCode() = 0;
+    std::string getFile() {return File;}
+    SourceLocation getBeginLoc() {return Begin;}
+    SourceLocation getEndLoc() {return End;}
   protected:
     int ID;
     std::string Name;
@@ -112,6 +115,7 @@ namespace v2 {
     virtual void dump(std::ostream &os) {
       os << "FucntionSnippet " << Name;
     }
+    virtual void readCode();
   private:
   };
 
@@ -152,6 +156,7 @@ namespace v2 {
     virtual void dump(std::ostream &os) {
       os << "TypedefSnippet " << Name;
     }
+    virtual void readCode();
   private:
   };
 
@@ -177,6 +182,7 @@ namespace v2 {
     virtual void dump(std::ostream &os) {
       os << "RecordSnippet " << Name;
     }
+    virtual void readCode();
   private:
   };
   
@@ -212,6 +218,7 @@ namespace v2 {
     virtual void dump(std::ostream &os) {
       os << "EnumSnippet " << Name;
     }
+    virtual void readCode();
   private:
     std::vector<std::string> Fields;
   };
@@ -257,8 +264,33 @@ namespace v2 {
         std::string name = s->getName();
         KeyMap[name].push_back(s);
       }
+      createDeps();
+      createOuters();
     }
 
+    /**
+     * create Deps and IdDeps
+     */
+    void createDeps();
+    void createOuters();
+    /**
+     * save to disk
+     */
+    void saveSnippet(fs::path p);
+    void saveDeps(fs::path p);
+    void saveOuters(fs::path p);
+    /**
+     * load from disk
+     */
+    void loadSnippet(fs::path p);
+    void loadDeps(fs::path p);
+    void loadOuters(fs::path p);
+
+    void dump(std::ostream &os);
+    void dumpSnippetsVerbose(std::ostream &os);
+    /**
+     * Getters
+     */
     std::vector<Snippet*> get(std::string key) {
       if (KeyMap.count(key)==1) return KeyMap[key];
       return {};
@@ -271,113 +303,52 @@ namespace v2 {
       }
       return nullptr;
     }
-    /**
-     * create Deps and IdDeps
-     */
-    void createDep() {}
-    /**
-     * save to disk
-     *
-     * {ID: 1, kind: EnumSnippet, 
-     * }
-     */
-    void saveSnippet(fs::path p) {
-      std::ofstream os;
-      os.open(p.string());
-      assert(os.is_open());
-      for (Snippet *s : Snippets) {
-        s->save(os);
-      }
+    std::set<Snippet*> getDep(Snippet* s) {
+      if (Deps.count(s) == 1) return Deps[s];
+      return {};
     }
+    std::set<Snippet*> getOuter(Snippet *s) {
+      if (Outers.count(s) == 1) return Outers[s];
+      return {};
+    }
+    /**
+     * Recursively get all deps
+     */
+    std::set<Snippet*> getAllDep(Snippet *s);
+    /**
+     * Simple Getters
+     */
+    std::vector<Snippet*> getSnippets() {return Snippets;}
+    std::map<Snippet*, std::set<Snippet*> > getDeps() {return Deps;}
+    std::map<Snippet*, std::set<Snippet*> > getOuters() {return Outers;}
 
     /**
-     * save code to disk
-     * FIXME Do I need to do this??
-     * NO I don't need this.
+     * for testing
      */
-    // void saveCode(fs::path dir) {}
-
-    void saveDeps(fs::path p) {
-      std::ofstream os;
-      os.open(p.string());
-      assert(os.is_open());
+    std::map<int, std::set<int> > getDepsAsId() {
+      std::map<int, std::set<int> > ret;
       for (auto &m : Deps) {
-        os << m.first->getId() << " ";
+        int from = m.first->getId();
         for (Snippet *s : m.second) {
-          os << s->getId() << " ";
-        }
-        os << "\n";
-      }
-    }
-    /**
-     * load from disk
-     */
-    void loadSnippet(fs::path p) {
-      assert(Snippets.empty());
-      std::ifstream is;
-      is.open(p.string());
-      assert(is.is_open());
-      std::string kind;
-      Snippet *s = nullptr;
-      while (is >> kind) {
-        if (kind == "FunctionSnippet") s = new FunctionSnippet();
-        else if (kind == "VarSnippet") s = new VarSnippet();
-        else if (kind == "TypedefSnippet") s = new TypedefSnippet();
-        else if (kind == "RecordSnippet") s = new RecordSnippet();
-        else {
-          assert(false);
-        }
-        s->load(is);
-        int id = Snippets.size();
-        s->setId(id);
-        Snippets.push_back(s);
-      }
-    }
-    /**
-     * Load dependence
-     */
-    void loadDependence(fs::path p) {
-      std::ifstream is;
-      is.open(p.string());
-      assert(is.is_open());
-      std::string line;
-      while (getline(is, line)) {
-        int from_id,to_id;
-        std::istringstream ss(line);
-        ss >> from_id;
-        while (ss >> to_id) {
-          // IdDeps[from_id].insert(to_id);
-          Deps[Snippets[from_id]].insert(Snippets[to_id]);
+          ret[from].insert(s->getId());
         }
       }
+      return ret;
     }
-
-    void dump(std::ostream &os) {
-      os << "total " << Snippets.size() << " snippets\n";
-      for (Snippet *s : Snippets) {
-        // s->dump(os);
-        // os << "\n";
-        s->save(os);
-        os << s->getCode();
-        os << "\n";
+    std::map<int, std::set<int> > getOutersAsId() {
+      std::map<int, std::set<int> > ret;
+      for (auto &m : Outers) {
+        int from = m.first->getId();
+        for (Snippet *s : m.second) {
+          ret[from].insert(s->getId());
+        }
       }
-    }
-    /**
-     * check whether the two snippet manager maintain equivalent thing
-     * It is used to verify whether the save and load get the same thing
-     * It will not check pointer address.
-     * Instead, it check the values.
-     */
-    // bool equivalent(SnippetManager *rhs) {
-      
-    // }
-
-    std::vector<Snippet*> getSnippets() {
-      return Snippets;
+      return ret;
     }
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
     std::map<Snippet*, std::set<Snippet*> > Deps;
+    std::map<Snippet*, std::set<Snippet*> > Outers;
     std::map<std::string, std::vector<Snippet*> > KeyMap;
     // std::map<int, std::set<int> > IdDeps;
   };

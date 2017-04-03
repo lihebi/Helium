@@ -439,7 +439,7 @@ int main(int argc, char* argv[]) {
     // I'm going to save and load by the manager
     // manager->save(target_cache_dir / "snippet-manager");
     // manager->createCode();
-    manager->createDep();
+    manager->createDeps();
     manager->saveSnippet(target_cache_dir / "manager-snippet.txt");
     manager->saveDeps(target_cache_dir / "manager-deps.txt");
 

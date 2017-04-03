@@ -199,6 +199,7 @@ TEST_F(NewSnippetTest, MyTest) {
     // manager->dump(std::cout);
     v2::Snippet *A1 = manager->get("A1", "RecordSnippet");
     v2::Snippet *A2 = manager->get("A2", "RecordSnippet");
+    v2::Snippet *A2Typedef = manager->get("A2", "TypedefSnippet");
     v2::Snippet *A3 = manager->get("A3", "RecordSnippet");
     v2::Snippet *A3Alias = manager->get("A3Alias", "TypedefSnippet");
     ASSERT_TRUE(A1);
@@ -208,7 +209,9 @@ TEST_F(NewSnippetTest, MyTest) {
 
     EXPECT_EQ(A1->getCode(), "struct A1 {\n}");
     EXPECT_EQ(A2->getCode(), "struct A2 {\n  struct A1;\n}");
+    EXPECT_EQ(A2Typedef->getCode(), "typedef struct A2 A2");
     EXPECT_EQ(A3->getCode(), "struct A3 {\n  struct A2 a2;\n}");
+    EXPECT_EQ(A3Alias->getCode(), "typedef struct A3 {\n  struct A2 a2;\n} A3Alias");
   }
   {
     std::vector<v2::Snippet*> snippets = createSnippets(file_a_c);
@@ -274,6 +277,52 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(createSnippets(file_sub_c));
     manager->add(createSnippets(file_lib_c));
     manager->process();
+
+    v2::Snippet *A1 = manager->get("A1", "RecordSnippet");
+    v2::Snippet *A2 = manager->get("A2", "RecordSnippet");
+    v2::Snippet *A2Typedef = manager->get("A2", "TypedefSnippet");
+    v2::Snippet *A3 = manager->get("A3", "RecordSnippet");
+    v2::Snippet *A3Alias = manager->get("A3Alias", "TypedefSnippet");
+    
+    v2::Snippet *global_a = manager->get("global_a", "VarSnippet");
+    v2::Snippet *temp_a = manager->get("temp_a", "VarSnippet");
+    v2::Snippet *myvar = manager->get("myvar", "VarSnippet");
+    v2::Snippet *aoo = manager->get("aoo", "FunctionSnippet");
+
+
+    // manager->dump(std::cout);
+    
+    std::set<v2::Snippet*> dep;
+    dep = manager->getDep(A1);
+    EXPECT_EQ(dep.size(), 0);
+    dep = manager->getDep(A2);
+    EXPECT_EQ(dep.size(), 1);
+    EXPECT_EQ(dep.count(A1), 1);
+    dep = manager->getDep(A3);
+    EXPECT_EQ(dep.size(), 2);
+    EXPECT_EQ(dep.count(A2), 1);
+    EXPECT_EQ(dep.count(A2Typedef), 1);
+
+    // get all dependence
+    dep = manager->getAllDep(A3);
+    EXPECT_EQ(dep.size(), 3);
+    EXPECT_EQ(dep.count(A1), 1);
+    EXPECT_EQ(dep.count(A2), 1);
+    EXPECT_EQ(dep.count(A2Typedef), 1);
+
+    // outer
+    std::set<v2::Snippet*> outer;
+    // manager->dump(std::cout);
+    // manager->dumpSnippetsVerbose(std::cout);
+    outer = manager->getOuter(A3);
+    EXPECT_EQ(outer.size(), 1);
+    EXPECT_EQ(outer.count(A3Alias), 1);
+
+    // outer = manager->getOuter(A2);
+    // EXPECT_EQ(outer.size(), 1);
+    // EXPECT_EQ(outer.count(A2Typedef), 1);
+
+    // TODO practical usage
   }
 
   {
@@ -283,13 +332,25 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(snippets);
     manager->process();
 
-    fs::path to_file = fs::unique_path(fs::temp_directory_path() / "%%%%-%%%%-%%%%-%%%%");
-    manager->saveSnippet(to_file);
+    fs::path random_dir = fs::unique_path(fs::temp_directory_path() / "%%%%-%%%%-%%%%-%%%%");
+    fs::create_directories(random_dir);
+    fs::path snippet_file = random_dir / "snippet.txt";
+    fs::path dep_file = random_dir / "dep.txt";
+    fs::path outer_file = random_dir / "outer.txt";
+
+    manager->saveSnippet(snippet_file);
+    manager->saveDeps(dep_file);
+    manager->saveOuters(outer_file);
+
+    // a new manager to load
     v2::SnippetManager *manager2 = new v2::SnippetManager();
-    manager2->loadSnippet(to_file);
+    manager2->loadSnippet(snippet_file);
+    manager2->loadDeps(dep_file);
+    manager2->loadOuters(outer_file);
 
     // EXPECT_TRUE(manager2->equivalent(manager));
 
+    // verify
     std::vector<v2::Snippet*> snippets2 = manager2->getSnippets();
     // check snippet and snippet2
     ASSERT_EQ(snippets.size(), snippets2.size());
@@ -298,6 +359,18 @@ TEST_F(NewSnippetTest, MyTest) {
       v2::Snippet *s2 = snippets2[i];
       EXPECT_EQ(s1->getName(), s2->getName());
     }
-    
+
+    // std::map<v2::Snippet*, std::set<v2::Snippet*> > deps1 = manager->getDeps();
+    // std::map<v2::Snippet*, std::set<v2::Snippet*> > deps2 = manager2->getDeps();
+    // std::map<v2::Snippet*, std::set<v2::Snippet*> > outer1 = manager->getOuters();
+    // std::map<v2::Snippet*, std::set<v2::Snippet*> > outer2 = manager2->getOuters();
+
+    std::map<int, std::set<int> > deps1 = manager->getDepsAsId();
+    std::map<int, std::set<int> > deps2 = manager2->getDepsAsId();
+    std::map<int, std::set<int> > outers1 = manager->getOutersAsId();
+    std::map<int, std::set<int> > outers2 = manager2->getOutersAsId();
+
+    EXPECT_EQ(deps1, deps2);
+    EXPECT_EQ(outers1, outers2);
   }
 }
