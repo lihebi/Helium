@@ -32,6 +32,16 @@ public:
     assert(!signature.empty());
     return signature.begin()->first;
   }
+  void dump(std::ostream &os) {
+    os << "Snippet: " << filename << ":" << linum << "\n";
+    for (auto &m : signature) {
+      os << m.first << " --> ";
+      for (auto k : m.second) {
+        os << snippet_kind_to_char(k) << " ";
+      }
+      os << "\n";
+    }
+  }
   std::string filename;
   int linum=0;
   std::map<std::string, std::set<SnippetKind> > signature;

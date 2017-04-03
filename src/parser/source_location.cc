@@ -1,10 +1,13 @@
 #include "helium/parser/source_location.h"
-
 #include <gtest/gtest.h>
 
 std::ostream& operator<<(std::ostream &os, const SourceLocation &loc) {
-  os << loc.line << "," << loc.column;
+  os << loc.line << " " << loc.column;
   return os;
+}
+std::istream& operator>>(std::istream &is, SourceLocation &loc) {
+  is >> loc.line >> loc.column;
+  return is;
 }
 
 

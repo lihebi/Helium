@@ -222,7 +222,15 @@ namespace utils {
     }
     return code;
   }
-  
+
+  /**
+   * line: 1,2,3
+   * column: 1,2,3
+   * get from [(beginline,begincolumn), (endline,endcol)]
+   * INCLUDE THE END
+   * - e.g. 1:1 to 1:1 will contain 1 character
+   * - 1:1 to 1:2 will contain two
+   */
   std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn) {
     std::ifstream is;
     is.open(file);
@@ -232,13 +240,15 @@ namespace utils {
       std::string line;
       while(getline(is, line)) {
         l++;
-        if (l < beginLine) {
-        } else if (l==beginLine) {
-          ret += line.substr(beginColumn-1) + "\n";
+        if (l < beginLine || l > endLine) {
         } else if (l>beginLine && l < endLine) {
           ret += line + "\n";
+        } else if (l==beginLine && l == endLine) {
+          ret += line.substr(beginColumn-1, endColumn+1 - beginColumn);
         } else if (l== endLine) {
           ret += line.substr(0, endColumn);
+        } else if (l==beginLine) {
+          ret += line.substr(beginColumn-1) + "\n";
         } else {
           break;
         }
@@ -330,6 +340,4 @@ namespace utils {
     EXPECT_NE(s, "");
     EXPECT_TRUE(is_dir(s));
   }
-
-  
 }

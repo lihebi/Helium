@@ -1,5 +1,8 @@
 add_library(HeliumResolver
   clangSnippet.cpp
+  cache.cpp
+  SnippetV2.cpp
+  SnippetAction.cpp
   
         global_variable.cc
         header_resolver.cc

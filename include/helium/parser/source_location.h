@@ -2,6 +2,7 @@
 #define SOURCE_LOCATION_H
 
 #include <ostream>
+#include <istream>
 
 /**
  * It is passed by value. So the size is pretty critical.
@@ -10,6 +11,7 @@
  */
 class SourceLocation {
 public:
+  SourceLocation() {}
   SourceLocation(int line, int column)
     : line(line), column(column) {}
   ~SourceLocation() {}
@@ -38,15 +40,19 @@ public:
     return this->line == rhs.line && this->column == rhs.column;
   }
   friend std::ostream& operator<<(std::ostream &os, const SourceLocation &loc);
+  friend std::istream& operator>>(std::istream &is, SourceLocation &loc);
   
   int getLine() {return line;}
   int getColumn() {return column;}
+  void setLine(int l) {line=l;}
+  void setColumn(int c) {column=c;}
 private:
   int line = -1;
   int column = -1;
 };
 
 std::ostream& operator<<(std::ostream &os, const SourceLocation &loc);
+std::istream& operator>>(std::istream &is, const SourceLocation &loc);
 
 // class SourceRange {
 // public:

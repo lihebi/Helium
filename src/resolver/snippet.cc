@@ -103,6 +103,7 @@ SnippetKind char_to_snippet_kind(char t) {
     std::cerr << "Unrecoganized ctags snippet kind: " << t  << "\n";
     // n
     // assert(false);
+    return SK_Other;
   }
   }
 }

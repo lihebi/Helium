@@ -60,6 +60,7 @@ HeliumOptions::HeliumOptions() {
     // ("clang-snippet", "extract snippet index using clang")
     ("create-selection", "create selection folder and put manual.txt, sample.txt, random/1.txt, one/1.txt, two/1.txt etc")
     ("dump-ast", "dump ast")
+    ("hebi", "Experimental")
     ;
 
   po::options_description util_options("Utils");
