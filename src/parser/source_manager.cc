@@ -186,28 +186,6 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   return ret;
 }
 
-std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
-  // Here I can enforce some criteria, such as intro-procedure
-  set<ASTNodeBase*> ret;
-  for (auto &m : File2ASTMap) {
-    ASTContext *ast = m.second;
-    TokenVisitor *tokenVisitor = new TokenVisitor();
-    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-    unit->accept(tokenVisitor);
-    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
-    // random select some tokens
-    // vector<ASTNodeBase*> token_vector(tokens.begin(), tokens.end());
-    // first, random get # of tokens
-    // Then, random get tokens
-    int num = utils::rand_int(0, tokens.size());
-    while (ret.size() < num) {
-      int idx = utils::rand_int(0, tokens.size());
-      ret.insert(tokens[idx]);
-    }
-  }
-  return ret;
-}
-
 std::string SourceManager::getTokenUUID(v2::ASTNodeBase* node) {
   ASTContext *ast = node->getASTContext();
   std::string ret;
@@ -241,6 +219,34 @@ int SourceManager::getTokenId(v2::ASTNodeBase* node) {
 
 
 
+/**
+ * Selection
+ */
+
+
+std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
+  // Here I can enforce some criteria, such as intro-procedure
+  set<ASTNodeBase*> ret;
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TokenVisitor *tokenVisitor = new TokenVisitor();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(tokenVisitor);
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    // random select some tokens
+    // vector<ASTNodeBase*> token_vector(tokens.begin(), tokens.end());
+    // first, random get # of tokens
+    // Then, random get tokens
+    int num = utils::rand_int(0, tokens.size());
+    while (ret.size() < num) {
+      int idx = utils::rand_int(0, tokens.size());
+      ret.insert(tokens[idx]);
+    }
+  }
+  return ret;
+}
+
+
 std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   map<string, set<pair<int,int> > > selection;
   if (fs::exists(sel_file)) {
@@ -256,20 +262,29 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
       std::string file;
       set<int> sel;
       // first line must be # filename.c
-      std::getline(is, line);
-      utils::trim(line);
-      if (line.empty()) return {};
-      if (line[0] != '#') return {};
-      file = line.substr(1);
-      utils::trim(file);
-        
+
+
+      // anything starts with #file will change the file
+      // anything starts with # will be comment
+      // anything else should starts with two numbers representing line and column, starting from 1
+      
       while (std::getline(is, line)) {
         utils::trim(line);
-        if (!line.empty() && line[0] != '#') {
+        if (line.empty()) continue;
+        else if (line[0] == '#') {
+          // control directive
+          std::string first = utils::split(line)[0];
+          if (first == "#file") {
+            file = utils::split(line)[1];
+          }
+        } else {
           vector<string> v = utils::split(line);
+          assert(!file.empty());
           // Only first two are used. The third can be any comment
           if (v.size() >= 2) {
-            selection[file].insert(std::make_pair(stoi(v[0]), stoi(v[1])));
+            int l = stoi(v[0]);
+            int c = stoi(v[1]);
+            selection[file].insert(std::make_pair(l,c));
           }
         }
       }
@@ -439,20 +454,127 @@ int SourceManager::getDistSwitch(set<ASTNodeBase*> sel) {
 
 
 
-std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
-  std::string ret="";
-  // this is basically go from root
-  // perform pre-order travesal
-  for (auto &m : File2ASTMap) {
-    Generator *generator =  new Generator();
-    generator->setSelection(sel);
-    // generator->setSelection(sel);
-    ASTContext *ast = m.second;
-    TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
-    decl->accept(generator);
-    std::string prog = generator->getProgram();
-    // TODO many ASTs
-    ret += prog;
+
+
+std::set<v2::ASTContext*> SourceManager::getASTByNodes(std::set<v2::ASTNodeBase*> nodes) {
+  std::set<v2::ASTContext*> ret;
+  for (auto *node : nodes) {
+    ret.insert(node->getASTContext());
   }
   return ret;
+}
+/**
+ * for the selection, get the function node and put it into selection.
+ * This includes:
+ * - return node
+ * - name node
+ * - param node
+ * - compount stmt
+ * - comp token
+ */
+std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNodeBase*> sel) {
+  std::set<v2::ASTContext*> asts = getASTByNodes(sel);
+  std::set<v2::ASTNodeBase*> funcs;
+  for (v2::ASTContext *ast : asts) {
+    Distributor *dist = AST2DistributorMap[ast];
+    std::set<v2::ASTNodeBase*> nodes = dist->getDistFuncNodes(sel);
+    funcs.insert(nodes.begin(), nodes.end());
+  }
+  // now i got all the functiondecl nodes
+  // add the relevant nodes into the selection
+  for (auto *node : funcs) {
+    FunctionDecl *func = dynamic_cast<FunctionDecl*>(node);
+    if (func) {
+      sel.insert(func->getReturnTypeNode());
+      sel.insert(func->getNameNode());
+      sel.insert(func->getParamNode());
+      sel.insert(func->getBody());
+      CompoundStmt *body = dynamic_cast<CompoundStmt*>(func->getBody());
+      sel.insert(body->getCompNode());
+    }
+  }
+  return sel;
+}
+
+std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
+  // analyze distribution
+  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+  int func_ct = 0;
+  for (auto &m : AST2DistributorMap) {
+    // ASTContext *ast = m.first;
+    Distributor *dist = m.second;
+    func_ct += dist->getDistFunc(sel);
+  }
+  if (func_ct == 0) return "";
+  else if (func_ct == 1) {
+    // only one function
+    // - we don't include function headers.
+    // - generate main function and put body inside function
+    std::string body;
+    for (auto &m : File2ASTMap) {
+      Generator *generator =  new Generator();
+      generator->setSelection(sel);
+      // generator->setSelection(sel);
+      ASTContext *ast = m.second;
+      TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
+      decl->accept(generator);
+      std::string prog = generator->getProgram();
+      body += prog;
+    }
+    std::string ret;
+    ret += "#include <stdio.h>\n";
+    ret += "#include <stdlib.h>\n";
+    ret += "#include <string.h>\n";
+    ret += "#include <main.h>\n";
+    ret += "int main(int argc, char *argv[]) {\n";
+    ret += body;
+    ret += "  return 0;\n";
+    ret += "}\n";
+    return ret;
+  } else {
+    // multiple functions
+    // - we always include function headers.
+    // - put function call sites in main function
+    std::string body;
+    sel = patchFunctionHeader(sel);
+    for (auto &m : File2ASTMap) {
+      Generator *generator =  new Generator();
+      generator->setSelection(sel);
+      // generator->setSelection(sel);
+      ASTContext *ast = m.second;
+      TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
+      decl->accept(generator);
+      std::string prog = generator->getProgram();
+      body += prog;
+    }
+    std::string ret;
+    
+    ret += "#include <stdio.h>\n";
+    ret += "#include <stdlib.h>\n";
+    ret += "#include <string.h>\n";
+    ret += "#include <main.h>\n";
+
+    ret += body;
+
+    ret += "int main(int argc, char *argv[]) {\n";
+    // TODO call to those functions
+    ret += "  return 0;\n";
+    ret += "}\n";
+    return ret;
+  }
+}
+
+
+void SourceManager::dump(std::ostream &os) {
+  // maintained file to ASTs
+  for (auto &m : File2ASTMap) {
+    fs::path file = m.first;
+    os << "file: " << file.string() << "\n";
+    ASTContext *ast = m.second;
+    // std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+    // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+    os << "Distributor:" << "\n";
+    Distributor *dist = AST2DistributorMap[ast];
+    dist->dump(os);
+  }
 }

@@ -178,7 +178,10 @@ ReturnStmt *Parser::ParseReturnStmt(XMLNode node) {
   SourceLocation TokenEndLoc(begin.first, begin.second + strlen("return"));
   TokenNode *ReturnNode = new TokenNode(Ctx, "return", TokenBeginLoc, TokenEndLoc);
 
-  Expr *value = ParseExpr(node.child("expr"));
+  Expr *value = nullptr;
+  if (node.child("expr")) {
+    value = ParseExpr(node.child("expr"));
+  }
   ReturnStmt *ret = new ReturnStmt(Ctx, ReturnNode, value, BeginLoc, EndLoc);
   
   // ret->addUsedVars(get_var_ids(node.child("expr")));

@@ -34,10 +34,14 @@ void create_tagfile(const std::string& folder, const std::string& file) {
   }
 }
 
-void create_src(fs::path target, fs::path target_cache_dir) {
+void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_dir) {
   fs::path src = target_cache_dir / "src";
   if (fs::exists(src)) fs::remove_all(src);
   fs::create_directories(src);
+
+  // fs::create_directories(target_cache_dir / "sel");
+  fs::create_directories(target_sel_dir);
+  
   // copy only source files. Keep directory structure
   fs::recursive_directory_iterator it(target), eod;
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
@@ -45,7 +49,17 @@ void create_src(fs::path target, fs::path target_cache_dir) {
       if (p.extension() == ".c" || p.extension() == ".h") {
         fs::path to = target_cache_dir / "src" / fs::relative(p, target);
         fs::create_directories(to.parent_path());
-        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));}}}}
+        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));
+      } else if (p.extension() == ".sel") {
+        // selection file
+        // fs::copy_file(p, target_cache_dir / "sel" / p.filename());
+        fs::path to = target_sel_dir / p.filename();
+        if (fs::exists(to)) fs::remove(to);
+        fs::copy_file(p, to);
+      }
+    }
+  }
+}
 
 /**
  * 1. create cpp folder

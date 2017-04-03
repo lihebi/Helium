@@ -224,7 +224,8 @@ int deprecated_show_instrument_code() {
 void helium_run(fs::path helium_home, std::string helium_target_name) {
   // std::cout << "Helium Running .." << "\n";
   fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
-  fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
+  // fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
+  fs::path target_sel_dir = target_cache_dir / "sel";
   fs::recursive_directory_iterator it(target_sel_dir), eod;
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
     // must be .sel file
@@ -233,7 +234,7 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
 
       // DEBUG
-      sourceManager->dumpASTs();
+      // sourceManager->dumpASTs();
       
       std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
       std::cout << "---------------------" << "\n";
@@ -367,7 +368,8 @@ int main(int argc, char* argv[]) {
   std::string target_dir_name = fs::canonical(target).string();
   std::replace(target_dir_name.begin(), target_dir_name.end(), '/', '_');
   fs::path target_cache_dir(helium_home / "cache" / target_dir_name);
-  fs::path target_sel_dir(helium_home / "sel" / target_dir_name);
+  // fs::path target_sel_dir(helium_home / "sel" / target_dir_name);
+  fs::path target_sel_dir = target_cache_dir / "sel";
 
 
 
@@ -381,12 +383,13 @@ int main(int argc, char* argv[]) {
     // create everything
     fs::create_directories(target_cache_dir);
     std::cout << "== Creating src .." << "\n";
-    create_src(target, target_cache_dir);
+    create_src(target, target_cache_dir, target_sel_dir);
     std::cout << "== Creating cpp .." << "\n";
     create_cpp(target_cache_dir);
 
-    // std::cout << "== Creating tagfile .." << "\n";
-    // create_tagfile(target_cache_dir);
+    // tagfile is not needed, but i just want to keep it to avoid changing existing code
+    std::cout << "== Creating tagfile .." << "\n";
+    create_tagfile(target_cache_dir);
     // std::cout << "== Creating clang snippet .." << "\n";
     // create_clang_snippet(target_cache_dir);
     // std::cout << "== Creating snippet db .." << "\n";
@@ -410,7 +413,7 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
   if (HeliumOptions::Instance()->Has("create-cpp")) {
-    create_src(target, target_cache_dir);
+    create_src(target, target_cache_dir, target_sel_dir);
     create_cpp(target_cache_dir);
     exit(0);
   }
@@ -478,7 +481,9 @@ int main(int argc, char* argv[]) {
   // load_tagfile((target_cache_dir / "cpp").string());
   ctags_load((target_cache_dir / "tagfile").string());
   // load_snippet_db((target_cache_dir / "snippet").string());
-  SnippetDB::Instance()->Load(target_cache_dir / "snippet.db", target_cache_dir / "code");
+
+  // remove load of snippet db
+  // SnippetDB::Instance()->Load(target_cache_dir / "snippet.db", target_cache_dir / "code");
   load_header_resolver((target_cache_dir / "src").string());
 
   if (HeliumOptions::Instance()->Has("info")) {
@@ -579,6 +584,11 @@ int main(int argc, char* argv[]) {
 
   // std::cerr << "Specify tokenize or selection to run." << "\n";
   // exit(1);
+
+
+
+
+  v2::GlobalSnippetManager::Instance()->load(target_cache_dir);
 
 
   // (HEBI: Running)

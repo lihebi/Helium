@@ -361,6 +361,28 @@ namespace v2 {
     std::map<std::string, std::vector<Snippet*> > KeyMap;
     // std::map<int, std::set<int> > IdDeps;
   };
+
+
+  class GlobalSnippetManager {
+  public:
+    static GlobalSnippetManager *Instance() {
+      if (!instance) {
+        instance = new GlobalSnippetManager();
+      }
+      return instance;
+    }
+    void load(fs::path target_cache_dir) {
+      manager = new SnippetManager();
+      manager->loadSnippet(target_cache_dir / "snippets.txt");
+      manager->loadDeps(target_cache_dir / "deps.txt");
+      manager->loadOuters(target_cache_dir / "outers.txt");
+    }
+  private:
+    GlobalSnippetManager() {}
+    ~GlobalSnippetManager() {}
+    static GlobalSnippetManager *instance;
+    SnippetManager *manager = nullptr;
+  };
   
 }
 

@@ -24,7 +24,6 @@ public:
   SourceManager(fs::path cppfolder);
   ~SourceManager() {}
   void dumpASTs();
-  std::set<v2::ASTNodeBase*> generateRandomSelection();
 
   /**
    * Perform grammar patch based on this->selection.
@@ -52,6 +51,12 @@ public:
   std::string getTokenUUID(v2::ASTNodeBase* node);
   fs::path getTokenFile(v2::ASTNodeBase* node);
   int getTokenId(v2::ASTNodeBase* node);
+
+
+  /**
+   * Selection
+   */
+  std::set<v2::ASTNodeBase*> generateRandomSelection();
   /**
    * load selection from file.
    * The format is:
@@ -75,6 +80,9 @@ public:
   void analyzeDistribution(std::set<v2::ASTNodeBase*> selection,
                            std::set<v2::ASTNodeBase*> patch,
                            std::ostream &os);
+
+  void dump(std::ostream &os);
+  std::set<v2::ASTNodeBase*> patchFunctionHeader(std::set<v2::ASTNodeBase*> sel);
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
@@ -85,6 +93,11 @@ private:
   int getDistIf(std::set<v2::ASTNodeBase*> sel);
   int getDistLoop(std::set<v2::ASTNodeBase*> sel);
   int getDistSwitch(std::set<v2::ASTNodeBase*> sel);
+  
+  /**
+   * ASTs associcated with the nodes
+   */
+  std::set<v2::ASTContext*> getASTByNodes(std::set<v2::ASTNodeBase*> nodes);
 
 
 

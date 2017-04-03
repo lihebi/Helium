@@ -412,6 +412,9 @@ public:
   int getDistFunc(std::set<v2::ASTNodeBase*> sel) {
     return getDist(sel, func_nodes);
   }
+  std::set<v2::ASTNodeBase*> getDistFuncNodes(std::set<v2::ASTNodeBase*> sel) {
+    return getDistNodes(sel, func_nodes);
+  }
   int getDistIf(std::set<v2::ASTNodeBase*> sel) {
     return getDist(sel, if_nodes);
   }
@@ -433,7 +436,7 @@ public:
     int ret=0;
     for (auto *node : nodes) {
       for (auto *s : sel) {
-        if (ContainMap[node].count(s)) {
+        if (ContainMap[node].count(s) == 1) {
           ret++;
           break;
         }
@@ -441,6 +444,20 @@ public:
     }
     return ret;
   }
+  std::set<v2::ASTNodeBase*> getDistNodes(std::set<v2::ASTNodeBase*> sel, std::set<v2::ASTNodeBase*> nodes) {
+    std::set<v2::ASTNodeBase*> ret;
+    for (auto *node : nodes) {
+      for (auto *s : sel) {
+        if (ContainMap[node].count(s) == 1) {
+          ret.insert(node);
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+
+  void dump(std::ostream &os);
   
 private:
   std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ContainMap;

@@ -9,6 +9,7 @@ using namespace v2;
 using std::set;
 using std::vector;
 
+GlobalSnippetManager *GlobalSnippetManager::instance = nullptr;
 
 std::string read_file_for_code(fs::path file, SourceLocation begin, SourceLocation end) {
   int l1 = begin.getLine();

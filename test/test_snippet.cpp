@@ -113,9 +113,10 @@ public:
     }
     fs::path cache_dir = helium_home / "cache";
     target_cache_dir = fs::path(helium_home / "cache" / target_dir_name);
+    fs::path target_sel_dir = fs::path(helium_home / "sel" / target_dir_name);
     // 1. preprocess
     fs::create_directories(target_cache_dir);
-    create_src(unique_dir, target_cache_dir);
+    create_src(unique_dir, target_cache_dir, target_sel_dir);
     create_cpp(target_cache_dir);
     // 2. create tagfile
     create_tagfile(target_cache_dir);
