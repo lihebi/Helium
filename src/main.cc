@@ -384,17 +384,29 @@ int main(int argc, char* argv[]) {
     create_src(target, target_cache_dir);
     std::cout << "== Creating cpp .." << "\n";
     create_cpp(target_cache_dir);
-    std::cout << "== Creating tagfile .." << "\n";
-    create_tagfile(target_cache_dir);
-    std::cout << "== Creating clang snippet .." << "\n";
-    create_clang_snippet(target_cache_dir);
-    std::cout << "== Creating snippet db .." << "\n";
-    create_snippet_db(target_cache_dir);
+
+    // std::cout << "== Creating tagfile .." << "\n";
+    // create_tagfile(target_cache_dir);
+    // std::cout << "== Creating clang snippet .." << "\n";
+    // create_clang_snippet(target_cache_dir);
+    // std::cout << "== Creating snippet db .." << "\n";
+    // create_snippet_db(target_cache_dir);
+
+    // The new snippet system
+    std::cout << "== Creating snippets, deps, outers ..." << "\n";
+    v2::SnippetManager *snippet_manager = new v2::SnippetManager();
+    snippet_manager->traverseDir(target_cache_dir / "cpp");
+
+    snippet_manager->dumpLight(std::cout);
+
+    snippet_manager->saveSnippet(target_cache_dir / "snippets.txt");
+    snippet_manager->saveDeps(target_cache_dir / "deps.txt");
+    snippet_manager->saveOuters(target_cache_dir / "outers.txt");
 
     // output a flag file that indicate cache is created But when
     // invoking the following tools along after this, it will not be
     // deleted, so still marked valid
-    utils::write_file((target_cache_dir/"valid").string(), "");
+    // utils::write_file((target_cache_dir/"valid").string(), "");
     exit(0);
   }
   if (HeliumOptions::Instance()->Has("create-cpp")) {

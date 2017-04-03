@@ -1,6 +1,8 @@
 #include "helium/resolver/SnippetV2.h"
 #include "helium/utils/fs_utils.h"
 
+#include "helium/resolver/SnippetAction.h"
+
 #include "helium/resolver/resolver.h"
 using namespace v2;
 
@@ -254,6 +256,41 @@ void SnippetManager::dumpSnippetsVerbose(std::ostream &os) {
     os << "\n";
   }
 }
+
+void SnippetManager::dumpLight(std::ostream &os) {
+  os << "Snippets: " << "\n";
+  int func_ct = 0;
+  int var_ct = 0;
+  int record_ct = 0;
+  int typedef_ct = 0;
+  int enum_ct = 0;
+  for (Snippet *s : Snippets) {
+    if (dynamic_cast<FunctionSnippet*>(s)) func_ct++;
+    else if (dynamic_cast<TypedefSnippet*>(s)) typedef_ct++;
+    else if (dynamic_cast<EnumSnippet*>(s)) enum_ct++;
+    else if (dynamic_cast<VarSnippet*>(s)) var_ct++;
+    else if (dynamic_cast<RecordSnippet*>(s)) record_ct++;
+  }
+  // type of snippet
+  os << "\t" << "Function: " << func_ct << "\n";
+  os << "\t" << "Record: " << record_ct << "\n";
+  os << "\t" << "Typedef: " << typedef_ct << "\n";
+  os << "\t" << "Enum: " << enum_ct << "\n";
+  os << "\t" << "Var: " << var_ct << "\n";
+
+  int deps_ct = 0;
+  for (auto &m : Deps) {
+    deps_ct += m.second.size();
+  }
+  os << "Deps: " << deps_ct << "\n";
+
+  int outers_ct = 0;
+  for (auto &m : Outers) {
+    outers_ct += m.second.size();
+  }
+  os << "Deps: " << outers_ct << "\n";
+}
+
 void SnippetManager::dump(std::ostream &os) {
   os << "== Total " << Snippets.size() << " snippets\n";
   for (Snippet *s : Snippets) {
@@ -312,4 +349,16 @@ std::set<v2::Snippet*> SnippetManager::getAllDep(Snippet *s) {
   }
   ret.erase(s);
   return ret;
+}
+
+
+void SnippetManager::traverseDir(fs::path dir) {
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".c" || p.extension() == ".h") {
+      std::vector<v2::Snippet*> snippets = createSnippets(p);
+      add(snippets);
+    }
+  }
+  process();
 }

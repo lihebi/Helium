@@ -256,6 +256,11 @@ namespace v2 {
     }
 
     /**
+     * traverse dir and process all source files
+     */
+    void traverseDir(fs::path dir);
+
+    /**
      * create index
      * so that snippets can be queired by name
      */
@@ -286,6 +291,10 @@ namespace v2 {
     void loadDeps(fs::path p);
     void loadOuters(fs::path p);
 
+    /**
+     * dump only the size of snippets, 
+     */
+    void dumpLight(std::ostream &os);
     void dump(std::ostream &os);
     void dumpSnippetsVerbose(std::ostream &os);
     /**
