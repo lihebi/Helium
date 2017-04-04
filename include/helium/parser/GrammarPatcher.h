@@ -112,6 +112,4 @@ private:
   std::set<v2::ASTNodeBase*> Patch;
 };
 
-
-
 #endif /* GRAMMARPATCHER_H */

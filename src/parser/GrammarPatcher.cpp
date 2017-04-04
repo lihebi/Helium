@@ -32,6 +32,59 @@ void StandAloneGrammarPatcher::process() {
       Worklist.insert(node);
     }
   }
+
+
+  // handle non-context free part
+  // - break
+  // - continue
+
+  ParentIndexer indexer;
+  unit->accept(&indexer);
+
+  std::set<ASTNodeBase*> non_context_free_set;
+  for (auto *node : Worklist) {
+    if (BreakStmt *break_stmt = dynamic_cast<BreakStmt*>(node)) {
+      // handle break
+      ASTNodeBase *node = break_stmt;
+      while (node) {
+        node = indexer.getParent(node);
+        if (dynamic_cast<ForStmt*>(node)
+            || dynamic_cast<DoStmt*>(node)
+            || dynamic_cast<WhileStmt*>(node)
+            || dynamic_cast<SwitchStmt*>(node)) {
+          non_context_free_set.insert(node);
+          break;
+        }
+      }
+    } else if (ContinueStmt *continue_stmt = dynamic_cast<ContinueStmt*>(node)) {
+      // handle continue
+      ASTNodeBase *node = break_stmt;
+      while (node) {
+        node = indexer.getParent(node);
+        if (dynamic_cast<ForStmt*>(node)
+            || dynamic_cast<DoStmt*>(node)
+            || dynamic_cast<WhileStmt*>(node)) {
+          non_context_free_set.insert(node);
+          break;
+        }
+      }
+    }
+  }
+
+  // hack
+  for (ASTNodeBase *node : non_context_free_set) {
+    if (ForStmt *for_stmt = dynamic_cast<ForStmt*>(node)) {
+      Worklist.insert(for_stmt->getForNode());
+    } else if (DoStmt *do_stmt = dynamic_cast<DoStmt*>(node)) {
+      Worklist.insert(do_stmt->getDoNode());
+    } else if (WhileStmt *while_stmt = dynamic_cast<WhileStmt*>(node)) {
+      Worklist.insert(while_stmt->getWhileNode());
+    } else if (SwitchStmt *switch_stmt = dynamic_cast<SwitchStmt*>(node)) {
+      Worklist.insert(switch_stmt->getSwitchNode());
+    }
+  }
+
+
   Patch = Worklist; // this is the result
 
   while (!Worklist.empty()) {
@@ -81,6 +134,9 @@ void StandAloneGrammarPatcher::process() {
   for (auto m : GlobalSkip) {
     Patch.erase(m.first);
   }
+
+
+  
 }
 bool StandAloneGrammarPatcher::validAlone(v2::ASTNodeBase* node) {
   if (dynamic_cast<v2::TokenNode*>(node)
