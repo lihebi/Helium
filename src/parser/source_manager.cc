@@ -16,6 +16,33 @@ using std::set;
 using std::map;
 using std::pair;
 
+
+HeaderManager *HeaderManager::instance = nullptr;
+
+
+std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file) {
+  std::ifstream is;
+  is.open(file.string());
+  assert(is.is_open());
+  std::string line;
+  std::string flag;
+  // from header name to compile flag
+  std::map<std::string, std::string> headers;
+  while (getline(is, line)) {
+    utils::trim(line);
+    flag = "";
+    if (!line.empty() && line[0] != '#') {
+      if (line.find(' ') != std::string::npos) {
+        flag = line.substr(line.find(' '));
+        line = line.substr(0, line.find(' '));
+        utils::trim(flag);
+      }
+      headers[line] = flag;
+    }
+  }
+  return headers;
+}
+
 SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   fs::recursive_directory_iterator it(cppfolder), eod;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
@@ -600,9 +627,9 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   sel = patchFunctionHeader(sel);
 
   std::string ret;
-  ret += "#include <stdio.h>\n";
-  ret += "#include <stdlib.h>\n";
-  ret += "#include <string.h>\n";
+  // ret += "#include <stdio.h>\n";
+  // ret += "#include <stdlib.h>\n";
+  // ret += "#include <string.h>\n";
   ret += "#include \"main.h\"\n";
   
   if (shouldPutIntoMain(sel)) {
@@ -710,6 +737,10 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   // }
 }
 
+
+
+
+
 std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   std::string ret;
   // suppress the warning
@@ -738,6 +769,12 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "#include <stdlib.h>\n";
   ret += "#include <string.h>\n";
   ret += "#include <getopt.h>\n";
+
+  // additional header files
+  std::set<std::string> headers = HeaderManager::Instance()->getHeaders();
+  for (std::string s : headers) {
+    ret += "#include <" + s + ">\n";
+  }
 
   sel = patchFunctionHeader(sel);
   // get the snippets
@@ -818,6 +855,11 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 }
 
 std::string get_makefile() {
+  std::string lib_flag;
+  std::set<std::string> libs = HeaderManager::Instance()->getLibs();
+  for (std::string lib : libs) {
+    lib_flag += lib + " ";
+  }
   std::string makefile;
   makefile += "CC:=clang\n";
   // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
@@ -833,6 +875,9 @@ std::string get_makefile() {
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
+    // libs
+    + lib_flag
+    + ""
     + "\n"
     + "clean:\n"
     + "\trm -rf *.out *.gcda *.gcno\n"

@@ -243,6 +243,7 @@ namespace v2 {
    */
   class SnippetManager {
   public:
+    // FIXME Instance()??? make the constructor private
     SnippetManager() {}
     ~SnippetManager() {}
     void add(Snippet *s) {

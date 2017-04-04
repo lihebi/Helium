@@ -14,6 +14,71 @@ namespace fs = boost::filesystem;
 
 
 /**
+ * Manager the headers on the system
+ */
+class HeaderManager {
+public:
+  static HeaderManager* Instance() {
+    if (!instance) instance = new HeaderManager();
+    return instance;
+  }
+
+  static bool header_exists(const std::string header) {
+    fs::path p("/usr/include/"+header);
+    if (fs::exists(p)) return true;
+    p = "/usr/local/include/" + header;
+    if (fs::exists(p)) return true;
+    p = "/usr/include/x86_64-linux-gnu/" + header;
+    if (fs::exists(p)) return true;
+    p = "/usr/include/i386-linux-gnu/" + header;
+    if (fs::exists(p)) return true;
+    p = "/usr/lib/gcc/x86_64-linux-gnu/6/include/" + header;
+    if (fs::exists(p)) return true;
+    p = "/usr/lib/gcc/i386-linux-gnu/6/include/" + header;
+    if (fs::exists(p)) return true;
+    return false;
+  }
+
+  void addConf(fs::path file) {
+    std::map<std::string, std::string> headers = parseHeaderConf(file);
+    for (auto m : headers) {
+      if (header_exists(m.first)) {
+        Headers.insert(m.first);
+        if (!m.second.empty()) {
+          Libs.insert(m.second);
+        }
+      }
+    }
+  }
+
+  void dump(std::ostream &os) {
+    for (std::string s : Headers) {
+      os << s << " ";
+    }
+    os << "\n";
+    for (std::string s : Libs) {
+      os << s << " ";
+    }
+    os << "\n";
+  }
+  /**
+   * TODO Get headers
+   */
+  std::map<std::string, std::string> parseHeaderConf(fs::path file);
+
+  std::set<std::string> getHeaders() {return Headers;}
+  std::set<std::string> getLibs() {return Libs;}
+private:
+  HeaderManager() {}
+  ~HeaderManager() {}
+  std::set<std::string> Headers;
+  std::set<std::string> Libs;
+  static HeaderManager *instance;
+
+};
+
+
+/**
  * \ingroup parser
  */
 class SourceManager {

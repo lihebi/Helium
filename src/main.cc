@@ -624,6 +624,17 @@ int main(int argc, char* argv[]) {
 
   std::cout << "Loaded snippet:" << v2::SnippetManager::Instance()->size() << "\n";
   // v2::GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
+
+
+
+
+  assert(fs::exists(helium_home / "etc" / "system.conf"));
+  assert(fs::exists(helium_home / "etc" / "third-party.conf"));
+  HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
+  HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+
+  // std::cout << "Header Manager:" << "\n";
+  // HeaderManager::Instance()->dump(std::cout);
   
 
 
