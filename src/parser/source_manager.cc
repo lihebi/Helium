@@ -617,6 +617,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       std::string prog = generator->getProgram();
       body += prog;
     }
+    ret += "// Should into main\n";
     ret += "int main(int argc, char *argv[]) {\n";
     ret += body;
     ret += "  return 0;\n";
@@ -636,6 +637,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     }
     ret += body;
 
+    ret += "// Should NOT into main\n";
     ret += "int main(int argc, char *argv[]) {\n";
     // TODO call to those functions
     ret += "  return 0;\n";

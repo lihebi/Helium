@@ -24,8 +24,11 @@ void SymbolTableBuilder::visit(v2::TranslationUnitDecl *node) {
 }
 void SymbolTableBuilder::visit(v2::FunctionDecl *node) {
   Table.pushScope();
+  // (HEBI: FunctionDecl)
   std::set<std::string> vars = node->getVars();
-  Table.add(vars, node);
+  // Table.add(vars, node);
+  // map to param node
+  Table.add(vars, node->getParamNode());
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
@@ -63,6 +66,7 @@ void SymbolTableBuilder::visit(v2::ForStmt *node) {
   Expr *init = node->getInit();
   std::set<std::string> vars = init->getVars();
   // Table.add(vars, node);
+  // (HEBI: ForStmt -> init)
   Table.add(vars, init);
   insertDefUse(node);
   Visitor::visit(node);
@@ -100,6 +104,7 @@ void SymbolTableBuilder::visit(v2::Expr *node) {
 }
 void SymbolTableBuilder::visit(v2::DeclStmt *node) {
   std::set<std::string> vars = node->getVars();
+  // (HEBI: DeclStmt)
   Table.add(vars, node);
   insertDefUse(node);
   Visitor::visit(node);

@@ -239,66 +239,74 @@ bool do_compile(fs::path dir) {
  * helium_target_name : the name helium represents a benchmark
  * _home_hebi_XXX_name
  */
-void helium_run(fs::path helium_home, std::string helium_target_name) {
+void helium_run(fs::path helium_home, std::string helium_target_name, std::vector<fs::path> sels) {
   // std::cout << "Helium Running .." << "\n";
   fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
   // fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
-  fs::path target_sel_dir = target_cache_dir / "sel";
+  // fs::path target_sel_dir = target_cache_dir / "sel";
   fs::path gen_program_dir = target_cache_dir / "gen";
   if (!fs::exists(gen_program_dir)) fs::create_directories(gen_program_dir);
-  
-  fs::recursive_directory_iterator it(target_sel_dir), eod;
-  BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-    // must be .sel file
-    if (is_regular_file(p) && p.extension() == ".sel") {
-      // read the sel file
-      SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
 
-      // DEBUG
-      // sourceManager->dumpASTs();
+  for (fs::path sel_file : sels) {
+    SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
+
+    // DEBUG
+    // sourceManager->dumpASTs();
       
-      std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(p);
-      std::cout << "---------------------" << "\n";
-      std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << p.string() << "\n";
-      // dumping
-      for (v2::ASTNodeBase *node : sel) {
-        node->dump(std::cout);
-      }
-      std::cout << "\n";
+    std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
+    std::cout << "---------------------" << "\n";
+    std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << sel_file.string() << "\n";
+    // dumping
+    for (v2::ASTNodeBase *node : sel) {
+      node->dump(std::cout);
+    }
+    std::cout << "\n";
       
-      // std::cout << "[main] Distribution:" << "\n";
-      // sourceManager->analyzeDistribution(sel, {}, std::cout);
+    // std::cout << "[main] Distribution:" << "\n";
+    // sourceManager->analyzeDistribution(sel, {}, std::cout);
 
-      std::cout << "[main] Doing Grammar Patching .." << "\n";
-      sel = sourceManager->grammarPatch(sel);
+    std::cout << "[main] Doing Grammar Patching .." << "\n";
 
-      sel = sourceManager->defUse(sel);
-      // I might want to do another grammar patching in case def use breaks it
-      sel = sourceManager->grammarPatch(sel);
+    // (HEBI: Grammar Patch)
+    sel = sourceManager->grammarPatch(sel);
+    // std::cout << "1: ";
+    // for (v2::ASTNodeBase *node : sel) {node->dump(std::cout);}
+    // std::cout << "\n";
+
+    // (HEBI: Def-use)
+    sel = sourceManager->defUse(sel);
+    // std::cout << "2: ";
+    // for (v2::ASTNodeBase *node : sel) {node->dump(std::cout);}
+    // std::cout << "\n";
+
+    // (HEBI: Grammar Patch)
+    // I might want to do another grammar patching in case def use breaks it
+    sel = sourceManager->grammarPatch(sel);
+    // std::cout << "3: ";
+    // for (v2::ASTNodeBase *node : sel) {node->dump(std::cout);}
+    // std::cout << "\n";
       
-      std::cout << "[main] Patch size: "<< sel.size() << "\n";
-      for (v2::ASTNodeBase *node : sel) {
-        node->dump(std::cout);
-      }
-      std::cout << "\n";
+    std::cout << "[main] Patch size: "<< sel.size() << " ==> ";
+    for (v2::ASTNodeBase *node : sel) {node->dump(std::cout);}
+    std::cout << "\n";
       
-      std::string prog = sourceManager->generateProgram(sel);
-      std::cout << "[main] Program:" << "\n";
-      std::cout << prog << "\n";
+    std::string prog = sourceManager->generateProgram(sel);
+    std::cout << "[main] Program:" << "\n";
+    std::cout << prog << "\n";
 
-      // put the program into main function
-      // TODO for function parameter, we need not include function header, but create variable??
+    // put the program into main function
+    // TODO for function parameter, we need not include function header, but create variable??
 
-      // Generate into folder and do compilation
-      // use the sel filename as the folder
-      fs::path gen_dir = gen_program_dir / p.filename();
-      sourceManager->generate(sel, gen_dir);
-      // do compilation
-      if (do_compile(gen_dir)) {
-        std::cout << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
-      } else {
-        std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
-      }
+    // Generate into folder and do compilation
+    // use the sel filename as the folder
+    fs::path gen_dir = gen_program_dir / sel_file.filename();
+    sourceManager->generate(sel, gen_dir);
+    std::cout << "[main] Code written to " << gen_dir.string() << "\n";
+    // do compilation
+    if (do_compile(gen_dir)) {
+      std::cout << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
+    } else {
+      std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
     }
   }
 }
@@ -615,7 +623,34 @@ int main(int argc, char* argv[]) {
 
   std::cout << "[main] Running Helium on " << target.string() << " .." << "\n";
   // fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
-  helium_run(helium_home, target_dir_name);
+
+  // get selection files
+  std::vector<fs::path> sels;
+  if (HeliumOptions::Instance()->Has("sel")) {
+    fs::path sel_config = HeliumOptions::Instance()->GetString("sel");
+    if (fs::is_regular_file(sel_config)) {
+      sels.push_back(sel_config);
+    }
+    if (fs::is_directory(sel_config)) {
+      fs::recursive_directory_iterator it(target_sel_dir), eod;
+      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+        // must be .sel file
+        if (is_regular_file(p) && p.extension() == ".sel") {
+          sels.push_back(sel_config);
+        }
+      }
+    }
+  } else {
+    fs::recursive_directory_iterator it(target_sel_dir), eod;
+    BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+      // must be .sel file
+      if (is_regular_file(p) && p.extension() == ".sel") {
+        sels.push_back(p);
+      }
+    }
+  }
+
+  helium_run(helium_home, target_dir_name, sels);
 
   std::cout << "[main] End Of Helium" << "\n";
   exit(0);

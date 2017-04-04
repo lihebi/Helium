@@ -117,8 +117,12 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   // std::cout << "\n";
 
   GrammarPatcher patcher;
-  PatchData data;
-  data.selection = sel;
+  // PatchData data;
+  // data.selection = sel;
+
+  // CAUTION note that the selection does not include the parent it
+  // self.  So even if the parent is selected, e.g. FunctionDecl is
+  // selected, it is silently actually ignored.
   patcher.setSelection(sel);
   parent->accept(&patcher);
   // patcher.patch(parent);
@@ -193,6 +197,11 @@ void GrammarPatcher::visit(v2::FunctionDecl *node) {
     Patch.insert(NameNode);
     Patch.insert(ParamNode);
     Patch.insert(body);
+
+    // this will ensure to capture the compstmt
+    // FIXME other such bugs?
+    // FIXME how to use GlobalSkip correctly?
+    GlobalSkip.erase(body);
 
     GrammarPatcher patcher;
     body->accept(&patcher);
