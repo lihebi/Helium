@@ -248,6 +248,88 @@ std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
   return ret;
 }
 
+std::set<v2::ASTNodeBase*> SourceManager::genRandSel(int num) {
+  // TODO get all tokens only one time to get performance
+  std::vector<v2::ASTNodeBase*> nodes;
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TokenVisitor *tokenVisitor = new TokenVisitor();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(tokenVisitor);
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    nodes.insert(nodes.begin(), tokens.begin(), tokens.end());
+  }
+  // get
+  // return all nodes or simply empty?
+  if (num > nodes.size()) return {};
+  std::set<int> idxes = utils::rand_ints(0, nodes.size()-1, num);
+  std::set<v2::ASTNodeBase*> ret;
+  for (int idx : idxes) {
+    ret.insert(nodes[idx]);
+  }
+  return ret;
+}
+std::set<v2::ASTNodeBase*> SourceManager::genRandSelSameFile(int num) {
+  std::map<std::string, std::vector<v2::ASTNodeBase*> > file2nodes;
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TokenVisitor *tokenVisitor = new TokenVisitor();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(tokenVisitor);
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    std::string file = m.first.string();
+    file2nodes[file].insert(file2nodes[file].end(), tokens.begin(), tokens.end());
+  }
+  // get
+  for (auto it=file2nodes.begin();it!=file2nodes.end();++it) {
+    if (it->second.size() < num) {
+      it = file2nodes.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  std::vector<std::string> files;
+  for (auto &m : file2nodes) {
+    files.push_back(m.first);
+  }
+  if (file2nodes.size() == 0) return {};
+  // randomly select a file
+  int idx = utils::rand_int(0,files.size()-1);
+  std::vector<v2::ASTNodeBase*> &v = file2nodes[files[idx]];
+  std::set<int> idxes = utils::rand_ints(0, v.size()-1, num);
+  std::set<v2::ASTNodeBase*> ret;
+  for (int idx : idxes) {
+    ret.insert(v[idx]);
+  }
+  return ret;
+}
+
+std::set<v2::ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
+  // get a vector of vector of nodes, ordered by function
+  std::vector<std::vector<v2::ASTNodeBase*> > vv;
+  std::vector<v2::ASTNodeBase*> functions;
+  for (auto &m : AST2DistributorMap) {
+    Distributor *dist = m.second;
+    std::set<ASTNodeBase*> funcs = dist->getFuncNodes();
+    functions.insert(functions.end(), funcs.begin(), funcs.end());
+  }
+  // filter out functions with less tokens
+  for (ASTNodeBase *node : functions) {
+    TokenVisitor visitor;
+    node->accept(&visitor);
+    vector<ASTNodeBase*> tokens = visitor.getTokens();
+    if (tokens.size() >= num) vv.push_back(tokens);
+  }
+  // select from those functions
+  if (vv.size() == 0) return {};
+  std::set<v2::ASTNodeBase*> ret;
+  int func_idx = utils::rand_int(0, vv.size()-1);
+  std::set<int> idxes = utils::rand_ints(0, vv[func_idx].size()-1, num);
+  for (int idx : idxes) {
+    ret.insert(vv[func_idx][idx]);
+  }
+  return ret;
+}
 
 std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   map<string, set<pair<int,int> > > selection;
@@ -346,7 +428,7 @@ void SourceManager::dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ost
     TokenVisitor *tokenVisitor = m.second;
     fs::path file = AST2FileMap[ast];
     // output filename
-    os << "# " << file.string() << "\n";
+    os << "#file " << file.string() << "\n";
     vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
     for (ASTNodeBase *token : tokens) {
       if (selection.count(token) == 1) {

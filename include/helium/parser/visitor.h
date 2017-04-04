@@ -458,6 +458,14 @@ public:
   }
 
   void dump(std::ostream &os);
+
+  std::set<v2::ASTNodeBase*> getIfNodes() {return if_nodes;}
+  std::set<v2::ASTNodeBase*> getSwitchNodes() {return switch_nodes;}
+  std::set<v2::ASTNodeBase*> getForNodes() {return for_nodes;}
+  std::set<v2::ASTNodeBase*> getDoNodes() {return do_nodes;}
+  std::set<v2::ASTNodeBase*> getWhileNodes() {return while_nodes;}
+  std::set<v2::ASTNodeBase*> getFuncNodes() {return func_nodes;}
+  
   
 private:
   std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ContainMap;

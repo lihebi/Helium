@@ -566,35 +566,22 @@ int main(int argc, char* argv[]) {
     // create selection folder if not exist
     if (!fs::exists(target_sel_dir)) fs::create_directories(target_sel_dir);
     SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
-    std::set<v2::ASTNodeBase*> selection;
     // create and overwrite random/ folder
     fs::remove_all(target_sel_dir / "random");
     fs::create_directories(target_sel_dir / "random");
-    std::ofstream os;
-    os.open((target_sel_dir / "random" / "1.sel").string().c_str());
-    selection = sourceManager->generateRandomSelection();
-    sourceManager->dumpSelection(selection, os);
-    os.close();
 
-    os.open((target_sel_dir / "random" / "2.sel").string().c_str());
-    selection = sourceManager->generateRandomSelection();
-    sourceManager->dumpSelection(selection, os);
-    os.close();
-
-    // create and overwrite one/ two/ folder
-    fs::remove_all(target_sel_dir / "one");
-    fs::create_directories(target_sel_dir / "one");
-    fs::remove_all(target_sel_dir / "two");
-    fs::create_directories(target_sel_dir / "two");
-    // create sample.sel
-    fs::remove(target_sel_dir / "sample.sel");
-    utils::write_file((target_sel_dir / "sample.sel").string(),
-                      "# a.c\n\n# first line must be # /path/to/file\n\
-# anything start with # is comment\n\
-# two numbers are treated as valid selection\n\n\
-8 3");
-
-    std::cout << "Files written to " << target_sel_dir.string() << "\n";
+    for (int i=0;i<10;i++) {
+      std::set<v2::ASTNodeBase*> selection;
+      fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".sel");
+      std::ofstream os;
+      os.open(file.string().c_str());
+      assert(os.is_open());
+      // selection = sourceManager->genRandSelSameFunc(1);
+      selection = sourceManager->genRandSel(1);
+      sourceManager->dumpSelection(selection, os);
+      os.close();
+      std::cout << "Selection file wrote to " << file.string() << "\n";
+    }
     exit(0);
   }
 
