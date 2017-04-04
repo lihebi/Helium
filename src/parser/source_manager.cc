@@ -187,13 +187,28 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
     use2def.insert(u2d.begin(), u2d.end());
   }
   // process sel
+  // this needs to be recursive
   std::set<v2::ASTNodeBase*> ret = sel;
-  for (v2::ASTNodeBase *node : sel) {
+
+  std::vector<v2::ASTNodeBase*> worklist(sel.begin(), sel.end());
+  std::set<v2::ASTNodeBase*> done;
+  while (!worklist.empty()) {
+    v2::ASTNodeBase *node = worklist.back();
+    worklist.pop_back();
     if (use2def.count(node) == 1) {
       std::set<ASTNodeBase*> tmp = use2def[node];
       ret.insert(tmp.begin(), tmp.end());
+      for (auto *n : tmp) {
+        if (done.count(n) == 0) worklist.push_back(n);
+      }
     }
   }
+  // for (v2::ASTNodeBase *node : sel) {
+  //   if (use2def.count(node) == 1) {
+  //     std::set<ASTNodeBase*> tmp = use2def[node];
+  //     ret.insert(tmp.begin(), tmp.end());
+  //   }
+  // }
   return ret;
 }
 
