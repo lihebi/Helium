@@ -821,6 +821,7 @@ int foo(int a, int b) {
   unit->accept(&matcher);
 
   ASTNodeBase *function_decl = matcher.getNodeByLoc("FunctionDecl", 1);
+  ASTNodeBase *param = dynamic_cast<FunctionDecl*>(function_decl)->getParamNode();
   // a<b
   ASTNodeBase *while_cond = matcher.getNodeByLoc("Expr", 2);
   // a=b
@@ -836,13 +837,13 @@ int foo(int a, int b) {
   EXPECT_EQ(u2d.size(), 4);
 
   ASSERT_EQ(u2d.count(while_cond), 1);
-  EXPECT_EQ(u2d[while_cond].count(function_decl), 1);
+  EXPECT_EQ(u2d[while_cond].count(param), 1);
   ASSERT_EQ(u2d.count(expr_stmt), 1);
-  EXPECT_EQ(u2d[expr_stmt].count(function_decl), 1);
+  EXPECT_EQ(u2d[expr_stmt].count(param), 1);
   ASSERT_EQ(u2d.count(if_cond), 1);
-  EXPECT_EQ(u2d[if_cond].count(function_decl), 1);
+  EXPECT_EQ(u2d[if_cond].count(param), 1);
   ASSERT_EQ(u2d.count(expr_stmt_2), 1);
-  EXPECT_EQ(u2d[expr_stmt_2].count(function_decl), 1);
+  EXPECT_EQ(u2d[expr_stmt_2].count(param), 1);
 }
 
 TEST(SymbolTableTest, ForTest) {

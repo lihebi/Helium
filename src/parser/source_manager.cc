@@ -741,16 +741,34 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
   sel = patchFunctionHeader(sel);
   // get the snippets
+
+  // DEBUG
+  // GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
+  
   std::set<v2::Snippet*> snippets;
   for (auto *node : sel) {
-    std::set<std::string> ids = node->getIdToResolve();
+    std::set<std::string> ids;
+    if (node) {
+      ids = node->getIdToResolve();
+    }
     for (std::string id : ids) {
-      std::vector<Snippet*> ss = GlobalSnippetManager::Instance()->getManager()->get(id);
+      std::vector<Snippet*> ss = SnippetManager::Instance()->get(id);
       snippets.insert(ss.begin(), ss.end());
     }
   }
+  // get dependence
+  std::set<v2::Snippet*> deps;
+  for (auto *s : snippets) {
+    std::set<v2::Snippet*> dep = SnippetManager::Instance()->getAllDep(s);
+    deps.insert(dep.begin(), dep.end());
+  }
+  snippets.insert(deps.begin(), deps.end());
+
+  // remove non-outers
+  snippets = SnippetManager::Instance()->replaceNonOuters(snippets);
+  
   // sort the snippets
-  std::vector<Snippet*> sorted_snippets = GlobalSnippetManager::Instance()->getManager()->sort(snippets);
+  std::vector<Snippet*> sorted_snippets = SnippetManager::Instance()->sort(snippets);
 
   std::vector<Snippet*> func_snippets;
   std::vector<Snippet*> type_snippets;
@@ -775,8 +793,11 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   for (Snippet *s : func_snippets) {
     func += s->getCode() + "\n";
   }
+  ret += "// type\n";
   ret += type;
+  ret += "// var\n";
   ret += var;
+  ret += "// func\n";
   ret += func;
   
   return ret;

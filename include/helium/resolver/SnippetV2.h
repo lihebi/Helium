@@ -177,7 +177,7 @@ namespace v2 {
          << End.getLine() << " " << End.getColumn() << "\n";
     }
     virtual void load(std::istream &is) {
-      is >> ID >> Name >> Begin >> End;
+      Snippet::load(is);
     }
     virtual void dump(std::ostream &os) {
       os << "RecordSnippet " << Name;
@@ -275,6 +275,17 @@ namespace v2 {
     }
 
     /**
+     * FIXME CAUTION must call this after load!!!
+     */
+    void processAfterLoad() {
+      for (Snippet *s : Snippets) {
+        std::string name = s->getName();
+        KeyMap[name].push_back(s);
+      }
+      sortFiles();
+    }
+
+    /**
      * Sort files based on Topological sorting
      * Considering only type snippets: Record, Enum, Typedef
      */
@@ -333,6 +344,11 @@ namespace v2 {
      */
     std::set<Snippet*> getAllDep(Snippet *s);
     /**
+     * if there's a outer of any of them, use that outer
+     */
+    std::set<Snippet*> replaceNonOuters(std::set<Snippet*> ss);
+    
+    /**
      * Simple Getters
      */
     std::vector<Snippet*> getSnippets() {return Snippets;}
@@ -374,6 +390,15 @@ namespace v2 {
 
     std::vector<Snippet*> sort(std::set<Snippet*> snippets);
 
+    int size() {return Snippets.size();}
+
+    static SnippetManager *Instance() {
+      if (!instance) {
+        instance = new SnippetManager();
+      }
+      return instance;
+    }
+
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
     std::map<Snippet*, std::set<Snippet*> > Deps;
@@ -387,30 +412,32 @@ namespace v2 {
     // sorted snippets
     std::vector<Snippet*> SnippetV;
     // std::map<int, std::set<int> > IdDeps;
+
+    static SnippetManager *instance;
   };
 
 
-  class GlobalSnippetManager {
-  public:
-    static GlobalSnippetManager *Instance() {
-      if (!instance) {
-        instance = new GlobalSnippetManager();
-      }
-      return instance;
-    }
-    void load(fs::path target_cache_dir) {
-      manager = new SnippetManager();
-      manager->loadSnippet(target_cache_dir / "snippets.txt");
-      manager->loadDeps(target_cache_dir / "deps.txt");
-      manager->loadOuters(target_cache_dir / "outers.txt");
-    }
-    SnippetManager *getManager() {return manager;}
-  private:
-    GlobalSnippetManager() {}
-    ~GlobalSnippetManager() {}
-    static GlobalSnippetManager *instance;
-    SnippetManager *manager = nullptr;
-  };
+  // class GlobalSnippetManager {
+  // public:
+  //   static GlobalSnippetManager *Instance() {
+  //     if (!instance) {
+  //       instance = new GlobalSnippetManager();
+  //     }
+  //     return instance;
+  //   }
+  //   void load(fs::path target_cache_dir) {
+  //     manager = new SnippetManager();
+  //     manager->loadSnippet(target_cache_dir / "snippets.txt");
+  //     manager->loadDeps(target_cache_dir / "deps.txt");
+  //     manager->loadOuters(target_cache_dir / "outers.txt");
+  //   }
+  //   SnippetManager *getManager() {return manager;}
+  // private:
+  //   GlobalSnippetManager() {}
+  //   ~GlobalSnippetManager() {}
+  //   static GlobalSnippetManager *instance;
+  //   SnippetManager *manager = nullptr;
+  // };
   
 }
 

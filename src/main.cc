@@ -615,7 +615,16 @@ int main(int argc, char* argv[]) {
 
 
 
-  v2::GlobalSnippetManager::Instance()->load(target_cache_dir);
+  std::cout << "Loading snippet from " << target_cache_dir << "\n";
+  v2::SnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
+  v2::SnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
+  v2::SnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
+  // CAUTION Must process after load.
+  v2::SnippetManager::Instance()->processAfterLoad();
+
+  std::cout << "Loaded snippet:" << v2::SnippetManager::Instance()->size() << "\n";
+  // v2::GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
+  
 
 
   // (HEBI: Running)

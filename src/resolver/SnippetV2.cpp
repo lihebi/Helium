@@ -11,7 +11,7 @@ using namespace v2;
 using std::set;
 using std::vector;
 
-GlobalSnippetManager *GlobalSnippetManager::instance = nullptr;
+SnippetManager *SnippetManager::instance = nullptr;
 
 std::string read_file_for_code(fs::path file, SourceLocation begin, SourceLocation end) {
   int l1 = begin.getLine();
@@ -174,6 +174,9 @@ void SnippetManager::loadSnippet(fs::path p) {
   assert(is.is_open());
   std::string kind;
   Snippet *s = nullptr;
+  // while (is >> kind) {
+  //   std::cout << kind << "\n";
+  // }
   while (is >> kind) {
     if (kind == "FunctionSnippet") s = new FunctionSnippet();
     else if (kind == "VarSnippet") s = new VarSnippet();
@@ -183,6 +186,9 @@ void SnippetManager::loadSnippet(fs::path p) {
       assert(false);
     }
     s->load(is);
+    // while (is >> kind) {
+    //   std::cout << kind << "\n";
+    // }
     int id = Snippets.size();
     s->setId(id);
     Snippets.push_back(s);
@@ -295,7 +301,9 @@ void SnippetManager::dumpLight(std::ostream &os) {
 }
 
 void SnippetManager::dump(std::ostream &os) {
+
   os << "== Total " << Snippets.size() << " snippets\n";
+  os << "== KeyMap: " << KeyMap.size() << "\n";
   for (Snippet *s : Snippets) {
     // s->dump(os);
     // os << "\n";
@@ -343,14 +351,34 @@ std::set<v2::Snippet*> SnippetManager::getAllDep(Snippet *s) {
   worklist.insert(s);
   while (!worklist.empty()) {
     Snippet *s = *worklist.begin();
-    if (done.count(s) == 1) continue;
     worklist.erase(s);
+    if (done.count(s) == 1) continue;
     std::set<Snippet*> dep = getDep(s);
     worklist.insert(dep.begin(), dep.end());
     ret.insert(dep.begin(), dep.end());
     done.insert(s);
   }
   ret.erase(s);
+  return ret;
+}
+
+std::set<v2::Snippet*> SnippetManager::replaceNonOuters(std::set<Snippet*> ss) {
+  std::set<Snippet*> ret;
+  std::vector<Snippet*> worklist(ss.begin(), ss.end());
+  std::set<Snippet*> done;
+  while (!worklist.empty()) {
+    Snippet *s = worklist.back();
+    worklist.pop_back();
+    done.insert(s);
+    if (Outers.count(s) == 1) {
+      std::set<Snippet*> outers = Outers[s];
+      for (Snippet *o : outers) {
+        if (done.count(o) == 0) worklist.push_back(o);
+      }
+    } else {
+      ret.insert(s);
+    }
+  }
   return ret;
 }
 

@@ -114,7 +114,8 @@ CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
   std::pair<int, int> end = get_node_end_position(node);
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
-  TokenNode *CompNode = new TokenNode(Ctx, "COMP_DUMMY", BeginLoc, BeginLoc + std::make_pair(0,1));
+  // COMP_DUMMY
+  TokenNode *CompNode = new TokenNode(Ctx, "", BeginLoc, BeginLoc + std::make_pair(0,1));
   CompoundStmt *ret = new CompoundStmt(Ctx, CompNode, BeginLoc, EndLoc);
   
   for (XMLNode n : element_children(node)) {

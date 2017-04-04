@@ -189,6 +189,17 @@ protected:
 };
 
 
+TEST(NewSnippetTest, GetTest) {
+  fs::path target_cache_dir = "/home/hebi/.helium.d/cache/_home_hebi_data_fast_xcape-master";
+  v2::SnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
+  v2::SnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
+  v2::SnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
+  v2::SnippetManager::Instance()->processAfterLoad();
+  // v2::SnippetManager::Instance()->dump(std::cout);
+  std::vector<v2::Snippet*> v = v2::SnippetManager::Instance()->get("handle_key");
+  ASSERT_EQ(v.size(), 1);
+}
+
 
 TEST_F(NewSnippetTest, MyTest) {
   {
