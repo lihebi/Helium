@@ -247,8 +247,8 @@ void helium_run(fs::path helium_home, std::string helium_target_name, std::vecto
   fs::path gen_program_dir = target_cache_dir / "gen";
   if (!fs::exists(gen_program_dir)) fs::create_directories(gen_program_dir);
 
+  SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
   for (fs::path sel_file : sels) {
-    SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
 
     // DEBUG
     // sourceManager->dumpASTs();
