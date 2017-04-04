@@ -781,6 +781,17 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
     else if (dynamic_cast<VarSnippet*>(s)) var_snippets.push_back(s);
   }
 
+
+  // filter out functions used in main.c
+  std::set<std::string> main_c_funcs;
+  for (auto *node : sel) {
+    if (FunctionDecl *func = dynamic_cast<FunctionDecl*>(node)) {
+      std::string name = func->getName();
+      main_c_funcs.insert(name);
+    }
+  }
+
+
   std::string type;
   for (Snippet *s : type_snippets) {
     type += s->getCode() + ";\n";
@@ -791,7 +802,10 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   }
   std::string func;
   for (Snippet *s : func_snippets) {
-    func += s->getCode() + "\n";
+    std::string name = s->getName();
+    if (main_c_funcs.count(name) == 0) {
+      func += s->getCode() + "\n";
+    }
   }
   ret += "// type\n";
   ret += type;
