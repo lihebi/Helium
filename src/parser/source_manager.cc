@@ -650,7 +650,40 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   
   return ret;
 }
-void generate(std::set<v2::ASTNodeBase*> sel, fs::path dir) {}
+
+std::string get_makefile() {
+  std::string makefile;
+  makefile += "CC:=clang\n";
+  // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
+  makefile += ".PHONY: all clean test\n";
+  makefile = makefile + "a.out: main.c\n"
+    + "\t$(CC) -g "
+    // comment out because <unistd.h> will not include <optarg.h>
+    + "-std=c11 "
+    + "main.c "
+    // gnulib should not be used:
+    // 1. Debian can install it in the system header, so no longer need to clone
+    // 2. helium-lib already has those needed headers, if installed correctly by instruction
+    // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
+    + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
+    + "-fprofile-arcs -ftest-coverage " // gcov coverage
+    + "clean:\n"
+    + "\trm -rf *.out *.gcda *.gcno\n"
+    + "test:\n"
+    + "\tbash test.sh";
+  return makefile;
+}
+
+void SourceManager::generate(std::set<v2::ASTNodeBase*> sel, fs::path dir) {
+  std::string main_c = generateProgram(sel);
+  std::string main_h = generateSupport(sel);
+  std::string makefile = get_makefile();
+  if (fs::exists(dir)) fs::remove_all(dir);
+  fs::create_directories(dir);
+  utils::write_file(dir / "main.c", main_c);
+  utils::write_file(dir / "main.h", main_h);
+  utils::write_file(dir / "Makefile", makefile);
+}
 
 
 void SourceManager::dump(std::ostream &os) {

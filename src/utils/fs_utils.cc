@@ -186,6 +186,11 @@ namespace utils {
     }
   }
 
+  void write_file(fs::path p, const std::string &content) {
+    write_file(p.string(), content);
+  }
+
+
   /**
    * Append content to file. Create if not existing.
    */

@@ -3,6 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
+namespace fs=boost::filesystem;
 
 namespace utils {
   std::string escape_tide(std::string path);
@@ -27,6 +31,9 @@ namespace utils {
   void append_file(const std::string& file, const std::string& content);
   std::string read_file(const std::string& file);
   std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn);
+
+  void write_file(fs::path p, const std::string &content);
+  
   // folders
   void remove_folder(const std::string& folder);
   void create_folder(const std::string& folder);

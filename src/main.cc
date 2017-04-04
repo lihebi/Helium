@@ -218,6 +218,23 @@ int deprecated_show_instrument_code() {
 
 
 /**
+ * Do compilation in dir
+ */
+bool do_compile(fs::path dir) {
+  std::string clean_cmd = "make clean -C " + dir.string();
+  std::string cmd = "make -C " + dir.string();
+  cmd += " 2>&1";
+  utils::exec(clean_cmd.c_str(), NULL);
+  int return_code;
+  std::string error_msg = utils::exec_sh(cmd.c_str(), &return_code);
+  if (return_code == 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
  * helium_target_name : the name helium represents a benchmark
  * _home_hebi_XXX_name
  */
@@ -226,6 +243,9 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
   fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
   // fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
   fs::path target_sel_dir = target_cache_dir / "sel";
+  fs::path gen_program_dir = target_cache_dir / "gen";
+  if (!fs::exists(gen_program_dir)) fs::create_directories(gen_program_dir);
+  
   fs::recursive_directory_iterator it(target_sel_dir), eod;
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
     // must be .sel file
@@ -267,6 +287,17 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
 
       // put the program into main function
       // TODO for function parameter, we need not include function header, but create variable??
+
+      // Generate into folder and do compilation
+      // use the sel filename as the folder
+      fs::path gen_dir = gen_program_dir / p.filename();
+      sourceManager->generate(sel, gen_dir);
+      // do compilation
+      if (do_compile(gen_dir)) {
+        std::cout << "[main] Compile Success !!!" << "\n";
+      } else {
+        std::cout << "[main] Compile Failure ..." << "\n";
+      }
     }
   }
 }
