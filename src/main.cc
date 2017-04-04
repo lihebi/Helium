@@ -227,6 +227,7 @@ bool do_compile(fs::path dir) {
   utils::exec(clean_cmd.c_str(), NULL);
   int return_code;
   std::string error_msg = utils::exec_sh(cmd.c_str(), &return_code);
+  // std::cout << error_msg << "\n";
   if (return_code == 0) {
     return true;
   } else {
@@ -294,9 +295,9 @@ void helium_run(fs::path helium_home, std::string helium_target_name) {
       sourceManager->generate(sel, gen_dir);
       // do compilation
       if (do_compile(gen_dir)) {
-        std::cout << "[main] Compile Success !!!" << "\n";
+        std::cout << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
       } else {
-        std::cout << "[main] Compile Failure ..." << "\n";
+        std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
       }
     }
   }

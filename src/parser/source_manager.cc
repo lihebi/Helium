@@ -540,7 +540,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     ret += "#include <stdio.h>\n";
     ret += "#include <stdlib.h>\n";
     ret += "#include <string.h>\n";
-    ret += "#include <main.h>\n";
+    ret += "#include \"main.h\"\n";
     ret += "int main(int argc, char *argv[]) {\n";
     ret += body;
     ret += "  return 0;\n";
@@ -567,7 +567,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     ret += "#include <stdio.h>\n";
     ret += "#include <stdlib.h>\n";
     ret += "#include <string.h>\n";
-    ret += "#include <main.h>\n";
+    ret += "#include \"main.h\"\n";
 
     ret += body;
 
@@ -667,6 +667,7 @@ std::string get_makefile() {
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
+    + "\n"
     + "clean:\n"
     + "\trm -rf *.out *.gcda *.gcno\n"
     + "test:\n"
