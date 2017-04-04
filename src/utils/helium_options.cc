@@ -59,6 +59,8 @@ HeliumOptions::HeliumOptions() {
     // ("distribution", po::value<std::string>(), "analyze the distribution of a selection file")
     // ("clang-snippet", "extract snippet index using clang")
     ("create-selection", "create selection folder and put manual.txt, sample.txt, random/1.txt, one/1.txt, two/1.txt etc")
+    ("sel-num", po::value<int>()->default_value(10), "how many to generate")
+    ("sel-tok", po::value<int>()->default_value(1), "how many token to select")
     ("sel", po::value<std::string>(), "selection file")
     ("dump-ast", "dump ast")
     ("hebi", "Experimental")

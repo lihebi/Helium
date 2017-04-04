@@ -195,6 +195,7 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   while (!worklist.empty()) {
     v2::ASTNodeBase *node = worklist.back();
     worklist.pop_back();
+    done.insert(node);
     if (use2def.count(node) == 1) {
       std::set<ASTNodeBase*> tmp = use2def[node];
       ret.insert(tmp.begin(), tmp.end());
@@ -606,6 +607,8 @@ std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNo
     for (auto *node : funcs) {
       FunctionDecl *func = dynamic_cast<FunctionDecl*>(node);
       if (func) {
+        // FIXME this does not going through grammar patching!!
+        sel.insert(func);
         sel.insert(func->getReturnTypeNode());
         sel.insert(func->getNameNode());
         sel.insert(func->getParamNode());
@@ -835,13 +838,20 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
 
   // filter out functions used in main.c
+  // std::cout << "Filtering ..." << "\n";
   std::set<std::string> main_c_funcs;
   for (auto *node : sel) {
+    // node->dump(std::cout);
     if (FunctionDecl *func = dynamic_cast<FunctionDecl*>(node)) {
       std::string name = func->getName();
       main_c_funcs.insert(name);
     }
   }
+  // std::cout << "\n";
+  // std::cout << "Main C:" << "\n";
+  // for (std::string s : main_c_funcs) {
+  //   std::cout << s << "\n";
+  // }
 
 
   std::string type;

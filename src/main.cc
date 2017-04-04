@@ -570,6 +570,8 @@ int main(int argc, char* argv[]) {
   // }
 
   if (HeliumOptions::Instance()->Has("create-selection")) {
+    int sel_num = HeliumOptions::Instance()->GetInt("sel-num");
+    int sel_tok = HeliumOptions::Instance()->GetInt("sel-tok");
     // create selection
     // create selection folder if not exist
     if (!fs::exists(target_sel_dir)) fs::create_directories(target_sel_dir);
@@ -578,14 +580,14 @@ int main(int argc, char* argv[]) {
     fs::remove_all(target_sel_dir / "random");
     fs::create_directories(target_sel_dir / "random");
 
-    for (int i=0;i<10;i++) {
+    for (int i=0;i<sel_num;i++) {
       std::set<v2::ASTNodeBase*> selection;
       fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".sel");
       std::ofstream os;
       os.open(file.string().c_str());
       assert(os.is_open());
       // selection = sourceManager->genRandSelSameFunc(1);
-      selection = sourceManager->genRandSel(1);
+      selection = sourceManager->genRandSel(sel_tok);
       sourceManager->dumpSelection(selection, os);
       os.close();
       std::cout << "Selection file wrote to " << file.string() << "\n";
