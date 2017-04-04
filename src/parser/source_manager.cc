@@ -6,6 +6,8 @@
 #include "helium/utils/rand_utils.h"
 #include "helium/parser/GrammarPatcher.h"
 
+#include "helium/resolver/SnippetV2.h"
+
 using namespace v2;
 
 using std::string;
@@ -473,24 +475,35 @@ std::set<v2::ASTContext*> SourceManager::getASTByNodes(std::set<v2::ASTNodeBase*
  * - comp token
  */
 std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNodeBase*> sel) {
-  std::set<v2::ASTContext*> asts = getASTByNodes(sel);
-  std::set<v2::ASTNodeBase*> funcs;
-  for (v2::ASTContext *ast : asts) {
-    Distributor *dist = AST2DistributorMap[ast];
-    std::set<v2::ASTNodeBase*> nodes = dist->getDistFuncNodes(sel);
-    funcs.insert(nodes.begin(), nodes.end());
+  int func_ct = 0;
+  for (auto &m : AST2DistributorMap) {
+    // ASTContext *ast = m.first;
+    Distributor *dist = m.second;
+    func_ct += dist->getDistFunc(sel);
   }
-  // now i got all the functiondecl nodes
-  // add the relevant nodes into the selection
-  for (auto *node : funcs) {
-    FunctionDecl *func = dynamic_cast<FunctionDecl*>(node);
-    if (func) {
-      sel.insert(func->getReturnTypeNode());
-      sel.insert(func->getNameNode());
-      sel.insert(func->getParamNode());
-      sel.insert(func->getBody());
-      CompoundStmt *body = dynamic_cast<CompoundStmt*>(func->getBody());
-      sel.insert(body->getCompNode());
+  if (func_ct == 0) return sel;
+  // TODO detect if return is selected
+  else if (func_ct == 1) return sel;
+  else {
+    std::set<v2::ASTContext*> asts = getASTByNodes(sel);
+    std::set<v2::ASTNodeBase*> funcs;
+    for (v2::ASTContext *ast : asts) {
+      Distributor *dist = AST2DistributorMap[ast];
+      std::set<v2::ASTNodeBase*> nodes = dist->getDistFuncNodes(sel);
+      funcs.insert(nodes.begin(), nodes.end());
+    }
+    // now i got all the functiondecl nodes
+    // add the relevant nodes into the selection
+    for (auto *node : funcs) {
+      FunctionDecl *func = dynamic_cast<FunctionDecl*>(node);
+      if (func) {
+        sel.insert(func->getReturnTypeNode());
+        sel.insert(func->getNameNode());
+        sel.insert(func->getParamNode());
+        sel.insert(func->getBody());
+        CompoundStmt *body = dynamic_cast<CompoundStmt*>(func->getBody());
+        sel.insert(body->getCompNode());
+      }
     }
   }
   return sel;
@@ -499,6 +512,8 @@ std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNo
 std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   // analyze distribution
   // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+  sel = patchFunctionHeader(sel);
+  
   int func_ct = 0;
   for (auto &m : AST2DistributorMap) {
     // ASTContext *ast = m.first;
@@ -563,6 +578,79 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     return ret;
   }
 }
+
+std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
+  std::string ret;
+  // suppress the warning
+  // "typedef int bool;\n"
+  ret += "#define true 1\n";
+  ret += "#define false 0\n";
+  // some code will config to have this variable.
+  // Should not just define it randomly, but this is the best I can do to make it compile ...
+  ret += "#define VERSION \"1\"\n";
+  ret += "#define PACKAGE \"helium\"\n";
+  // GNU Standard
+  ret += "#define PACKAGE_NAME \"helium\"\n";
+  ret += "#define PACKAGE_BUGREPORT \"xxx@xxx.com\"\n";
+  ret += "#define PACKAGE_STRING \"helium 0.1\"\n";
+  ret += "#define PACKAGE_TARNAME \"helium\"\n";
+  ret += "#define PACKAGE_URL \"\"\n";
+  ret += "#define PACKAGE_VERSION \"0.1\"\n";
+  // unstandard primitive typedefs, such as u_char
+  ret += "typedef unsigned char u_char;\n";
+  ret += "typedef unsigned int u_int;\n";
+  ret += "typedef unsigned char uchar;\n";
+  ret += "typedef unsigned int uint;\n";
+
+  ret += "#include <stdbool.h>\n";
+  ret += "#include <stdio.h>\n";
+  ret += "#include <stdlib.h>\n";
+  ret += "#include <string.h>\n";
+  ret += "#include <getopt.h>\n";
+
+  sel = patchFunctionHeader(sel);
+  // get the snippets
+  std::set<v2::Snippet*> snippets;
+  for (auto *node : sel) {
+    std::set<std::string> ids = node->getIdToResolve();
+    for (std::string id : ids) {
+      std::vector<Snippet*> ss = GlobalSnippetManager::Instance()->getManager()->get(id);
+      snippets.insert(ss.begin(), ss.end());
+    }
+  }
+  // sort the snippets
+  std::vector<Snippet*> sorted_snippets = GlobalSnippetManager::Instance()->getManager()->sort(snippets);
+
+  std::vector<Snippet*> func_snippets;
+  std::vector<Snippet*> type_snippets;
+  std::vector<Snippet*> var_snippets;
+  for (Snippet *s : sorted_snippets) {
+    if (dynamic_cast<FunctionSnippet*>(s)) func_snippets.push_back(s);
+    else if (dynamic_cast<TypedefSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<RecordSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<EnumSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<VarSnippet*>(s)) var_snippets.push_back(s);
+  }
+
+  std::string type;
+  for (Snippet *s : type_snippets) {
+    type += s->getCode() + ";\n";
+  }
+  std::string var;
+  for (Snippet *s : var_snippets) {
+    var += s->getCode() + "\n";
+  }
+  std::string func;
+  for (Snippet *s : func_snippets) {
+    func += s->getCode() + "\n";
+  }
+  ret += type;
+  ret += var;
+  ret += func;
+  
+  return ret;
+}
+void generate(std::set<v2::ASTNodeBase*> sel, fs::path dir) {}
 
 
 void SourceManager::dump(std::ostream &os) {

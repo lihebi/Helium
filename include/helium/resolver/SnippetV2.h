@@ -271,7 +271,15 @@ namespace v2 {
       }
       createDeps();
       createOuters();
+      sortFiles();
     }
+
+    /**
+     * Sort files based on Topological sorting
+     * Considering only type snippets: Record, Enum, Typedef
+     */
+    void sortFiles();
+    void topoSortFiles();
 
     /**
      * create Deps and IdDeps
@@ -354,11 +362,30 @@ namespace v2 {
       }
       return ret;
     }
+
+    // - get only the outers
+    // - order by file
+    // - sort by line number
+    // - get all .h files
+    // - use headersorter to sort all .h files
+    //   - load all header files in ORIGINAL source folder
+    //   - locate #include ..., and insert information
+    // - put all .c files at the end
+
+    std::vector<Snippet*> sort(std::set<Snippet*> snippets);
+
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
     std::map<Snippet*, std::set<Snippet*> > Deps;
     std::map<Snippet*, std::set<Snippet*> > Outers;
+    // generated
     std::map<std::string, std::vector<Snippet*> > KeyMap;
+    std::map<std::string, std::set<Snippet*> > FileMap;
+    std::map<std::string, std::set<std::string> > FileDep;
+    // sorted files
+    std::vector<std::string> FileV;
+    // sorted snippets
+    std::vector<Snippet*> SnippetV;
     // std::map<int, std::set<int> > IdDeps;
   };
 
@@ -377,6 +404,7 @@ namespace v2 {
       manager->loadDeps(target_cache_dir / "deps.txt");
       manager->loadOuters(target_cache_dir / "outers.txt");
     }
+    SnippetManager *getManager() {return manager;}
   private:
     GlobalSnippetManager() {}
     ~GlobalSnippetManager() {}

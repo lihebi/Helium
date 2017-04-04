@@ -3,6 +3,8 @@
 
 #include "helium/resolver/SnippetAction.h"
 
+#include "helium/resolver/graph.h"
+
 #include "helium/resolver/resolver.h"
 using namespace v2;
 
@@ -362,4 +364,112 @@ void SnippetManager::traverseDir(fs::path dir) {
     }
   }
   process();
+}
+
+
+
+/**
+ * Today I want to try a different approach.
+ * 1. use the snippet got, infer the header dependence
+ * 2. use that header dependence to sort the files
+ */
+std::vector<v2::Snippet*> SnippetManager::sort(std::set<Snippet*> snippets) {
+  // DONE ELSEWHERE get header dependence
+  // DONE ELSEWHERE sort within file
+  // sort across file
+  std::vector<v2::Snippet*> ret;
+  for (v2::Snippet *s : SnippetV) {
+    if (snippets.count(s) == 1) ret.push_back(s);
+  }
+  return ret;
+}
+
+bool is_type_snippet(v2::Snippet *s) {
+  if (!s) return false;
+  return (dynamic_cast<RecordSnippet*>(s)
+          || dynamic_cast<TypedefSnippet*>(s)
+          || dynamic_cast<EnumSnippet*>(s));
+}
+
+void SnippetManager::sortFiles() {
+  // create File2SnippetMap
+  FileMap.clear();
+  FileDep.clear();
+  // std::map<std::string, std::set<Snippet*> > FileMap;
+  for (Snippet *s : Snippets) {
+    FileMap[s->getFile()].insert(s);
+  }
+  // use deps, get file deps
+  std::map<std::string, std::map<std::string, int> > mat;
+  // std::map<Snippet*, std::set<Snippet*> > Deps;
+  for (auto &m : Deps) {
+    Snippet *from = m.first;
+    if (!is_type_snippet(from)) continue;
+    std::string from_str = from->getFile();
+    for (Snippet *to : m.second) {
+      if (!is_type_snippet(to)) continue;
+      std::string to_str = to->getFile();
+      if (mat.count(from_str) == 1) {
+        mat[from_str][to_str]++;
+        mat[to_str][from_str]--;
+      } else {
+        mat[from_str];
+        mat[from_str][to_str]=1;
+        mat[to_str];
+        mat[to_str][from_str]=-1;
+      }
+    }
+  }
+  // std::map<std::string, std::set<std::string> > FileDep;
+  for (auto &m : mat) {
+    for (auto &n : m.second) {
+      if (n.second > 0) {
+        FileDep[m.first].insert(n.first);
+      }
+    }
+  }
+  // check if file dep is DAG (Directed Acyclic Graph)
+  // Use Topological sorting to get a vector of files
+  // FileV.clear();
+  // recursively get nodes with no incoming edges (Kahn's algorithm)
+
+  // std::map<std::string, std::set<Snippet*> > FileMap;
+  // std::map<std::string, std::set<std::string> > FileDep;
+  // for (auto &m : FileMap) {
+  //   std::string file = m.first;
+  //   if (FileDep.count(file) == 0) {
+  //     FileV.push_back(file);
+  //   }
+  // }
+  topoSortFiles();
+}
+
+void SnippetManager::topoSortFiles() {
+  FileV.clear();
+  SnippetV.clear();
+  hebigraph::Graph<std::string> graph;
+  // std::map<std::string, std::set<Snippet*> > FileMap;
+  // std::map<std::string, std::set<std::string> > FileDep;
+  for (auto &m : FileMap) {
+    graph.addNode(m.first);
+  }
+  for (auto &m : FileDep) {
+    for (std::string s : m.second) {
+      graph.addEdge(m.first, s);
+    }
+  }
+  std::vector<std::string> sorted = graph.topoSort();
+  // TODO examine sorted !!!
+  FileV = sorted;
+  // sort also the snippets
+  for (std::string file : FileV) {
+    std::set<Snippet*> snippets = FileMap[file];
+    std::vector<Snippet*> v(snippets.begin(), snippets.end());
+    std::sort(v.begin(), v.end(), [](Snippet *lhs, Snippet *rhs){
+        SourceLocation loc1 = lhs->getBeginLoc();
+        SourceLocation loc2 = rhs->getBeginLoc();
+        return loc1 < loc2;
+      });
+    SnippetV.insert(SnippetV.end(), v.begin(), v.end());
+  }
 }

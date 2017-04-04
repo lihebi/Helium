@@ -91,6 +91,7 @@ namespace v2 {
 
     void setVars(std::set<std::string> vars) {this->vars = vars;}
     std::set<std::string> getVars() {return vars;}
+    virtual std::set<std::string> getIdToResolve() {return {};}
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
@@ -132,6 +133,7 @@ namespace v2 {
     virtual std::string getNodeName() {
       return "TokenNode";
     }
+    virtual std::set<std::string> getIdToResolve();
   private:
     std::string Text;
   };
@@ -178,6 +180,7 @@ namespace v2 {
     virtual std::string getNodeName() {return "DeclStmt";}
     // void setVars(std::set<std::string> vars) {this->vars = vars;}
     // std::set<std::string> getVars() {return vars;}
+    virtual std::set<std::string> getIdToResolve();
   private:
     std::string Text;
     // std::set<std::string> vars;
@@ -200,6 +203,7 @@ namespace v2 {
          << "ExprStmt)";
     }
     virtual std::string getNodeName() {return "ExprStmt";}
+    virtual std::set<std::string> getIdToResolve();
   private:
     std::string Text;
   };
@@ -545,6 +549,7 @@ namespace v2 {
          << " Expr)";
     }
     virtual std::string getNodeName() {return "Expr";}
+    virtual std::set<std::string> getIdToResolve();
   private:
     std::string Text;
   };

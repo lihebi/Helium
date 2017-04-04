@@ -2,6 +2,7 @@ add_executable(heliumtest
   test_parser.cpp
   test_snippet.cpp
   test_generator.cpp
+  test_graph.cpp
   test_main.cc)
 
 target_link_libraries(heliumtest

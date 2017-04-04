@@ -43,6 +43,16 @@ public:
   std::string generateProgram(std::set<v2::ASTNodeBase*>);
 
   /**
+   * Generate main.h
+   */
+  std::string generateSupport(std::set<v2::ASTNodeBase*>);
+
+  /**
+   * Generate main.c, main.h, Makefile, into a folder
+   */
+  void generate(std::set<v2::ASTNodeBase*> sel, fs::path dir);
+
+  /**
    * DEPRECATED
    * Get the UUID of a node.
    * This will be: filename_ID
