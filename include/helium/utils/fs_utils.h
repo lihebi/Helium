@@ -46,6 +46,12 @@ namespace utils {
    */
   std::string file_name_last_component(std::string filename);
   std::string create_tmp_dir(std::string s="/tmp/helium-XXXXXX");
+
+
+  /**
+   * Whether "suffix" is suffix of p
+   */
+  bool match_suffix(fs::path p, fs::path suffix);
 }
 
 #endif /* FS_UTILS_H */

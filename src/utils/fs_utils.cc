@@ -345,4 +345,27 @@ namespace utils {
     EXPECT_NE(s, "");
     EXPECT_TRUE(is_dir(s));
   }
+
+
+
+
+  bool match_suffix(fs::path p, fs::path suffix) {
+    if (p == suffix) return true;
+    while (p.filename() == suffix.filename() && !suffix.empty() && !p.empty()) {
+      p = p.parent_path();
+      suffix = suffix.parent_path();
+    }
+    if (suffix.empty()) return true;
+    else return false;
+  }
+
+  TEST(FsUtilTest, SuffixTest) {
+    EXPECT_TRUE(match_suffix("/hello/world", "world"));
+    EXPECT_FALSE(match_suffix("world", "/hello/world"));
+    EXPECT_FALSE(match_suffix("/hello/world", "/world"));
+    EXPECT_TRUE(match_suffix("/hello/world/a.c", "a.c"));
+    EXPECT_TRUE(match_suffix("/hello/world/a.c", "world/a.c"));
+    EXPECT_FALSE(match_suffix("/hello/world/a.c", "hello/a.c"));
+  }
+  
 }

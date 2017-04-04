@@ -39,8 +39,10 @@ public:
   bool operator==(SourceLocation &rhs) {
     return this->line == rhs.line && this->column == rhs.column;
   }
+
   friend std::ostream& operator<<(std::ostream &os, const SourceLocation &loc);
   friend std::istream& operator>>(std::istream &is, SourceLocation &loc);
+  friend SourceLocation operator+(SourceLocation s, std::pair<int,int> delta);
   
   int getLine() {return line;}
   int getColumn() {return column;}
@@ -53,6 +55,8 @@ private:
 
 std::ostream& operator<<(std::ostream &os, const SourceLocation &loc);
 std::istream& operator>>(std::istream &is, const SourceLocation &loc);
+
+SourceLocation operator+(SourceLocation s, std::pair<int,int> delta);
 
 // class SourceRange {
 // public:

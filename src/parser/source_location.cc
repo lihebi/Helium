@@ -9,6 +9,11 @@ std::istream& operator>>(std::istream &is, SourceLocation &loc) {
   is >> loc.line >> loc.column;
   return is;
 }
+SourceLocation operator+(SourceLocation s, std::pair<int,int> delta) {
+  s.line += delta.first;
+  s.column += delta.second;
+  return s;
+}
 
 
 

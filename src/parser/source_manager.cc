@@ -111,32 +111,14 @@ void SourceManager::dumpASTs() {
 
 /**
  * Match in the File2ASTMap to find the best match
+ * TODO test this
  */
 fs::path SourceManager::matchFile(fs::path file) {
   fs::path ret;
   fs::path remaining;
   for (auto m : File2ASTMap) {
     fs::path f = m.first;
-    // compare filename and move to parent
-    // see how many times it is compared
-    fs::path relf = fs::relative(f, cppfolder);
-    // file in sel.txt
-    fs::path file1 = file;
-    // our records
-    fs::path file2 = relf;
-    while (file1.filename() == file2.filename() && !file1.empty()) {
-      file1 = file1.parent_path();
-      file2 = file2.parent_path();
-    }
-    if (!file1.empty()) continue;
-    // now we found a match
-    if (ret.empty()) {
-      ret = f;
-      remaining = file2;
-    } else if (remaining.size() > file2.size()) {
-      remaining = file2;
-      ret = relf;
-    }
+    if (utils::match_suffix(f, file)) return f;
   }
   return ret;
 }
@@ -548,13 +530,16 @@ std::set<v2::ASTContext*> SourceManager::getASTByNodes(std::set<v2::ASTNodeBase*
   return ret;
 }
 /**
- * for the selection, get the function node and put it into selection.
+ * If only selection across multiple functions, select header for all of them.
  * This includes:
  * - return node
  * - name node
  * - param node
  * - compount stmt
  * - comp token
+ *
+ * Also, TODO if the selection contains return xxx;, we should not put into main function.
+ * This might cause compile error.
  */
 std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNodeBase*> sel) {
   int func_ct = 0;
@@ -591,22 +576,36 @@ std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNo
   return sel;
 }
 
-std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
-  // analyze distribution
-  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
-  sel = patchFunctionHeader(sel);
-  
+bool SourceManager::shouldPutIntoMain(std::set<v2::ASTNodeBase*> sel) {
   int func_ct = 0;
+  for (auto *node : sel) {
+    if (dynamic_cast<FunctionDecl*>(node)) return false;
+  }
   for (auto &m : AST2DistributorMap) {
     // ASTContext *ast = m.first;
     Distributor *dist = m.second;
     func_ct += dist->getDistFunc(sel);
   }
-  if (func_ct == 0) return "";
-  else if (func_ct == 1) {
-    // only one function
-    // - we don't include function headers.
-    // - generate main function and put body inside function
+  // no function is selected, definitely put into main function
+  // this should be a global variable definition
+  if (func_ct == 0) return true;
+  if (func_ct == 1) return true;
+  return false;
+  
+}
+
+std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
+  // analyze distribution
+  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+  sel = patchFunctionHeader(sel);
+
+  std::string ret;
+  ret += "#include <stdio.h>\n";
+  ret += "#include <stdlib.h>\n";
+  ret += "#include <string.h>\n";
+  ret += "#include \"main.h\"\n";
+  
+  if (shouldPutIntoMain(sel)) {
     std::string body;
     for (auto &m : File2ASTMap) {
       Generator *generator =  new Generator();
@@ -618,22 +617,13 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       std::string prog = generator->getProgram();
       body += prog;
     }
-    std::string ret;
-    ret += "#include <stdio.h>\n";
-    ret += "#include <stdlib.h>\n";
-    ret += "#include <string.h>\n";
-    ret += "#include \"main.h\"\n";
     ret += "int main(int argc, char *argv[]) {\n";
     ret += body;
     ret += "  return 0;\n";
     ret += "}\n";
-    return ret;
   } else {
-    // multiple functions
-    // - we always include function headers.
-    // - put function call sites in main function
     std::string body;
-    sel = patchFunctionHeader(sel);
+    // sel = patchFunctionHeader(sel);
     for (auto &m : File2ASTMap) {
       Generator *generator =  new Generator();
       generator->setSelection(sel);
@@ -644,21 +634,78 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       std::string prog = generator->getProgram();
       body += prog;
     }
-    std::string ret;
-    
-    ret += "#include <stdio.h>\n";
-    ret += "#include <stdlib.h>\n";
-    ret += "#include <string.h>\n";
-    ret += "#include \"main.h\"\n";
-
     ret += body;
 
     ret += "int main(int argc, char *argv[]) {\n";
     // TODO call to those functions
     ret += "  return 0;\n";
     ret += "}\n";
-    return ret;
   }
+  return ret;
+  
+  // int func_ct = 0;
+  // for (auto &m : AST2DistributorMap) {
+  //   // ASTContext *ast = m.first;
+  //   Distributor *dist = m.second;
+  //   func_ct += dist->getDistFunc(sel);
+  // }
+  // if (func_ct == 0) return "";
+  // else if (func_ct == 1) {
+  //   // only one function
+  //   // - we don't include function headers.
+  //   // - generate main function and put body inside function
+  //   std::string body;
+  //   for (auto &m : File2ASTMap) {
+  //     Generator *generator =  new Generator();
+  //     generator->setSelection(sel);
+  //     // generator->setSelection(sel);
+  //     ASTContext *ast = m.second;
+  //     TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
+  //     decl->accept(generator);
+  //     std::string prog = generator->getProgram();
+  //     body += prog;
+  //   }
+  //   std::string ret;
+  //   ret += "#include <stdio.h>\n";
+  //   ret += "#include <stdlib.h>\n";
+  //   ret += "#include <string.h>\n";
+  //   ret += "#include \"main.h\"\n";
+  //   ret += "int main(int argc, char *argv[]) {\n";
+  //   ret += body;
+  //   ret += "  return 0;\n";
+  //   ret += "}\n";
+  //   return ret;
+  // } else {
+  //   // multiple functions
+  //   // - we always include function headers.
+  //   // - put function call sites in main function
+  //   std::string body;
+  //   sel = patchFunctionHeader(sel);
+  //   for (auto &m : File2ASTMap) {
+  //     Generator *generator =  new Generator();
+  //     generator->setSelection(sel);
+  //     // generator->setSelection(sel);
+  //     ASTContext *ast = m.second;
+  //     TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
+  //     decl->accept(generator);
+  //     std::string prog = generator->getProgram();
+  //     body += prog;
+  //   }
+  //   std::string ret;
+    
+  //   ret += "#include <stdio.h>\n";
+  //   ret += "#include <stdlib.h>\n";
+  //   ret += "#include <string.h>\n";
+  //   ret += "#include \"main.h\"\n";
+
+  //   ret += body;
+
+  //   ret += "int main(int argc, char *argv[]) {\n";
+  //   // TODO call to those functions
+  //   ret += "  return 0;\n";
+  //   ret += "}\n";
+  //   return ret;
+  // }
 }
 
 std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {

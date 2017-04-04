@@ -115,7 +115,7 @@ private:
    * ASTs associcated with the nodes
    */
   std::set<v2::ASTContext*> getASTByNodes(std::set<v2::ASTNodeBase*> nodes);
-
+  bool shouldPutIntoMain(std::set<v2::ASTNodeBase*> sel);
 
 
   // this class holds all ASTs

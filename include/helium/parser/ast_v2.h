@@ -210,8 +210,8 @@ namespace v2 {
 
   class CompoundStmt : public Stmt {
   public:
-    CompoundStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
-      : Stmt(ctx, begin, end), CompNode(new TokenNode(ctx, "COMP_DUMMY", begin, end)) {}
+    CompoundStmt(ASTContext *ctx, TokenNode *CompNode, SourceLocation begin, SourceLocation end)
+      : Stmt(ctx, begin, end), CompNode(CompNode) {}
     ~CompoundStmt() {}
     void Add(Stmt *stmt) {
       stmts.push_back(stmt);
