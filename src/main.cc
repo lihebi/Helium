@@ -442,9 +442,8 @@ int main(int argc, char* argv[]) {
 
     snippet_manager->dumpLight(std::cout);
 
-    snippet_manager->saveSnippet(target_cache_dir / "snippets.txt");
-    snippet_manager->saveDeps(target_cache_dir / "deps.txt");
-    snippet_manager->saveOuters(target_cache_dir / "outers.txt");
+    // snippet_manager->save(target_cache_dir);
+    snippet_manager->saveJson(target_cache_dir / "snippets.json");
 
     // output a flag file that indicate cache is created But when
     // invoking the following tools along after this, it will not be
@@ -472,34 +471,6 @@ int main(int argc, char* argv[]) {
 
 
   if (HeliumOptions::Instance()->Has("hebi")) {
-    // hebi
-    // run
-    v2::SnippetManager *manager = new v2::SnippetManager();
-    fs::recursive_directory_iterator it(target_cache_dir / "cpp"), eod;
-    BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-      if (is_regular_file(p)) {
-        std::vector<v2::Snippet*> snippets = createSnippets(p);
-        manager->add(snippets);
-      }
-    }
-    // now i got all the snippets in manager
-    // I need to process to get
-    // - dependence
-    // - call graph
-    // - write to file or database
-    // Since database is
-    // - not easy to debug
-    // - performance is not good
-    // - make my code not clean
-    // I'm going to save and load by the manager
-    // manager->save(target_cache_dir / "snippet-manager");
-    // manager->createCode();
-    manager->createDeps();
-    manager->saveSnippet(target_cache_dir / "manager-snippet.txt");
-    manager->saveDeps(target_cache_dir / "manager-deps.txt");
-
-    manager->dump(std::cout);
-    
     exit(0);
   }
 
@@ -618,13 +589,17 @@ int main(int argc, char* argv[]) {
 
 
   std::cout << "Loading snippet from " << target_cache_dir << "\n";
-  v2::SnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
-  v2::SnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
-  v2::SnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
+  // v2::GlobalSnippetManager::Instance()->load(target_cache_dir);
+  v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
+  // v2::GlobalSnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
+  // v2::GlobalSnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
+  // v2::GlobalSnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
+  std::cout << "Loaded " << v2::GlobalSnippetManager::Instance()->size() << " snippets. Processing .." << "\n";
   // CAUTION Must process after load.
-  v2::SnippetManager::Instance()->processAfterLoad();
+  v2::GlobalSnippetManager::Instance()->processAfterLoad();
+  std::cout << "Done processing snippets." << "\n";
 
-  std::cout << "Loaded snippet:" << v2::SnippetManager::Instance()->size() << "\n";
+  std::cout << "Loaded snippet:" << v2::GlobalSnippetManager::Instance()->size() << "\n";
   // v2::GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
 
 

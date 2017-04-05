@@ -16,6 +16,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+
 namespace fs = boost::filesystem;
 
 namespace v2 {
@@ -67,17 +70,17 @@ namespace v2 {
     RecordSnippet *getAsRecordSnippet();
     std::string getName() {return Name;}
     virtual std::string getSnippetName() = 0;
-    virtual void save(std::ostream &os) {
-      os << getSnippetName() << " " << ID << " " << Name << " " << File << " "
-         << Begin.getLine() << " " << Begin.getColumn() << " "
-         << End.getLine() << " " << End.getColumn() << "\n";
-    }
-    virtual void load(std::istream &is) {
-      is >> ID >> Name >> File >> Begin >> End;
-    }
+    // virtual void save(std::ostream &os) {
+    //   os << getSnippetName() << " " << ID << " " << Name << " " << File << " "
+    //      << Begin.getLine() << " " << Begin.getColumn() << " "
+    //      << End.getLine() << " " << End.getColumn() << "\n";
+    // }
+    // virtual void load(std::istream &is) {
+    //   is >> ID >> Name >> File >> Begin >> End;
+    // }
     void setId(int id) {ID = id;}
     int getId() {return ID;}
-    virtual void dump(std::ostream &os) = 0;
+    virtual void dump(std::ostream &os);
 
     // void loadCode(fs::path p) {
     //   Code = utils::read_file(p.string());
@@ -86,6 +89,44 @@ namespace v2 {
     std::string getFile() {return File;}
     SourceLocation getBeginLoc() {return Begin;}
     SourceLocation getEndLoc() {return End;}
+
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator);
+    virtual void loadJson(rapidjson::Value &v);
+
+    // void addDep(int dep) {Deps.insert(dep);}
+    // void addDep(std::set<int> deps) {Deps.insert(deps.begin(), deps.end());}
+    // void addDep(std::vector<int> deps) {Deps.insert(deps.begin(), deps.end());}
+    void addDep(Snippet *s) {
+      if (s) {Deps.insert(s);}
+    }
+    void addDep(std::vector<Snippet *> deps) {
+      Deps.insert(deps.begin(), deps.end());
+    }
+    void removeDep(Snippet *s) {
+      if (s) {
+        Deps.erase(s);
+      }
+    }
+    std::set<Snippet*> getDeps() {return Deps;}
+    std::set<int> getDepsAsId() {
+      std::set<int> ret;
+      for (auto *s : Deps) {
+        ret.insert(s->getId());
+      }
+      return ret;
+    }
+    std::set<Snippet*> getAllDeps();
+    std::set<Snippet*> getOuters() {return Outers;}
+    std::set<int> getOutersAsId() {
+      std::set<int> ret;
+      for (auto *s : Outers) {
+        ret.insert(s->getId());
+      }
+      return ret;
+    }
+    void addOuter(Snippet *s) {
+      if (s) Outers.insert(s);
+    }
   protected:
     int ID;
     std::string Name;
@@ -93,6 +134,10 @@ namespace v2 {
     SourceLocation Begin;
     SourceLocation End;
     std::string Code;
+    // snippet ID this one depends on
+    std::set<Snippet*> Deps;
+    // snippt ID that encloses this one
+    std::set<Snippet*> Outers;
   };
 
   /**
@@ -106,16 +151,24 @@ namespace v2 {
     }
     virtual ~FunctionSnippet() {}
     virtual std::string getSnippetName() {return "FunctionSnippet";}
-    virtual void save(std::ostream &os) {
-      Snippet::save(os);
-    }
-    virtual void load(std::istream &is) {
-      Snippet::load(is);
-    }
-    virtual void dump(std::ostream &os) {
-      os << "FucntionSnippet " << Name;
-    }
+    // virtual void save(std::ostream &os) {
+    //   Snippet::save(os);
+    // }
+    // virtual void load(std::istream &is) {
+    //   Snippet::load(is);
+    // }
+    // virtual void dump(std::ostream &os) {
+    //   os << "FucntionSnippet " << Name;
+    // }
     virtual void readCode();
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "FunctionSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
   private:
   };
 
@@ -126,16 +179,24 @@ namespace v2 {
       : Snippet(name, file, begin, end) {}
     virtual std::string getSnippetName() {return "VarSnippet";}
     virtual ~VarSnippet() {}
-    virtual void save(std::ostream &os) {
-      Snippet::save(os);
-    }
-    virtual void load(std::istream &is) {
-      Snippet::load(is);
-    }
-    virtual void dump(std::ostream &os) {
-      os << "VarSnippet " << Name;
-    }
+    // virtual void save(std::ostream &os) {
+    //   Snippet::save(os);
+    // }
+    // virtual void load(std::istream &is) {
+    //   Snippet::load(is);
+    // }
+    // virtual void dump(std::ostream &os) {
+    //   os << "VarSnippet " << Name;
+    // }
     virtual void readCode();
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "VarSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
   private:
   };
 
@@ -147,16 +208,24 @@ namespace v2 {
     }
     virtual ~TypedefSnippet() {}
     virtual std::string getSnippetName() {return "TypedefSnippet";}
-    virtual void save(std::ostream &os) {
-      Snippet::save(os);
-    }
-    virtual void load(std::istream &is) {
-      Snippet::load(is);
-    }
-    virtual void dump(std::ostream &os) {
-      os << "TypedefSnippet " << Name;
-    }
+    // virtual void save(std::ostream &os) {
+    //   Snippet::save(os);
+    // }
+    // virtual void load(std::istream &is) {
+    //   Snippet::load(is);
+    // }
+    // virtual void dump(std::ostream &os) {
+    //   os << "TypedefSnippet " << Name;
+    // }
     virtual void readCode();
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "TypedefSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
   private:
   };
 
@@ -171,16 +240,24 @@ namespace v2 {
     }
     virtual ~RecordSnippet() {}
     virtual std::string getSnippetName() {return "RecordSnippet";}
-    virtual void save(std::ostream &os) {
-      os << getSnippetName() << " " << ID << " " << Name << " " << File << " "
-         << Begin.getLine() << " " << Begin.getColumn() << " "
-         << End.getLine() << " " << End.getColumn() << "\n";
+    // virtual void save(std::ostream &os) {
+    //   os << getSnippetName() << " " << ID << " " << Name << " " << File << " "
+    //      << Begin.getLine() << " " << Begin.getColumn() << " "
+    //      << End.getLine() << " " << End.getColumn() << "\n";
+    // }
+    // virtual void load(std::istream &is) {
+    //   Snippet::load(is);
+    // }
+    // virtual void dump(std::ostream &os) {
+    //   os << "RecordSnippet " << Name;
+    // }
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "RecordSnippet", allocator);
+      return v;
     }
-    virtual void load(std::istream &is) {
-      Snippet::load(is);
-    }
-    virtual void dump(std::ostream &os) {
-      os << "RecordSnippet " << Name;
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
     }
     virtual void readCode();
   private:
@@ -194,31 +271,39 @@ namespace v2 {
     }
     virtual std::string getSnippetName() {return "EnumSnippet";}
     virtual ~EnumSnippet() {}
-    virtual void save(std::ostream &os) {
-      Snippet::save(os);
-      // members
-      os << "    ";
-      for (auto &s : Fields) {
-        os << s << " ";
-      }
-      os << "\n";
-    }
-    virtual void load(std::istream &is) {
-      Snippet::load(is);
-      std::string line;
-      getline(is, line);
-      std::istringstream iss(line);
-      while (iss >> line) {
-        addField(line);
-      }
-    }
+    // virtual void save(std::ostream &os) {
+    //   Snippet::save(os);
+    //   // members
+    //   os << "    ";
+    //   for (auto &s : Fields) {
+    //     os << s << " ";
+    //   }
+    //   os << "\n";
+    // }
+    // virtual void load(std::istream &is) {
+    //   Snippet::load(is);
+    //   std::string line;
+    //   getline(is, line);
+    //   std::istringstream iss(line);
+    //   while (iss >> line) {
+    //     addField(line);
+    //   }
+    // }
     void addField(std::string field) {
       Fields.push_back(field);
     }
-    virtual void dump(std::ostream &os) {
-      os << "EnumSnippet " << Name;
-    }
+    // virtual void dump(std::ostream &os) {
+    //   os << "EnumSnippet " << Name;
+    // }
     virtual void readCode();
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "EnumSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
   private:
     std::vector<std::string> Fields;
   };
@@ -298,18 +383,34 @@ namespace v2 {
      */
     void createDeps();
     void createOuters();
-    /**
-     * save to disk
-     */
-    void saveSnippet(fs::path p);
-    void saveDeps(fs::path p);
-    void saveOuters(fs::path p);
-    /**
-     * load from disk
-     */
-    void loadSnippet(fs::path p);
-    void loadDeps(fs::path p);
-    void loadOuters(fs::path p);
+
+    // void save(fs::path p) {
+    //   saveSnippet(p / "snippets.txt");
+    //   saveDeps(p / "deps.txt");
+    //   saveOuters(p / "outers.txt");
+    // }
+    // void load(fs::path p) {
+    //   loadSnippet(p / "snippets.txt");
+    //   loadDeps(p / "deps.txt");
+    //   loadOuters(p / "outers.txt");
+    // }
+
+    void saveJson(fs::path p);
+    void loadJson(fs::path p);
+  // private:
+  //   /**
+  //    * save to disk
+  //    */
+  //   void saveSnippet(fs::path p);
+  //   void saveDeps(fs::path p);
+  //   void saveOuters(fs::path p);
+  //   /**
+  //    * load from disk
+  //    */
+  //   void loadSnippet(fs::path p);
+  //   void loadDeps(fs::path p);
+  //   void loadOuters(fs::path p);
+  public:
 
     /**
      * dump only the size of snippets, 
@@ -332,14 +433,14 @@ namespace v2 {
       }
       return nullptr;
     }
-    std::set<Snippet*> getDep(Snippet* s) {
-      if (Deps.count(s) == 1) return Deps[s];
-      return {};
-    }
-    std::set<Snippet*> getOuter(Snippet *s) {
-      if (Outers.count(s) == 1) return Outers[s];
-      return {};
-    }
+    // std::set<Snippet*> getDep(Snippet* s) {
+    //   if (Deps.count(s) == 1) return Deps[s];
+    //   return {};
+    // }
+    // std::set<Snippet*> getOuter(Snippet *s) {
+    //   if (Outers.count(s) == 1) return Outers[s];
+    //   return {};
+    // }
     /**
      * Recursively get all deps
      */
@@ -353,32 +454,32 @@ namespace v2 {
      * Simple Getters
      */
     std::vector<Snippet*> getSnippets() {return Snippets;}
-    std::map<Snippet*, std::set<Snippet*> > getDeps() {return Deps;}
-    std::map<Snippet*, std::set<Snippet*> > getOuters() {return Outers;}
+    // std::map<Snippet*, std::set<Snippet*> > getDeps() {return Deps;}
+    // std::map<Snippet*, std::set<Snippet*> > getOuters() {return Outers;}
 
     /**
      * for testing
      */
-    std::map<int, std::set<int> > getDepsAsId() {
-      std::map<int, std::set<int> > ret;
-      for (auto &m : Deps) {
-        int from = m.first->getId();
-        for (Snippet *s : m.second) {
-          ret[from].insert(s->getId());
-        }
-      }
-      return ret;
-    }
-    std::map<int, std::set<int> > getOutersAsId() {
-      std::map<int, std::set<int> > ret;
-      for (auto &m : Outers) {
-        int from = m.first->getId();
-        for (Snippet *s : m.second) {
-          ret[from].insert(s->getId());
-        }
-      }
-      return ret;
-    }
+    // std::map<int, std::set<int> > getDepsAsId() {
+    //   std::map<int, std::set<int> > ret;
+    //   for (auto &m : Deps) {
+    //     int from = m.first->getId();
+    //     for (Snippet *s : m.second) {
+    //       ret[from].insert(s->getId());
+    //     }
+    //   }
+    //   return ret;
+    // }
+    // std::map<int, std::set<int> > getOutersAsId() {
+    //   std::map<int, std::set<int> > ret;
+    //   for (auto &m : Outers) {
+    //     int from = m.first->getId();
+    //     for (Snippet *s : m.second) {
+    //       ret[from].insert(s->getId());
+    //     }
+    //   }
+    //   return ret;
+    // }
 
     // - get only the outers
     // - order by file
@@ -393,17 +494,10 @@ namespace v2 {
 
     int size() {return Snippets.size();}
 
-    static SnippetManager *Instance() {
-      if (!instance) {
-        instance = new SnippetManager();
-      }
-      return instance;
-    }
-
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
-    std::map<Snippet*, std::set<Snippet*> > Deps;
-    std::map<Snippet*, std::set<Snippet*> > Outers;
+    // std::map<Snippet*, std::set<Snippet*> > Deps;
+    // std::map<Snippet*, std::set<Snippet*> > Outers;
     // generated
     std::map<std::string, std::vector<Snippet*> > KeyMap;
     std::map<std::string, std::set<Snippet*> > FileMap;
@@ -413,32 +507,22 @@ namespace v2 {
     // sorted snippets
     std::vector<Snippet*> SnippetV;
     // std::map<int, std::set<int> > IdDeps;
-
-    static SnippetManager *instance;
   };
 
 
-  // class GlobalSnippetManager {
-  // public:
-  //   static GlobalSnippetManager *Instance() {
-  //     if (!instance) {
-  //       instance = new GlobalSnippetManager();
-  //     }
-  //     return instance;
-  //   }
-  //   void load(fs::path target_cache_dir) {
-  //     manager = new SnippetManager();
-  //     manager->loadSnippet(target_cache_dir / "snippets.txt");
-  //     manager->loadDeps(target_cache_dir / "deps.txt");
-  //     manager->loadOuters(target_cache_dir / "outers.txt");
-  //   }
-  //   SnippetManager *getManager() {return manager;}
-  // private:
-  //   GlobalSnippetManager() {}
-  //   ~GlobalSnippetManager() {}
-  //   static GlobalSnippetManager *instance;
-  //   SnippetManager *manager = nullptr;
-  // };
+  class GlobalSnippetManager : public SnippetManager {
+  public:
+    static GlobalSnippetManager *Instance() {
+      if (!instance) {
+        instance = new GlobalSnippetManager();
+      }
+      return instance;
+    }
+  private:
+    GlobalSnippetManager() {}
+    ~GlobalSnippetManager() {}
+    static GlobalSnippetManager *instance;
+  };
   
 }
 

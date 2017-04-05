@@ -87,3 +87,29 @@ The header dependence of files.
 | ID          | int     |      | PRIMARY KEY 1 |      |         |
 | from_file   | VARCHAR |  100 |               |      |         |
 | to_file     | VARCHAR |  100 |               |      |         |
+
+
+
+* Json Snippet
+
+#+BEGIN_SRC json
+  [
+      {
+          "name": "foo",
+          "ID": 0,
+          "kind": "Record",
+          "file": "/path/to/file",
+          "begin": {
+              "line": 8,
+              "col": 10
+          },
+          "end": {
+              "line": 8,
+              "col": 10
+          },
+          "deps": [2,5,8],
+          "outers": [3,8]
+      }
+  ]
+
+#+END_SRC

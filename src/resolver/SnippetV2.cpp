@@ -6,12 +6,15 @@
 #include "helium/resolver/graph.h"
 
 #include "helium/resolver/resolver.h"
+#include "helium/utils/fs_utils.h"
+#include <rapidjson/istreamwrapper.h>
+
 using namespace v2;
 
 using std::set;
 using std::vector;
 
-SnippetManager *SnippetManager::instance = nullptr;
+GlobalSnippetManager *GlobalSnippetManager::instance = nullptr;
 
 std::string read_file_for_code(fs::path file, SourceLocation begin, SourceLocation end) {
   int l1 = begin.getLine();
@@ -98,6 +101,16 @@ void TypedefSnippet::readCode() {
 }
 
 
+void v2::Snippet::dump(std::ostream &os) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Value v = saveJson(doc.GetAllocator());
+  rapidjson::StringBuffer sb;
+  // rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+  v.Accept(writer);
+  os << sb.GetString() << "\n";
+}
 
 void SnippetManager::createOuters() {
   // 1. enclosing
@@ -128,7 +141,8 @@ void SnippetManager::createOuters() {
         SourceLocation loc2_begin = s2->getBeginLoc();
         SourceLocation loc2_end = s2->getEndLoc();
         if (loc2_begin < loc1_end) {
-          Outers[s2].insert(s1);
+          // Outers[s2].insert(s1);
+          s2->addOuter(s1);
         }
       }
     }
@@ -146,112 +160,110 @@ void SnippetManager::createDeps() {
     ids.erase(name);
     for (auto &id : ids) {
       // - query key map and create the dep
-      vector<Snippet*> v = get(id);
-      Deps[s].insert(v.begin(), v.end());
-      Deps[s].erase(s);
+      s->addDep(get(id));
     }
+    // remove itself
+    s->removeDep(s);
   }
 }
-
-
 
 
 /**
  * Disk
  */
-void SnippetManager::saveSnippet(fs::path p) {
-  std::ofstream os;
-  os.open(p.string());
-  assert(os.is_open());
-  for (Snippet *s : Snippets) {
-    s->save(os);
-  }
-}
-void SnippetManager::loadSnippet(fs::path p) {
-  assert(Snippets.empty());
-  std::ifstream is;
-  is.open(p.string());
-  assert(is.is_open());
-  std::string kind;
-  Snippet *s = nullptr;
-  // while (is >> kind) {
-  //   std::cout << kind << "\n";
-  // }
-  while (is >> kind) {
-    if (kind == "FunctionSnippet") s = new FunctionSnippet();
-    else if (kind == "VarSnippet") s = new VarSnippet();
-    else if (kind == "TypedefSnippet") s = new TypedefSnippet();
-    else if (kind == "RecordSnippet") s = new RecordSnippet();
-    else {
-      assert(false);
-    }
-    s->load(is);
-    // while (is >> kind) {
-    //   std::cout << kind << "\n";
-    // }
-    int id = Snippets.size();
-    s->setId(id);
-    Snippets.push_back(s);
-  }
-}
+// void SnippetManager::saveSnippet(fs::path p) {
+//   std::ofstream os;
+//   os.open(p.string());
+//   assert(os.is_open());
+//   for (Snippet *s : Snippets) {
+//     s->save(os);
+//   }
+// }
+// void SnippetManager::loadSnippet(fs::path p) {
+//   assert(Snippets.empty());
+//   std::ifstream is;
+//   is.open(p.string());
+//   assert(is.is_open());
+//   std::string kind;
+//   Snippet *s = nullptr;
+//   // while (is >> kind) {
+//   //   std::cout << kind << "\n";
+//   // }
+//   while (is >> kind) {
+//     if (kind == "FunctionSnippet") s = new FunctionSnippet();
+//     else if (kind == "VarSnippet") s = new VarSnippet();
+//     else if (kind == "TypedefSnippet") s = new TypedefSnippet();
+//     else if (kind == "RecordSnippet") s = new RecordSnippet();
+//     else {
+//       assert(false);
+//     }
+//     s->load(is);
+//     // while (is >> kind) {
+//     //   std::cout << kind << "\n";
+//     // }
+//     int id = Snippets.size();
+//     s->setId(id);
+//     Snippets.push_back(s);
+//   }
+// }
 
-void SnippetManager::saveDeps(fs::path p) {
-  std::ofstream os;
-  os.open(p.string());
-  assert(os.is_open());
-  for (auto &m : Deps) {
-    os << m.first->getId() << " ";
-    for (Snippet *s : m.second) {
-      os << s->getId() << " ";
-    }
-    os << "\n";
-  }
-}
+// void SnippetManager::saveDeps(fs::path p) {
+//   std::ofstream os;
+//   os.open(p.string());
+//   assert(os.is_open());
+//   for (auto &m : Deps) {
+//     os << m.first->getId() << " ";
+//     for (Snippet *s : m.second) {
+//       os << s->getId() << " ";
+//     }
+//     os << "\n";
+//   }
+// }
 
-void SnippetManager::loadDeps(fs::path p) {
-  std::ifstream is;
-  is.open(p.string());
-  assert(is.is_open());
-  std::string line;
-  while (getline(is, line)) {
-    int from_id,to_id;
-    std::istringstream ss(line);
-    ss >> from_id;
-    while (ss >> to_id) {
-      // IdDeps[from_id].insert(to_id);
-      Deps[Snippets[from_id]].insert(Snippets[to_id]);
-    }
-  }
-}
+// void SnippetManager::loadDeps(fs::path p) {
+//   std::ifstream is;
+//   is.open(p.string());
+//   assert(is.is_open());
+//   std::string line;
+//   while (getline(is, line)) {
+//     int from_id,to_id;
+//     std::istringstream ss(line);
+//     ss >> from_id;
+//     while (ss >> to_id) {
+//       // IdDeps[from_id].insert(to_id);
+//       Deps[Snippets[from_id]].insert(Snippets[to_id]);
+//     }
+//   }
+// }
 
-void SnippetManager::saveOuters(fs::path p) {
-  std::ofstream os;
-  os.open(p.string());
-  assert(os.is_open());
-  for (auto &m : Outers) {
-    os << m.first->getId() << " ";
-    for (Snippet *s : m.second) {
-      os << s->getId() << " ";
-    }
-    os << "\n";
-  }
-}
+// void SnippetManager::saveOuters(fs::path p) {
+//   std::ofstream os;
+//   os.open(p.string());
+//   assert(os.is_open());
+//   for (auto &m : Outers) {
+//     os << m.first->getId() << " ";
+//     for (Snippet *s : m.second) {
+//       os << s->getId() << " ";
+//     }
+//     os << "\n";
+//   }
+// }
 
-void SnippetManager::loadOuters(fs::path p) {
-  std::ifstream is;
-  is.open(p.string());
-  assert(is.is_open());
-  std::string line;
-  while (getline(is, line)) {
-    int from_id,to_id;
-    std::istringstream ss(line);
-    ss >> from_id;
-    while (ss >> to_id) {
-      // IdDeps[from_id].insert(to_id);
-      Outers[Snippets[from_id]].insert(Snippets[to_id]);
-    }
-  }
-}
+// void SnippetManager::loadOuters(fs::path p) {
+//   std::ifstream is;
+//   is.open(p.string());
+//   assert(is.is_open());
+//   std::string line;
+//   while (getline(is, line)) {
+//     int from_id,to_id;
+//     std::istringstream ss(line);
+//     ss >> from_id;
+//     while (ss >> to_id) {
+//       // IdDeps[from_id].insert(to_id);
+//       Outers[Snippets[from_id]].insert(Snippets[to_id]);
+//     }
+//   }
+// }
 
 
 
@@ -260,7 +272,7 @@ void SnippetManager::dumpSnippetsVerbose(std::ostream &os) {
   os << "== Total " << Snippets.size() << " snippets\n";
   for (Snippet *s : Snippets) {
     os << "\t";
-    s->save(os);
+    // s->save(os);
     os << s->getCode();
     os << "\n";
   }
@@ -287,17 +299,17 @@ void SnippetManager::dumpLight(std::ostream &os) {
   os << "\t" << "Enum: " << enum_ct << "\n";
   os << "\t" << "Var: " << var_ct << "\n";
 
-  int deps_ct = 0;
-  for (auto &m : Deps) {
-    deps_ct += m.second.size();
-  }
-  os << "Deps: " << deps_ct << "\n";
+  // int deps_ct = 0;
+  // for (auto &m : Deps) {
+  //   deps_ct += m.second.size();
+  // }
+  // os << "Deps: " << deps_ct << "\n";
 
-  int outers_ct = 0;
-  for (auto &m : Outers) {
-    outers_ct += m.second.size();
-  }
-  os << "Deps: " << outers_ct << "\n";
+  // int outers_ct = 0;
+  // for (auto &m : Outers) {
+  //   outers_ct += m.second.size();
+  // }
+  // os << "Deps: " << outers_ct << "\n";
 }
 
 void SnippetManager::dump(std::ostream &os) {
@@ -313,52 +325,52 @@ void SnippetManager::dump(std::ostream &os) {
     s->dump(os);
     os << "\n";
   }
-  os << "== Dependence:" << "\n";
-  // std::map<Snippet*, std::set<Snippet*> > Deps;
-  // std::map<Snippet*, std::set<Snippet*> > Outer;
-  for (auto &m : Deps) {
-    Snippet *from = m.first;
-    std::set<Snippet*> to = m.second;
-    os << "\t";
-    from->dump(os);
-    os << " ==> ";
-    for (Snippet *s : to) {
-      s->dump(os);
-      os << ", ";
-    }
-    os << "\n";
-  }
-  os << "== Outers:" << "\n";
-  for (auto &m : Outers) {
-    Snippet *from = m.first;
-    std::set<Snippet*> outers = m.second;
-    os << "\t";
-    from->dump(os);
-    os << " ==> ";
-    for (Snippet *s : outers) {
-      s->dump(os);
-      os << ", ";
-    }
-    os << "\n";
-  }
+  // os << "== Dependence:" << "\n";
+  // // std::map<Snippet*, std::set<Snippet*> > Deps;
+  // // std::map<Snippet*, std::set<Snippet*> > Outer;
+  // for (auto &m : Deps) {
+  //   Snippet *from = m.first;
+  //   std::set<Snippet*> to = m.second;
+  //   os << "\t";
+  //   from->dump(os);
+  //   os << " ==> ";
+  //   for (Snippet *s : to) {
+  //     s->dump(os);
+  //     os << ", ";
+  //   }
+  //   os << "\n";
+  // }
+  // os << "== Outers:" << "\n";
+  // for (auto &m : Outers) {
+  //   Snippet *from = m.first;
+  //   std::set<Snippet*> outers = m.second;
+  //   os << "\t";
+  //   from->dump(os);
+  //   os << " ==> ";
+  //   for (Snippet *s : outers) {
+  //     s->dump(os);
+  //     os << ", ";
+  //   }
+  //   os << "\n";
+  // }
 }
 
 
-std::set<v2::Snippet*> SnippetManager::getAllDep(Snippet *s) {
+std::set<v2::Snippet*> v2::Snippet::getAllDeps() {
   std::set<Snippet*> worklist;
   std::set<Snippet*> done;
   std::set<Snippet*> ret;
-  worklist.insert(s);
+  worklist.insert(this);
   while (!worklist.empty()) {
     Snippet *s = *worklist.begin();
     worklist.erase(s);
     if (done.count(s) == 1) continue;
-    std::set<Snippet*> dep = getDep(s);
+    std::set<Snippet*> dep = s->getDeps();
     worklist.insert(dep.begin(), dep.end());
     ret.insert(dep.begin(), dep.end());
     done.insert(s);
   }
-  ret.erase(s);
+  ret.erase(this);
   return ret;
 }
 
@@ -370,13 +382,10 @@ std::set<v2::Snippet*> SnippetManager::replaceNonOuters(std::set<Snippet*> ss) {
     Snippet *s = worklist.back();
     worklist.pop_back();
     done.insert(s);
-    if (Outers.count(s) == 1) {
-      std::set<Snippet*> outers = Outers[s];
-      for (Snippet *o : outers) {
-        if (done.count(o) == 0) worklist.push_back(o);
-      }
-    } else {
-      ret.insert(s);
+    std::set<Snippet*> outers = s->getOuters();
+    if (outers.empty()) ret.insert(s);
+    for (Snippet *o : outers) {
+      if (done.count(o) == 0) worklist.push_back(o);
     }
   }
   return ret;
@@ -430,11 +439,11 @@ void SnippetManager::sortFiles() {
   // use deps, get file deps
   std::map<std::string, std::map<std::string, int> > mat;
   // std::map<Snippet*, std::set<Snippet*> > Deps;
-  for (auto &m : Deps) {
-    Snippet *from = m.first;
+  for (Snippet *from : Snippets) {
     if (!is_type_snippet(from)) continue;
     std::string from_str = from->getFile();
-    for (Snippet *to : m.second) {
+    std::set<Snippet*> deps = from->getDeps();
+    for (auto *to : deps) {
       if (!is_type_snippet(to)) continue;
       std::string to_str = to->getFile();
       if (mat.count(from_str) == 1) {
@@ -499,5 +508,146 @@ void SnippetManager::topoSortFiles() {
         return loc1 < loc2;
       });
     SnippetV.insert(SnippetV.end(), v.begin(), v.end());
+  }
+}
+
+
+
+
+/**
+ * Scheme
+[
+    {
+        "name": "foo",
+        "ID": 0,
+        "kind": "Record",
+        "file": "/path/to/file",
+        "begin": {
+            "line": 8,
+            "col": 10
+        },
+        "end": {
+            "line": 8,
+            "col": 10
+        },
+        "deps": [2,5,8],
+        "outers": [3,8]
+    }
+]
+
+ */
+
+/**
+ * push back
+ */
+rapidjson::Value v2::Snippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
+  // rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+  rapidjson::Value array(rapidjson::kObjectType);
+  rapidjson::Value obj(rapidjson::kObjectType);
+  obj.AddMember("name", rapidjson::StringRef(Name.c_str()), allocator);
+  obj.AddMember("id", ID, allocator);
+  obj.AddMember("file", rapidjson::StringRef(File.c_str()), allocator);
+  // begin & end
+  rapidjson::Value begin(rapidjson::kObjectType);
+  rapidjson::Value end(rapidjson::kObjectType);
+  begin.AddMember("line", Begin.getLine(), allocator);
+  begin.AddMember("col", Begin.getColumn(), allocator);
+  end.AddMember("line", End.getLine(), allocator);
+  end.AddMember("col", End.getColumn(), allocator);
+  obj.AddMember("begin", begin, allocator);
+  obj.AddMember("end", end, allocator);
+
+  // // dep & outer
+  rapidjson::Value deps(rapidjson::kArrayType);
+  rapidjson::Value outers(rapidjson::kArrayType);
+  for (Snippet *dep : Deps) {
+    deps.PushBack(dep->getId(), allocator);
+  }
+  for (Snippet *outer : Outers) {
+    outers.PushBack(outer->getId(), allocator);
+  }
+  obj.AddMember("deps", deps, allocator);
+  obj.AddMember("outers", outers, allocator);
+  return obj;
+  // document.PushBack(obj, allocator);
+ }
+
+void v2::Snippet::loadJson(rapidjson::Value &obj) {
+  assert(obj.IsObject());
+  Name = obj["name"].GetString();
+  ID = obj["id"].GetInt();
+  File = obj["file"].GetString();
+  Begin = {obj["begin"]["line"].GetInt(),
+           obj["begin"]["col"].GetInt()};
+  End = {obj["end"]["line"].GetInt(),
+           obj["end"]["col"].GetInt()};
+  // deps and outers have to be add later
+  // for (auto &v : obj["deps"].GetArray()) {
+  //   Deps.insert(v.GetInt());
+  // }
+  // for (auto &v : obj["outers"].GetArray()) {
+  //   Outers.insert(v.GetInt());
+  // }
+}
+
+
+// rapidjson::Value FunctionSnippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
+//   rapidjson::Value v = Snippet::saveJson(allocator);
+//   v.AddMember("kind", "FunctionSnippet", allocator);
+//   return v;
+// }
+
+
+void SnippetManager::saveJson(fs::path p) {
+  rapidjson::Document document;
+  rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+  document.SetArray();
+  assert(document.IsArray());
+  for (Snippet *s : Snippets) {
+    rapidjson::Value obj = s->saveJson(allocator);
+    document.PushBack(obj, allocator);
+  }
+
+  rapidjson::StringBuffer sb;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+  document.Accept(writer);
+  // sb.GetString();
+
+  utils::write_file(p, sb.GetString());
+}
+void SnippetManager::loadJson(fs::path p) {
+  rapidjson::Document document;
+  std::ifstream ifs(p.string());
+  rapidjson::IStreamWrapper isw(ifs);
+  document.ParseStream(isw);
+  assert(document.IsArray());
+  // load snippets
+  for (auto &v : document.GetArray()) {
+    Snippet *s = nullptr;
+    std::string kind = v["kind"].GetString();
+    if (kind == "FunctionSnippet") s = new FunctionSnippet();
+    else if (kind == "VarSnippet") s = new VarSnippet();
+    else if (kind == "TypedefSnippet") s = new TypedefSnippet();
+    else if (kind == "RecordSnippet") s = new RecordSnippet();
+    else if (kind == "EnumSnippet") s = new EnumSnippet();
+    else {assert(false);}
+
+    s->loadJson(v);
+    Snippets.push_back(s);
+  }
+  // load deps and outers
+  for (auto &v : document.GetArray()) {
+    int id = v["id"].GetInt();
+    assert(id < Snippets.size());
+    for (auto &dep : v["deps"].GetArray()) {
+      int depId = dep.GetInt();
+      assert(depId < Snippets.size());
+      Snippets[id]->addDep(Snippets[depId]);
+    }
+    for (auto &outer : v["outers"].GetArray()) {
+      int outerId = outer.GetInt();
+      assert(outerId < Snippets.size());
+      Snippets[id]->addOuter(Snippets[outerId]);
+    }
   }
 }

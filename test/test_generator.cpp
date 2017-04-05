@@ -35,7 +35,8 @@ TEST(GeneratorTest, MyTest) {
     sel = sourceManager->grammarPatch(sel);
     // std::cout << sel.size() << "\n";
     std::string prog = sourceManager->generateProgram(sel);
-    std::cout << prog << "\n";
+    // PRINT this out to test
+    // std::cout << prog << "\n";
   }
   {
     SourceManager *sourceManager = new SourceManager(bench);
@@ -47,6 +48,6 @@ TEST(GeneratorTest, MyTest) {
     sel = sourceManager->grammarPatch(sel);
     // std::cout << sel.size() << "\n";
     std::string prog = sourceManager->generateProgram(sel);
-    std::cout << prog << "\n";
+    // std::cout << prog << "\n";
   }
 }

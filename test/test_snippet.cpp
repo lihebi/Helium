@@ -189,18 +189,6 @@ protected:
 };
 
 
-TEST(NewSnippetTest, GetTest) {
-  fs::path target_cache_dir = "/home/hebi/.helium.d/cache/_home_hebi_data_fast_xcape-master";
-  v2::SnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
-  v2::SnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
-  v2::SnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
-  v2::SnippetManager::Instance()->processAfterLoad();
-  // v2::SnippetManager::Instance()->dump(std::cout);
-  std::vector<v2::Snippet*> v = v2::SnippetManager::Instance()->get("handle_key");
-  ASSERT_EQ(v.size(), 1);
-}
-
-
 TEST_F(NewSnippetTest, MyTest) {
   {
     // std::cout << file_a_h.string() << "\n";
@@ -305,18 +293,18 @@ TEST_F(NewSnippetTest, MyTest) {
     // manager->dump(std::cout);
     
     std::set<v2::Snippet*> dep;
-    dep = manager->getDep(A1);
+    dep = A1->getDeps();
     EXPECT_EQ(dep.size(), 0);
-    dep = manager->getDep(A2);
+    dep = A2->getDeps();
     EXPECT_EQ(dep.size(), 1);
     EXPECT_EQ(dep.count(A1), 1);
-    dep = manager->getDep(A3);
+    dep = A3->getDeps();
     EXPECT_EQ(dep.size(), 2);
     EXPECT_EQ(dep.count(A2), 1);
     EXPECT_EQ(dep.count(A2Typedef), 1);
 
     // get all dependence
-    dep = manager->getAllDep(A3);
+    dep = A3->getAllDeps();
     EXPECT_EQ(dep.size(), 3);
     EXPECT_EQ(dep.count(A1), 1);
     EXPECT_EQ(dep.count(A2), 1);
@@ -326,13 +314,9 @@ TEST_F(NewSnippetTest, MyTest) {
     std::set<v2::Snippet*> outer;
     // manager->dump(std::cout);
     // manager->dumpSnippetsVerbose(std::cout);
-    outer = manager->getOuter(A3);
+    outer = A3->getOuters();
     EXPECT_EQ(outer.size(), 1);
     EXPECT_EQ(outer.count(A3Alias), 1);
-
-    // outer = manager->getOuter(A2);
-    // EXPECT_EQ(outer.size(), 1);
-    // EXPECT_EQ(outer.count(A2Typedef), 1);
 
     // TODO practical usage
   }
@@ -344,23 +328,14 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(snippets);
     manager->process();
 
-    fs::path random_dir = fs::unique_path(fs::temp_directory_path() / "%%%%-%%%%-%%%%-%%%%");
-    fs::create_directories(random_dir);
-    fs::path snippet_file = random_dir / "snippet.txt";
-    fs::path dep_file = random_dir / "dep.txt";
-    fs::path outer_file = random_dir / "outer.txt";
+    fs::path random_json = fs::unique_path(fs::temp_directory_path() / "%%%%-%%%%-%%%%-%%%%.json");
 
-    manager->saveSnippet(snippet_file);
-    manager->saveDeps(dep_file);
-    manager->saveOuters(outer_file);
+    manager->saveJson(random_json);
+    // std::cout << "Saved to " << random_json << "\n";
 
     // a new manager to load
     v2::SnippetManager *manager2 = new v2::SnippetManager();
-    manager2->loadSnippet(snippet_file);
-    manager2->loadDeps(dep_file);
-    manager2->loadOuters(outer_file);
-
-    // EXPECT_TRUE(manager2->equivalent(manager));
+    manager2->loadJson(random_json);
 
     // verify
     std::vector<v2::Snippet*> snippets2 = manager2->getSnippets();
@@ -370,19 +345,9 @@ TEST_F(NewSnippetTest, MyTest) {
       v2::Snippet *s1 = snippets[i];
       v2::Snippet *s2 = snippets2[i];
       EXPECT_EQ(s1->getName(), s2->getName());
+      // dep and outers
+      EXPECT_EQ(s1->getDepsAsId(), s2->getDepsAsId());
+      EXPECT_EQ(s1->getOutersAsId(), s2->getOutersAsId());
     }
-
-    // std::map<v2::Snippet*, std::set<v2::Snippet*> > deps1 = manager->getDeps();
-    // std::map<v2::Snippet*, std::set<v2::Snippet*> > deps2 = manager2->getDeps();
-    // std::map<v2::Snippet*, std::set<v2::Snippet*> > outer1 = manager->getOuters();
-    // std::map<v2::Snippet*, std::set<v2::Snippet*> > outer2 = manager2->getOuters();
-
-    std::map<int, std::set<int> > deps1 = manager->getDepsAsId();
-    std::map<int, std::set<int> > deps2 = manager2->getDepsAsId();
-    std::map<int, std::set<int> > outers1 = manager->getOutersAsId();
-    std::map<int, std::set<int> > outers2 = manager2->getOutersAsId();
-
-    EXPECT_EQ(deps1, deps2);
-    EXPECT_EQ(outers1, outers2);
   }
 }
