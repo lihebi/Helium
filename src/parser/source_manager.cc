@@ -33,7 +33,16 @@ std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file)
   while (getline(is, line)) {
     utils::trim(line);
     flag = "";
-    if (!line.empty() && line[0] != '#') {
+    if (line.empty()) continue;
+    if (line[0] == '#') {
+      std::vector<std::string> v = utils::split(line);
+      std::string s = v[0];
+      if (s == "#INC") {
+        // Includes.insert(s);
+        assert(v.size() == 2);
+        Includes.insert(v[1]);
+      }
+    } else {
       if (line.find(' ') != std::string::npos) {
         flag = line.substr(line.find(' '));
         line = line.substr(0, line.find(' '));
@@ -975,6 +984,12 @@ std::string get_makefile() {
   for (std::string lib : libs) {
     lib_flag += lib + " ";
   }
+  std::string inc_flag;
+  std::set<std::string> incs = HeaderManager::Instance()->getIncludes();
+  for (std::string inc : incs) {
+    inc_flag += "-I" + inc + " ";
+  }
+  
   std::string makefile;
   makefile += "CC:=clang\n";
   // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
@@ -991,6 +1006,7 @@ std::string get_makefile() {
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
     // libs
+    + inc_flag
     + lib_flag
     + ""
     + "\n"

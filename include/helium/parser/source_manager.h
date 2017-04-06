@@ -23,19 +23,11 @@ public:
     return instance;
   }
 
-  static bool header_exists(const std::string header) {
-    fs::path p("/usr/include/"+header);
-    if (fs::exists(p)) return true;
-    p = "/usr/local/include/" + header;
-    if (fs::exists(p)) return true;
-    p = "/usr/include/x86_64-linux-gnu/" + header;
-    if (fs::exists(p)) return true;
-    p = "/usr/include/i386-linux-gnu/" + header;
-    if (fs::exists(p)) return true;
-    p = "/usr/lib/gcc/x86_64-linux-gnu/6/include/" + header;
-    if (fs::exists(p)) return true;
-    p = "/usr/lib/gcc/i386-linux-gnu/6/include/" + header;
-    if (fs::exists(p)) return true;
+  bool header_exists(const std::string header) {
+    for (std::string s : Includes) {
+      fs::path p(s + "/" + header);
+      if (fs::exists(p)) return true;
+    }
     return false;
   }
 
@@ -75,6 +67,11 @@ public:
       os << s << " ";
     }
     os << "\n";
+    os << "[HeaderManager] Includes: ";
+    for (std::string s : Includes) {
+      os << s << " ";
+    }
+    os << "\n";
     os << "[HeaderManager] Non-exist headers: ";
     for (std::string s : NonExistHeaders) {
       os << s << " ";
@@ -88,7 +85,16 @@ public:
 
   std::set<std::string> getHeaders() {return Headers;}
   std::set<std::string> getLibs() {return Libs;}
+  std::set<std::string> getIncludes() {return Includes;}
 private:
+  std::set<std::string> Includes = {
+    "/usr/include/",
+    "/usr/local/include/",
+    "/usr/include/x86_64-linux-gnu/",
+    "/usr/include/i386-linux-gnu/",
+    "/usr/lib/gcc/x86_64-linux-gnu/6/include/",
+    "/usr/lib/gcc/i386-linux-gnu/6/include/"
+  };
   HeaderManager() {}
   ~HeaderManager() {}
   std::set<std::string> Headers;
