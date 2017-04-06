@@ -43,7 +43,7 @@ namespace v2 {
    */
   class ASTContext {
   public:
-    ASTContext(std::string filename) {}
+    ASTContext(std::string filename) : Filename(filename) {}
     ~ASTContext() {}
     void setTranslationUnitDecl(TranslationUnitDecl *unit) {
       Unit = unit;
@@ -53,7 +53,9 @@ namespace v2 {
     void setSourceManager(SourceManager *manager) {Manager=manager;}
     SourceManager *getSourceManager() {return Manager;}
     std::vector<ASTNodeBase*> getNodes() {return Nodes;}
+    std::string getFileName() {return Filename;}
   private:
+    std::string Filename;
     TranslationUnitDecl *Unit = nullptr;
     std::vector<ASTNodeBase*> Nodes;
     std::map<ASTNodeBase*, int> Levels;

@@ -88,6 +88,11 @@ void Generator::visit(v2::IfStmt *node){
 void Generator::visit(v2::SwitchStmt *node){
   TokenNode *SwitchNode = node->getSwitchNode();
   assert(SwitchNode);
+
+  if (selection.count(SwitchNode)==1) {
+    Prog += "// " + node->getASTContext()->getFileName() + ":"
+      + std::to_string(node->getBeginLoc().getLine()) + "\n";
+  }
   SwitchNode->accept(this);
   if (selection.count(SwitchNode) == 1) Prog += "(";
   Expr *cond = node->getCond();
@@ -106,7 +111,9 @@ void Generator::visit(v2::CaseStmt *node){
   Expr *cond = node->getCond();
   if (cond) cond->accept(this);
   if (selection.count(token) == 1) {
-    Prog += ": ";
+    // HACK also add an empty statement because:
+    // error: label at end of compound statement: expected statement
+    Prog += ": ;";
   }
   vector<Stmt*> body = node->getBody();
   for (Stmt *stmt : body) {
@@ -117,7 +124,9 @@ void Generator::visit(v2::DefaultStmt *node){
   TokenNode *token = node->getDefaultNode();
   if (token) token->accept(this);
   if (selection.count(token) == 1) {
-    Prog += ": ";
+    // HACK also add an empty statement because:
+    // error: label at end of compound statement: expected statement
+    Prog += ": ;";
   }
   vector<Stmt*> body = node->getBody();
   for (Stmt *stmt : body) {
