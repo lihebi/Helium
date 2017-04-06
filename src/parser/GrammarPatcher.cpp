@@ -58,7 +58,10 @@ void StandAloneGrammarPatcher::process() {
       }
     } else if (ContinueStmt *continue_stmt = dynamic_cast<ContinueStmt*>(node)) {
       // handle continue
-      ASTNodeBase *node = break_stmt;
+      // FIXME break_stmt is alive here! that means
+      // 1. if condition can add variables
+      // 2. this variable alive through else body
+      ASTNodeBase *node = continue_stmt;
       while (node) {
         node = indexer.getParent(node);
         if (dynamic_cast<ForStmt*>(node)
