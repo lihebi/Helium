@@ -116,6 +116,9 @@ void Generator::visit(v2::CaseStmt *node){
 void Generator::visit(v2::DefaultStmt *node){
   TokenNode *token = node->getDefaultNode();
   if (token) token->accept(this);
+  if (selection.count(token) == 1) {
+    Prog += ": ";
+  }
   vector<Stmt*> body = node->getBody();
   for (Stmt *stmt : body) {
     if (stmt) stmt->accept(this);

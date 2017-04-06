@@ -163,10 +163,10 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
 
   // DEBUG
   // std::cout << "current matchMin: " << "\n";
-  // std::cout << "parent: ";
+  // std::cout << "== parent: ";
   // parent->dump(std::cout);
   // std::cout << "\n";
-  // std::cout << "children: ";
+  // std::cout << "== children: ";
   // for (ASTNodeBase *base : sel) {
   //   base->dump(std::cout);
   // }
@@ -186,12 +186,12 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   this->Patch.insert(patch.begin(), patch.end());
 
   // DEBUG
-  // std::cout << "Now patch includes:" << "\n";
+  // std::cout << "== patch includes: ";
   // for (auto *node : Patch) {
   //   node->dump(std::cout);
   // }
   // std::cout << "\n";
-  // std::cout << "Glboal Skip:" << "\n";
+  // std::cout << "== Glboal Skip: ";
   // for (auto &m : GlobalSkip) {
   //   m.first->dump(std::cout);
   // }
@@ -334,6 +334,17 @@ void GrammarPatcher::visit(v2::SwitchStmt *node) {
     Patch.insert(SwitchNode);
     Patch.insert(cond);
     // FIXME should have the compound parenthesis
+    // FIXME if switch is selected, must clear the skip bit of all the cases
+    for (v2::ASTNodeBase *label_stmt : node->getCases()) {
+      // FIXME not only the label, but also the token and condition node
+      GlobalSkip.erase(label_stmt);
+      if (v2::CaseStmt *case_stmt = dynamic_cast<CaseStmt*>(label_stmt)) {
+        GlobalSkip.erase(case_stmt->getCaseNode());
+        GlobalSkip.erase(case_stmt->getCond());
+      } else if (v2::DefaultStmt *def_stmt = dynamic_cast<DefaultStmt*>(label_stmt)) {
+        GlobalSkip.erase(def_stmt->getDefaultNode());
+      }
+    }
   }
   
   // no need for cases
@@ -348,13 +359,25 @@ void GrammarPatcher::visit(v2::CaseStmt *node) {
   Expr *cond = node->getCond();
   assert(CaseNode);
   assert(cond);
-  if (Selection.count(CaseNode) == 0) {
-    // FIXME this nullptr because in AST it maintain a list of statements
-    // DO NOT USE THIS VALUE
+  if (Selection.count(CaseNode) == 0 && Selection.count(cond) == 0) {
     GlobalSkip[node] = nullptr;
+    GlobalSkip[CaseNode] = nullptr;
+    GlobalSkip[cond] = nullptr;
+    Patch.insert(CaseNode);
+    Patch.insert(cond);
+  } else {
+    Patch.insert(CaseNode);
+    Patch.insert(cond);
   }
-  Patch.insert(CaseNode);
-  Patch.insert(cond);
+  // if (Selection.count(CaseNode) == 0) {
+  //   // FIXME this nullptr because in AST it maintain a list of statements
+  //   // DO NOT USE THIS VALUE
+  //   // case can always be skipped if
+  //   // 1. it is not selected
+  //   // 2. switch is not selected
+  //   GlobalSkip[node] = nullptr;
+  // } else {
+  // }
   // no need body
   // vector<Stmt*> body = case_stmt->getBody();
   // for (Stmt *stmt : body) {
@@ -364,13 +387,16 @@ void GrammarPatcher::visit(v2::CaseStmt *node) {
 void GrammarPatcher::visit(v2::DefaultStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *DefaultNode = node->getDefaultNode();
+  assert(DefaultNode);
   if (Selection.count(DefaultNode) == 0) {
     // FIXME this nullptr because in AST it maintain a list of statements
     // DO NOT USE THIS VALUE
     GlobalSkip[node] = nullptr;
+    GlobalSkip[DefaultNode] = nullptr;
+    Patch.insert(DefaultNode);
+  } else {
+    Patch.insert(DefaultNode);
   }
-  assert(DefaultNode);
-  Patch.insert(DefaultNode);
 }
 // loop
 void GrammarPatcher::visit(v2::ForStmt *node) {

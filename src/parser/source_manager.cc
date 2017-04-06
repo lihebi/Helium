@@ -781,6 +781,8 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "typedef unsigned int u_int;\n";
   ret += "typedef unsigned char uchar;\n";
   ret += "typedef unsigned int uint;\n";
+  ret += "typedef unsigned short u_short;\n";
+  ret += "typedef unsigned short ushort;\n";
 
   ret += "#include <stdbool.h>\n";
   ret += "#include <stdio.h>\n";
