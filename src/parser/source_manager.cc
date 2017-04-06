@@ -879,9 +879,12 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
     all_ids.insert(ids.begin(), ids.end());
     for (std::string id : ids) {
       std::vector<Snippet*> ss = v2::GlobalSnippetManager::Instance()->get(id);
+      
       snippets.insert(ss.begin(), ss.end());
     }
   }
+  
+  
   std::cout << "[SourceManager] Got " << all_ids.size() << " IDs: ";
   for (std::string id : all_ids) {
     std::cout << id << " ";
@@ -898,9 +901,36 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   }
   snippets.insert(deps.begin(), deps.end());
 
+  
   // remove non-outers
   snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
 
+  
+  // remove duplicate
+  // for the same name and same type, only one should be retained.
+  // This should be right before sortting
+  struct SnippetComp {
+    bool operator()(Snippet *s1,Snippet *s2) {
+      return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
+    }
+  };
+  std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";
+  for (Snippet *s : snippets) {
+    std::cout << s->getName() << " "
+              << s->getSnippetName() << "; ";
+  }
+  std::cout << "\n";
+  std::set<Snippet*,SnippetComp> nodup;
+  nodup.insert(snippets.begin(), snippets.end());
+  snippets.clear();
+  snippets.insert(nodup.begin(), nodup.end());
+  std::cout << "[SourceManager] " << snippets.size() << " Snippets AFTER removing dup: ";
+  for (Snippet *s : snippets) {
+    std::cout << s->getName() << " "
+              << s->getSnippetName() << "; ";
+  }
+  std::cout << "\n";
+  // snippets = nodup;
   
   // sort the snippets
   std::vector<Snippet*> sorted_snippets = v2::GlobalSnippetManager::Instance()->sort(snippets);
@@ -942,10 +972,12 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
   std::string type;
   for (Snippet *s : type_snippets) {
+    type += "// " + s->toString() + "\n";
     type += s->getCode() + ";\n";
   }
   std::string var;
   for (Snippet *s : var_snippets) {
+    var += "// " + s->toString() + "\n";
     var += s->getCode() + ";\n";
   }
   // TRICK: the same function can be defined multiple times in the project it
@@ -963,6 +995,7 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
       if (func_trick.count(name) == 1) {
         std::cerr << "[Helium Error] The function " << name << " is defined multiple times. Used the first one." << "\n";
       } else {
+        func += "// " + s->toString() + "\n";
         func += s->getCode() + "\n";
         func_trick.insert(name);
       }

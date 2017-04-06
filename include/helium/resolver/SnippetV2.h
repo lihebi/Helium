@@ -82,6 +82,10 @@ namespace v2 {
     int getId() {return ID;}
     virtual void dump(std::ostream &os);
     virtual void dumpVerbose(std::ostream &os);
+    std::string toString() {
+      return getSnippetName() + " at " + File + ":"
+        + std::to_string(Begin.getLine());
+    }
 
     // void loadCode(fs::path p) {
     //   Code = utils::read_file(p.string());
