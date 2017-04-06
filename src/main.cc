@@ -416,6 +416,29 @@ int main(int argc, char* argv[]) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);}
 
+
+
+  if (HeliumOptions::Instance()->Has("discover-header")) {
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+    std::set<std::string> headers = HeaderManager::Instance()->discoverHeader(target);
+    for (std::string s : headers) {
+      std::cout << s << "\n";
+    }
+    exit(0);
+  }
+
+  if (HeliumOptions::Instance()->Has("check-header")) {
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+    std::set<std::string> headers = HeaderManager::Instance()->checkHeader(target);
+    for (std::string s : headers) {
+      std::cout << s << "\n";
+    }
+    exit(0);
+  }
+  
+
   // change relative to absolute
   std::string target_dir_name = fs::canonical(target).string();
   std::replace(target_dir_name.begin(), target_dir_name.end(), '/', '_');

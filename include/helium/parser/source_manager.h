@@ -53,6 +53,17 @@ public:
     }
   }
 
+  /**
+   * Discover headers used in the project dir, on current system, and
+   * not in conf
+   */
+  std::set<std::string> discoverHeader(fs::path dir);
+  /**
+   * Discover headers used in project, but not on current system or
+   * not in conf
+   */
+  std::set<std::string> checkHeader(fs::path dir);
+
   void dump(std::ostream &os) {
     os << "[HeaderManager] Headers: ";
     for (std::string s : Headers) {

@@ -8,6 +8,8 @@
 
 #include "helium/resolver/SnippetV2.h"
 
+#include <regex>
+
 using namespace v2;
 
 using std::string;
@@ -41,6 +43,62 @@ std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file)
     }
   }
   return headers;
+}
+
+
+static std::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
+static std::regex include_quote_reg("#\\s*include\\s*\"([\\w/]+\\.h)\"");
+static std::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
+
+std::set<std::string> HeaderManager::discoverHeader(fs::path dir) {
+  /**
+   * 1. loop through all files with .h and .c
+   * 2. get #include <>
+   * 3. search in system for existence
+   */
+  std::set<std::string> ret;
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".h" || p.extension() == ".c") {
+      std::ifstream ifs(p.string());
+      assert(ifs.is_open());
+      std::string line;
+      while (std::getline(ifs, line)) {
+        std::smatch match;
+        if (std::regex_search(line, match, include_angle_reg)) {
+          std::string file = match[1];
+          if (Headers.count(file) == 0 && header_exists(file)) {
+            ret.insert(file);
+          }
+        }
+      }
+      ifs.close();
+    }
+  }
+  return ret;
+}
+
+std::set<std::string> HeaderManager::checkHeader(fs::path dir) {
+  std::set<std::string> ret;
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".h" || p.extension() == ".c") {
+      std::ifstream ifs(p.string());
+      assert(ifs.is_open());
+      std::string line;
+      while (std::getline(ifs, line)) {
+        std::smatch match;
+        if (std::regex_search(line, match, include_angle_reg)) {
+          std::string file = match[1];
+          if (Headers.count(file) == 0 || !header_exists(file)) {
+            ret.insert(file);
+          }
+        }
+      }
+      ifs.close();
+    }
+  }
+  return ret;
 }
 
 SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
