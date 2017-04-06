@@ -227,7 +227,8 @@ bool do_compile(fs::path dir) {
   utils::exec(clean_cmd.c_str(), NULL);
   int return_code;
   std::string error_msg = utils::exec_sh(cmd.c_str(), &return_code);
-  // std::cout << error_msg << "\n";
+  std::cout << "[main] Error Message:" << "\n";
+  std::cout << error_msg << "\n";
   if (return_code == 0) {
     return true;
   } else {
@@ -239,7 +240,7 @@ bool do_compile(fs::path dir) {
  * helium_target_name : the name helium represents a benchmark
  * _home_hebi_XXX_name
  */
-void helium_run(fs::path helium_home, std::string helium_target_name, std::vector<fs::path> sels) {
+void helium_run(fs::path helium_home, fs::path target, std::string helium_target_name, std::vector<fs::path> sels) {
   // std::cout << "Helium Running .." << "\n";
   fs::path target_cache_dir = helium_home / "cache" / helium_target_name;
   // fs::path target_sel_dir = helium_home / "sel" / helium_target_name;
@@ -255,6 +256,7 @@ void helium_run(fs::path helium_home, std::string helium_target_name, std::vecto
       
     std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
     std::cout << "---------------------" << "\n";
+    std::cout << "[main] Rerun this by: helium " << target.string() << " --sel " << sel_file.string() << "\n";
     std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << sel_file.string() << "\n";
     // dumping
     for (v2::ASTNodeBase *node : sel) {
@@ -370,31 +372,41 @@ int main(int argc, char* argv[]) {
       std::cerr << "No such cache: " << toremove << "\n";
       exit(1);}}
 
-  fs::path systag = helium_home / "systype.tags";
-  if (!fs::exists(systag)) {
-    if (HeliumOptions::Instance()->Has("setup")) {
-      // run ctags to create tags
-      std::cout << "Creating ~/systype.tags" << "\n";
-      std::string cmd = "ctags -f " + systag.string() +
-        " --exclude=boost"
-        " --exclude=llvm"
-        " --exclude=c++"
-        " --exclude=linux"
-        " --exclude=xcb"
-        " --exclude=X11"
-        " --exclude=openssl"
-        " --exclude=xorg"
-        " -R /usr/include/ /usr/local/include";
-      std::cout << "Running " << cmd << "\n";
-      utils::exec(cmd.c_str());
-      std::cout << "Done" << "\n";
-      exit(0);
-    } else {
-      std::cout << "No systype.tags found. Run helium --setup first." << "\n";
-      exit(1);
-    }
+
+  if (HeliumOptions::Instance()->Has("system-info")) {
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+    HeaderManager::Instance()->dump(std::cout);
+    exit(0);
   }
-  SystemResolver::Instance()->Load(systag.string());
+
+  
+
+  // fs::path systag = helium_home / "systype.tags";
+  // if (!fs::exists(systag)) {
+  //   if (HeliumOptions::Instance()->Has("setup")) {
+  //     // run ctags to create tags
+  //     std::cout << "Creating ~/systype.tags" << "\n";
+  //     std::string cmd = "ctags -f " + systag.string() +
+  //       " --exclude=boost"
+  //       " --exclude=llvm"
+  //       " --exclude=c++"
+  //       " --exclude=linux"
+  //       " --exclude=xcb"
+  //       " --exclude=X11"
+  //       " --exclude=openssl"
+  //       " --exclude=xorg"
+  //       " -R /usr/include/ /usr/local/include";
+  //     std::cout << "Running " << cmd << "\n";
+  //     utils::exec(cmd.c_str());
+  //     std::cout << "Done" << "\n";
+  //     exit(0);
+  //   } else {
+  //     std::cout << "No systype.tags found. Run helium --setup first." << "\n";
+  //     exit(1);
+  //   }
+  // }
+  // SystemResolver::Instance()->Load(systag.string());
   
   // Reading target folder. This is the parameter
   std::string target_str = HeliumOptions::Instance()->GetString("target");
@@ -413,6 +425,28 @@ int main(int argc, char* argv[]) {
 
 
 
+  // see if this project is blocked
+  {
+    std::ifstream ifs((helium_home / "etc" / "blacklist.conf").string());
+    assert(ifs.is_open());
+    std::string line;
+    std::set<std::string> blocklist;
+    while (std::getline(ifs, line)) {
+      utils::trim(line);
+      if (line.empty() || line[0]=='#') continue;
+      std::string proj = utils::split(line)[0];
+      blocklist.insert(proj);
+    }
+    ifs.close();
+    for (std::string s : blocklist) {
+      std::cout << "checking " << s << "\n";
+      if (target_dir_name.find(s) != std::string::npos) {
+        std::cout << "[main] This project is in blacklist. Skipped." << "\n";
+        exit(0);
+      }
+    }
+  }
+
   // (HEBI: Create Cache)
 
 
@@ -427,20 +461,13 @@ int main(int argc, char* argv[]) {
     std::cout << "== Creating cpp .." << "\n";
     create_cpp(target_cache_dir);
 
-    // tagfile is not needed, but i just want to keep it to avoid changing existing code
-    std::cout << "== Creating tagfile .." << "\n";
-    create_tagfile(target_cache_dir);
-    // std::cout << "== Creating clang snippet .." << "\n";
-    // create_clang_snippet(target_cache_dir);
-    // std::cout << "== Creating snippet db .." << "\n";
-    // create_snippet_db(target_cache_dir);
-
     // The new snippet system
     std::cout << "== Creating snippets, deps, outers ..." << "\n";
     v2::SnippetManager *snippet_manager = new v2::SnippetManager();
     snippet_manager->traverseDir(target_cache_dir / "cpp");
 
-    snippet_manager->dumpLight(std::cout);
+    // snippet_manager->dumpLight(std::cout);
+    snippet_manager->dump(std::cout);
 
     // snippet_manager->save(target_cache_dir);
     snippet_manager->saveJson(target_cache_dir / "snippets.json");
@@ -488,10 +515,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "The benchmark is not processed."
               << "Run helium --create-cache /path/to/benchmark" << "\n";
     exit(1);}
-
-  // load_tagfile((target_cache_dir / "cpp").string());
-  ctags_load((target_cache_dir / "tagfile").string());
-  // load_snippet_db((target_cache_dir / "snippet").string());
 
   // remove load of snippet db
   // SnippetDB::Instance()->Load(target_cache_dir / "snippet.db", target_cache_dir / "code");
@@ -582,28 +605,11 @@ int main(int argc, char* argv[]) {
   // }
 
 
-  // std::cerr << "Specify tokenize or selection to run." << "\n";
-  // exit(1);
-
-
-
-
-  std::cout << "Loading snippet from " << target_cache_dir << "\n";
-  // v2::GlobalSnippetManager::Instance()->load(target_cache_dir);
+  std::cout << "[main] Loading snippet from " << target_cache_dir << "\n";
   v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
-  // v2::GlobalSnippetManager::Instance()->loadSnippet(target_cache_dir / "snippets.txt");
-  // v2::GlobalSnippetManager::Instance()->loadDeps(target_cache_dir / "deps.txt");
-  // v2::GlobalSnippetManager::Instance()->loadOuters(target_cache_dir / "outers.txt");
-  std::cout << "Loaded " << v2::GlobalSnippetManager::Instance()->size() << " snippets. Processing .." << "\n";
   // CAUTION Must process after load.
   v2::GlobalSnippetManager::Instance()->processAfterLoad();
-  std::cout << "Done processing snippets." << "\n";
-
-  std::cout << "Loaded snippet:" << v2::GlobalSnippetManager::Instance()->size() << "\n";
-  // v2::GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
-
-
-
+  v2::GlobalSnippetManager::Instance()->dump(std::cout);
 
   assert(fs::exists(helium_home / "etc" / "system.conf"));
   assert(fs::exists(helium_home / "etc" / "third-party.conf"));
@@ -647,7 +653,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  helium_run(helium_home, target_dir_name, sels);
+  helium_run(helium_home, target, target_dir_name, sels);
 
   std::cout << "[main] End Of Helium" << "\n";
   exit(0);

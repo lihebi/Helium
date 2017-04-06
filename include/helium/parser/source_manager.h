@@ -47,16 +47,25 @@ public:
         if (!m.second.empty()) {
           Libs.insert(m.second);
         }
+      } else {
+        NonExistHeaders.insert(m.first);
       }
     }
   }
 
   void dump(std::ostream &os) {
+    os << "[HeaderManager] Headers: ";
     for (std::string s : Headers) {
       os << s << " ";
     }
     os << "\n";
+    os << "[HeaderManager] Libs: ";
     for (std::string s : Libs) {
+      os << s << " ";
+    }
+    os << "\n";
+    os << "[HeaderManager] Non-exist headers: ";
+    for (std::string s : NonExistHeaders) {
       os << s << " ";
     }
     os << "\n";
@@ -72,6 +81,7 @@ private:
   HeaderManager() {}
   ~HeaderManager() {}
   std::set<std::string> Headers;
+  std::set<std::string> NonExistHeaders;
   std::set<std::string> Libs;
   static HeaderManager *instance;
 

@@ -47,9 +47,18 @@ void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
     if (is_regular_file(p)) {
       if (p.extension() == ".c" || p.extension() == ".h") {
-        fs::path to = target_cache_dir / "src" / fs::relative(p, target);
+        fs::path to = src / fs::relative(p, target);
         fs::create_directories(to.parent_path());
-        fs::copy_file(p, target_cache_dir / "src" / fs::relative(p, target));
+        // std::cout << "From: " << p << "\n";
+        // std::cout << "Copying to " << to.string() << "\n";
+        // this can also fail!!
+        // fs::copy_file  will fail if file is found
+        // 
+        // even if I removed src folder at the beginning of this
+        // procedure, it still happens because:
+        // fs::relative_path will follow symbolic link
+        if (fs::exists(to)) fs::remove(to);
+        fs::copy_file(p, to);
       } else if (p.extension() == ".sel") {
         // selection file
         // fs::copy_file(p, target_cache_dir / "sel" / p.filename());

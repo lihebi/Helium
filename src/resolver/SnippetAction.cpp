@@ -108,6 +108,7 @@ public:
       // clang::SourceLocation end = range.getEnd();
       clang::SourceLocation begin = decl->getLocStart();
       clang::SourceLocation end = decl->getLocEnd();
+      // name can be empty, this is an anonymous record. It must have a typedef or var to enclose it.
       v2::Snippet *s = new v2::RecordSnippet(name, Filename,
                                              convertLocation(Context, begin),
                                              convertLocation(Context, end));

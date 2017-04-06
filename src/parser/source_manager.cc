@@ -801,16 +801,25 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   // GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
   
   std::set<v2::Snippet*> snippets;
+  std::set<std::string> all_ids;
   for (auto *node : sel) {
     std::set<std::string> ids;
     if (node) {
       ids = node->getIdToResolve();
     }
+    all_ids.insert(ids.begin(), ids.end());
     for (std::string id : ids) {
       std::vector<Snippet*> ss = v2::GlobalSnippetManager::Instance()->get(id);
       snippets.insert(ss.begin(), ss.end());
     }
   }
+  std::cout << "[SourceManager] Got " << all_ids.size() << " IDs: ";
+  for (std::string id : all_ids) {
+    std::cout << id << " ";
+  }
+  std::cout << "\n";
+  std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
+  
   // get dependence
   std::set<v2::Snippet*> deps;
   for (auto *s : snippets) {
@@ -822,9 +831,16 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
   // remove non-outers
   snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+
   
   // sort the snippets
   std::vector<Snippet*> sorted_snippets = v2::GlobalSnippetManager::Instance()->sort(snippets);
+
+  std::cout << "[SourceManager] " << sorted_snippets.size() << " Snippets used in main.h: ";
+  for (Snippet *s : sorted_snippets) {
+    std::cout << s->getName() << " ";
+  }
+  std::cout << "\n";
 
   std::vector<Snippet*> func_snippets;
   std::vector<Snippet*> type_snippets;
@@ -861,13 +877,26 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   }
   std::string var;
   for (Snippet *s : var_snippets) {
-    var += s->getCode() + "\n";
+    var += s->getCode() + ";\n";
   }
+  // TRICK: the same function can be defined multiple times in the project it
+  // is wired, the project might serve a purpose: gather many
+  // interesting files, e.g. for education purpose.
+  // I'm going to use the first one found, because if I output both, it is for sure compile error
+  // - output the first one
+  // - optional try all the combination
+  // - print a fatal error
+  std::set<std::string> func_trick;
   std::string func;
   for (Snippet *s : func_snippets) {
     std::string name = s->getName();
     if (main_c_funcs.count(name) == 0) {
-      func += s->getCode() + "\n";
+      if (func_trick.count(name) == 1) {
+        std::cerr << "[Helium Error] The function " << name << " is defined multiple times. Used the first one." << "\n";
+      } else {
+        func += s->getCode() + "\n";
+        func_trick.insert(name);
+      }
     }
   }
   ret += "// type\n";

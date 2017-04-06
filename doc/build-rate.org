@@ -1,0 +1,14 @@
+#+TITLE: Build Rate
+
+Reasons for build rate:
+- the github project may have submodules that need to be get. In other
+  word the project is not complete.  
+  - E.g. nginx-gridfs-master, the definition for NGX_ERROR is missing,
+    and it is used extensively in the code. Selecting it will gurantee
+    compile failure. The missed definition:
+    - ngx_str_t
+    - NGX_ERROR
+
+
+- Some project defines same function multiple times. E.g.
+  - no-more-secrets, defines two nmstermio_refresh

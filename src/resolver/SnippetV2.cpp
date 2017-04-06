@@ -100,8 +100,11 @@ void TypedefSnippet::readCode() {
   Code = read_file_for_code_until_semicolon(File, Begin, End);
 }
 
-
 void v2::Snippet::dump(std::ostream &os) {
+  os << Name;
+}
+
+void v2::Snippet::dumpVerbose(std::ostream &os) {
   rapidjson::Document doc;
   doc.SetObject();
   rapidjson::Value v = saveJson(doc.GetAllocator());
@@ -168,107 +171,8 @@ void SnippetManager::createDeps() {
 }
 
 
-/**
- * Disk
- */
-// void SnippetManager::saveSnippet(fs::path p) {
-//   std::ofstream os;
-//   os.open(p.string());
-//   assert(os.is_open());
-//   for (Snippet *s : Snippets) {
-//     s->save(os);
-//   }
-// }
-// void SnippetManager::loadSnippet(fs::path p) {
-//   assert(Snippets.empty());
-//   std::ifstream is;
-//   is.open(p.string());
-//   assert(is.is_open());
-//   std::string kind;
-//   Snippet *s = nullptr;
-//   // while (is >> kind) {
-//   //   std::cout << kind << "\n";
-//   // }
-//   while (is >> kind) {
-//     if (kind == "FunctionSnippet") s = new FunctionSnippet();
-//     else if (kind == "VarSnippet") s = new VarSnippet();
-//     else if (kind == "TypedefSnippet") s = new TypedefSnippet();
-//     else if (kind == "RecordSnippet") s = new RecordSnippet();
-//     else {
-//       assert(false);
-//     }
-//     s->load(is);
-//     // while (is >> kind) {
-//     //   std::cout << kind << "\n";
-//     // }
-//     int id = Snippets.size();
-//     s->setId(id);
-//     Snippets.push_back(s);
-//   }
-// }
 
-// void SnippetManager::saveDeps(fs::path p) {
-//   std::ofstream os;
-//   os.open(p.string());
-//   assert(os.is_open());
-//   for (auto &m : Deps) {
-//     os << m.first->getId() << " ";
-//     for (Snippet *s : m.second) {
-//       os << s->getId() << " ";
-//     }
-//     os << "\n";
-//   }
-// }
-
-// void SnippetManager::loadDeps(fs::path p) {
-//   std::ifstream is;
-//   is.open(p.string());
-//   assert(is.is_open());
-//   std::string line;
-//   while (getline(is, line)) {
-//     int from_id,to_id;
-//     std::istringstream ss(line);
-//     ss >> from_id;
-//     while (ss >> to_id) {
-//       // IdDeps[from_id].insert(to_id);
-//       Deps[Snippets[from_id]].insert(Snippets[to_id]);
-//     }
-//   }
-// }
-
-// void SnippetManager::saveOuters(fs::path p) {
-//   std::ofstream os;
-//   os.open(p.string());
-//   assert(os.is_open());
-//   for (auto &m : Outers) {
-//     os << m.first->getId() << " ";
-//     for (Snippet *s : m.second) {
-//       os << s->getId() << " ";
-//     }
-//     os << "\n";
-//   }
-// }
-
-// void SnippetManager::loadOuters(fs::path p) {
-//   std::ifstream is;
-//   is.open(p.string());
-//   assert(is.is_open());
-//   std::string line;
-//   while (getline(is, line)) {
-//     int from_id,to_id;
-//     std::istringstream ss(line);
-//     ss >> from_id;
-//     while (ss >> to_id) {
-//       // IdDeps[from_id].insert(to_id);
-//       Outers[Snippets[from_id]].insert(Snippets[to_id]);
-//     }
-//   }
-// }
-
-
-
-
-void SnippetManager::dumpSnippetsVerbose(std::ostream &os) {
+void SnippetManager::dumpVerbose(std::ostream &os) {
   os << "== Total " << Snippets.size() << " snippets\n";
   for (Snippet *s : Snippets) {
     os << "\t";
@@ -278,81 +182,43 @@ void SnippetManager::dumpSnippetsVerbose(std::ostream &os) {
   }
 }
 
-void SnippetManager::dumpLight(std::ostream &os) {
-  os << "Snippets: " << "\n";
-  int func_ct = 0;
-  int var_ct = 0;
-  int record_ct = 0;
-  int typedef_ct = 0;
-  int enum_ct = 0;
+void SnippetManager::dump(std::ostream &os) {
+  os << "[SnippetManager] " << Snippets.size() << " snippets, "
+     << KeyMap.size() << " KeyMap entries." << "\n";
+  std::set<Snippet*> func_s,typedef_s,enum_s,var_s,record_s;
   for (Snippet *s : Snippets) {
-    if (dynamic_cast<FunctionSnippet*>(s)) func_ct++;
-    else if (dynamic_cast<TypedefSnippet*>(s)) typedef_ct++;
-    else if (dynamic_cast<EnumSnippet*>(s)) enum_ct++;
-    else if (dynamic_cast<VarSnippet*>(s)) var_ct++;
-    else if (dynamic_cast<RecordSnippet*>(s)) record_ct++;
+    if (dynamic_cast<FunctionSnippet*>(s)) {func_s.insert(s);}
+    else if (dynamic_cast<TypedefSnippet*>(s)) {typedef_s.insert(s);}
+    else if (dynamic_cast<EnumSnippet*>(s)) {enum_s.insert(s);}
+    else if (dynamic_cast<VarSnippet*>(s)) {var_s.insert(s);}
+    else if (dynamic_cast<RecordSnippet*>(s)) {record_s.insert(s);}
   }
   // type of snippet
-  os << "\t" << "Function: " << func_ct << "\n";
-  os << "\t" << "Record: " << record_ct << "\n";
-  os << "\t" << "Typedef: " << typedef_ct << "\n";
-  os << "\t" << "Enum: " << enum_ct << "\n";
-  os << "\t" << "Var: " << var_ct << "\n";
-
-  // int deps_ct = 0;
-  // for (auto &m : Deps) {
-  //   deps_ct += m.second.size();
-  // }
-  // os << "Deps: " << deps_ct << "\n";
-
-  // int outers_ct = 0;
-  // for (auto &m : Outers) {
-  //   outers_ct += m.second.size();
-  // }
-  // os << "Deps: " << outers_ct << "\n";
-}
-
-void SnippetManager::dump(std::ostream &os) {
-
-  os << "== Total " << Snippets.size() << " snippets\n";
-  os << "== KeyMap: " << KeyMap.size() << "\n";
-  for (Snippet *s : Snippets) {
-    // s->dump(os);
-    // os << "\n";
-    // s->save(os);
-    // os << s->getCode();
-    os << "\t";
-    s->dump(os);
-    os << "\n";
+  os << "[SnipperManager] " << func_s.size() << " Functions: ";
+  for (auto *s : func_s) {
+    s->dump(os); os << " ";
   }
-  // os << "== Dependence:" << "\n";
-  // // std::map<Snippet*, std::set<Snippet*> > Deps;
-  // // std::map<Snippet*, std::set<Snippet*> > Outer;
-  // for (auto &m : Deps) {
-  //   Snippet *from = m.first;
-  //   std::set<Snippet*> to = m.second;
-  //   os << "\t";
-  //   from->dump(os);
-  //   os << " ==> ";
-  //   for (Snippet *s : to) {
-  //     s->dump(os);
-  //     os << ", ";
-  //   }
-  //   os << "\n";
-  // }
-  // os << "== Outers:" << "\n";
-  // for (auto &m : Outers) {
-  //   Snippet *from = m.first;
-  //   std::set<Snippet*> outers = m.second;
-  //   os << "\t";
-  //   from->dump(os);
-  //   os << " ==> ";
-  //   for (Snippet *s : outers) {
-  //     s->dump(os);
-  //     os << ", ";
-  //   }
-  //   os << "\n";
-  // }
+  os << "\n";
+  os << "[SnipperManager] " << record_s.size() << " Records: ";
+  for (auto *s : record_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
+  os << "[SnipperManager] " << typedef_s.size() << " Typedef: ";
+  for (auto *s : typedef_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
+  os << "[SnipperManager] " << enum_s.size() << " Enum: ";
+  for (auto *s : enum_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
+  os << "[SnipperManager] " << var_s.size() << " Var: ";
+  for (auto *s : var_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
 }
 
 
@@ -582,12 +448,6 @@ void v2::Snippet::loadJson(rapidjson::Value &obj) {
   End = {obj["end"]["line"].GetInt(),
            obj["end"]["col"].GetInt()};
   // deps and outers have to be add later
-  // for (auto &v : obj["deps"].GetArray()) {
-  //   Deps.insert(v.GetInt());
-  // }
-  // for (auto &v : obj["outers"].GetArray()) {
-  //   Outers.insert(v.GetInt());
-  // }
 }
 
 

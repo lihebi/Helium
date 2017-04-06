@@ -28,8 +28,24 @@ void Generator::visit(v2::FunctionDecl *node){
   TokenNode *ReturnNode = node->getReturnTypeNode();
   if (ReturnNode) ReturnNode->accept(this);
   Prog += " ";
+
+  // TRICK: do a trick here: If the function is main, replace the name
+  // to helium_main there must be only main function right.. unless
+  // the code contains many exectuables .. That is not interesting
+
   TokenNode *NameNode = node->getNameNode();
-  if (NameNode) NameNode->accept(this);
+  if (NameNode) {
+    // NameNode->accept(this);
+    if (selection.count(NameNode) == 1) {
+      // only if this function is selected will do the trick,
+      // otherwise I will get a lot of helium_main
+      if (NameNode->getText() == "main") {
+        Prog += "helium_main";
+      } else {
+        NameNode->accept(this);
+      }
+    }
+  }
   // param node should handle parenthesis
   TokenNode *ParamNode = node->getParamNode();
   if (ParamNode) ParamNode->accept(this);
@@ -89,6 +105,9 @@ void Generator::visit(v2::CaseStmt *node){
   if (token) token->accept(this);
   Expr *cond = node->getCond();
   if (cond) cond->accept(this);
+  if (selection.count(token) == 1) {
+    Prog += ": ";
+  }
   vector<Stmt*> body = node->getBody();
   for (Stmt *stmt : body) {
     if (stmt) stmt->accept(this);

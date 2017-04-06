@@ -64,6 +64,7 @@ HeliumOptions::HeliumOptions() {
     ("sel", po::value<std::string>(), "selection file")
     ("dump-ast", "dump ast")
     ("hebi", "Experimental")
+    ("system-info", "show system info")
     ;
 
   po::options_description util_options("Utils");

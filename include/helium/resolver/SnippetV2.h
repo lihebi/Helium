@@ -81,6 +81,7 @@ namespace v2 {
     void setId(int id) {ID = id;}
     int getId() {return ID;}
     virtual void dump(std::ostream &os);
+    virtual void dumpVerbose(std::ostream &os);
 
     // void loadCode(fs::path p) {
     //   Code = utils::read_file(p.string());
@@ -397,27 +398,14 @@ namespace v2 {
 
     void saveJson(fs::path p);
     void loadJson(fs::path p);
-  // private:
-  //   /**
-  //    * save to disk
-  //    */
-  //   void saveSnippet(fs::path p);
-  //   void saveDeps(fs::path p);
-  //   void saveOuters(fs::path p);
-  //   /**
-  //    * load from disk
-  //    */
-  //   void loadSnippet(fs::path p);
-  //   void loadDeps(fs::path p);
-  //   void loadOuters(fs::path p);
   public:
 
     /**
      * dump only the size of snippets, 
      */
-    void dumpLight(std::ostream &os);
+    // void dumpLight(std::ostream &os);
     void dump(std::ostream &os);
-    void dumpSnippetsVerbose(std::ostream &os);
+    void dumpVerbose(std::ostream &os);
     /**
      * Getters
      */
@@ -454,32 +442,6 @@ namespace v2 {
      * Simple Getters
      */
     std::vector<Snippet*> getSnippets() {return Snippets;}
-    // std::map<Snippet*, std::set<Snippet*> > getDeps() {return Deps;}
-    // std::map<Snippet*, std::set<Snippet*> > getOuters() {return Outers;}
-
-    /**
-     * for testing
-     */
-    // std::map<int, std::set<int> > getDepsAsId() {
-    //   std::map<int, std::set<int> > ret;
-    //   for (auto &m : Deps) {
-    //     int from = m.first->getId();
-    //     for (Snippet *s : m.second) {
-    //       ret[from].insert(s->getId());
-    //     }
-    //   }
-    //   return ret;
-    // }
-    // std::map<int, std::set<int> > getOutersAsId() {
-    //   std::map<int, std::set<int> > ret;
-    //   for (auto &m : Outers) {
-    //     int from = m.first->getId();
-    //     for (Snippet *s : m.second) {
-    //       ret[from].insert(s->getId());
-    //     }
-    //   }
-    //   return ret;
-    // }
 
     // - get only the outers
     // - order by file
