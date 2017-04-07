@@ -676,7 +676,10 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // mask so that only use headers used in the project
+  HeaderManager::Instance()->mask(target);
   helium_run(helium_home, target, target_dir_name, sels);
+  HeaderManager::Instance()->unmask();
 
   std::cout << "[main] End Of Helium" << "\n";
   exit(0);

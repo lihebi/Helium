@@ -19,96 +19,6 @@ using std::map;
 using std::pair;
 
 
-HeaderManager *HeaderManager::instance = nullptr;
-
-
-std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file) {
-  std::ifstream is;
-  is.open(file.string());
-  assert(is.is_open());
-  std::string line;
-  std::string flag;
-  // from header name to compile flag
-  std::map<std::string, std::string> headers;
-  while (getline(is, line)) {
-    utils::trim(line);
-    flag = "";
-    if (line.empty()) continue;
-    if (line[0] == '#') {
-      std::vector<std::string> v = utils::split(line);
-      std::string s = v[0];
-      if (s == "#INC") {
-        // Includes.insert(s);
-        assert(v.size() == 2);
-        Includes.insert(v[1]);
-      }
-    } else {
-      if (line.find(' ') != std::string::npos) {
-        flag = line.substr(line.find(' '));
-        line = line.substr(0, line.find(' '));
-        utils::trim(flag);
-      }
-      headers[line] = flag;
-    }
-  }
-  return headers;
-}
-
-
-static std::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
-static std::regex include_quote_reg("#\\s*include\\s*\"([\\w/]+\\.h)\"");
-static std::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
-
-std::set<std::string> HeaderManager::discoverHeader(fs::path dir) {
-  /**
-   * 1. loop through all files with .h and .c
-   * 2. get #include <>
-   * 3. search in system for existence
-   */
-  std::set<std::string> ret;
-  fs::recursive_directory_iterator it(dir), eod;
-  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-    if (p.extension() == ".h" || p.extension() == ".c") {
-      std::ifstream ifs(p.string());
-      assert(ifs.is_open());
-      std::string line;
-      while (std::getline(ifs, line)) {
-        std::smatch match;
-        if (std::regex_search(line, match, include_angle_reg)) {
-          std::string file = match[1];
-          if (Headers.count(file) == 0 && header_exists(file)) {
-            ret.insert(file);
-          }
-        }
-      }
-      ifs.close();
-    }
-  }
-  return ret;
-}
-
-std::set<std::string> HeaderManager::checkHeader(fs::path dir) {
-  std::set<std::string> ret;
-  fs::recursive_directory_iterator it(dir), eod;
-  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-    if (p.extension() == ".h" || p.extension() == ".c") {
-      std::ifstream ifs(p.string());
-      assert(ifs.is_open());
-      std::string line;
-      while (std::getline(ifs, line)) {
-        std::smatch match;
-        if (std::regex_search(line, match, include_angle_reg)) {
-          std::string file = match[1];
-          if (Headers.count(file) == 0 || !header_exists(file)) {
-            ret.insert(file);
-          }
-        }
-      }
-      ifs.close();
-    }
-  }
-  return ret;
-}
 
 SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   fs::recursive_directory_iterator it(cppfolder), eod;
@@ -851,13 +761,16 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "typedef unsigned short u_short;\n";
   ret += "typedef unsigned short ushort;\n";
 
+  // http://stackoverflow.com/questions/27459245/gcc-warning-with-std-c11-arg
+  ret += "#define _POSIX_C_SOURCE 200809L\n";
+
   ret += "#include <stdbool.h>\n";
   ret += "#include <stdio.h>\n";
   ret += "#include <stdlib.h>\n";
   ret += "#include <string.h>\n";
-  ret += "#include <getopt.h>\n";
 
   // additional header files
+  // include only if the project used it, by mask
   std::set<std::string> headers = HeaderManager::Instance()->getHeaders();
   for (std::string s : headers) {
     ret += "#include <" + s + ">\n";
