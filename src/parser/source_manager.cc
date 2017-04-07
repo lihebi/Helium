@@ -944,13 +944,27 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   
   ret += "// type\n";
   ret += type;
+  ret += "// var\n";
+  ret += var;
+
+  ret += "// Main Func Decl\n";
+  ret += main_func_decl;
+
+  // I'm not able to put func_decl before var, becuase the var might define a type inner
+  // The variable might hold a list of function pointers, that's the motivation to put decl before var.
+  // This problem can only be solved when I generate the structure declaration.
+  // This is an example:
+  /**
+   * node-threads-a-gogo
+   static void barrier_wait(struct barrier *b);
+   static struct barrier {
+     int fd1[2];
+     int fd2[2];
+   } barriers[2];
+   */
   ret += "// Func decl\n";
   // function declaration
   ret += func_decl;
-  ret += "// var\n";
-  ret += var;
-  ret += "// Main Func Decl\n";
-  ret += main_func_decl;
   
   ret += "// func\n";
   ret += func;
