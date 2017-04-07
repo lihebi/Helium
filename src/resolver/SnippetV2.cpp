@@ -2,6 +2,7 @@
 #include "helium/utils/fs_utils.h"
 
 #include "helium/resolver/SnippetAction.h"
+#include "helium/parser/HeaderManager.h"
 
 #include "helium/resolver/graph.h"
 #include "helium/utils/string_utils.h"
@@ -400,6 +401,7 @@ void SnippetManager::sortFiles() {
   for (Snippet *s : Snippets) {
     FileMap[s->getFile()].insert(s);
   }
+#if 0
   // use deps, get file deps
   std::map<std::string, std::map<std::string, int> > mat;
   // std::map<Snippet*, std::set<Snippet*> > Deps;
@@ -429,6 +431,24 @@ void SnippetManager::sortFiles() {
       }
     }
   }
+#else
+  // use the include dependence in the files
+  std::map<std::string, std::set<std::string> > deps = HeaderManager::Instance()->getDeps();
+  // std::cout << "Dep size: " << deps.size() << "\n";
+  // for (auto &m : deps) {
+  //   std::cout << m.first << "\n";
+  // }
+  for (auto &m : FileMap) {
+    std::string from = m.first;
+    if (deps.count(from) == 1) {
+      for (std::string to : deps[from]) {
+        if (FileMap.count(to) == 1) {
+          FileDep[from].insert(to);
+        }
+      }
+    }
+  }
+#endif
   // check if file dep is DAG (Directed Acyclic Graph)
   // Use Topological sorting to get a vector of files
   // FileV.clear();

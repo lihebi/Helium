@@ -437,6 +437,21 @@ int main(int argc, char* argv[]) {
     }
     exit(0);
   }
+
+  if (HeliumOptions::Instance()->Has("bench-info")) {
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
+    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+    HeaderManager::Instance()->parseDep(target, target);
+    std::cout << "Header Dependencies:" << "\n";
+    std::map<std::string, std::set<std::string> > deps = HeaderManager::Instance()->getDeps();
+    for (auto &m : deps) {
+      std::cout << m.first << " ==> \n";
+      for (auto s : m.second) {
+        std::cout << "\t" << s << "\n";
+      }
+    }
+    exit(0);
+  }
   
 
   // change relative to absolute
@@ -629,6 +644,8 @@ int main(int argc, char* argv[]) {
 
 
   std::cout << "[main] Loading snippet from " << target_cache_dir << "\n";
+  // parse the dependence before load snippet
+  HeaderManager::Instance()->parseDep(target, target_cache_dir / "cpp");
   v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
   // CAUTION Must process after load.
   v2::GlobalSnippetManager::Instance()->processAfterLoad();

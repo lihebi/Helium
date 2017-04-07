@@ -131,3 +131,67 @@ std::set<std::string> HeaderManager::checkHeader(fs::path dir) {
   }
   return ret;
 }
+
+
+static bool has_suffix(const std::string &str, const std::string &suffix) {
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+static std::set<std::string> filter_suffix(std::set<std::string> &all, std::string sub) {
+  std::set<std::string> ret;
+  std::string str,suffix;
+  for (std::string s : all) {
+    if (has_suffix(s, sub)) {
+      ret.insert(s);
+    }
+  }
+  return ret;
+}
+
+
+void HeaderManager::parseDep(fs::path dir, fs::path replace) {
+  Deps.clear();
+  std::set<std::string> all_files;
+  {
+    // get all files
+    fs::recursive_directory_iterator it(dir), eod;
+    BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+      if (p.extension() == ".h" || p.extension() == ".c") {
+        all_files.insert(p.string());
+      }
+    }
+  }
+  {
+    // do it
+    fs::recursive_directory_iterator it(dir), eod;
+    BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+      if (p.extension() == ".h" || p.extension() == ".c") {
+        std::ifstream ifs(p.string());
+        assert(ifs.is_open());
+        std::string line;
+        while (std::getline(ifs, line)) {
+          std::smatch match;
+          if (std::regex_search(line, match, include_quote_reg)) {
+            std::string file = match[1];
+            std::set<std::string> matches = filter_suffix(all_files, file);
+            for (std::string to : matches) {
+              // both first and seconds are ABSOLUTE path
+              // replace with "replace"
+              
+              std::string from = p.string();
+              std::string pattern = dir.string();
+              std::string replacement = replace.string();
+              assert(from.find(pattern) == 0);
+              assert(to.find(pattern) == 0);
+              from = from.replace(0, pattern.length(), replacement);
+              to = to.replace(0, pattern.length(), replacement);
+              
+              Deps[from].insert(to);
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -110,6 +110,15 @@ public:
    */
   void mask(fs::path p);
   void unmask();
+
+  /**
+   * Path the dependencies of all files by "include"
+   * Use replace to replace the dir in teh result
+   */
+  void parseDep(fs::path dir, fs::path replace);
+  std::map<std::string, std::set<std::string> > getDeps() {
+    return Deps;
+  }
   
 private:
   std::set<std::string> Includes = {
@@ -129,7 +138,7 @@ private:
   std::set<std::string> Mask;
   bool masked = false;
   static HeaderManager *instance;
-
+  std::map<std::string, std::set<std::string> > Deps;
 };
 
 
