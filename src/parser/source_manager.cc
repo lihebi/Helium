@@ -944,11 +944,11 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   
   ret += "// type\n";
   ret += type;
-  ret += "// var\n";
-  ret += var;
   ret += "// Func decl\n";
   // function declaration
   ret += func_decl;
+  ret += "// var\n";
+  ret += var;
   ret += "// Main Func Decl\n";
   ret += main_func_decl;
   
