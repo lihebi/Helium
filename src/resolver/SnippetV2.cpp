@@ -148,6 +148,12 @@ std::string TypedefSnippet::getDecl() {
   assert(code.find('}') != std::string::npos);
   std::string ret;
   ret = code.substr(0, code.find_first_of('{'));
+  {
+    // if this is "typedef struct", return
+    std::string tmp=ret;
+    utils::trim(tmp);
+    if (utils::split(tmp).size() == 2) return "";
+  }
   ret += code.substr(code.find_last_of('}')+1);
   ret += ";";
   return ret;
