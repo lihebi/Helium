@@ -137,6 +137,17 @@ std::string FunctionSnippet::getFuncDecl() {
     params.pop_back();
     ret = first + "(" + params + ");";
   }
+  // add extern because inline function and inline declaration would
+  // make undefined reference.  Note that this also applies to inline
+  // function (which is the purpose to add this)
+  // ret = "extern " + ret;
+  //
+  // UPDATE the extern method does not work because extern cannot be
+  // combined with static So I'm going the second way: remove inline
+  // when declare a function
+  if (ret.find("inline") != std::string::npos) {
+    utils::replace(ret, "inline", "");
+  }
   return ret;
 }
 
