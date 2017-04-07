@@ -3,3 +3,13 @@
 Create cache error:
 
 - afl.rs-master
+
+
+Clang will need something to parse precisely.  For example the
+following is a variable, and it will be assigned to some pointers to
+use as a function.  Without include sys/types.h, it is parsed as a
+function decl, so Helium would not capture it as a snippet.
+
+#+BEGIN_SRC C
+ssize_t (*original_write)(int, const void *, size_t);
+#+END_SRC
