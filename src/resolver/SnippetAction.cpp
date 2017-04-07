@@ -53,20 +53,21 @@ public:
     return true;
   }
   bool VisitVarDecl(clang::VarDecl *var_decl) {
-    if (var_decl->isFileVarDecl()) {
-      std::string name = var_decl->getName();
-      // clang::SourceRange range = var_decl->getSourceRange();
-      // clang::SourceLocation begin = range.getBegin();
-      // clang::SourceLocation end = range.getEnd();
-      clang::SourceLocation begin = var_decl->getLocStart();
-      clang::SourceLocation end = var_decl->getLocEnd();
-      // clang::SourceLocation loc = var_decl->getLocation();
+    // FIXME global or file?
+    if (!var_decl->isFileVarDecl()) return true;
+    if (var_decl->hasExternalStorage() && !var_decl->hasInit()) return true;
+    std::string name = var_decl->getName();
+    // clang::SourceRange range = var_decl->getSourceRange();
+    // clang::SourceLocation begin = range.getBegin();
+    // clang::SourceLocation end = range.getEnd();
+    clang::SourceLocation begin = var_decl->getLocStart();
+    clang::SourceLocation end = var_decl->getLocEnd();
+    // clang::SourceLocation loc = var_decl->getLocation();
       
-      v2::Snippet *s = new v2::VarSnippet(name, Filename,
-                                          convertLocation(Context, begin),
-                                          convertLocation(Context, end));
-      snippets.push_back(s);
-    }
+    v2::Snippet *s = new v2::VarSnippet(name, Filename,
+                                        convertLocation(Context, begin),
+                                        convertLocation(Context, end));
+    snippets.push_back(s);
     return true;
   }
   bool VisitTypedefDecl (clang::TypedefDecl *decl) {

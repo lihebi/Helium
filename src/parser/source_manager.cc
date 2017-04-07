@@ -955,6 +955,10 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
   // filter out functions used in main.c
   // std::cout << "Filtering ..." << "\n";
+  // FIXME not only functions in main, but also: variable, structure
+  // FIXME decl variables in main.h if it is in main.c, and got removed in snippets
+  // FIXME for the same decl, although we should only use one, but if
+  // one is extern int var, one is int var, we should use the int one.
   std::set<std::string> main_c_funcs;
   for (auto *node : sel) {
     // node->dump(std::cout);
