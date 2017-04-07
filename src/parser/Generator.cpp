@@ -211,6 +211,8 @@ void Generator::visit(v2::DeclStmt *node){
 void Generator::visit(v2::ExprStmt *node){
   if (selection.count(node) == 1) {
     // no need semi-colon because <expr_stmt>... ;</expr_stmt>
+    Prog += "// " + node->getASTContext()->getFileName() + ":"
+      + std::to_string(node->getBeginLoc().getLine()) + "\n";
     Prog += node->getText() + "\n";
   }
 }
