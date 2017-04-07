@@ -439,12 +439,12 @@ namespace v2 {
     void loadJson(fs::path p);
   public:
 
-    /**
-     * dump only the size of snippets, 
-     */
-    // void dumpLight(std::ostream &os);
     void dump(std::ostream &os);
     void dumpVerbose(std::ostream &os);
+    /**
+     * return the information, with each line prefixed by //
+     */
+    std::string dumpComment();
     /**
      * Getters
      */

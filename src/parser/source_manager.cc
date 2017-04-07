@@ -1018,6 +1018,7 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
     }
   }
 
+  ret += GlobalSnippetManager::Instance()->dumpComment();
   
   ret += "// typedef_decl\n";
   ret += typedef_decl;

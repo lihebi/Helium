@@ -296,6 +296,28 @@ void SnippetManager::dump(std::ostream &os) {
   os << "\n";
 }
 
+std::string SnippetManager::dumpComment() {
+  // sorted snippet
+  // file dep
+  // std::map<std::string, std::set<std::string> > FileDep;
+  std::string ret;
+  ret += "// FileDep\n";
+  for (auto &m : FileDep) {
+    ret += "// " + m.first + " => ";
+    for (auto s : m.second) {
+      ret += s + " ";
+    }
+    ret += "\n";
+  }
+  // file topo sort result, aka FileV
+  ret += "// FileV: ";
+  for (auto s : FileV) {
+    ret += s + " ";
+  }
+  ret += "\n";
+  return ret;
+}
+
 
 std::set<v2::Snippet*> v2::Snippet::getAllDeps() {
   std::set<Snippet*> worklist;
@@ -356,6 +378,7 @@ std::vector<v2::Snippet*> SnippetManager::sort(std::set<Snippet*> snippets) {
   // DONE ELSEWHERE sort within file
   // sort across file
   std::vector<v2::Snippet*> ret;
+  // SnippetV is already sorted
   for (v2::Snippet *s : SnippetV) {
     if (snippets.count(s) == 1) ret.push_back(s);
   }
@@ -433,7 +456,10 @@ void SnippetManager::topoSortFiles() {
   }
   for (auto &m : FileDep) {
     for (std::string s : m.second) {
-      graph.addEdge(m.first, s);
+      // graph.addEdge(m.first, s);
+      // arrow means "used by", while FileDep means "depend on",
+      // they are opposite, reflected here
+      graph.addEdge(s, m.first);
     }
   }
   std::vector<std::string> sorted = graph.topoSort();
