@@ -61,6 +61,9 @@ namespace v2 {
       return Code;
     }
     Snippet *getCannonicalSnippet();
+    virtual std::set<std::string> getKeys() {
+      return {Name};
+    }
 
     bool isTypedef();
     bool isFunctionDefinition();
@@ -151,8 +154,10 @@ namespace v2 {
   class FunctionSnippet : public Snippet {
   public:
     FunctionSnippet() {}
-    FunctionSnippet(std::string name, std::string file, SourceLocation begin, SourceLocation end)
-      : Snippet(name, file, begin, end) {
+    FunctionSnippet(std::string name, std::string file,
+                    SourceLocation begin, SourceLocation end,
+                    SourceLocation body_begin)
+      : Snippet(name, file, begin, end), body_begin(body_begin) {
     }
     virtual ~FunctionSnippet() {}
     virtual std::string getSnippetName() {return "FunctionSnippet";}
@@ -174,7 +179,12 @@ namespace v2 {
     virtual void loadJson(rapidjson::Value &v) {
       Snippet::loadJson(v);
     }
+    /**
+     * Declaration of function.
+     */
+    std::string getFuncDecl();
   private:
+    SourceLocation body_begin;
   };
 
   class VarSnippet : public Snippet {
@@ -205,6 +215,11 @@ namespace v2 {
   private:
   };
 
+  /**
+   * Note that a Typedef may also enclose a typedef.
+   * typedef A b,*c;
+   * there will be two typedefs, b and c
+   */
   class TypedefSnippet : public Snippet {
   public:
     TypedefSnippet() {}
@@ -231,6 +246,14 @@ namespace v2 {
     virtual void loadJson(rapidjson::Value &v) {
       Snippet::loadJson(v);
     }
+    /**
+     * Get decl of it.
+     * typedef struct A {} X,*Y;
+     * - typedef struct A X,*Y;
+     * typedef struct B X; => output itself
+     * typedef struct {} xxx; => NOTHING!
+     */
+    std::string getDecl();
   private:
   };
 
@@ -265,6 +288,10 @@ namespace v2 {
       Snippet::loadJson(v);
     }
     virtual void readCode();
+    /**
+     * struct A {} => struct A
+     */
+    std::string getDecl();
   private:
   };
   
@@ -301,13 +328,13 @@ namespace v2 {
     //   os << "EnumSnippet " << Name;
     // }
     virtual void readCode();
-    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
-      rapidjson::Value v = Snippet::saveJson(allocator);
-      v.AddMember("kind", "EnumSnippet", allocator);
-      return v;
-    }
-    virtual void loadJson(rapidjson::Value &v) {
-      Snippet::loadJson(v);
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator);
+    virtual void loadJson(rapidjson::Value &v);
+    virtual std::set<std::string> getKeys() {
+      std::set<std::string> ret;
+      ret.insert(Name);
+      ret.insert(Fields.begin(), Fields.end());
+      return ret;
     }
   private:
     std::vector<std::string> Fields;
@@ -357,8 +384,12 @@ namespace v2 {
      */
     void process() {
       for (Snippet *s : Snippets) {
-        std::string name = s->getName();
-        KeyMap[name].push_back(s);
+        // std::string name = s->getName();
+        // KeyMap[name].push_back(s);
+        std::set<std::string> keys = s->getKeys();
+        for (std::string key : keys) {
+          KeyMap[key].push_back(s);
+        }
       }
       createDeps();
       createOuters();
@@ -370,8 +401,12 @@ namespace v2 {
      */
     void processAfterLoad() {
       for (Snippet *s : Snippets) {
-        std::string name = s->getName();
-        KeyMap[name].push_back(s);
+        // std::string name = s->getName();
+        // KeyMap[name].push_back(s);
+        std::set<std::string> keys = s->getKeys();
+        for (std::string key : keys) {
+          KeyMap[key].push_back(s);
+        }
       }
       sortFiles();
     }

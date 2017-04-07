@@ -4,9 +4,9 @@
 #include "helium/resolver/SnippetAction.h"
 
 #include "helium/resolver/graph.h"
+#include "helium/utils/string_utils.h"
 
 #include "helium/resolver/resolver.h"
-#include "helium/utils/fs_utils.h"
 #include <rapidjson/istreamwrapper.h>
 
 using namespace v2;
@@ -114,6 +114,75 @@ void v2::Snippet::dumpVerbose(std::ostream &os) {
   v.Accept(writer);
   os << sb.GetString() << "\n";
 }
+
+
+std::string FunctionSnippet::getFuncDecl() {
+  // it should be
+  std::string code = getCode();
+  std::string ret = code.substr(0, code.find('{'));
+  utils::trim(ret);
+  if (ret.find(';') == std::string::npos) {
+    ret += ";";
+  } else {
+    std::string first, last;
+    first = ret.substr(0, ret.find('('));
+    last = ret.substr(ret.find(')')+1);
+    std::string params;
+    while (last.find(';') != std::string::npos) {
+      int pos = last.find(';');
+      params += last.substr(0, pos) + ",";
+      last = last.substr(pos+1);
+    }
+    params.pop_back();
+    ret = first + "(" + params + ");";
+  }
+  return ret;
+}
+
+
+std::string TypedefSnippet::getDecl() {
+  std::string code = getCode();
+  if (code.find('{') == std::string::npos) {
+    return code + ";";
+  }
+  assert(code.find('}') != std::string::npos);
+  std::string ret;
+  ret = code.substr(0, code.find_first_of('{'));
+  ret += code.substr(code.find_last_of('}')+1);
+  ret += ";";
+  return ret;
+}
+
+
+std::string RecordSnippet::getDecl() {
+  std::string code = getCode();
+  std::string ret;
+  if (code.find('{') == std::string::npos) return "";
+
+  assert(code.find('}') != std::string::npos);
+  ret = code.substr(0, code.find_first_of('{'));
+  utils::trim(ret);
+  std::vector<std::string> v = utils::split(ret);
+  if (v.size() != 2) return "";
+  ret += ";";
+  return ret;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void SnippetManager::createOuters() {
   // 1. enclosing
@@ -410,9 +479,13 @@ rapidjson::Value v2::Snippet::saveJson(rapidjson::Document::AllocatorType &alloc
   // rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
   rapidjson::Value array(rapidjson::kObjectType);
   rapidjson::Value obj(rapidjson::kObjectType);
-  obj.AddMember("name", rapidjson::StringRef(Name.c_str()), allocator);
+  rapidjson::Value name_str;
+  name_str.SetString(Name.c_str(), allocator);
+  obj.AddMember("name", name_str, allocator);
   obj.AddMember("id", ID, allocator);
-  obj.AddMember("file", rapidjson::StringRef(File.c_str()), allocator);
+  rapidjson::Value file_str;
+  file_str.SetString(File.c_str(), allocator);
+  obj.AddMember("file", file_str, allocator);
   // begin & end
   rapidjson::Value begin(rapidjson::kObjectType);
   rapidjson::Value end(rapidjson::kObjectType);
@@ -449,6 +522,24 @@ void v2::Snippet::loadJson(rapidjson::Value &obj) {
            obj["end"]["col"].GetInt()};
   // deps and outers have to be add later
 }
+rapidjson::Value v2::EnumSnippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
+  rapidjson::Value v = Snippet::saveJson(allocator);
+  v.AddMember("kind", "EnumSnippet", allocator);
+  rapidjson::Value fields(rapidjson::kArrayType);
+  for (std::string f : Fields) {
+    rapidjson::Value f_s;
+    f_s.SetString(f.c_str(), allocator);
+    fields.PushBack(f_s, allocator);
+  }
+  v.AddMember("fields", fields, allocator);
+  return v;
+}
+void v2::EnumSnippet::loadJson(rapidjson::Value &v) {
+  Snippet::loadJson(v);
+  for (rapidjson::Value &field : v["fields"].GetArray()) {
+    Fields.push_back(field.GetString());
+  }
+}
 
 
 // rapidjson::Value FunctionSnippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
@@ -474,6 +565,7 @@ void SnippetManager::saveJson(fs::path p) {
   // sb.GetString();
 
   utils::write_file(p, sb.GetString());
+  std::cout << "[SnippetManager] Saved to " << p << "\n";
 }
 void SnippetManager::loadJson(fs::path p) {
   rapidjson::Document document;

@@ -971,10 +971,20 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
 
   std::string type;
+  std::string typedef_decl;
+  std::string record_decl;
   for (Snippet *s : type_snippets) {
     type += "// " + s->toString() + "\n";
     type += s->getCode() + ";\n";
+    if (TypedefSnippet *typedef_s = dynamic_cast<TypedefSnippet*>(s)) {
+      typedef_decl += typedef_s->getDecl() + "\n";
+    } else if (RecordSnippet *record_s = dynamic_cast<RecordSnippet*>(s)) {
+      record_decl += record_s->getDecl() + "\n";
+    // } else if (EnumSnippet *enum_s = dynamic_cast<EnumSnippet*>(s)) {
+    //   record_decl += enum_s->getDecl() + "\n";
+    }
   }
+
   std::string var;
   for (Snippet *s : var_snippets) {
     var += "// " + s->toString() + "\n";
@@ -989,22 +999,41 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   // - print a fatal error
   std::set<std::string> func_trick;
   std::string func;
+  std::string func_decl;
+  std::string main_func_decl; // functions inside main
   for (Snippet *s : func_snippets) {
     std::string name = s->getName();
+    // the declaration can be 
     if (main_c_funcs.count(name) == 0) {
       if (func_trick.count(name) == 1) {
         std::cerr << "[Helium Error] The function " << name << " is defined multiple times. Used the first one." << "\n";
       } else {
         func += "// " + s->toString() + "\n";
         func += s->getCode() + "\n";
+        func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
         func_trick.insert(name);
       }
+    } else {
+      main_func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
     }
   }
+
+  
+  ret += "// typedef_decl\n";
+  ret += typedef_decl;
+  ret += "// record_decl\n";
+  ret += record_decl;
+  
   ret += "// type\n";
   ret += type;
   ret += "// var\n";
   ret += var;
+  ret += "// Func decl\n";
+  // function declaration
+  ret += func_decl;
+  ret += "// Main Func Decl\n";
+  ret += main_func_decl;
+  
   ret += "// func\n";
   ret += func;
   

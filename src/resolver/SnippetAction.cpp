@@ -39,9 +39,15 @@ public:
       // clang::SourceLocation end = range.getEnd();
       clang::SourceLocation begin = func_decl->getLocStart();
       clang::SourceLocation end = func_decl->getLocEnd();
+      // I would also extract the declaration
+      // TESTME body is empty, then does it have a body?
+      // TESTME the start include { or not?
+      // TESTME it includes function prototype or not?
+      clang::SourceLocation body_begin = func_decl->getBody()->getLocStart();
       v2::Snippet *s = new v2::FunctionSnippet(name, Filename,
                                                convertLocation(Context, begin),
-                                               convertLocation(Context, end));
+                                               convertLocation(Context, end),
+                                               convertLocation(Context, body_begin));
       snippets.push_back(s);
     }
     return true;
@@ -90,7 +96,7 @@ public:
                                                convertLocation(Context, end));
       // all fields
       for (auto it=decl->enumerator_begin(), end=decl->enumerator_end(); it!=end; ++it) {
-        std::string name = (*it)->getNameAsString();
+        std::string name = (*it)->getName();
         // llvm::errs() << "Field: " << name << "\n";
         s->addField(name);
       }
