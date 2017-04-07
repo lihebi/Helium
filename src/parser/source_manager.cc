@@ -764,10 +764,10 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   // http://stackoverflow.com/questions/27459245/gcc-warning-with-std-c11-arg
   ret += "#define _POSIX_C_SOURCE 200809L\n";
 
-  ret += "#include <stdbool.h>\n";
-  ret += "#include <stdio.h>\n";
-  ret += "#include <stdlib.h>\n";
-  ret += "#include <string.h>\n";
+  // ret += "#include <stdbool.h>\n";
+  // ret += "#include <stdio.h>\n";
+  // ret += "#include <stdlib.h>\n";
+  // ret += "#include <string.h>\n";
 
   // additional header files
   // include only if the project used it, by mask

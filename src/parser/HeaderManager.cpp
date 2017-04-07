@@ -43,6 +43,11 @@ std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file)
         line = line.substr(0, line.find(' '));
         utils::trim(flag);
       }
+      if (line[0] == '!') {
+        // force include
+        line = line.substr(1);
+        ForceHeaders.insert(line);
+      }
       headers[line] = flag;
     }
   }

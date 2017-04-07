@@ -91,6 +91,7 @@ public:
         ret.insert(s);
       }
     }
+    ret.insert(ForceHeaders.begin(), ForceHeaders.end());
     return ret;
   }
   std::set<std::string> getLibs() {
@@ -132,6 +133,7 @@ private:
   HeaderManager() {}
   ~HeaderManager() {}
   std::set<std::string> Headers;
+  std::set<std::string> ForceHeaders;
   std::map<std::string, std::string> Header2LibMap;
   std::set<std::string> NonExistHeaders;
   // std::set<std::string> Libs;
