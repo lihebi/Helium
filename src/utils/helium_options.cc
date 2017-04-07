@@ -65,8 +65,8 @@ HeliumOptions::HeliumOptions() {
     ("dump-ast", "dump ast")
     ("hebi", "Experimental")
     ("system-info", "show system info")
-    ("discover-header", "discover header used in the benchmark on current system.")
-    ("check-header", "check header in project but not exists on current system or conf")
+    // ("discover-header", "discover header used in the benchmark on current system.")
+    // ("check-header", "check header in project but not exists on current system or conf")
     ("bench-info", "show the information about target benchmark")
     ;
 

@@ -416,33 +416,20 @@ int main(int argc, char* argv[]) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);}
 
-
-
-  if (HeliumOptions::Instance()->Has("discover-header")) {
-    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
-    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
-    std::set<std::string> headers = HeaderManager::Instance()->discoverHeader(target);
-    for (std::string s : headers) {
-      std::cout << s << "\n";
-    }
-    exit(0);
-  }
-
-  if (HeliumOptions::Instance()->Has("check-header")) {
-    HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
-    HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
-    std::set<std::string> headers = HeaderManager::Instance()->checkHeader(target);
-    for (std::string s : headers) {
-      std::cout << s << "\n";
-    }
-    exit(0);
-  }
-
   if (HeliumOptions::Instance()->Has("bench-info")) {
+    /**
+     * I'll use this
+     * It will display
+     * - local header dependencies
+     * - all system headers used
+     * - system headers used but not defined in conf files
+     *   - found on system (together with the flags)
+     *   - not found on system
+     */
     HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
     HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
-    HeaderManager::Instance()->parseDep(target, target);
-    std::cout << "Header Dependencies:" << "\n";
+    HeaderManager::Instance()->parseBench(target);
+    std::cout << "== Header Dependencies:" << "\n";
     std::map<std::string, std::set<std::string> > deps = HeaderManager::Instance()->getDeps();
     for (auto &m : deps) {
       std::cout << m.first << " ==> \n";
@@ -450,6 +437,23 @@ int main(int argc, char* argv[]) {
         std::cout << "\t" << s << "\n";
       }
     }
+    std::set<std::string> all = HeaderManager::Instance()->infoGetAllHeaders();
+    std::set<std::string> allMissExist = HeaderManager::Instance()->infoGetAllMissedExistHeaders();
+    std::set<std::string> allMissNonExist = HeaderManager::Instance()->infoGetAllMissedNonExistHeaders();
+    std::cout << "== All System Headers used: " << "\n";
+    for (std::string s : all) {
+      std::cout << "\t" << s << "\n";
+    }
+    std::cout << "== System headers used but not captured by Helium:" << "\n";
+    std::cout << "==   1. Found on system:" << "\n";
+    for (std::string s : allMissExist) {
+      std::cout << "\t" << s << "\n";
+    }
+    std::cout << "==   2. Not found on system:" << "\n";
+    for (std::string s : allMissNonExist) {
+      std::cout << "\t" << s << "\n";
+    }
+    
     exit(0);
   }
   
@@ -644,21 +648,18 @@ int main(int argc, char* argv[]) {
 
 
   std::cout << "[main] Loading snippet from " << target_cache_dir << "\n";
-  // parse the dependence before load snippet
-  HeaderManager::Instance()->parseDep(target, target_cache_dir / "cpp");
-  v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
-  // CAUTION Must process after load.
-  v2::GlobalSnippetManager::Instance()->processAfterLoad();
-  v2::GlobalSnippetManager::Instance()->dump(std::cout);
-
   assert(fs::exists(helium_home / "etc" / "system.conf"));
   assert(fs::exists(helium_home / "etc" / "third-party.conf"));
   HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
   HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
+  // parse the dependence before load snippet
+  HeaderManager::Instance()->parseBench(target);
+  HeaderManager::Instance()->adjustDeps(target.string(), (target_cache_dir / "cpp").string());
 
-  // std::cout << "Header Manager:" << "\n";
-  // HeaderManager::Instance()->dump(std::cout);
-  
+  v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
+  // CAUTION Must process after load.
+  v2::GlobalSnippetManager::Instance()->processAfterLoad();
+  v2::GlobalSnippetManager::Instance()->dump(std::cout);
 
 
   // (HEBI: Running)
@@ -693,10 +694,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // mask so that only use headers used in the project
-  HeaderManager::Instance()->mask(target);
   helium_run(helium_home, target, target_dir_name, sels);
-  HeaderManager::Instance()->unmask();
 
   std::cout << "[main] End Of Helium" << "\n";
   exit(0);

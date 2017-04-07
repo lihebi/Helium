@@ -22,104 +22,39 @@ public:
     return instance;
   }
 
-  bool header_exists(const std::string header) {
-    for (std::string s : Includes) {
-      fs::path p(s + "/" + header);
-      if (fs::exists(p)) return true;
-    }
-    return false;
-  }
-
-  void addConf(fs::path file) {
-    std::map<std::string, std::string> headers = parseHeaderConf(file);
-    for (auto m : headers) {
-      if (header_exists(m.first)) {
-        Headers.insert(m.first);
-        if (!m.second.empty()) {
-          // Libs.insert(m.second);
-          Header2LibMap[m.first] = m.second;
-        }
-      } else {
-        NonExistHeaders.insert(m.first);
-      }
-    }
-  }
-
   /**
-   * Discover headers used in the project dir, on current system, and
-   * not in conf
+   * Whether header exists in system path
    */
-  std::set<std::string> discoverHeader(fs::path dir);
-  /**
-   * Discover headers used in project, but not on current system or
-   * not in conf
-   */
-  std::set<std::string> checkHeader(fs::path dir);
-
-  void dump(std::ostream &os) {
-    os << "[HeaderManager] Headers: ";
-    for (std::string s : Headers) {
-      os << s << " ";
-    }
-    os << "\n";
-    // os << "[HeaderManager] Libs: ";
-    // for (std::string s : Libs) {
-    //   os << s << " ";
-    // }
-    // os << "\n";
-    os << "[HeaderManager] Includes: ";
-    for (std::string s : Includes) {
-      os << s << " ";
-    }
-    os << "\n";
-    os << "[HeaderManager] Non-exist headers: ";
-    for (std::string s : NonExistHeaders) {
-      os << s << " ";
-    }
-    os << "\n";
-  }
-  /**
-   * TODO Get headers
-   */
+  bool header_exists(const std::string header);
+  void addConf(fs::path file);
+  void dump(std::ostream &os);
   std::map<std::string, std::string> parseHeaderConf(fs::path file);
-
-  std::set<std::string> getHeaders() {
-    if (!masked) return Headers;
-    std::set<std::string> ret;
-    for (std::string s : Headers) {
-      if (Mask.count(s) == 1) {
-        ret.insert(s);
-      }
-    }
-    ret.insert(ForceHeaders.begin(), ForceHeaders.end());
-    return ret;
-  }
-  std::set<std::string> getLibs() {
-    std::set<std::string> headers = getHeaders();
-    std::set<std::string> ret;
-    for (std::string h : headers) {
-      if (Header2LibMap.count(h) == 1) {
-        ret.insert(Header2LibMap[h]);
-      }
-    }
-    return ret;
-  }
+  std::set<std::string> getHeaders();
+  std::set<std::string> getLibs();
   std::set<std::string> getIncludes() {return Includes;}
 
   /**
    * mask and only expose those used in the project
+   * FIXME Do I need mask??
    */
-  void mask(fs::path p);
-  void unmask();
+  // void mask(fs::path p);
+  // void unmask();
 
   /**
-   * Path the dependencies of all files by "include"
-   * Use replace to replace the dir in teh result
+   * Do everything
    */
-  void parseDep(fs::path dir, fs::path replace);
+  void parseBench(fs::path dir);
+
+  /**
+   * replace pattern by "replace" in Deps
+   */
+  void adjustDeps(std::string pattern, std::string replace);
   std::map<std::string, std::set<std::string> > getDeps() {
     return Deps;
   }
+  std::set<std::string> infoGetAllHeaders() {return all_headers;}
+  std::set<std::string> infoGetAllMissedExistHeaders() {return all_missed_exist_headers;}
+  std::set<std::string> infoGetAllMissedNonExistHeaders() {return all_missed_non_exist_headers;}
   
 private:
   std::set<std::string> Includes = {
@@ -138,9 +73,15 @@ private:
   std::set<std::string> NonExistHeaders;
   // std::set<std::string> Libs;
   std::set<std::string> Mask;
-  bool masked = false;
   static HeaderManager *instance;
   std::map<std::string, std::set<std::string> > Deps;
+
+
+  // used for utils
+  std::set<std::string> all_headers;
+  std::set<std::string> all_missed_exist_headers;
+  std::set<std::string> all_missed_non_exist_headers;
+
 };
 
 
