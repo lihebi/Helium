@@ -824,7 +824,15 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   // This should be right before sortting
   struct SnippetComp {
     bool operator()(Snippet *s1,Snippet *s2) {
-      return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
+      std::set<std::string> key1 = s1->getKeys();
+      std::set<std::string> key2 = s2->getKeys();
+      std::string id1=s1->getSnippetName();
+      std::string id2=s2->getSnippetName();
+      for (std::string ss : key1) id1+=ss;
+      for (std::string ss : key2) id2+=ss;
+      // using keys, for anonemous enumerations which doesn't have a name, but have many fields
+      return id1 < id2;
+      // return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
     }
   };
   std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";

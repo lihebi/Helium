@@ -35,7 +35,7 @@ std::string read_file_for_code(fs::path file, SourceLocation begin, SourceLocati
       } else if (l>l1 && l < l2) {
         ret += line + "\n";
       } else if (l==l1 && l == l2) {
-        ret += line.substr(c1-1, c1+1 - c1);
+        ret += line.substr(c1-1, c2+1 - c1);
       } else if (l==l2) {
         ret += line.substr(0, c2);
       } else if (l==l1) {
