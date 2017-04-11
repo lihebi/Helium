@@ -26,6 +26,7 @@ public:
   std::string GetString(std::string key);
   bool GetBool(std::string key);
   int GetInt(std::string key);
+  std::vector<std::string> GetStringVector(std::string key);
 
   bool HasCmdUtils();
   bool empty() {

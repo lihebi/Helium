@@ -359,6 +359,16 @@ namespace utils {
     else return false;
   }
 
+  fs::path substract_suffix(fs::path p, fs::path suffix) {
+    assert(match_suffix(p, suffix));
+    if (p == suffix) return fs::path("");
+    while (p.filename() == suffix.filename() && !suffix.empty() && !p.empty()) {
+      p = p.parent_path();
+      suffix = suffix.parent_path();
+    }
+    return p;
+  }
+
   TEST(FsUtilTest, SuffixTest) {
     EXPECT_TRUE(match_suffix("/hello/world", "world"));
     EXPECT_FALSE(match_suffix("world", "/hello/world"));
@@ -366,6 +376,10 @@ namespace utils {
     EXPECT_TRUE(match_suffix("/hello/world/a.c", "a.c"));
     EXPECT_TRUE(match_suffix("/hello/world/a.c", "world/a.c"));
     EXPECT_FALSE(match_suffix("/hello/world/a.c", "hello/a.c"));
+
+    EXPECT_EQ(substract_suffix("/hello/world", "world"), fs::path("/hello"));
+    EXPECT_EQ(substract_suffix("/hello/world/a.c", "a.c"), fs::path("/hello/world"));
+    EXPECT_EQ(substract_suffix("/hello/world/a.c", "world/a.c"), fs::path("/hello"));
   }
   
 }

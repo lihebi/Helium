@@ -194,6 +194,8 @@ HeliumOptions::HeliumOptions() {
     ("use-query-resolver-2", po::value<bool>()->default_value(false), "use query resolver 2")
     ("negate-fc", po::value<bool>()->default_value(false), "negate the fc")
     ("analyze-data-option", po::value<std::string>(), "data for analyze")
+    ("header-config-json",
+     po::value<std::vector<std::string> >(), "header config files in json")
     ;
   
   po::options_description hidden("Hidden options");
@@ -319,6 +321,22 @@ int HeliumOptions::GetInt(std::string key) {
     exit(1);
   }
 }
+
+
+std::vector<std::string> HeliumOptions::GetStringVector(std::string key) {
+  if (m_vm.count(key) == 1) {
+    try {
+      return m_vm[key].as< std::vector<std::string> >();
+    } catch (boost::bad_any_cast) {
+      std::cerr << "EE: Option " << key << " is not a vector of string."  << "\n";
+      exit(1);
+    }
+  } else {
+    std::cerr << "EE: Option " << key << " is not set."  << "\n";
+    exit(1);
+  }
+}
+
 
 int makeargs(const char *args, int *argc, char ***aa) {
   char *buf = strdup(args);

@@ -52,6 +52,7 @@ namespace utils {
    * Whether "suffix" is suffix of p
    */
   bool match_suffix(fs::path p, fs::path suffix);
+  fs::path substract_suffix(fs::path p, fs::path suffix);
 }
 
 #endif /* FS_UTILS_H */

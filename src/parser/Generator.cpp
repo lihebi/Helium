@@ -67,6 +67,10 @@ void Generator::visit(v2::CompoundStmt *node){
 void Generator::visit(v2::IfStmt *node){
   TokenNode *IfNode = node->getIfNode();
   assert(IfNode);
+  if (selection.count(IfNode)==1) {
+    Prog += "// " + node->getASTContext()->getFileName() + ":"
+      + std::to_string(node->getBeginLoc().getLine()) + "\n";
+  }
   IfNode->accept(this);
   if (selection.count(IfNode)==1) Prog += "(";
   Expr *expr = node->getCond();

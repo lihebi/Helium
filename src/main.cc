@@ -415,6 +415,8 @@ int main(int argc, char* argv[]) {
   if (!fs::exists(target)) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);}
+  // target is absolute path
+  target = fs::canonical(target);
 
   if (HeliumOptions::Instance()->Has("bench-info")) {
     /**
@@ -539,11 +541,6 @@ int main(int argc, char* argv[]) {
   }
 
 
-  if (HeliumOptions::Instance()->Has("hebi")) {
-    exit(0);
-  }
-
-
 
 
 
@@ -637,16 +634,6 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-
-  // if (HeliumOptions::Instance()->Has("distribution")) {
-  //   // analyze the distribution of a selection.
-  //   fs::path sel_file = HeliumOptions::Instance()->GetString("distribution");
-  //   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
-  //   std::set<v2::ASTNodeBase*> selection = sourceManager->loadSelection(sel);
-  //   sourceManager->analyzeDitribution(selection, std::cout);
-  // }
-
-
   std::cout << "[main] Loading snippet from " << target_cache_dir << "\n";
   assert(fs::exists(helium_home / "etc" / "system.conf"));
   assert(fs::exists(helium_home / "etc" / "third-party.conf"));
@@ -654,7 +641,41 @@ int main(int argc, char* argv[]) {
   HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");
   // parse the dependence before load snippet
   HeaderManager::Instance()->parseBench(target);
+
   HeaderManager::Instance()->adjustDeps(target.string(), (target_cache_dir / "cpp").string());
+
+
+  {
+    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-config-json");
+    for (std::string vi : v) {
+      HeaderManager::Instance()->jsonAddConf(vi);
+    }
+    // HeaderManager::Instance()->jsonAddConf(helium_home / "etc" / "system.json");
+    // HeaderManager::Instance()->jsonAddConf(helium_home / "etc" / "third-party.json");
+
+    // HeaderManager::Instance()->jsonAddConf("/home/hebi/github/benchmark/package/database/core.new.json");
+    // HeaderManager::Instance()->jsonAddConf("/home/hebi/github/benchmark/package/database/extra.new.json");
+    // HeaderManager::Instance()->jsonAddConf("/home/hebi/github/benchmark/package/database/community.new.json");
+    // HeaderManager::Instance()->jsonAddConf("/home/hebi/github/benchmark/package/database/multilib.new.json");
+    HeaderManager::Instance()->jsonParseBench(target);
+    HeaderManager::Instance()->jsonResolve();
+  }
+
+  if (HeliumOptions::Instance()->Has("hebi")) {
+    std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
+    std::set<std::string> flags = HeaderManager::Instance()->jsonGetFlags();
+    std::cout << "Header: " << "\n";
+    for (std::string header : headers) {
+      std::cout << header << " ";
+    }
+    std::cout << "\n";
+    std::cout << "Flag: " << "\n";
+    for (std::string flag : flags) {
+      std::cout << flag << " ";
+    }
+    std::cout << "\n";
+    exit(0);
+  }
 
   v2::GlobalSnippetManager::Instance()->loadJson(target_cache_dir / "snippets.json");
   // CAUTION Must process after load.

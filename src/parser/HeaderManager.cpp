@@ -204,8 +204,8 @@ void HeaderManager::parseBench(fs::path dir) {
 void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
   std::map<std::string, std::set<std::string> > tmp;
   for (auto &m : Deps) {
-    std::string from = m.first;
     for (std::string to : m.second) {
+      std::string from = m.first;
       assert(from.find(pattern) == 0);
       assert(to.find(pattern) == 0);
       from = from.replace(0, pattern.length(), replace);
@@ -214,4 +214,116 @@ void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
     }
   }
   Deps = tmp;
+}
+
+
+
+bool HeaderConf::find(std::string header, std::set<std::string> &ret) {
+  for (const std::string &s : headers) {
+    if (utils::match_suffix(s, header)) {
+      fs::path tmp = utils::substract_suffix(s, header);
+      ret.insert("-I" + tmp.string());
+      return true;
+    }
+  }
+  return false;
+}
+
+TEST(HeaderManagerTest, MyTest) {
+  HeaderManager manager;
+  fs::path tmp_dir = utils::create_tmp_dir();
+
+  const char *json = R"prefix(
+  [{
+    "package": "acl",
+    "size": "135208",
+    "includes": [
+      "/usr/include/sys/acl.h",
+      "/usr/include/acl/libacl.h"
+    ],
+    "libs": [
+      "/usr/lib/libacl.so"
+    ]
+  }]
+)prefix";
+
+  fs::path conf_file = tmp_dir / "a.json";
+  utils::write_file(conf_file, json);
+
+  manager.jsonAddConf(conf_file);
+  manager.jsonAddSystemInclude("sys/acl.h");
+  manager.jsonAddSystemInclude("libacl.h");
+
+  manager.jsonResolve();
+  
+  EXPECT_EQ(manager.jsonGetHeaders(), std::set<std::string>({"sys/acl.h", "libacl.h"}));
+  EXPECT_EQ(manager.jsonGetFlags(), std::set<std::string>({"-lacl", "-I/usr/include/acl", "-I/usr/include"}));
+}
+
+
+void HeaderManager::jsonAddConf(fs::path file) {
+  std::cout << "[HeaderManager::jsonAddConf] " << file << "\n";
+  rapidjson::Document document;
+  std::ifstream ifs(file.string());
+  rapidjson::IStreamWrapper isw(ifs);
+  document.ParseStream(isw);
+  assert(document.IsArray());
+
+  // load into internal representation
+  HeaderConf conf;
+  for (rapidjson::Value &v : document.GetArray()) {
+    assert(v.IsObject());
+    if (v.HasMember("includes")) {
+      for (rapidjson::Value &header : v["includes"].GetArray()) {
+        conf.addHeader(header.GetString());
+      }
+    }
+    if (v.HasMember("libs")) {
+      for (rapidjson::Value &lib : v["libs"].GetArray()) {
+        conf.addLib(lib.GetString());
+      }
+    }
+  }
+  JsonConfs.push_back(conf);
+}
+
+void HeaderManager::jsonParseBench(fs::path bench) {
+  fs::recursive_directory_iterator it(bench), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".h" || p.extension() == ".c") {
+      std::ifstream ifs(p.string());
+      assert(ifs.is_open());
+      std::string line;
+      while (std::getline(ifs, line)) {
+        std::smatch match;
+        // quotes "a.h"
+        if (std::regex_search(line, match, include_quote_reg)) {
+          std::string file = match[1];
+          LocalIncludes.insert(file);
+        }
+        // angle <a.h>
+        if (std::regex_search(line, match, include_angle_reg)) {
+          std::string file = match[1];
+          SystemIncludes.insert(file);
+        }
+      }
+    }
+  }
+}
+
+void HeaderManager::jsonResolve() {
+  // system includes
+  for (std::string header : SystemIncludes) {
+    for (HeaderConf &conf : JsonConfs) {
+      std::set<std::string> inc_flags;
+      if (conf.find(header, inc_flags)) {
+        jsonHeaders.insert(header);
+        for (std::string inc : inc_flags) {
+          jsonFlags.insert(inc);
+        }
+        std::set<std::string> flags = conf.getFlags();
+        jsonFlags.insert(flags.begin(), flags.end());
+      }
+    }
+  }
 }
