@@ -762,7 +762,10 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "typedef unsigned short ushort;\n";
 
   // http://stackoverflow.com/questions/27459245/gcc-warning-with-std-c11-arg
+  // https://www.gnu.org/software/libc/manual/html_mono/libc.html#Language-Features
   ret += "#define _POSIX_C_SOURCE 200809L\n";
+  ret += "#define _DEFAULT_SOURCE\n";
+  ret += "#define _GNU_SOURCE\n"; // this is everything haha
 
   // ret += "#include <stdbool.h>\n";
   // ret += "#include <stdio.h>\n";

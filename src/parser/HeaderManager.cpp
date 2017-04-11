@@ -4,6 +4,8 @@
 
 #include "helium/resolver/SnippetV2.h"
 
+#include "helium/utils/helium_options.h"
+
 #include <regex>
 
 using namespace v2;
@@ -303,6 +305,11 @@ void HeaderManager::jsonAddConf(fs::path file) {
         conf.addLib(lib.GetString());
       }
     }
+    if (v.HasMember("flags")) {
+      for (rapidjson::Value &flag : v["flags"].GetArray()) {
+        conf.addFlag(flag.GetString());
+      }
+    }
     JsonConfs.push_back(conf);
   }
 }
@@ -332,6 +339,13 @@ void HeaderManager::jsonParseBench(fs::path bench) {
 }
 
 void HeaderManager::jsonResolve() {
+  // HACK adding all the valid path to the flags
+  if (HeliumOptions::Instance()->Has("header-valid-include-paths")) {
+    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-valid-include-paths");
+    for (std::string s : v) {
+      jsonFlags.insert("-I" + s);
+    }
+  }
   // system includes
   for (std::string header : SystemIncludes) {
     for (HeaderConf &conf : JsonConfs) {

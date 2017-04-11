@@ -13,3 +13,9 @@ function decl, so Helium would not capture it as a snippet.
 #+BEGIN_SRC C
 ssize_t (*original_write)(int, const void *, size_t);
 #+END_SRC
+
+
+* Define
+
+User might define, for example, a feature =#ifdef __USE_MISC=, to make
+=struct timezone= available. We lose that information.

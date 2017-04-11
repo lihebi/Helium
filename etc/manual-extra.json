@@ -66,7 +66,6 @@
         "libs": []
     },
     {
-        "comment": "-D_FILE_OFFSET_BITS=64",
         "package": "fuse2",
         "size": "108132",
         "includes": [
@@ -84,7 +83,8 @@
         "libs": [
             "/usr/lib/libfuse.so",
             "/usr/lib/libulockmgr.so"
-        ]
+        ],
+        "flags": ["-D_FILE_OFFSET_BITS=64"]
     },
     {
         "package": "jdk8-openjdk",
