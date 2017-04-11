@@ -194,8 +194,10 @@ HeliumOptions::HeliumOptions() {
     ("use-query-resolver-2", po::value<bool>()->default_value(false), "use query resolver 2")
     ("negate-fc", po::value<bool>()->default_value(false), "negate the fc")
     ("analyze-data-option", po::value<std::string>(), "data for analyze")
-    ("header-config-json",
-     po::value<std::vector<std::string> >(), "header config files in json")
+    ("header-config-json", po::value<std::vector<std::string> >(), "header config files in json")
+    ("header-disabled-packages", po::value<std::vector<std::string> >(), "header disabled package")
+    ("header-disabled-include-paths", po::value<std::vector<std::string> >(), "disable include path")
+    ("header-valid-include-paths",  po::value<std::vector<std::string> >(), "valid include path")
     ;
   
   po::options_description hidden("Hidden options");
@@ -332,8 +334,10 @@ std::vector<std::string> HeliumOptions::GetStringVector(std::string key) {
       exit(1);
     }
   } else {
-    std::cerr << "EE: Option " << key << " is not set."  << "\n";
-    exit(1);
+    // std::cerr << "EE: Option " << key << " is not set."  << "\n";
+    // exit(1);
+    // returning empty
+    return {};
   }
 }
 

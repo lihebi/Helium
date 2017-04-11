@@ -1,0 +1,9 @@
+#+TITLE: Config file
+
+Not found on arch:
+- sys/atomic.h
+- atomic.h
+- mem.h
+- umem.h
+- priv.h
+

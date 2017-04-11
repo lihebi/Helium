@@ -47,6 +47,7 @@ public:
     ret.insert(flags.begin(), flags.end());
     return ret;
   }
+
 private:
   std::string package;
   std::set<std::string> headers;
@@ -134,6 +135,19 @@ public:
 
   std::set<std::string> jsonGetHeaders() {return jsonHeaders;}
   std::set<std::string> jsonGetFlags() {return jsonFlags;}
+
+  void jsonAddDisabledPackage(std::string s) {JsonDisabledPackages.insert(s);}
+  void jsonAddDisabledIncludePath(std::string s) {JsonDisabledIncludePaths.insert(s);}
+  void jsonAddValidIncludePath(std::string s) {JsonValidIncludePaths.insert(s);}
+  // DEPRECATED
+  bool jsonIncludePathDisabled(fs::path s) {
+    if (JsonDisabledIncludePaths.count(s) == 1) return true;
+    else return false;
+  }
+  bool jsonIncludePathValid(fs::path s) {
+    if (JsonValidIncludePaths.count(s) == 1) return true;
+    return false;
+  }
   
 private:
   std::set<std::string> Includes = {
@@ -165,6 +179,10 @@ private:
   std::set<std::string> SystemIncludes;
   std::set<std::string> jsonHeaders;
   std::set<std::string> jsonFlags;
+
+  std::set<std::string> JsonDisabledPackages;
+  std::set<fs::path> JsonDisabledIncludePaths;
+  std::set<fs::path> JsonValidIncludePaths;
 
 };
 

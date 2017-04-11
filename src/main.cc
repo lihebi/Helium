@@ -373,6 +373,22 @@ int main(int argc, char* argv[]) {
       exit(1);}}
 
 
+
+  {
+    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-disabled-packages");
+    for (std::string s : v) {
+      HeaderManager::Instance()->jsonAddDisabledPackage(s);
+    }
+    v = HeliumOptions::Instance()->GetStringVector("header-disabled-include-paths");
+    for (std::string s : v) {
+      HeaderManager::Instance()->jsonAddDisabledIncludePath(s);
+    }
+    v = HeliumOptions::Instance()->GetStringVector("header-valid-include-paths");
+    for (std::string s : v) {
+      HeaderManager::Instance()->jsonAddValidIncludePath(s);
+    }
+  }
+
   if (HeliumOptions::Instance()->Has("system-info")) {
     HeaderManager::Instance()->addConf(helium_home / "etc" / "system.conf");
     HeaderManager::Instance()->addConf(helium_home / "etc" / "third-party.conf");

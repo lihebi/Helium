@@ -771,9 +771,18 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 
   // additional header files
   // include only if the project used it, by mask
-  std::set<std::string> headers = HeaderManager::Instance()->getHeaders();
-  for (std::string s : headers) {
-    ret += "#include <" + s + ">\n";
+  {
+    // std::set<std::string> headers = HeaderManager::Instance()->getHeaders();
+    // for (std::string s : headers) {
+    //   ret += "#include <" + s + ">\n";
+    // }
+  }
+
+  {
+    std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
+    for (std::string s : headers) {
+      ret += "#include <" + s + ">\n";
+    }
   }
 
   sel = patchFunctionHeader(sel);
@@ -991,6 +1000,14 @@ std::string get_makefile() {
   for (std::string inc : incs) {
     inc_flag += "-I" + inc + " ";
   }
+
+  std::string json_flag;
+  {
+    std::set<std::string> v = HeaderManager::Instance()->jsonGetFlags();
+    for (std::string s : v) {
+      json_flag += s + " ";
+    }
+  }
   
   std::string makefile;
   makefile += "CC:=clang\n";
@@ -1008,8 +1025,9 @@ std::string get_makefile() {
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
     // libs
-    + inc_flag
-    + lib_flag
+    // + inc_flag
+    // + lib_flag
+    + json_flag
     + ""
     + "\n"
     + "clean:\n"

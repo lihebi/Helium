@@ -218,14 +218,27 @@ void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
 
 
 
+/**
+ * I need to add some restrictions
+ * - /usr/include/bits should not be the includ evalue
+ * - /usr/include/sys should not be the -I value, it redefines many headers like fcntl.h, signal.h
+ *   The headers inside it is used as sys/ctypes.h.
+ */
 bool HeaderConf::find(std::string header, std::set<std::string> &ret) {
+  std::set<fs::path> disabled = {"", ""};
   for (const std::string &s : headers) {
     if (utils::match_suffix(s, header)) {
       fs::path tmp = utils::substract_suffix(s, header);
-      ret.insert("-I" + tmp.string());
-      return true;
+      // filter out some restrictions
+      // if (!HeaderManager::Instance()->jsonIncludePathDisabled(tmp)) {
+      //   ret.insert("-I" + tmp.string());
+      // }
+      if (HeaderManager::Instance()->jsonIncludePathValid(tmp)) {
+        ret.insert("-I" + tmp.string());
+      }
     }
   }
+  if (ret.size() > 0) return true;
   return false;
 }
 
@@ -270,9 +283,16 @@ void HeaderManager::jsonAddConf(fs::path file) {
   assert(document.IsArray());
 
   // load into internal representation
-  HeaderConf conf;
+  // linux-atm
   for (rapidjson::Value &v : document.GetArray()) {
+    HeaderConf conf;
     assert(v.IsObject());
+    if (v.HasMember("package")) {
+      // std::set<std::string> disabled_packages = {"libbsd", "aarch64-linux-gnu-gcc", "dietlibc"};
+      std::string package = v["package"].GetString();
+      if (JsonDisabledPackages.count(package) == 1) continue;
+      conf.setPackage(package);
+    }
     if (v.HasMember("includes")) {
       for (rapidjson::Value &header : v["includes"].GetArray()) {
         conf.addHeader(header.GetString());
@@ -283,8 +303,8 @@ void HeaderManager::jsonAddConf(fs::path file) {
         conf.addLib(lib.GetString());
       }
     }
+    JsonConfs.push_back(conf);
   }
-  JsonConfs.push_back(conf);
 }
 
 void HeaderManager::jsonParseBench(fs::path bench) {
