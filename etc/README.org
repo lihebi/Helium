@@ -6,4 +6,5 @@ Not found on arch:
 - mem.h
 - umem.h
 - priv.h
-
+- ngx_config.h (ngx_xxx.h)
+- glibht.h
