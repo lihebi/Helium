@@ -34,6 +34,7 @@ public:
     }
   }
   void setPackage(std::string s) {package = s;}
+  std::string getPackage() {return package;}
   void addFlag(std::string flag) {flags.insert(flag);}
   /**
    * find if header is in the headers list.
@@ -46,6 +47,12 @@ public:
     ret.insert(libs.begin(), libs.end());
     ret.insert(flags.begin(), flags.end());
     return ret;
+  }
+  bool exists() {
+    for (std::string header : headers) {
+      if (!fs::exists(header)) return false;
+    }
+    return true;
   }
 
 private:
@@ -75,36 +82,21 @@ public:
    * Whether header exists in system path
    */
   bool header_exists(const std::string header);
-  void addConf(fs::path file);
   void dump(std::ostream &os);
-  std::map<std::string, std::string> parseHeaderConf(fs::path file);
-  std::set<std::string> getHeaders();
-  std::set<std::string> getLibs();
-  std::set<std::string> getIncludes() {return Includes;}
-
-  /**
-   * mask and only expose those used in the project
-   * FIXME Do I need mask??
-   */
-  // void mask(fs::path p);
-  // void unmask();
-
-  /**
-   * Do everything
-   */
-  void parseBench(fs::path dir);
 
   /**
    * replace pattern by "replace" in Deps
    */
   void adjustDeps(std::string pattern, std::string replace);
-  std::map<std::string, std::set<std::string> > getDeps() {
-    return Deps;
-  }
-  std::set<std::string> infoGetAllHeaders() {return all_headers;}
-  std::set<std::string> infoGetAllMissedExistHeaders() {return all_missed_exist_headers;}
-  std::set<std::string> infoGetAllMissedNonExistHeaders() {return all_missed_non_exist_headers;}
 
+  void dumpDeps(std::ostream &os) {
+    for (auto &m : Deps) {
+      os << m.first << " ==> \n";
+      for (auto s : m.second) {
+        os << "\t" << s << "\n";
+      }
+    }
+  }
 
   /**
    * Add configure file
@@ -132,22 +124,24 @@ public:
    * - jsonFlags
    */
   void jsonResolve();
+  void jsonTopoSortHeaders();
 
   std::set<std::string> jsonGetHeaders() {return jsonHeaders;}
   std::set<std::string> jsonGetFlags() {return jsonFlags;}
 
-  void jsonAddDisabledPackage(std::string s) {JsonDisabledPackages.insert(s);}
-  void jsonAddDisabledIncludePath(std::string s) {JsonDisabledIncludePaths.insert(s);}
   void jsonAddValidIncludePath(std::string s) {JsonValidIncludePaths.insert(s);}
-  // DEPRECATED
-  bool jsonIncludePathDisabled(fs::path s) {
-    if (JsonDisabledIncludePaths.count(s) == 1) return true;
-    else return false;
-  }
   bool jsonIncludePathValid(fs::path s) {
     if (JsonValidIncludePaths.count(s) == 1) return true;
     return false;
   }
+  void jsonDump(std::ostream &os) {
+    os << "Json Dump: " << "\n";
+    for (HeaderConf conf : JsonConfs) {
+      os << conf.getPackage() << " ";
+    }
+    os << "\n";
+  }
+  std::vector<std::string> getSortedHeaders() {return SortedHeaders;}
   
 private:
   std::set<std::string> Includes = {
@@ -165,13 +159,9 @@ private:
   // std::set<std::string> Libs;
   std::set<std::string> Mask;
   static HeaderManager *instance;
+  
   std::map<std::string, std::set<std::string> > Deps;
-
-
-  // used for utils
-  std::set<std::string> all_headers;
-  std::set<std::string> all_missed_exist_headers;
-  std::set<std::string> all_missed_non_exist_headers;
+  std::vector<std::string> SortedHeaders;
 
   // json related
   std::vector<HeaderConf> JsonConfs;
@@ -180,8 +170,6 @@ private:
   std::set<std::string> jsonHeaders;
   std::set<std::string> jsonFlags;
 
-  std::set<std::string> JsonDisabledPackages;
-  std::set<fs::path> JsonDisabledIncludePaths;
   std::set<fs::path> JsonValidIncludePaths;
 
 };

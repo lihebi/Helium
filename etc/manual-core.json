@@ -30,7 +30,7 @@
         ]
     },
     {
-        "package": "ncurses+20170128",
+        "package": "ncurses",
         "size": "1056880",
         "includes": [
             "/usr/include/etip.h",

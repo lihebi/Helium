@@ -118,13 +118,6 @@ public:
     fs::create_directories(target_cache_dir);
     create_src(unique_dir, target_cache_dir, target_sel_dir);
     create_cpp(target_cache_dir);
-    // 2. create tagfile
-    create_tagfile(target_cache_dir);
-    // 3. create clang-snippet
-    create_clang_snippet(target_cache_dir);
-    // 4. create snippet db
-    create_snippet_db(target_cache_dir);
-    utils::write_file((target_cache_dir/"valid").string(), "");
     
     std::cout << "Created " << unique_dir.string() << "\n";
 

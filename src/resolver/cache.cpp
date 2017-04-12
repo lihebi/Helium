@@ -12,28 +12,6 @@
 using namespace std;
 
 
-/**
- * old
- */
-void create_tagfile(const std::string& folder, const std::string& file) {
-  assert(utils::exists(folder));
-  // use full path because I want to have the full path in tag file
-  std::string full_path = utils::full_path(folder);
-  std::string cmd = "ctags -f ";
-  cmd += file;
-  cmd += " --languages=c,c++ -n --c-kinds=+x --exclude=heium_result -R ";
-  cmd += full_path;
-  // std::cout << cmd  << "\n";
-  // std::system(cmd.c_str());
-  int status;
-  utils::exec(cmd.c_str(), &status);
-  if (status != 0) {
-    std::cerr << "create tagfile failed" << "\n";
-    std::cerr << cmd << "\n";
-    exit(1);
-  }
-}
-
 void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_dir) {
   fs::path src = target_cache_dir / "src";
   if (fs::exists(src)) fs::remove_all(src);
@@ -151,46 +129,3 @@ void create_cpp(fs::path target_cache_dir) {
     }
   }
 }
-
-/**
- * create tagfile in target cache folder
- */
-void create_tagfile(fs::path target_cache_dir) {
-  // create tag file
-  std::cout << "Creating tagfile .." << "\n";
-  fs::path tagfile = target_cache_dir / "tagfile";
-  fs::path cppfolder = target_cache_dir / "cpp";
-  if (fs::exists(tagfile)) fs::remove(tagfile);
-  create_tagfile(cppfolder.string(), tagfile.string());
-}
-
-/**
- * Create clang snippet database for snippets
- */
-void create_clang_snippet(fs::path target_cache_dir) {
-  std::cout << "Creating clang snippet .." << "\n";
-  clangSnippetRun(target_cache_dir / "cpp");
-  clangSnippetCreateDb(target_cache_dir / "clangSnippet.db");
-  clangSnippetLoadDb(target_cache_dir / "clangSnippet.db");
-  clangSnippetInsertDb();
-}
-
-/**
- * create general snippet db
- */
-void create_snippet_db(fs::path target_cache_dir) {
-  std::cout << "Creating snippet.db .." << "\n";
-  fs::path tagfile = target_cache_dir/"tagfile";
-  fs::path snippet_folder = target_cache_dir/"snippet";
-  // // this will call srcml
-  // SnippetDB::Instance()->Create(tagfile.string(), snippet_folder.string());
-  // to create snippet db, we need
-  // - tagfile
-  // - output db file
-  // - code folder
-  // clang db folder
-  clangSnippetLoadDb(target_cache_dir / "clangSnippet.db");
-  SnippetDB::Instance()->CreateV2(target_cache_dir);
-}
-
-

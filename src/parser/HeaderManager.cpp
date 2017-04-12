@@ -5,6 +5,7 @@
 #include "helium/resolver/SnippetV2.h"
 
 #include "helium/utils/helium_options.h"
+#include "helium/resolver/graph.h"
 
 #include <regex>
 
@@ -45,164 +46,28 @@ bool HeaderManager::header_exists(const std::string header) {
   return false;
 }
 
-void HeaderManager::addConf(fs::path file) {
-  std::map<std::string, std::string> headers = parseHeaderConf(file);
-  for (auto m : headers) {
-    if (header_exists(m.first)) {
-      Headers.insert(m.first);
-      if (!m.second.empty()) {
-        // Libs.insert(m.second);
-        Header2LibMap[m.first] = m.second;
-      }
-    } else {
-      NonExistHeaders.insert(m.first);
-    }
-  }
-}
-
-
 void HeaderManager::dump(std::ostream &os) {
-  os << "[HeaderManager] Headers: ";
-  for (std::string s : Headers) {
-    os << s << " ";
+  os << "[HeaderManager] Headers:\n";
+  os << "[HeaderManager] Exist Headers: ";
+  for (HeaderConf conf : JsonConfs) {
+    if (conf.exists()) {
+      os << conf.getPackage() << " ";
+    }
   }
   os << "\n";
-  // os << "[HeaderManager] Libs: ";
-  // for (std::string s : Libs) {
-  //   os << s << " ";
-  // }
-  // os << "\n";
-  os << "[HeaderManager] Includes: ";
-  for (std::string s : Includes) {
-    os << s << " ";
-  }
-  os << "\n";
-  os << "[HeaderManager] Non-exist headers: ";
-  for (std::string s : NonExistHeaders) {
-    os << s << " ";
+  os << "[HeaderManager] Non Exist Headers: ";
+  for (HeaderConf conf : JsonConfs) {
+    if (!conf.exists()) {
+      os << conf.getPackage() << " ";
+    }
   }
   os << "\n";
 }
-
-std::set<std::string> HeaderManager::getHeaders() {
-  std::set<std::string> ret;
-  for (std::string s : Headers) {
-    if (Mask.count(s) == 1) {
-      ret.insert(s);
-    }
-  }
-  ret.insert(ForceHeaders.begin(), ForceHeaders.end());
-  return ret;
-}
-
-std::set<std::string> HeaderManager::getLibs() {
-  std::set<std::string> headers = getHeaders();
-  std::set<std::string> ret;
-  for (std::string h : headers) {
-    if (Header2LibMap.count(h) == 1) {
-      ret.insert(Header2LibMap[h]);
-    }
-  }
-  return ret;
-}
-
-
-std::map<std::string, std::string> HeaderManager::parseHeaderConf(fs::path file) {
-  std::ifstream is;
-  is.open(file.string());
-  assert(is.is_open());
-  std::string line;
-  std::string flag;
-  // from header name to compile flag
-  std::map<std::string, std::string> headers;
-  while (getline(is, line)) {
-    utils::trim(line);
-    flag = "";
-    if (line.empty()) continue;
-    if (line[0] == '#') {
-      std::vector<std::string> v = utils::split(line);
-      std::string s = v[0];
-      if (s == "#INC") {
-        // Includes.insert(s);
-        assert(v.size() == 2);
-        Includes.insert(v[1]);
-      }
-    } else {
-      if (line.find(' ') != std::string::npos) {
-        flag = line.substr(line.find(' '));
-        line = line.substr(0, line.find(' '));
-        utils::trim(flag);
-      }
-      if (line[0] == '!') {
-        // force include
-        line = line.substr(1);
-        ForceHeaders.insert(line);
-      }
-      headers[line] = flag;
-    }
-  }
-  return headers;
-}
-
 
 static std::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
 static std::regex include_quote_reg("#\\s*include\\s*\"([\\w/]+\\.h)\"");
 static std::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
 
-
-/**
- * dir :: The directory of the original benchmark
- * replace :: cpp folder
- */
-void HeaderManager::parseBench(fs::path dir) {
-  // 1. mask
-  // 2. header dependencies
-  Mask.clear();
-  Deps.clear();
-  std::set<std::string> all_files;
-  {
-    // get all files
-    fs::recursive_directory_iterator it(dir), eod;
-    BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-      if (p.extension() == ".h" || p.extension() == ".c") {
-        all_files.insert(p.string());
-      }
-    }
-  }
-  fs::recursive_directory_iterator it(dir), eod;
-  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-    if (p.extension() == ".h" || p.extension() == ".c") {
-      std::ifstream ifs(p.string());
-      assert(ifs.is_open());
-      std::string line;
-      while (std::getline(ifs, line)) {
-        std::smatch match;
-        // quotes "a.h"
-        if (std::regex_search(line, match, include_quote_reg)) {
-          std::string file = match[1];
-          std::set<std::string> matches = filter_suffix(all_files, file);
-          for (std::string to : matches) {
-            // both first and seconds are ABSOLUTE path
-            Deps[p.string()].insert(to);
-          }
-        }
-        // angle <a.h>
-        if (std::regex_search(line, match, include_angle_reg)) {
-          std::string file = match[1];
-          all_headers.insert(file);
-          Mask.insert(file);
-          if (Headers.count(file) == 0) {
-            if (header_exists(file)) {
-              all_missed_exist_headers.insert(file);
-            } else {
-              all_missed_non_exist_headers.insert(file);
-            }
-          }
-        }
-      }
-    }
-  }
-}
 void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
   std::map<std::string, std::set<std::string> > tmp;
   for (auto &m : Deps) {
@@ -217,8 +82,6 @@ void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
   }
   Deps = tmp;
 }
-
-
 
 /**
  * I need to add some restrictions
@@ -290,9 +153,7 @@ void HeaderManager::jsonAddConf(fs::path file) {
     HeaderConf conf;
     assert(v.IsObject());
     if (v.HasMember("package")) {
-      // std::set<std::string> disabled_packages = {"libbsd", "aarch64-linux-gnu-gcc", "dietlibc"};
       std::string package = v["package"].GetString();
-      if (JsonDisabledPackages.count(package) == 1) continue;
       conf.setPackage(package);
     }
     if (v.HasMember("includes")) {
@@ -316,6 +177,16 @@ void HeaderManager::jsonAddConf(fs::path file) {
 
 void HeaderManager::jsonParseBench(fs::path bench) {
   fs::recursive_directory_iterator it(bench), eod;
+  std::set<std::string> all_files;
+  {
+    // get all files
+    fs::recursive_directory_iterator it(bench), eod;
+    BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+      if (p.extension() == ".h" || p.extension() == ".c") {
+        all_files.insert(p.string());
+      }
+    }
+  }
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (p.extension() == ".h" || p.extension() == ".c") {
       std::ifstream ifs(p.string());
@@ -327,6 +198,11 @@ void HeaderManager::jsonParseBench(fs::path bench) {
         if (std::regex_search(line, match, include_quote_reg)) {
           std::string file = match[1];
           LocalIncludes.insert(file);
+          std::set<std::string> matches = filter_suffix(all_files, file);
+          for (std::string to : matches) {
+            // both first and seconds are ABSOLUTE path
+            Deps[p.string()].insert(to);
+          }
         }
         // angle <a.h>
         if (std::regex_search(line, match, include_angle_reg)) {
@@ -360,4 +236,25 @@ void HeaderManager::jsonResolve() {
       }
     }
   }
+}
+
+// std::map<std::string, std::set<std::string> > Deps;
+// std::vector<std::string> SortedHeaders;
+void HeaderManager::jsonTopoSortHeaders() {
+  SortedHeaders.clear();
+  hebigraph::Graph<std::string> graph;
+  for (auto &m : Deps) {
+    graph.addNode(m.first);
+  }
+  for (auto &m : Deps) {
+    std::string from = m.first;
+    if (!graph.hasNode(from)) graph.addNode(from);
+    for (std::string to : m.second) {
+      // arrow means "used by", while FileDep means "depend on",
+      // they are opposite, reflected here
+      if (!graph.hasNode(to)) graph.addNode(to);
+      graph.addEdge(to, from);
+    }
+  }
+  SortedHeaders = graph.topoSort();
 }

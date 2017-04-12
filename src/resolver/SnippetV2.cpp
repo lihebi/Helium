@@ -404,100 +404,32 @@ bool is_type_snippet(v2::Snippet *s) {
           || dynamic_cast<EnumSnippet*>(s));
 }
 
+/**
+ * Input: all snippets
+ * Output:
+ * - FileV: A vector of sorted files
+ * - SnippetV
+ * - FileMap
+ */
 void SnippetManager::sortFiles() {
   // create File2SnippetMap
   FileMap.clear();
-  FileDep.clear();
+  // FileDep.clear();
   // std::map<std::string, std::set<Snippet*> > FileMap;
+  std::set<std::string> all_files;
   for (Snippet *s : Snippets) {
     FileMap[s->getFile()].insert(s);
+    all_files.insert(s->getFile());
   }
-#if 0
-  // use deps, get file deps
-  std::map<std::string, std::map<std::string, int> > mat;
-  // std::map<Snippet*, std::set<Snippet*> > Deps;
-  for (Snippet *from : Snippets) {
-    if (!is_type_snippet(from)) continue;
-    std::string from_str = from->getFile();
-    std::set<Snippet*> deps = from->getDeps();
-    for (auto *to : deps) {
-      if (!is_type_snippet(to)) continue;
-      std::string to_str = to->getFile();
-      if (mat.count(from_str) == 1) {
-        mat[from_str][to_str]++;
-        mat[to_str][from_str]--;
-      } else {
-        mat[from_str];
-        mat[from_str][to_str]=1;
-        mat[to_str];
-        mat[to_str][from_str]=-1;
-      }
+  std::vector<std::string> sorted = HeaderManager::Instance()->getSortedHeaders();
+  std::vector<std::string> newsorted;
+  for (std::string s : all_files) {
+    if (all_files.count(s) == 1) {
+      newsorted.push_back(s);
     }
   }
-  // std::map<std::string, std::set<std::string> > FileDep;
-  for (auto &m : mat) {
-    for (auto &n : m.second) {
-      if (n.second > 0) {
-        FileDep[m.first].insert(n.first);
-      }
-    }
-  }
-#else
-  // use the include dependence in the files
-  std::map<std::string, std::set<std::string> > deps = HeaderManager::Instance()->getDeps();
-  // std::cout << "Dep size: " << deps.size() << "\n";
-  // for (auto &m : deps) {
-  //   std::cout << m.first << "\n";
-  // }
-  for (auto &m : FileMap) {
-    std::string from = m.first;
-    if (deps.count(from) == 1) {
-      for (std::string to : deps[from]) {
-        if (FileMap.count(to) == 1) {
-          FileDep[from].insert(to);
-        }
-      }
-    }
-  }
-#endif
-  // check if file dep is DAG (Directed Acyclic Graph)
-  // Use Topological sorting to get a vector of files
-  // FileV.clear();
-  // recursively get nodes with no incoming edges (Kahn's algorithm)
-
-  // std::map<std::string, std::set<Snippet*> > FileMap;
-  // std::map<std::string, std::set<std::string> > FileDep;
-  // for (auto &m : FileMap) {
-  //   std::string file = m.first;
-  //   if (FileDep.count(file) == 0) {
-  //     FileV.push_back(file);
-  //   }
-  // }
-  topoSortFiles();
-}
-
-void SnippetManager::topoSortFiles() {
-  FileV.clear();
-  SnippetV.clear();
-  hebigraph::Graph<std::string> graph;
-  // std::map<std::string, std::set<Snippet*> > FileMap;
-  // std::map<std::string, std::set<std::string> > FileDep;
-  for (auto &m : FileMap) {
-    graph.addNode(m.first);
-  }
-  for (auto &m : FileDep) {
-    for (std::string s : m.second) {
-      // graph.addEdge(m.first, s);
-      // arrow means "used by", while FileDep means "depend on",
-      // they are opposite, reflected here
-      graph.addEdge(s, m.first);
-    }
-  }
-  std::vector<std::string> sorted = graph.topoSort();
-  // TODO examine sorted !!!
-  FileV = sorted;
-  // sort also the snippets
-  for (std::string file : FileV) {
+  FileV = newsorted;
+  for (std::string file : newsorted) {
     std::set<Snippet*> snippets = FileMap[file];
     std::vector<Snippet*> v(snippets.begin(), snippets.end());
     std::sort(v.begin(), v.end(), [](Snippet *lhs, Snippet *rhs){
@@ -508,8 +440,6 @@ void SnippetManager::topoSortFiles() {
     SnippetV.insert(SnippetV.end(), v.begin(), v.end());
   }
 }
-
-
 
 
 /**

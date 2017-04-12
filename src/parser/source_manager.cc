@@ -666,70 +666,6 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     ret += "}\n";
   }
   return ret;
-  
-  // int func_ct = 0;
-  // for (auto &m : AST2DistributorMap) {
-  //   // ASTContext *ast = m.first;
-  //   Distributor *dist = m.second;
-  //   func_ct += dist->getDistFunc(sel);
-  // }
-  // if (func_ct == 0) return "";
-  // else if (func_ct == 1) {
-  //   // only one function
-  //   // - we don't include function headers.
-  //   // - generate main function and put body inside function
-  //   std::string body;
-  //   for (auto &m : File2ASTMap) {
-  //     Generator *generator =  new Generator();
-  //     generator->setSelection(sel);
-  //     // generator->setSelection(sel);
-  //     ASTContext *ast = m.second;
-  //     TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
-  //     decl->accept(generator);
-  //     std::string prog = generator->getProgram();
-  //     body += prog;
-  //   }
-  //   std::string ret;
-  //   ret += "#include <stdio.h>\n";
-  //   ret += "#include <stdlib.h>\n";
-  //   ret += "#include <string.h>\n";
-  //   ret += "#include \"main.h\"\n";
-  //   ret += "int main(int argc, char *argv[]) {\n";
-  //   ret += body;
-  //   ret += "  return 0;\n";
-  //   ret += "}\n";
-  //   return ret;
-  // } else {
-  //   // multiple functions
-  //   // - we always include function headers.
-  //   // - put function call sites in main function
-  //   std::string body;
-  //   sel = patchFunctionHeader(sel);
-  //   for (auto &m : File2ASTMap) {
-  //     Generator *generator =  new Generator();
-  //     generator->setSelection(sel);
-  //     // generator->setSelection(sel);
-  //     ASTContext *ast = m.second;
-  //     TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
-  //     decl->accept(generator);
-  //     std::string prog = generator->getProgram();
-  //     body += prog;
-  //   }
-  //   std::string ret;
-    
-  //   ret += "#include <stdio.h>\n";
-  //   ret += "#include <stdlib.h>\n";
-  //   ret += "#include <string.h>\n";
-  //   ret += "#include \"main.h\"\n";
-
-  //   ret += body;
-
-  //   ret += "int main(int argc, char *argv[]) {\n";
-  //   // TODO call to those functions
-  //   ret += "  return 0;\n";
-  //   ret += "}\n";
-  //   return ret;
-  // }
 }
 
 
@@ -768,18 +704,11 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "#define _GNU_SOURCE\n"; // this is everything haha
 
   // ret += "#include <stdbool.h>\n";
-  // ret += "#include <stdio.h>\n";
-  // ret += "#include <stdlib.h>\n";
+  // some must includes
+  ret += "#include <stdio.h>\n";
+  ret += "#include <stdlib.h>\n";
+  ret += "#include <stdint.h>\n";
   // ret += "#include <string.h>\n";
-
-  // additional header files
-  // include only if the project used it, by mask
-  {
-    // std::set<std::string> headers = HeaderManager::Instance()->getHeaders();
-    // for (std::string s : headers) {
-    //   ret += "#include <" + s + ">\n";
-    // }
-  }
 
   {
     std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
@@ -993,17 +922,6 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
 }
 
 std::string get_makefile() {
-  std::string lib_flag;
-  std::set<std::string> libs = HeaderManager::Instance()->getLibs();
-  for (std::string lib : libs) {
-    lib_flag += lib + " ";
-  }
-  std::string inc_flag;
-  std::set<std::string> incs = HeaderManager::Instance()->getIncludes();
-  for (std::string inc : incs) {
-    inc_flag += "-I" + inc + " ";
-  }
-
   std::string json_flag;
   {
     std::set<std::string> v = HeaderManager::Instance()->jsonGetFlags();
@@ -1027,9 +945,6 @@ std::string get_makefile() {
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
-    // libs
-    // + inc_flag
-    // + lib_flag
     + json_flag
     + ""
     + "\n"
