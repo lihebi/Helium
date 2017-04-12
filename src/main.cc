@@ -164,6 +164,40 @@ void general_utility() {
 void target_utility(fs::path target) {
   fs::path user_home(getenv("HOME"));
   fs::path helium_home = user_home / ".helium.d";
+  if (HeliumOptions::Instance()->Has("check-headers")) {
+    // checking if header is captured
+    // read target
+    // target should be a list of headers, one per line
+    std::ifstream ifs(target.string());
+    assert(ifs.is_open());
+    std::string line;
+    std::vector<std::string> suc;
+    std::vector<std::string> fail;
+    while (getline(ifs, line)) {
+      utils::trim(line);
+      if (!line.empty()) {
+        bool res = HeaderManager::Instance()->jsonCheckHeader(line);
+        if (res) suc.push_back(line);
+        else fail.push_back(line);
+      }
+    }
+    ifs.close();
+    // output
+    std::cout << "Found: ";
+    for (std::string s : suc) {
+      std::cout << s << " ";
+    }
+    std::cout << "\n";
+    std::cout << "Not Found: ";
+    for (std::string s : fail) {
+      std::cout << s << " ";
+    }
+    std::cout << "\n";
+    exit(0);
+  }
+}
+
+void helium_utility(fs::path target) {
   if (HeliumOptions::Instance()->Has("bench-info")) {
     std::cout << "== Header Dependencies:" << "\n";
     HeaderManager::Instance()->dumpDeps(std::cout);
@@ -292,6 +326,7 @@ int main(int argc, char* argv[]) {
   std::string target_str = HeliumOptions::Instance()->GetString("target");
   target_str = utils::escape_tide(target_str);
   fs::path target(target_str);
+  target_utility(target);
   if (!fs::exists(target)) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);}
@@ -307,7 +342,7 @@ int main(int argc, char* argv[]) {
 
 
   if (HeliumOptions::Instance()->Has("create-cache")) {create_cache(target, target_cache_dir); exit(0);}
-  if (HeliumOptions::Instance()->Has("create-selection")) {create_sel(target_cache_dir); exit(0);}
+  if (HeliumOptions::Instance()->Has("create-sel")) {create_sel(target_cache_dir); exit(0);}
 
   if (!fs::exists(target_cache_dir)) {
     std::cerr << "The benchmark is not processed."
@@ -325,7 +360,7 @@ int main(int argc, char* argv[]) {
   v2::GlobalSnippetManager::Instance()->processAfterLoad();
   v2::GlobalSnippetManager::Instance()->dump(std::cout);
 
-  target_utility(target);
+  helium_utility(target);
 
   helium_run(target, target_cache_dir);
   std::cout << "[main] End Of Helium" << "\n";

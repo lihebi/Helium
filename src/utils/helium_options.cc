@@ -42,23 +42,10 @@ HeliumOptions::HeliumOptions() {
   po::options_description primary_options("Primary");
   primary_options.add_options()
     ("setup", "setup")
-    ("create-cache", "create preprocessed files, tagfile in cache folder")
-    // call the following tools in sequence
-    ("create-cpp", "preprocess")
-    ("create-tagfile", "create tagfile")
-    ("create-clang-snippet", "clang snippet")
-    ("create-snippet", "snippet db")
-    
-    ("dry-snippet-dep", "when creating dependence of snippet, only output the number of queries but not do it.")
+    ("create-cache", "create cache")
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")
-    // ("info", "information about the benchmark")
-    // ("tokenize", "tokenize the program")
-    // ("selection", po::value<std::string>(), "selection of tokens")
-    ("dummy-loop", "run a dummy loop for testing profilers")
-    // ("distribution", po::value<std::string>(), "analyze the distribution of a selection file")
-    // ("clang-snippet", "extract snippet index using clang")
-    ("create-selection", "create selection folder and put manual.txt, sample.txt, random/1.txt, one/1.txt, two/1.txt etc")
+    ("create-sel", "create selection")
     ("sel-num", po::value<int>()->default_value(10), "how many to generate")
     ("sel-tok", po::value<int>()->default_value(1), "how many token to select")
     ("sel", po::value<std::string>(), "selection file")
@@ -68,6 +55,7 @@ HeliumOptions::HeliumOptions() {
     // ("discover-header", "discover header used in the benchmark on current system.")
     // ("check-header", "check header in project but not exists on current system or conf")
     ("bench-info", "show the information about target benchmark")
+    ("check-headers", "check whether the headers is captured/supported")
     ;
 
   po::options_description util_options("Utils");
@@ -87,7 +75,7 @@ HeliumOptions::HeliumOptions() {
 
     ("show-instrument-code", po::value<std::string>(), "print instrument code")
 
-    ("check-headers", "check if the headers in headers.conf exists on this machine")
+    // ("check-headers", "check if the headers in headers.conf exists on this machine")
     ("create-function-ast", "create ast for all the functions in the target benchmarks")
     ("resolve-system-type", "Resolve a system type and print out result")
     ;

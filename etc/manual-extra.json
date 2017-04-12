@@ -1,5 +1,21 @@
 [
     {
+        "package": "libpng",
+        "size": "243320",
+        "includes": [
+            "/usr/include/pnglibconf.h",
+            "/usr/include/png.h",
+            "/usr/include/pngconf.h",
+            "/usr/include/libpng16/pnglibconf.h",
+            "/usr/include/libpng16/png.h",
+            "/usr/include/libpng16/pngconf.h"
+        ],
+        "libs": [
+            "/usr/lib/libpng16.so",
+            "/usr/lib/libpng.so"
+        ]
+    },
+    {
         "package": "libx11",
         "size": "2124148",
         "includes": [

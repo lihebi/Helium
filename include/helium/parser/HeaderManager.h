@@ -23,7 +23,10 @@ class HeaderConf {
 public:
   HeaderConf() {}
   ~HeaderConf() {}
-  void addHeader(std::string s) {headers.insert(s);}
+  void addHeader(std::string s) {
+    headers.insert(s);
+    if (!fs::exists(s)) Exist=false;
+  }
   void addLib(std::string lib) {
     // for now, only consider /usr/lib/libxxx.so
     std::regex libreg("^/usr/lib/lib(.*)\\.so$");
@@ -42,24 +45,21 @@ public:
    * @return include : the include path to be added
    */
   bool find(std::string header, std::set<std::string> &inc_flags);
+  bool find(std::string header);
   std::set<std::string> getFlags() {
     std::set<std::string> ret;
     ret.insert(libs.begin(), libs.end());
     ret.insert(flags.begin(), flags.end());
     return ret;
   }
-  bool exists() {
-    for (std::string header : headers) {
-      if (!fs::exists(header)) return false;
-    }
-    return true;
-  }
+  bool exists() {return Exist;}
 
 private:
   std::string package;
   std::set<std::string> headers;
   std::set<std::string> libs;
   std::set<std::string> flags;
+  bool Exist=true;
   // std::set<std::string> flags;
   /**
    * TODO build a index from filename to actual file
@@ -125,6 +125,8 @@ public:
    */
   void jsonResolve();
   void jsonTopoSortHeaders();
+
+  bool jsonCheckHeader(std::string header);
 
   std::set<std::string> jsonGetHeaders() {return jsonHeaders;}
   std::set<std::string> jsonGetFlags() {return jsonFlags;}

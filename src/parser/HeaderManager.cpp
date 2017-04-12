@@ -106,6 +106,12 @@ bool HeaderConf::find(std::string header, std::set<std::string> &ret) {
   if (ret.size() > 0) return true;
   return false;
 }
+bool HeaderConf::find(std::string header) {
+  std::set<std::string> ret;
+  return find(header, ret);
+}
+
+
 
 TEST(HeaderManagerTest, MyTest) {
   HeaderManager manager;
@@ -222,11 +228,17 @@ void HeaderManager::jsonResolve() {
       jsonFlags.insert("-I" + s);
     }
   }
-  // system includes
+  // if the header is used in <>
+  // find if it is captured in the config file
+  // if yes, include it
   for (std::string header : SystemIncludes) {
     for (HeaderConf &conf : JsonConfs) {
       std::set<std::string> inc_flags;
       if (conf.find(header, inc_flags)) {
+        if (!conf.exists()) {
+          std::cerr << "[HeaderManager] [Warning] package " << conf.getPackage()
+                    << " does not exist, but it is included with <" << header << ">" << "\n";
+        }
         jsonHeaders.insert(header);
         for (std::string inc : inc_flags) {
           jsonFlags.insert(inc);
@@ -236,6 +248,21 @@ void HeaderManager::jsonResolve() {
       }
     }
   }
+}
+
+/**
+ * Check whether the header is captured by the json config files.
+ */
+bool HeaderManager::jsonCheckHeader(std::string header) {
+  // std::set<std::string> ret;
+  for (HeaderConf &conf : JsonConfs) {
+    if (conf.find(header)) {
+      return true;
+      // ret.insert(conf.getPackage());
+    }
+  }
+  return false;
+  // return ret;
 }
 
 // std::map<std::string, std::set<std::string> > Deps;
