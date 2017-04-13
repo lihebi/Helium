@@ -75,7 +75,7 @@ public:
    * num: how many nodes to be selected.
    */
   std::set<v2::ASTNodeBase*> genRandSel(int num);
-  std::set<v2::ASTNodeBase*> genRandSelSameFile(int num);
+  std::set<v2::ASTNodeBase*> genRandSelFunc(int num);
   std::set<v2::ASTNodeBase*> genRandSelSameFunc(int num);
   /**
    * load selection from file.

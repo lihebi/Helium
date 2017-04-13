@@ -146,7 +146,7 @@ TEST(HeaderManagerTest, MyTest) {
 
 
 void HeaderManager::jsonAddConf(fs::path file) {
-  std::cout << "[HeaderManager::jsonAddConf] " << file << "\n";
+  // std::cout << "[HeaderManager::jsonAddConf] " << file << "\n";
   rapidjson::Document document;
   std::ifstream ifs(file.string());
   rapidjson::IStreamWrapper isw(ifs);

@@ -221,7 +221,7 @@ void check_blocklist(fs::path blockconf, std::string name) {
   }
   ifs.close();
   for (std::string s : blocklist) {
-    std::cout << "checking " << s << "\n";
+    // std::cout << "checking " << s << "\n";
     if (name.find(s) != std::string::npos) {
       std::cout << "[main] This project is in blacklist. Skipped." << "\n";
       exit(0);
@@ -272,7 +272,8 @@ void create_sel(fs::path target_cache_dir) {
     os.open(file.string().c_str());
     assert(os.is_open());
     // selection = sourceManager->genRandSelSameFunc(1);
-    selection = sourceManager->genRandSel(sel_tok);
+    // selection = sourceManager->genRandSel(sel_tok);
+    selection = sourceManager->genRandSelFunc(sel_tok);
     sourceManager->dumpSelection(selection, os);
     os.close();
     std::cout << "Selection file wrote to " << file.string() << "\n";
