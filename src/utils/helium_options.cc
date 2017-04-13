@@ -56,6 +56,7 @@ HeliumOptions::HeliumOptions() {
     // ("check-header", "check header in project but not exists on current system or conf")
     ("bench-info", "show the information about target benchmark")
     ("check-headers", "check whether the headers is captured/supported")
+    ("check-headers-bench", "check the bench for unsupported headers")
     ;
 
   po::options_description util_options("Utils");

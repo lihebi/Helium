@@ -198,6 +198,18 @@ void target_utility(fs::path target) {
     if (fail.size() == 0) exit(0);
     else exit(1);
   }
+  if (HeliumOptions::Instance()->Has("check-headers-bench")) {
+    // parse the bench
+    HeaderManager::Instance()->jsonParseBench(target);
+    // if (HeaderManager::Instance()->jsonValidBench()) {
+    // }
+    std::string header = HeaderManager::Instance()->jsonGetUnsupportedHeader();
+    if (header.size() == 0) exit(0);
+    else {
+      std::cout << header << " is not supported" << "\n";
+      exit(1);
+    }
+  }
 }
 
 void helium_utility(fs::path target) {

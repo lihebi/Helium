@@ -250,6 +250,34 @@ void HeaderManager::jsonResolve() {
   }
 }
 
+bool HeaderManager::jsonValidBench() {
+  for (std::string header : SystemIncludes) {
+    bool found = false;
+    for (HeaderConf &conf : JsonConfs) {
+      if (conf.find(header)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+std::string HeaderManager::jsonGetUnsupportedHeader() {
+  for (std::string header : SystemIncludes) {
+    bool found = false;
+    for (HeaderConf &conf : JsonConfs) {
+      if (conf.find(header)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return header;
+  }
+  return "";
+}
+
 /**
  * Check whether the header is captured by the json config files.
  */

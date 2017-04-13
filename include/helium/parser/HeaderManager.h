@@ -144,6 +144,8 @@ public:
     os << "\n";
   }
   std::vector<std::string> getSortedHeaders() {return SortedHeaders;}
+  bool jsonValidBench();
+  std::string jsonGetUnsupportedHeader();
   
 private:
   std::set<std::string> Includes = {
