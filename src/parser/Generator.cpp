@@ -193,7 +193,10 @@ void Generator::visit(v2::ContinueStmt *node){
 void Generator::visit(v2::ReturnStmt *node){
   TokenNode *ReturnNode = node->getReturnNode();
   if (ReturnNode) {
-    ReturnNode->accept(this);
+    // if adjust return, don't output the return
+    if (!AdjustReturn) {
+      ReturnNode->accept(this);
+    }
   }
   Expr *expr = node->getValue();
   if (expr) expr->accept(this);

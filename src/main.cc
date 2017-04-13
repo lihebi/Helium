@@ -193,7 +193,10 @@ void target_utility(fs::path target) {
       std::cout << s << " ";
     }
     std::cout << "\n";
-    exit(0);
+    // exit(0);
+
+    if (fail.size() == 0) exit(0);
+    else exit(1);
   }
 }
 

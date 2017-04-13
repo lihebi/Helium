@@ -521,9 +521,13 @@ public:
   std::string getProgram() {
     return Prog;
   }
+  void adjustReturn(bool b) {
+    AdjustReturn = b;
+  }
 private:
   std::string Prog;
   std::set<v2::ASTNodeBase*> selection;
+  bool AdjustReturn = false;
 };
 
 

@@ -632,6 +632,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     for (auto &m : File2ASTMap) {
       Generator *generator =  new Generator();
       generator->setSelection(sel);
+      generator->adjustReturn(true);
       // generator->setSelection(sel);
       ASTContext *ast = m.second;
       TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
