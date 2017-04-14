@@ -699,15 +699,18 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   ret += "#define _DEFAULT_SOURCE\n";
   ret += "#define _GNU_SOURCE\n"; // this is everything haha
 
-  // ret += "#include <stdbool.h>\n";
   // some must includes
   ret += "#include <stdio.h>\n";
   ret += "#include <stdlib.h>\n";
+  // must include this because the projects often typedef bool
+  // themself, but i treat bool as a keyword when resolving snippets
+  ret += "#include <stdbool.h>\n";
   ret += "#include <stdint.h>\n";
   // ret += "#include <string.h>\n";
 
   {
-    std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
+    // std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
+    std::vector<std::string> headers = HeaderManager::Instance()->jsonGetSortedHeaders();
     for (std::string s : headers) {
       ret += "#include <" + s + ">\n";
     }

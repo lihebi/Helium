@@ -214,6 +214,7 @@ void HeaderManager::jsonParseBench(fs::path bench) {
         if (std::regex_search(line, match, include_angle_reg)) {
           std::string file = match[1];
           SystemIncludes.insert(file);
+          jsonSortedSystemHeaders.push_back(file);
         }
       }
     }
@@ -248,6 +249,19 @@ void HeaderManager::jsonResolve() {
       }
     }
   }
+
+  std::set<std::string> done;
+  std::vector<std::string> tmp;
+  for (std::string header : jsonSortedSystemHeaders) {
+    if (done.count(header)==1) continue;
+    done.insert(header);
+    for (HeaderConf &conf : JsonConfs) {
+      if (conf.find(header)) {
+        tmp.push_back(header);
+      }
+    }
+  }
+  jsonSortedSystemHeaders = tmp;
 }
 
 bool HeaderManager::jsonValidBench() {

@@ -128,8 +128,14 @@ public:
 
   bool jsonCheckHeader(std::string header);
 
+  /**
+   * system headers also has dependencies. For example,
+   * #include <sys/socket.h> must be before #include <linux/wireless.h>
+   */
   std::set<std::string> jsonGetHeaders() {return jsonHeaders;}
   std::set<std::string> jsonGetFlags() {return jsonFlags;}
+
+  std::vector<std::string> jsonGetSortedHeaders() {return jsonSortedSystemHeaders;}
 
   void jsonAddValidIncludePath(std::string s) {JsonValidIncludePaths.insert(s);}
   bool jsonIncludePathValid(fs::path s) {
@@ -173,6 +179,9 @@ private:
   std::set<std::string> SystemIncludes;
   std::set<std::string> jsonHeaders;
   std::set<std::string> jsonFlags;
+
+  // this is going to be populated during parse
+  std::vector<std::string> jsonSortedSystemHeaders;
 
   std::set<fs::path> JsonValidIncludePaths;
 
