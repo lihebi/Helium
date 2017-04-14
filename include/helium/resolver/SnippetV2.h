@@ -541,6 +541,8 @@ namespace v2 {
 
     int size() {return Snippets.size();}
     std::set<v2::Snippet*> getAllDeps(std::set<v2::Snippet*> snippets);
+
+    bool checkValid(std::string &reason);
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
     // std::map<Snippet*, std::set<Snippet*> > Deps;

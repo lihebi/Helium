@@ -221,6 +221,20 @@ void helium_utility(fs::path target) {
     HeaderManager::Instance()->dump(std::cout);
     exit(0);
   }
+  /**
+   * check if the cache is valid
+   * Need to create cache first
+   * - check whether a function is defined multiple times
+   */
+  if (HeliumOptions::Instance()->Has("check-cache-valid")) {
+    std::string reason;
+    bool valid = v2::GlobalSnippetManager::Instance()->checkValid(reason);
+    if (valid) exit(0);
+    else {
+      std::cout << "Invalid because " << reason << "\n";
+      exit(1);
+    }
+  }
 }
 
 void check_blocklist(fs::path blockconf, std::string name) {
@@ -339,13 +353,17 @@ int main(int argc, char* argv[]) {
   fs::path cache_dir = helium_home / "cache";
 
   load_header_config();
+  // (HEBI: Utility 1)
   general_utility();
   
   // Reading target folder. This is the parameter
   std::string target_str = HeliumOptions::Instance()->GetString("target");
   target_str = utils::escape_tide(target_str);
   fs::path target(target_str);
+
+  // (HEBI: Utility 2)
   target_utility(target);
+
   if (!fs::exists(target)) {
     std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
     exit(1);}
@@ -379,6 +397,7 @@ int main(int argc, char* argv[]) {
   v2::GlobalSnippetManager::Instance()->processAfterLoad();
   v2::GlobalSnippetManager::Instance()->dump(std::cout);
 
+  // (HEBI: Utility 3)
   helium_utility(target);
 
   helium_run(target, target_cache_dir);

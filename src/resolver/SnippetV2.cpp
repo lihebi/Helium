@@ -630,3 +630,25 @@ void SnippetManager::loadJson(fs::path p) {
     }
   }
 }
+
+
+
+bool SnippetManager::checkValid(std::string &reason) {
+  for (auto &m : KeyMap) {
+    std::string key = m.first;
+    std::vector<Snippet*> snippets = m.second;
+    // if two functions, report
+    bool func=false;
+    for (Snippet *s : snippets) {
+      if (dynamic_cast<FunctionSnippet*>(s)) {
+        if (func) {
+          reason = "function " + key + " is declared multiple times.";
+          return false;
+        } else {
+          func = true;
+        }
+      }
+    }
+  }
+  return true;
+}

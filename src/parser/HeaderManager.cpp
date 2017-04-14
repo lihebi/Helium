@@ -28,7 +28,12 @@ static std::set<std::string> filter_suffix(std::set<std::string> &all, std::stri
   std::set<std::string> ret;
   std::string str,suffix;
   for (std::string s : all) {
-    if (has_suffix(s, sub)) {
+    // FIXME suffix is not enough. it should be path suffix
+    // if (has_suffix(s, sub)) {
+    //   ret.insert(s);
+    // }
+    // I'm using path
+    if (utils::match_suffix(s, sub)) {
       ret.insert(s);
     }
   }
@@ -255,7 +260,15 @@ void HeaderManager::jsonParseBench(fs::path bench) {
           std::set<std::string> matches = filter_suffix(all_files, file);
           for (std::string to : matches) {
             // both first and seconds are ABSOLUTE path
-            Deps[p.string()].insert(to);
+            // std::cout << "parsebench: adding dep " << p.string() << " => " << to  << "\n";
+            // FIXME this match might match a comment HACK to avoid a
+            // DAG problem for graph toposort, the header including
+            // itself is omitted. This typically should not happen,
+            // but it can happen when the #include directive is in in
+            // comment
+            if (p.string() != to) {
+              Deps[p.string()].insert(to);
+            }
           }
           // this local include is not found in local files
           // check and adjust local includes and system includes
@@ -402,10 +415,12 @@ void HeaderManager::jsonTopoSortHeaders() {
       // arrow means "used by", while FileDep means "depend on",
       // they are opposite, reflected here
       if (!graph.hasNode(to)) graph.addNode(to);
+      // std::cout << "adding edge " << to << " => " << from << "\n";
       graph.addEdge(to, from);
     }
   }
   // graph node size
+  // graph.dump(std::cout);
   // graph.dump(std::cout);
   SortedHeaders = graph.topoSort();
   // sorted header size

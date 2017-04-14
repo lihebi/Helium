@@ -57,6 +57,7 @@ HeliumOptions::HeliumOptions() {
     ("bench-info", "show the information about target benchmark")
     ("check-headers", "check whether the headers is captured/supported")
     ("check-headers-bench", "check the bench for unsupported headers")
+    ("check-cache-valid", "check whether the bench is valid by the snippets in cache")
     ;
 
   po::options_description util_options("Utils");
