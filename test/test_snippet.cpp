@@ -169,6 +169,7 @@ protected:
     file_b_h = dir / "include" / "b.h";
     file_sub_c = dir / "src" / "sub" / "sub.c";
     file_lib_c = dir / "lib" / "lib.c";
+    file_decl_h = dir / "src" / "decl.h";
   }
   void TearDown() {}
 
@@ -179,6 +180,7 @@ protected:
   fs::path file_sub_c;
   fs::path file_lib_c;
   fs::path file_var_c;
+  fs::path file_decl_h;
 };
 
 
@@ -190,18 +192,18 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(snippets);
     manager->process();
     // manager->dump(std::cout);
-    v2::Snippet *A1 = manager->get("A1", "RecordSnippet");
-    v2::Snippet *A2 = manager->get("A2", "RecordSnippet");
-    v2::Snippet *A2Typedef = manager->get("A2", "TypedefSnippet");
-    v2::Snippet *A3 = manager->get("A3", "RecordSnippet");
-    v2::Snippet *A3Alias = manager->get("A3Alias", "TypedefSnippet");
+    v2::Snippet *A1 = manager->getone("A1", "RecordSnippet");
+    v2::Snippet *A2 = manager->getone("A2", "RecordSnippet");
+    v2::Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
+    v2::Snippet *A3 = manager->getone("A3", "RecordSnippet");
+    v2::Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
     ASSERT_TRUE(A1);
     ASSERT_TRUE(A2);
     ASSERT_TRUE(A3);
     ASSERT_TRUE(A3Alias);
 
     EXPECT_EQ(A1->getCode(), "struct A1 {\n}");
-    EXPECT_EQ(A2->getCode(), "struct A2 {\n  struct A1;\n}");
+    EXPECT_EQ(A2->getCode(), "struct A2 {\n  struct A1 a;\n}");
     EXPECT_EQ(A2Typedef->getCode(), "typedef struct A2 A2");
     EXPECT_EQ(A3->getCode(), "struct A3 {\n  struct A2 a2;\n}");
     EXPECT_EQ(A3Alias->getCode(), "typedef struct A3 {\n  struct A2 a2;\n} A3Alias");
@@ -212,10 +214,10 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(snippets);
     manager->process();
 
-    v2::Snippet *global_a = manager->get("global_a", "VarSnippet");
-    v2::Snippet *temp_a = manager->get("temp_a", "VarSnippet");
-    v2::Snippet *myvar = manager->get("myvar", "VarSnippet");
-    v2::Snippet *aoo = manager->get("aoo", "FunctionSnippet");
+    v2::Snippet *global_a = manager->getone("global_a", "VarSnippet");
+    v2::Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
+    v2::Snippet *myvar = manager->getone("myvar", "VarSnippet");
+    v2::Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
     ASSERT_TRUE(global_a);
     ASSERT_TRUE(temp_a);
     ASSERT_TRUE(myvar);
@@ -233,17 +235,17 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(snippets);
     manager->process();
 
-    v2::Snippet *a = manager->get("a", "VarSnippet");
-    v2::Snippet *b = manager->get("b", "VarSnippet");
-    v2::Snippet *c = manager->get("c", "VarSnippet");
-    v2::Snippet *d = manager->get("d", "VarSnippet");
-    v2::Snippet *e = manager->get("e", "VarSnippet");
-    v2::Snippet *f = manager->get("f", "VarSnippet");
-    v2::Snippet *gg = manager->get("gg", "VarSnippet");
-    v2::Snippet *p = manager->get("p", "VarSnippet");
-    v2::Snippet *longvar = manager->get("longvar", "VarSnippet");
-    v2::Snippet *long_var = manager->get("long_var", "VarSnippet");
-    v2::Snippet *longvarinit = manager->get("longvarinit", "VarSnippet");
+    v2::Snippet *a = manager->getone("a", "VarSnippet");
+    v2::Snippet *b = manager->getone("b", "VarSnippet");
+    v2::Snippet *c = manager->getone("c", "VarSnippet");
+    v2::Snippet *d = manager->getone("d", "VarSnippet");
+    v2::Snippet *e = manager->getone("e", "VarSnippet");
+    v2::Snippet *f = manager->getone("f", "VarSnippet");
+    v2::Snippet *gg = manager->getone("gg", "VarSnippet");
+    v2::Snippet *p = manager->getone("p", "VarSnippet");
+    v2::Snippet *longvar = manager->getone("longvar", "VarSnippet");
+    v2::Snippet *long_var = manager->getone("long_var", "VarSnippet");
+    v2::Snippet *longvarinit = manager->getone("longvarinit", "VarSnippet");
     
     ASSERT_TRUE(a && b && c && d && e && f && gg && p && longvar && long_var && longvarinit);
 
@@ -261,6 +263,25 @@ TEST_F(NewSnippetTest, MyTest) {
   }
 
   {
+    // test decl
+    v2::SnippetManager *manager = new v2::SnippetManager();
+    manager->add(createSnippets(file_decl_h));
+    manager->process();
+
+    v2::Snippet *A = manager->getone("A", "RecordDeclSnippet");
+    v2::Snippet *B = manager->getone("B", "RecordDeclSnippet");
+    v2::Snippet *foo = manager->getone("foo", "FunctionDeclSnippet");
+    v2::Snippet *bar = manager->getone("bar", "FunctionDeclSnippet");
+
+    ASSERT_TRUE(A && B && foo && bar);
+
+    EXPECT_EQ(A->getCode(), "struct A");
+    EXPECT_EQ(B->getCode(), "struct B");
+    EXPECT_EQ(foo->getCode(), "int foo()");
+    EXPECT_EQ(bar->getCode(), "int bar()");
+  }
+
+  {
     // test dependency
     v2::SnippetManager *manager = new v2::SnippetManager();
     manager->add(createSnippets(file_a_c));
@@ -271,16 +292,17 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(createSnippets(file_lib_c));
     manager->process();
 
-    v2::Snippet *A1 = manager->get("A1", "RecordSnippet");
-    v2::Snippet *A2 = manager->get("A2", "RecordSnippet");
-    v2::Snippet *A2Typedef = manager->get("A2", "TypedefSnippet");
-    v2::Snippet *A3 = manager->get("A3", "RecordSnippet");
-    v2::Snippet *A3Alias = manager->get("A3Alias", "TypedefSnippet");
+    v2::Snippet *A1 = manager->getone("A1", "RecordSnippet");
+    v2::Snippet *A2 = manager->getone("A2", "RecordSnippet");
+    v2::Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
+    v2::Snippet *A2Decl = manager->getone("A2", "RecordDeclSnippet");
+    v2::Snippet *A3 = manager->getone("A3", "RecordSnippet");
+    v2::Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
     
-    v2::Snippet *global_a = manager->get("global_a", "VarSnippet");
-    v2::Snippet *temp_a = manager->get("temp_a", "VarSnippet");
-    v2::Snippet *myvar = manager->get("myvar", "VarSnippet");
-    v2::Snippet *aoo = manager->get("aoo", "FunctionSnippet");
+    v2::Snippet *global_a = manager->getone("global_a", "VarSnippet");
+    v2::Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
+    v2::Snippet *myvar = manager->getone("myvar", "VarSnippet");
+    v2::Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
 
 
     // manager->dump(std::cout);
@@ -292,16 +314,18 @@ TEST_F(NewSnippetTest, MyTest) {
     EXPECT_EQ(dep.size(), 1);
     EXPECT_EQ(dep.count(A1), 1);
     dep = A3->getDeps();
-    EXPECT_EQ(dep.size(), 2);
+    EXPECT_EQ(dep.size(), 3);
     EXPECT_EQ(dep.count(A2), 1);
     EXPECT_EQ(dep.count(A2Typedef), 1);
+    EXPECT_EQ(dep.count(A2Decl), 1);
 
     // get all dependence
     dep = A3->getAllDeps();
-    EXPECT_EQ(dep.size(), 3);
+    EXPECT_EQ(dep.size(), 4);
     EXPECT_EQ(dep.count(A1), 1);
     EXPECT_EQ(dep.count(A2), 1);
     EXPECT_EQ(dep.count(A2Typedef), 1);
+    EXPECT_EQ(dep.count(A2Decl), 1);
 
     // outer
     std::set<v2::Snippet*> outer;

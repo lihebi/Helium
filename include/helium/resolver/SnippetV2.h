@@ -29,6 +29,10 @@ namespace v2 {
   class VarSnippet;
   class RecordSnippet;
   class EnumSnippet;
+
+  class FunctionDeclSnippet;
+  class RecordDeclSnippet;
+  
   /**
    * Snippet
    *
@@ -125,6 +129,7 @@ namespace v2 {
     }
     std::set<Snippet*> getAllDeps();
     std::set<Snippet*> getOuters() {return Outers;}
+    bool isOuter(Snippet *s)  {return Outers.count(s) == 1;}
     std::set<int> getOutersAsId() {
       std::set<int> ret;
       for (auto *s : Outers) {
@@ -161,15 +166,6 @@ namespace v2 {
     }
     virtual ~FunctionSnippet() {}
     virtual std::string getSnippetName() {return "FunctionSnippet";}
-    // virtual void save(std::ostream &os) {
-    //   Snippet::save(os);
-    // }
-    // virtual void load(std::istream &is) {
-    //   Snippet::load(is);
-    // }
-    // virtual void dump(std::ostream &os) {
-    //   os << "FucntionSnippet " << Name;
-    // }
     virtual void readCode();
     virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
       rapidjson::Value v = Snippet::saveJson(allocator);
@@ -184,7 +180,28 @@ namespace v2 {
      */
     std::string getFuncDecl();
   private:
+    // seems that this is not used
     SourceLocation body_begin;
+  };
+
+  class FunctionDeclSnippet : public Snippet {
+  public:
+    FunctionDeclSnippet() {}
+    FunctionDeclSnippet(std::string name, std::string file,
+                        SourceLocation begin, SourceLocation end)
+      : Snippet(name, file, begin, end) {}
+    virtual ~FunctionDeclSnippet() {}
+    virtual void readCode();
+    virtual std::string getSnippetName() {return "FunctionDeclSnippet";}
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "FunctionDeclSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
+  private:
   };
 
   class VarSnippet : public Snippet {
@@ -293,6 +310,25 @@ namespace v2 {
      */
     std::string getDecl();
   private:
+  };
+
+  class RecordDeclSnippet : public Snippet {
+  public:
+    RecordDeclSnippet() {}
+    RecordDeclSnippet(std::string name, std::string file,
+                               SourceLocation begin, SourceLocation end)
+      : Snippet(name, file, begin, end) {}
+    virtual ~RecordDeclSnippet() {}
+    virtual std::string getSnippetName() {return "RecordDeclSnippet";}
+    virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value v = Snippet::saveJson(allocator);
+      v.AddMember("kind", "RecordDeclSnippet", allocator);
+      return v;
+    }
+    virtual void loadJson(rapidjson::Value &v) {
+      Snippet::loadJson(v);
+    }
+    virtual void readCode();
   };
   
   class EnumSnippet : public Snippet {
@@ -452,13 +488,23 @@ namespace v2 {
       if (KeyMap.count(key)==1) return KeyMap[key];
       return {};
     }
-    Snippet *get(std::string key, std::string kind) {
+    // FIXME get with same name might have multiple
+    // e.g. function decl
+    // But maybe this function only appear in the test file?
+    Snippet *getone(std::string key, std::string kind) {
       if (KeyMap.count(key)==1) {
         for (Snippet *s : KeyMap[key]) {
           if (s->getSnippetName() == kind) return s;
         }
       }
       return nullptr;
+    }
+    std::vector<Snippet*> get(std::string key, std::string kind) {
+      std::vector<Snippet*> ret;
+      for (Snippet *s : KeyMap[key]) {
+        if (s->getSnippetName() == kind) ret.push_back(s);
+      }
+      return ret;
     }
     // std::set<Snippet*> getDep(Snippet* s) {
     //   if (Deps.count(s) == 1) return Deps[s];
@@ -502,7 +548,7 @@ namespace v2 {
     // generated
     std::map<std::string, std::vector<Snippet*> > KeyMap;
     std::map<std::string, std::set<Snippet*> > FileMap;
-    std::map<std::string, std::set<std::string> > FileDep;
+    // std::map<std::string, std::set<std::string> > FileDep;
     // sorted files
     std::vector<std::string> FileV;
     // sorted snippets

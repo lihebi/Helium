@@ -80,8 +80,14 @@ std::string read_file_for_code_until_semicolon(fs::path file, SourceLocation beg
 void v2::FunctionSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
 }
+void v2::FunctionDeclSnippet::readCode() {
+  Code = read_file_for_code_until_semicolon(File, Begin, End);
+}
 void v2::RecordSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
+}
+void v2::RecordDeclSnippet::readCode() {
+  Code = read_file_for_code_until_semicolon(File, Begin, End);
 }
 void v2::EnumSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
@@ -218,7 +224,7 @@ void SnippetManager::createOuters() {
         SourceLocation loc2_begin = rhs->getBeginLoc();
         SourceLocation loc2_end = rhs->getEndLoc();
         if (loc1_begin < loc2_begin) return true;
-        else if (loc1_begin == loc2_begin) return loc1_end < loc2_end;
+        else if (loc1_begin == loc2_begin) return loc1_end > loc2_end;
         else return false;
       });
     // - for each, go through and find until the begin loc of the next is larget then its end, record that
@@ -272,13 +278,15 @@ void SnippetManager::dumpVerbose(std::ostream &os) {
 void SnippetManager::dump(std::ostream &os) {
   os << "[SnippetManager] " << Snippets.size() << " snippets, "
      << KeyMap.size() << " KeyMap entries." << "\n";
-  std::set<Snippet*> func_s,typedef_s,enum_s,var_s,record_s;
+  std::set<Snippet*> func_s,typedef_s,enum_s,var_s,record_s,func_decl_s,record_decl_s;
   for (Snippet *s : Snippets) {
     if (dynamic_cast<FunctionSnippet*>(s)) {func_s.insert(s);}
     else if (dynamic_cast<TypedefSnippet*>(s)) {typedef_s.insert(s);}
     else if (dynamic_cast<EnumSnippet*>(s)) {enum_s.insert(s);}
     else if (dynamic_cast<VarSnippet*>(s)) {var_s.insert(s);}
     else if (dynamic_cast<RecordSnippet*>(s)) {record_s.insert(s);}
+    else if (dynamic_cast<RecordDeclSnippet*>(s)) {record_decl_s.insert(s);}
+    else if (dynamic_cast<FunctionDeclSnippet*>(s)) {func_decl_s.insert(s);}
   }
   // type of snippet
   os << "[SnipperManager] " << func_s.size() << " Functions: ";
@@ -306,6 +314,16 @@ void SnippetManager::dump(std::ostream &os) {
     s->dump(os); os << " ";
   }
   os << "\n";
+  os << "[SnipperManager] " << func_decl_s.size() << " FuncDecl: ";
+  for (auto *s : func_decl_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
+  os << "[SnipperManager] " << record_decl_s.size() << " RecordDecl: ";
+  for (auto *s : record_decl_s) {
+    s->dump(os); os << " ";
+  }
+  os << "\n";
 }
 
 std::string SnippetManager::dumpComment() {
@@ -313,20 +331,11 @@ std::string SnippetManager::dumpComment() {
   // file dep
   // std::map<std::string, std::set<std::string> > FileDep;
   std::string ret;
-  ret += "// FileDep\n";
-  for (auto &m : FileDep) {
-    ret += "// " + m.first + " => ";
-    for (auto s : m.second) {
-      ret += s + " ";
-    }
-    ret += "\n";
-  }
   // file topo sort result, aka FileV
-  ret += "// FileV: ";
+  ret += "// FileV: \n";
   for (auto s : FileV) {
-    ret += s + " ";
+    ret += "// \t" + s + "\n";
   }
-  ret += "\n";
   return ret;
 }
 
@@ -397,13 +406,6 @@ std::vector<v2::Snippet*> SnippetManager::sort(std::set<Snippet*> snippets) {
   return ret;
 }
 
-bool is_type_snippet(v2::Snippet *s) {
-  if (!s) return false;
-  return (dynamic_cast<RecordSnippet*>(s)
-          || dynamic_cast<TypedefSnippet*>(s)
-          || dynamic_cast<EnumSnippet*>(s));
-}
-
 /**
  * Input: all snippets
  * Output:
@@ -412,8 +414,10 @@ bool is_type_snippet(v2::Snippet *s) {
  * - FileMap
  */
 void SnippetManager::sortFiles() {
+  // std::cout << "Sorting files .." << "\n";
   // create File2SnippetMap
   FileMap.clear();
+  SnippetV.clear();
   // FileDep.clear();
   // std::map<std::string, std::set<Snippet*> > FileMap;
   std::set<std::string> all_files;
@@ -421,14 +425,29 @@ void SnippetManager::sortFiles() {
     FileMap[s->getFile()].insert(s);
     all_files.insert(s->getFile());
   }
+  // HeaderManager::Instance()->dumpDeps(std::cout);
+
+  
   std::vector<std::string> sorted = HeaderManager::Instance()->getSortedHeaders();
   std::vector<std::string> newsorted;
-  for (std::string s : all_files) {
+  for (std::string s : sorted) {
     if (all_files.count(s) == 1) {
       newsorted.push_back(s);
     }
   }
+  // now add the others at the bottom This is because the header
+  // manager will only sort those that are in dependency. For example,
+  // If there're only one file, it is not in the result
+  std::set<std::string> done(newsorted.begin(), newsorted.end());
+  for (std::string s : all_files) {
+    if (done.count(s) == 0) {
+      done.insert(s);
+      newsorted.push_back(s);
+    }
+  }
   FileV = newsorted;
+
+  // std::cout << dumpComment() << "\n";
   for (std::string file : newsorted) {
     std::set<Snippet*> snippets = FileMap[file];
     std::vector<Snippet*> v(snippets.begin(), snippets.end());
@@ -439,6 +458,8 @@ void SnippetManager::sortFiles() {
       });
     SnippetV.insert(SnippetV.end(), v.begin(), v.end());
   }
+  // snippet V size
+  // std::cout << "SnippetV size: " << SnippetV.size() << "\n";
 }
 
 
@@ -575,6 +596,8 @@ void SnippetManager::loadJson(fs::path p) {
     else if (kind == "TypedefSnippet") s = new TypedefSnippet();
     else if (kind == "RecordSnippet") s = new RecordSnippet();
     else if (kind == "EnumSnippet") s = new EnumSnippet();
+    else if (kind == "FunctionDeclSnippet") s = new FunctionDeclSnippet();
+    else if (kind == "RecordDeclSnippet") s = new RecordDeclSnippet();
     else {assert(false);}
 
     s->loadJson(v);

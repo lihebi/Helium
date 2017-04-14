@@ -154,15 +154,31 @@ std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
 
 std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel) {
   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > use2def;
-  for (auto &m : File2ASTMap) {
-    ASTContext *ast = m.second;
-    fs::path file = m.first;
-    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-    SymbolTableBuilder *symbolTableBuilder = new SymbolTableBuilder();
-    unit->accept(symbolTableBuilder);
-    std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = symbolTableBuilder->getUse2DefMap();
-    use2def.insert(u2d.begin(), u2d.end());
+
+
+  // for (auto &m : File2ASTMap) {
+  //   ASTContext *ast = m.second;
+  //   fs::path file = m.first;
+  //   TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+  //   SymbolTableBuilder *symbolTableBuilder = new SymbolTableBuilder();
+  //   unit->accept(symbolTableBuilder);
+  //   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = symbolTableBuilder->getUse2DefMap();
+  //   use2def.insert(u2d.begin(), u2d.end());
+  // }
+
+  // getting only function level symbol table. I don't want to include
+  // global variables, because they will be included through snippet
+  for (auto &m : AST2DistributorMap) {
+    Distributor *distributor = m.second;
+    std::set<v2::ASTNodeBase*> funcs = distributor->getFuncNodes();
+    for (v2::ASTNodeBase *func : funcs) {
+      SymbolTableBuilder builder;
+      func->accept(&builder);
+      std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+      use2def.insert(u2d.begin(), u2d.end());
+    }
   }
+  
   // process sel
   // this needs to be recursive
   std::set<v2::ASTNodeBase*> ret = sel;
@@ -666,7 +682,220 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
 
 
 
+static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
+  std::set<v2::Snippet*> snippets;
+  std::set<std::string> all_ids;
+  for (auto *node : sel) {
+    std::set<std::string> ids;
+    if (node) {
+      ids = node->getIdToResolve();
+    }
+    all_ids.insert(ids.begin(), ids.end());
+    for (std::string id : ids) {
+      std::vector<Snippet*> ss = v2::GlobalSnippetManager::Instance()->get(id);
+      
+      snippets.insert(ss.begin(), ss.end());
+    }
+  }
+  
+  
+  std::cout << "[SourceManager] Got " << all_ids.size() << " IDs: ";
+  for (std::string id : all_ids) {
+    std::cout << id << " ";
+  }
+  std::cout << "\n";
+  std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
+  
+  // get dependence
+  std::set<v2::Snippet*> deps;
+  for (auto *s : snippets) {
+    // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
+    std::set<v2::Snippet*> dep = s->getAllDeps();
+    deps.insert(dep.begin(), dep.end());
+  }
+  snippets.insert(deps.begin(), deps.end());
 
+  
+  // remove non-outers
+  snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+  return snippets;
+}
+
+
+static std::set<v2::Snippet*> remove_dup(std::set<v2::Snippet*> snippets) {
+  // remove duplicate
+  // for the same name and same type, only one should be retained.
+  // This should be right before sortting
+  struct SnippetComp {
+    bool operator()(Snippet *s1,Snippet *s2) {
+      std::set<std::string> key1 = s1->getKeys();
+      std::set<std::string> key2 = s2->getKeys();
+      std::string id1=s1->getSnippetName();
+      std::string id2=s2->getSnippetName();
+      for (std::string ss : key1) id1+=ss;
+      for (std::string ss : key2) id2+=ss;
+
+      // FIXME but I want duplicate for certain snippets, like decl
+      // (HEBI: FIXME)
+      // if (id1 == id2 &&
+      //     (id1 == "FunctionDeclSnippet" || id1 == "RecordDeclSnippet")) {
+      //   id2+="2";
+      // }
+      // using keys, for anonemous enumerations which doesn't have a name, but have many fields
+      return id1 < id2;
+      // return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
+    }
+  };
+  std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";
+  for (Snippet *s : snippets) {
+    std::cout << s->getName() << " "
+              << s->getSnippetName() << "; ";
+  }
+  std::cout << "\n";
+  std::set<Snippet*,SnippetComp> nodup;
+  nodup.insert(snippets.begin(), snippets.end());
+  snippets.clear();
+  snippets.insert(nodup.begin(), nodup.end());
+  std::cout << "[SourceManager] " << snippets.size() << " Snippets AFTER removing dup: ";
+  for (Snippet *s : snippets) {
+    std::cout << s->getName() << " "
+              << s->getSnippetName() << "; ";
+  }
+  std::cout << "\n";
+  // snippets = nodup;
+  return snippets;
+}
+
+
+std::string get_snippet_code_separate(vector<Snippet*> sorted_snippets, std::set<std::string> main_c_funcs) {
+  std::string ret;
+  std::vector<Snippet*> func_snippets;
+  std::vector<Snippet*> type_snippets;
+  std::vector<Snippet*> var_snippets;
+  for (Snippet *s : sorted_snippets) {
+    if (dynamic_cast<FunctionSnippet*>(s)) func_snippets.push_back(s);
+    else if (dynamic_cast<TypedefSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<RecordSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<EnumSnippet*>(s)) type_snippets.push_back(s);
+    else if (dynamic_cast<VarSnippet*>(s)) var_snippets.push_back(s);
+  }
+
+
+  // std::cout << "\n";
+  // std::cout << "Main C:" << "\n";
+  // for (std::string s : main_c_funcs) {
+  //   std::cout << s << "\n";
+  // }
+
+  std::string type;
+  std::string typedef_decl;
+  std::string record_decl;
+  for (Snippet *s : type_snippets) {
+    type += "// " + s->toString() + "\n";
+    type += s->getCode() + ";\n";
+    if (TypedefSnippet *typedef_s = dynamic_cast<TypedefSnippet*>(s)) {
+      typedef_decl += typedef_s->getDecl() + "\n";
+    } else if (RecordSnippet *record_s = dynamic_cast<RecordSnippet*>(s)) {
+      record_decl += record_s->getDecl() + "\n";
+    // } else if (EnumSnippet *enum_s = dynamic_cast<EnumSnippet*>(s)) {
+    //   record_decl += enum_s->getDecl() + "\n";
+    }
+  }
+
+  std::string var;
+  for (Snippet *s : var_snippets) {
+    var += "// " + s->toString() + "\n";
+    var += s->getCode() + ";\n";
+  }
+  // TRICK: the same function can be defined multiple times in the project it
+  // is wired, the project might serve a purpose: gather many
+  // interesting files, e.g. for education purpose.
+  // I'm going to use the first one found, because if I output both, it is for sure compile error
+  // - output the first one
+  // - optional try all the combination
+  // - print a fatal error
+  std::set<std::string> func_trick;
+  std::string func;
+  std::string func_decl;
+  std::string main_func_decl; // functions inside main
+  for (Snippet *s : func_snippets) {
+    std::string name = s->getName();
+    // the declaration can be 
+    if (main_c_funcs.count(name) == 0) {
+      if (func_trick.count(name) == 1) {
+        std::cerr << "[Helium Error] The function " << name << " is defined multiple times. Used the first one." << "\n";
+      } else {
+        func += "// " + s->toString() + "\n";
+        func += s->getCode() + "\n";
+        func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
+        func_trick.insert(name);
+      }
+    } else {
+      main_func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
+    }
+  }
+  ret += "// typedef_decl\n";
+  ret += typedef_decl;
+  ret += "// record_decl\n";
+  ret += record_decl;
+  
+  ret += "// type\n";
+  ret += type;
+  ret += "// var\n";
+  ret += var;
+
+  ret += "// Main Func Decl\n";
+  ret += main_func_decl;
+
+  // I'm not able to put func_decl before var, becuase the var might define a type inner
+  // The variable might hold a list of function pointers, that's the motivation to put decl before var.
+  // This problem can only be solved when I generate the structure declaration.
+  // This is an example:
+  /**
+   * node-threads-a-gogo
+   static void barrier_wait(struct barrier *b);
+   static struct barrier {
+     int fd1[2];
+     int fd2[2];
+   } barriers[2];
+   */
+  ret += "// Func decl\n";
+  // function declaration
+  ret += func_decl;
+  
+  ret += "// func\n";
+  ret += func;
+
+  return ret;
+}
+
+static std::string get_snippet_code_sort(vector<Snippet*> sorted_snippets, set<string> main_c_funcs) {
+  std::string ret;
+  std::set<FunctionSnippet*> main_funcs;
+  for (Snippet *s : sorted_snippets) {
+    if (FunctionSnippet *func = dynamic_cast<FunctionSnippet*>(s)) {
+      std::string name = s->getName();
+      if (main_c_funcs.count(name) == 0) {
+        ret += "// " + s->toString() + "\n";
+        ret += s->getCode() + "\n";
+      } else {
+        main_funcs.insert(func);
+      }
+    } else {
+      ret += "// " + s->toString() + "\n";
+      // well, always add a ; does not hurt ..
+      ret += s->getCode() + ";\n";
+    }
+  }
+  // now get the main func decl
+  // TODO to reserve the order, I actually should output the function
+  // there instead of in main
+  ret += "// Main Func Decl\n";
+  for (auto *f : main_funcs) {
+    ret += f->getFuncDecl() + "\n";
+  }
+  return ret;
+}
 
 std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   std::string ret;
@@ -722,77 +951,8 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   // DEBUG
   // GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
   
-  std::set<v2::Snippet*> snippets;
-  std::set<std::string> all_ids;
-  for (auto *node : sel) {
-    std::set<std::string> ids;
-    if (node) {
-      ids = node->getIdToResolve();
-    }
-    all_ids.insert(ids.begin(), ids.end());
-    for (std::string id : ids) {
-      std::vector<Snippet*> ss = v2::GlobalSnippetManager::Instance()->get(id);
-      
-      snippets.insert(ss.begin(), ss.end());
-    }
-  }
-  
-  
-  std::cout << "[SourceManager] Got " << all_ids.size() << " IDs: ";
-  for (std::string id : all_ids) {
-    std::cout << id << " ";
-  }
-  std::cout << "\n";
-  std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
-  
-  // get dependence
-  std::set<v2::Snippet*> deps;
-  for (auto *s : snippets) {
-    // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
-    std::set<v2::Snippet*> dep = s->getAllDeps();
-    deps.insert(dep.begin(), dep.end());
-  }
-  snippets.insert(deps.begin(), deps.end());
-
-  
-  // remove non-outers
-  snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
-
-  
-  // remove duplicate
-  // for the same name and same type, only one should be retained.
-  // This should be right before sortting
-  struct SnippetComp {
-    bool operator()(Snippet *s1,Snippet *s2) {
-      std::set<std::string> key1 = s1->getKeys();
-      std::set<std::string> key2 = s2->getKeys();
-      std::string id1=s1->getSnippetName();
-      std::string id2=s2->getSnippetName();
-      for (std::string ss : key1) id1+=ss;
-      for (std::string ss : key2) id2+=ss;
-      // using keys, for anonemous enumerations which doesn't have a name, but have many fields
-      return id1 < id2;
-      // return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
-    }
-  };
-  std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";
-  for (Snippet *s : snippets) {
-    std::cout << s->getName() << " "
-              << s->getSnippetName() << "; ";
-  }
-  std::cout << "\n";
-  std::set<Snippet*,SnippetComp> nodup;
-  nodup.insert(snippets.begin(), snippets.end());
-  snippets.clear();
-  snippets.insert(nodup.begin(), nodup.end());
-  std::cout << "[SourceManager] " << snippets.size() << " Snippets AFTER removing dup: ";
-  for (Snippet *s : snippets) {
-    std::cout << s->getName() << " "
-              << s->getSnippetName() << "; ";
-  }
-  std::cout << "\n";
-  // snippets = nodup;
-  
+  std::set<Snippet*> snippets = get_snippets(sel);
+  snippets = remove_dup(snippets);
   // sort the snippets
   std::vector<Snippet*> sorted_snippets = v2::GlobalSnippetManager::Instance()->sort(snippets);
 
@@ -801,17 +961,6 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
     std::cout << s->getName() << " ";
   }
   std::cout << "\n";
-
-  std::vector<Snippet*> func_snippets;
-  std::vector<Snippet*> type_snippets;
-  std::vector<Snippet*> var_snippets;
-  for (Snippet *s : sorted_snippets) {
-    if (dynamic_cast<FunctionSnippet*>(s)) func_snippets.push_back(s);
-    else if (dynamic_cast<TypedefSnippet*>(s)) type_snippets.push_back(s);
-    else if (dynamic_cast<RecordSnippet*>(s)) type_snippets.push_back(s);
-    else if (dynamic_cast<EnumSnippet*>(s)) type_snippets.push_back(s);
-    else if (dynamic_cast<VarSnippet*>(s)) var_snippets.push_back(s);
-  }
 
 
   // filter out functions used in main.c
@@ -828,95 +977,17 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
       main_c_funcs.insert(name);
     }
   }
-  // std::cout << "\n";
-  // std::cout << "Main C:" << "\n";
-  // for (std::string s : main_c_funcs) {
-  //   std::cout << s << "\n";
-  // }
 
-
-  std::string type;
-  std::string typedef_decl;
-  std::string record_decl;
-  for (Snippet *s : type_snippets) {
-    type += "// " + s->toString() + "\n";
-    type += s->getCode() + ";\n";
-    if (TypedefSnippet *typedef_s = dynamic_cast<TypedefSnippet*>(s)) {
-      typedef_decl += typedef_s->getDecl() + "\n";
-    } else if (RecordSnippet *record_s = dynamic_cast<RecordSnippet*>(s)) {
-      record_decl += record_s->getDecl() + "\n";
-    // } else if (EnumSnippet *enum_s = dynamic_cast<EnumSnippet*>(s)) {
-    //   record_decl += enum_s->getDecl() + "\n";
-    }
-  }
-
-  std::string var;
-  for (Snippet *s : var_snippets) {
-    var += "// " + s->toString() + "\n";
-    var += s->getCode() + ";\n";
-  }
-  // TRICK: the same function can be defined multiple times in the project it
-  // is wired, the project might serve a purpose: gather many
-  // interesting files, e.g. for education purpose.
-  // I'm going to use the first one found, because if I output both, it is for sure compile error
-  // - output the first one
-  // - optional try all the combination
-  // - print a fatal error
-  std::set<std::string> func_trick;
-  std::string func;
-  std::string func_decl;
-  std::string main_func_decl; // functions inside main
-  for (Snippet *s : func_snippets) {
-    std::string name = s->getName();
-    // the declaration can be 
-    if (main_c_funcs.count(name) == 0) {
-      if (func_trick.count(name) == 1) {
-        std::cerr << "[Helium Error] The function " << name << " is defined multiple times. Used the first one." << "\n";
-      } else {
-        func += "// " + s->toString() + "\n";
-        func += s->getCode() + "\n";
-        func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
-        func_trick.insert(name);
-      }
-    } else {
-      main_func_decl += dynamic_cast<FunctionSnippet*>(s)->getFuncDecl() + "\n";
-    }
-  }
-
+  ret += HeaderManager::Instance()->dumpDepsInComment();
   ret += GlobalSnippetManager::Instance()->dumpComment();
   
-  ret += "// typedef_decl\n";
-  ret += typedef_decl;
-  ret += "// record_decl\n";
-  ret += record_decl;
-  
-  ret += "// type\n";
-  ret += type;
-  ret += "// var\n";
-  ret += var;
+  // this is the switch
+  // old one
+  // std::string snippet_code = get_snippet_code_separate(sorted_snippets, main_c_funcs);
+  // new one
+  std::string snippet_code = get_snippet_code_sort(sorted_snippets, main_c_funcs);
 
-  ret += "// Main Func Decl\n";
-  ret += main_func_decl;
-
-  // I'm not able to put func_decl before var, becuase the var might define a type inner
-  // The variable might hold a list of function pointers, that's the motivation to put decl before var.
-  // This problem can only be solved when I generate the structure declaration.
-  // This is an example:
-  /**
-   * node-threads-a-gogo
-   static void barrier_wait(struct barrier *b);
-   static struct barrier {
-     int fd1[2];
-     int fd2[2];
-   } barriers[2];
-   */
-  ret += "// Func decl\n";
-  // function declaration
-  ret += func_decl;
-  
-  ret += "// func\n";
-  ret += func;
-  
+  ret += snippet_code;
   return ret;
 }
 

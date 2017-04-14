@@ -391,6 +391,7 @@ bool HeaderManager::jsonCheckHeader(std::string header) {
 void HeaderManager::jsonTopoSortHeaders() {
   SortedHeaders.clear();
   hebigraph::Graph<std::string> graph;
+  // FIXME if a file does not depend on others, it should also be added to the graph
   for (auto &m : Deps) {
     graph.addNode(m.first);
   }
@@ -404,5 +405,9 @@ void HeaderManager::jsonTopoSortHeaders() {
       graph.addEdge(to, from);
     }
   }
+  // graph node size
+  // graph.dump(std::cout);
   SortedHeaders = graph.topoSort();
+  // sorted header size
+  // std::cout << "Sorted Header size: " << SortedHeaders.size() << "\n";
 }

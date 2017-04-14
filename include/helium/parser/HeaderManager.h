@@ -98,6 +98,17 @@ public:
     }
   }
 
+  std::string dumpDepsInComment() {
+    std::string ret;
+    for (auto &m : Deps) {
+      ret += "// " + m.first + " ==>\n";
+      for (auto s : m.second) {
+        ret += "// \t" + s + "\n";
+      }
+    }
+    return ret;
+  }
+
   /**
    * Add configure file
    */
