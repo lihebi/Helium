@@ -203,10 +203,12 @@ void target_utility(fs::path target) {
     HeaderManager::Instance()->jsonParseBench(target);
     // if (HeaderManager::Instance()->jsonValidBench()) {
     // }
-    std::string header = HeaderManager::Instance()->jsonGetUnsupportedHeader();
-    if (header.size() == 0) exit(0);
+
+    std::string reason;
+    bool valid = HeaderManager::Instance()->jsonValidBench(reason);
+    if (valid) exit(0);
     else {
-      std::cout << header << " is not supported" << "\n";
+      std::cout << reason << "\n";
       exit(1);
     }
   }
@@ -216,6 +218,7 @@ void helium_utility(fs::path target) {
   if (HeliumOptions::Instance()->Has("bench-info")) {
     std::cout << "== Header Dependencies:" << "\n";
     HeaderManager::Instance()->dumpDeps(std::cout);
+    HeaderManager::Instance()->dump(std::cout);
     exit(0);
   }
 }

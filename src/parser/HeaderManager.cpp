@@ -62,11 +62,58 @@ void HeaderManager::dump(std::ostream &os) {
     }
   }
   os << "\n";
+  os << "[HeaderManager] Used Local Headers: ";
+  for (std::string s : LocalIncludes) {
+    os << s << " ";
+  }
+  os << "\n";
+  
+  os << "[HeaderManager] Used System Headers: ";
+  for (std::string s : SystemIncludes) {
+    os << s << " ";
+  }
+  os << "\n";
 }
 
-static std::regex include_reg("#\\s*include\\s*[\"<]([\\w/]+\\.h)[\">]");
-static std::regex include_quote_reg("#\\s*include\\s*\"([\\w/]+\\.h)\"");
-static std::regex include_angle_reg("#\\s*include\\s*<([\\w/]+\\.h)>");
+// FIXME adding - for filename, fix this for other regular expressions
+static std::regex include_reg("#\\s*include\\s*[\"<]([\\w/-]+\\.h)[\">]");
+static std::regex include_quote_reg("#\\s*include\\s*\"([\\w/-]+\\.h)\"");
+static std::regex include_angle_reg("#\\s*include\\s*<([\\w/-]+\\.h)>");
+
+
+
+TEST(HeaderManagerTest, RegexTest) {
+  {
+    std::smatch match;
+    std::string line = "#include <hello.h>";
+    bool b = std::regex_search(line, match, include_angle_reg);
+    ASSERT_TRUE(b);
+    EXPECT_EQ(match[1], "hello.h");
+  }
+  {
+    std::smatch match;
+    std::string line = "#include <foo/hello.h>";
+    bool b = std::regex_search(line, match, include_angle_reg);
+    ASSERT_TRUE(b);
+    EXPECT_EQ(match[1], "foo/hello.h");
+  }
+  {
+    std::smatch match;
+    std::string line = "#include <llvm-c/Core.h>";
+    bool b = std::regex_search(line, match, include_angle_reg);
+    ASSERT_TRUE(b);
+    EXPECT_EQ(match[1], "llvm-c/Core.h");
+  }
+  {
+    std::smatch match;
+    std::string line = "#include \"hello.h\"";
+    bool b = std::regex_search(line, match, include_quote_reg);
+    ASSERT_TRUE(b);
+    EXPECT_EQ(match[1], "hello.h");
+  }
+}
+
+
 
 void HeaderManager::adjustDeps(std::string pattern, std::string replace) {
   std::map<std::string, std::set<std::string> > tmp;
@@ -113,36 +160,36 @@ bool HeaderConf::find(std::string header) {
 
 
 
-TEST(HeaderManagerTest, MyTest) {
-  HeaderManager manager;
-  fs::path tmp_dir = utils::create_tmp_dir();
+// TEST(HeaderManagerTest, MyTest) {
+//   HeaderManager manager;
+//   fs::path tmp_dir = utils::create_tmp_dir();
 
-  const char *json = R"prefix(
-  [{
-    "package": "acl",
-    "size": "135208",
-    "includes": [
-      "/usr/include/sys/acl.h",
-      "/usr/include/acl/libacl.h"
-    ],
-    "libs": [
-      "/usr/lib/libacl.so"
-    ]
-  }]
-)prefix";
+//   const char *json = R"prefix(
+//   [{
+//     "package": "acl",
+//     "size": "135208",
+//     "includes": [
+//       "/usr/include/sys/acl.h",
+//       "/usr/include/acl/libacl.h"
+//     ],
+//     "libs": [
+//       "/usr/lib/libacl.so"
+//     ]
+//   }]
+// )prefix";
 
-  fs::path conf_file = tmp_dir / "a.json";
-  utils::write_file(conf_file, json);
+//   fs::path conf_file = tmp_dir / "a.json";
+//   utils::write_file(conf_file, json);
 
-  manager.jsonAddConf(conf_file);
-  manager.jsonAddSystemInclude("sys/acl.h");
-  manager.jsonAddSystemInclude("libacl.h");
+//   manager.jsonAddConf(conf_file);
+//   manager.jsonAddSystemInclude("sys/acl.h");
+//   manager.jsonAddSystemInclude("libacl.h");
 
-  manager.jsonResolve();
+//   manager.jsonResolve();
   
-  EXPECT_EQ(manager.jsonGetHeaders(), std::set<std::string>({"sys/acl.h", "libacl.h"}));
-  EXPECT_EQ(manager.jsonGetFlags(), std::set<std::string>({"-lacl", "-I/usr/include/acl", "-I/usr/include"}));
-}
+//   EXPECT_EQ(manager.jsonGetHeaders(), std::set<std::string>({"sys/acl.h", "libacl.h"}));
+//   EXPECT_EQ(manager.jsonGetFlags(), std::set<std::string>({"-lacl", "-I/usr/include/acl", "-I/usr/include"}));
+// }
 
 
 void HeaderManager::jsonAddConf(fs::path file) {
@@ -182,6 +229,7 @@ void HeaderManager::jsonAddConf(fs::path file) {
 }
 
 void HeaderManager::jsonParseBench(fs::path bench) {
+  // std::cout << "HeaderManager::jsonParseBench" << "\n";
   fs::recursive_directory_iterator it(bench), eod;
   std::set<std::string> all_files;
   {
@@ -209,10 +257,28 @@ void HeaderManager::jsonParseBench(fs::path bench) {
             // both first and seconds are ABSOLUTE path
             Deps[p.string()].insert(to);
           }
+          // this local include is not found in local files
+          // check and adjust local includes and system includes
+          // try to find the local include in all_files to verify if it is really a local file
+          // - if find, do nothing to it
+          // - otherwise, we need to check if it is a supported 3rd party library
+          //   - if yes, add it to the system include
+          //   - if no, print error? Ignore it
+          if (matches.empty()) {
+            bool supported = jsonCheckHeader(file);
+            if (supported) {
+              jsonSortedSystemHeaders.push_back(file);
+              SystemIncludes.insert(file);
+            } else {
+              // save in class variable
+              unsupportedFakeLocalHeaders.insert(file);
+            }
+          }
         }
         // angle <a.h>
         if (std::regex_search(line, match, include_angle_reg)) {
           std::string file = match[1];
+          // std::cout << file << "\n";
           SystemIncludes.insert(file);
           jsonSortedSystemHeaders.push_back(file);
         }
@@ -220,6 +286,46 @@ void HeaderManager::jsonParseBench(fs::path bench) {
     }
   }
 }
+
+std::set<std::string> HeaderManager::jsonGetUnsupportedHeaders() {
+  std::set<std::string> ret;
+  for (std::string header : SystemIncludes) {
+    bool found = false;
+    for (HeaderConf &conf : JsonConfs) {
+      if (conf.find(header)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      ret.insert(header);
+    }
+  }
+  return ret;
+}
+
+bool HeaderManager::jsonValidBench(std::string &reason) {
+  if (!unsupportedFakeLocalHeaders.empty()) {
+    reason = "unsupported fake local headers: ";
+    for (std::string header : unsupportedFakeLocalHeaders) {
+      reason += header + " ";
+    }
+    return false;
+  }
+  // check for other system headers
+  std::set<std::string> unsupported = jsonGetUnsupportedHeaders();
+  reason = "unsupported system headers: ";
+  for (std::string s : unsupported) {
+    reason += s + " ";
+  }
+  return unsupported.empty();
+}
+
+bool HeaderManager::jsonValidBench() {
+  std::string tmp;
+  return jsonValidBench(tmp);
+}
+
 
 void HeaderManager::jsonResolve() {
   // HACK adding all the valid path to the flags
@@ -264,33 +370,6 @@ void HeaderManager::jsonResolve() {
   jsonSortedSystemHeaders = tmp;
 }
 
-bool HeaderManager::jsonValidBench() {
-  for (std::string header : SystemIncludes) {
-    bool found = false;
-    for (HeaderConf &conf : JsonConfs) {
-      if (conf.find(header)) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) return false;
-  }
-  return true;
-}
-
-std::string HeaderManager::jsonGetUnsupportedHeader() {
-  for (std::string header : SystemIncludes) {
-    bool found = false;
-    for (HeaderConf &conf : JsonConfs) {
-      if (conf.find(header)) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) return header;
-  }
-  return "";
-}
 
 /**
  * Check whether the header is captured by the json config files.

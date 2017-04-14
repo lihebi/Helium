@@ -150,8 +150,18 @@ public:
     os << "\n";
   }
   std::vector<std::string> getSortedHeaders() {return SortedHeaders;}
+
+  /**
+   * check if the benchmark is valid
+   * - system header is supported
+   */
+  bool jsonValidBench(std::string &reason);
   bool jsonValidBench();
-  std::string jsonGetUnsupportedHeader();
+
+  std::set<std::string> jsonGetUnsupportedHeaders();
+  
+
+  
   
 private:
   std::set<std::string> Includes = {
@@ -182,6 +192,8 @@ private:
 
   // this is going to be populated during parse
   std::vector<std::string> jsonSortedSystemHeaders;
+
+  std::set<std::string> unsupportedFakeLocalHeaders;
 
   std::set<fs::path> JsonValidIncludePaths;
 
