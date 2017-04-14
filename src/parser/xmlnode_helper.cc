@@ -438,7 +438,6 @@ std::pair<int, int> get_node_end_position(pugi::xml_node node) {
 }
 
 
-
 /**
  * Disabled because absolute path
  */

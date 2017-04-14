@@ -77,6 +77,17 @@ TokenNode *make_token_node(ASTContext *ctx, XMLNode node, std::string text) {
   return new TokenNode(ctx, text, BeginLoc, EndLoc);
 }
 
+/**
+ * Make a token node from begin_node to end_node, including both
+ */
+TokenNode *make_token_node(ASTContext *ctx, XMLNode begin_node, XMLNode end_node, std::string text) {
+  std::pair<int, int> begin = get_node_begin_position(begin_node);
+  std::pair<int, int> end = get_node_begin_position(end_node);
+  SourceLocation BeginLoc(begin.first, begin.second);
+  SourceLocation EndLoc(end.first, end.second);
+  return new TokenNode(ctx, text, BeginLoc, EndLoc);
+}
+
 FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // constructnig children
   XMLNode block = node.child("block");
@@ -88,7 +99,21 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   SourceLocation EndLoc(end.first, end.second);
 
   // TokenNodes
-  TokenNode *ReturnTypeNode = make_token_node(Ctx, node.child("type"), get_text(node.child("type")));
+  // FIXME this might have static specifier
+  // <function>
+  //     <specifier>static</specifier>
+  // <type>
+  //   <name>_Bool</name>
+  // </type>
+
+  TokenNode *ReturnTypeNode = nullptr;
+  if (node.child("specifier")) {
+    ReturnTypeNode = make_token_node(Ctx, node.child("specifier"), node.child("type"),
+                                     get_text(node.child("specifier")) + " " + get_text(node.child("type")));
+  } else {
+    ReturnTypeNode = make_token_node(Ctx, node.child("type"), get_text(node.child("type")));
+  }
+  
   TokenNode *NameNode = make_token_node(Ctx, node.child("name"), get_text(node.child("name")));
   // caution: this contains parenthesis
   TokenNode *ParamNode = make_token_node(Ctx, node.child("parameter_list"),
