@@ -32,7 +32,7 @@ public:
     m_text = text;
   }
   virtual const char *what() const throw() {
-    return "Helium Exception";
+    return m_text.c_str();
   }
 private:
   std::string m_text;

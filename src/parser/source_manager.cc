@@ -784,6 +784,8 @@ static std::set<v2::Snippet*> remove_dup(std::set<v2::Snippet*> snippets) {
 }
 
 
+
+// DEPRECATED
 std::string get_snippet_code_separate(vector<Snippet*> sorted_snippets, std::set<std::string> main_c_funcs) {
   std::string ret;
   std::vector<Snippet*> func_snippets;
@@ -897,6 +899,8 @@ static std::string get_snippet_code_sort(vector<Snippet*> sorted_snippets, set<s
         ret += s->getCode() + "\n";
       } else {
         main_funcs.insert(func);
+        ret += "// replacing define with decl: \n";
+        ret += func->getFuncDecl() + "\n";
       }
     } else {
       ret += "// " + s->toString() + "\n";
@@ -907,10 +911,10 @@ static std::string get_snippet_code_sort(vector<Snippet*> sorted_snippets, set<s
   // now get the main func decl
   // TODO to reserve the order, I actually should output the function
   // there instead of in main
-  ret += "// Main Func Decl\n";
-  for (auto *f : main_funcs) {
-    ret += f->getFuncDecl() + "\n";
-  }
+  // ret += "// Main Func Decl\n";
+  // for (auto *f : main_funcs) {
+  //   ret += f->getFuncDecl() + "\n";
+  // }
   return ret;
 }
 

@@ -19,6 +19,9 @@ Parser::Parser(std::string filename) {
 }
 
 TranslationUnitDecl *Parser::ParseTranslationUnitDecl(XMLNode unit) {
+  if (!unit) {
+    throw HeliumException("No <unit> element.");
+  }
   match(unit, "unit");
   // std::vector<DeclStmt*> decls;
   // std::vector<FunctionDecl*> funcs;
@@ -107,10 +110,16 @@ FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // </type>
 
   TokenNode *ReturnTypeNode = nullptr;
+  if (!node.child("type")) {
+    std::cerr << "[Helium Fatal Error] Function " << name
+              << " does not have a return type. Exception Throwing." << "\n";
+    throw HeliumException("Function does not have a return type");
+  }
   if (node.child("specifier")) {
     ReturnTypeNode = make_token_node(Ctx, node.child("specifier"), node.child("type"),
                                      get_text(node.child("specifier")) + " " + get_text(node.child("type")));
   } else {
+    // abhishekkr--n00bRAT main function does not have type!!! WTF
     ReturnTypeNode = make_token_node(Ctx, node.child("type"), get_text(node.child("type")));
   }
   
@@ -491,6 +500,7 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
 
 DoStmt *Parser::ParseDoStmt(XMLNode node) {
   match(node, "do");
+  // this might be empty??
   Expr *cond = ParseExpr(node.child("condition").child("expr"));
   // Stmt *block = ParseBlockAsStmt(node.child("block"));
   Stmt *block = ParseCompoundStmt(node.child("block"));
@@ -507,6 +517,10 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
   // WhileNode: this is not precise
   XMLNode blockNode = do_get_block(node);
   XMLNode condNode = do_get_condition(node);
+  if (!condNode) {
+    std::cerr << "[Helium Fatal Error] Do statement does not have a condition. Throwing Exception." << "\n";
+    throw HeliumException("Do stmt does not have condition.");
+  }
   std::pair<int, int> block_end = get_node_end_position(blockNode);
   SourceLocation WhileBeginLoc(block_end.first, block_end.second);
   std::pair<int, int> cond_begin = get_node_begin_position(condNode);
@@ -521,6 +535,8 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
 Expr *Parser::ParseExpr(XMLNode node) {
   // FIXME expr might not with <expr>??
   // match(node, "expr");
+
+  if (!node) return nullptr;
 
   // this might be many thing
   // I'm going to handle here
