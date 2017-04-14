@@ -358,6 +358,17 @@ std::set<v2::Snippet*> v2::Snippet::getAllDeps() {
   return ret;
 }
 
+std::set<v2::Snippet*> v2::SnippetManager::getAllDeps(std::set<v2::Snippet*> snippets) {
+  std::set<v2::Snippet*> deps;
+  for (auto *s : snippets) {
+    // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
+    std::set<v2::Snippet*> dep = s->getAllDeps();
+    deps.insert(dep.begin(), dep.end());
+  }
+  snippets.insert(deps.begin(), deps.end());
+  return snippets;
+}
+
 std::set<v2::Snippet*> SnippetManager::replaceNonOuters(std::set<Snippet*> ss) {
   std::set<Snippet*> ret;
   std::vector<Snippet*> worklist(ss.begin(), ss.end());

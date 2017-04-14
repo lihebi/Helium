@@ -540,7 +540,7 @@ namespace v2 {
     std::vector<Snippet*> sort(std::set<Snippet*> snippets);
 
     int size() {return Snippets.size();}
-
+    std::set<v2::Snippet*> getAllDeps(std::set<v2::Snippet*> snippets);
   private:
     std::vector<Snippet*> Snippets; // the index is the ID
     // std::map<Snippet*, std::set<Snippet*> > Deps;

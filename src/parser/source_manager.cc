@@ -707,21 +707,38 @@ static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
   std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
   
   // get dependence
-  std::set<v2::Snippet*> deps;
-  for (auto *s : snippets) {
-    // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
-    std::set<v2::Snippet*> dep = s->getAllDeps();
-    deps.insert(dep.begin(), dep.end());
-  }
-  snippets.insert(deps.begin(), deps.end());
+  // std::set<v2::Snippet*> deps;
+  // for (auto *s : snippets) {
+  //   // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
+  //   std::set<v2::Snippet*> dep = s->getAllDeps();
+  //   deps.insert(dep.begin(), dep.end());
+  // }
+  // snippets.insert(deps.begin(), deps.end());
 
+
+  // FIXME outers might introduce new dependencies
+  set<Snippet*> back;
+  while (back != snippets) {
+    back = snippets;
+    std::cout << "[SourceManager] all dep and outer infinite loop ..\n";
+    snippets = GlobalSnippetManager::Instance()->getAllDeps(snippets);
+    snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+  }
   
-  // remove non-outers
-  snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+  // std::cout << "get_snippets: " << "\n";
+  // for (Snippet *s : snippets) {
+  //   std::cout << s->getId() << " ";
+  // }
+  // std::cout << "\n";
   return snippets;
 }
 
 
+/**
+ * FIXME this is buggy, the comp functor is hard to get right, i want
+ * to remove duplicate for some snippet (function), but want to keep
+ * for others (functiondecl)
+ */
 static std::set<v2::Snippet*> remove_dup(std::set<v2::Snippet*> snippets) {
   // remove duplicate
   // for the same name and same type, only one should be retained.

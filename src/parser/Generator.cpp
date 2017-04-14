@@ -26,6 +26,11 @@ void Generator::visit(v2::TranslationUnitDecl *node){
 }
 void Generator::visit(v2::FunctionDecl *node){
   TokenNode *ReturnNode = node->getReturnTypeNode();
+  // output location information
+  if (selection.count(ReturnNode)==1) {
+    Prog += "// " + node->getASTContext()->getFileName() + ":"
+      + std::to_string(node->getBeginLoc().getLine()) + "\n";
+  }
   if (ReturnNode) ReturnNode->accept(this);
   Prog += " ";
 
