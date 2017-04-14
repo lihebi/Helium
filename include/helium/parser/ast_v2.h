@@ -417,7 +417,8 @@ namespace v2 {
         IfNode(IfNode), ElseNode(ElseNode) {
     }
     ~IfStmt() {}
-    void setElse(Stmt *stmt) {
+    void setElse(TokenNode *elsenode, Stmt *stmt) {
+      ElseNode = elsenode;
       elsestmt = stmt;
     }
     Expr *getCond() {return cond;}

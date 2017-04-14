@@ -279,8 +279,13 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
   IfStmt *ifstmt = ParseIfStmt(node.child("if"));
   // XMLNode next = node.next_sibling();
   XMLNode next = next_element_sibling(node);
-  Stmt *elsestmt = nullptr;
   if (next) {
+    Stmt *elsestmt = nullptr;
+    TokenNode *ElseNode = nullptr;
+    std::pair<int,int> else_begin = get_node_begin_position(next);
+    SourceLocation ElseNodeBegin(else_begin.first, else_begin.second);
+    SourceLocation ElseNodeEnd(else_begin.first, else_begin.second + strlen("else"));
+    ElseNode = new TokenNode(Ctx, "else", ElseNodeBegin, ElseNodeEnd);
     if (std::string(next.name()) == "elseif") {
       elsestmt = ParseElseIfAsIfStmt(next);
     } else if (std::string(next.name()) == "else") {
@@ -291,8 +296,9 @@ IfStmt *Parser::ParseElseIfAsIfStmt(XMLNode node) {
       // std::cout << next.name() << "\n";
       assert(0);
     }
+    // should also set elsenode
+    ifstmt->setElse(ElseNode, elsestmt);
   }
-  ifstmt->setElse(elsestmt);
   return ifstmt;
 }
 
