@@ -12,6 +12,29 @@
 using namespace std;
 
 
+void helium_copy_file_with_modify(fs::path from, fs::path to) {
+  // fs::copy_file(p, to);
+  std::ifstream ifs(from.string());
+  std::ofstream ofs(to.string());
+  assert(ifs.is_open());
+  assert(ofs.is_open());
+  std::string line;
+  while (std::getline(ifs, line)) {
+    // check if it is #include <assert.h>
+    if (line.find("<assert.h>") != std::string::npos) {
+      ofs << "// HELIUM_REMOVED " << line << "\n";
+    } else {
+      ofs << line << "\n";
+    }
+  }
+  ifs.close();
+  ofs.close();
+}
+
+/**
+ * Some modifications to the source code:
+ * - remove #include <assert.h> with // 
+ */
 void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_dir) {
   fs::path src = target_cache_dir / "src";
   if (fs::exists(src)) fs::remove_all(src);
@@ -36,7 +59,12 @@ void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_
         // procedure, it still happens because:
         // fs::relative_path will follow symbolic link
         if (fs::exists(to)) fs::remove(to);
-        fs::copy_file(p, to);
+
+        // copy file
+        // fs::copy_file(p, to);
+        // post process the file
+        helium_copy_file_with_modify(p, to);
+        
       } else if (p.extension() == ".sel") {
         // selection file
         // fs::copy_file(p, target_cache_dir / "sel" / p.filename());
