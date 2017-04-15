@@ -82,17 +82,21 @@ void Generator::visit(v2::IfStmt *node){
   if (expr) expr->accept(this);
   if (selection.count(IfNode)==1) Prog += ")";
 
-  // if (selection.count(IfNode) == 1) {Prog += "{";}
+  // I'm adding these parenthesis back because
+  // if () char a; will not compile
+  if (selection.count(IfNode) == 1) {Prog += "{";}
   Stmt *then_stmt = node->getThen();
   if (then_stmt) then_stmt->accept(this);
-  // if (selection.count(IfNode) == 1) {Prog += "}";}
+  if (selection.count(IfNode) == 1) {Prog += "}";}
 
   TokenNode *ElseNode = node->getElseNode();
   if (ElseNode) ElseNode->accept(this);
-  // if (selection.count(ElseNode) == 1) {Prog += "{";}
+
+
+  if (selection.count(ElseNode) == 1) {Prog += "{";}
   Stmt *else_stmt = node->getElse();
   if (else_stmt) else_stmt->accept(this);
-  // if (selection.count(ElseNode) == 1) {Prog += "}";}
+  if (selection.count(ElseNode) == 1) {Prog += "}";}
 }
 void Generator::visit(v2::SwitchStmt *node){
   TokenNode *SwitchNode = node->getSwitchNode();

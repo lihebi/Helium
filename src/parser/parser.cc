@@ -94,6 +94,9 @@ TokenNode *make_token_node(ASTContext *ctx, XMLNode begin_node, XMLNode end_node
 FunctionDecl *Parser::ParseFunctionDecl(XMLNode node) {
   // constructnig children
   XMLNode block = node.child("block");
+  if (!block) {
+    throw HeliumException("Function Does not have body.");
+  }
   CompoundStmt *comp = ParseCompoundStmt(block);
   std::string name = function_get_name(node);
   std::pair<int, int> begin = get_node_begin_position(node);
