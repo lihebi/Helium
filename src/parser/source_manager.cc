@@ -176,6 +176,10 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
       func->accept(&builder);
       std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
       use2def.insert(u2d.begin(), u2d.end());
+      // std::string name = dynamic_cast<FunctionDecl*>(func)->getName();
+      // if (name == "sdscatfmt") {
+      //   builder.dump(std::cout);
+      // }
     }
   }
   
