@@ -296,9 +296,66 @@ std::set<std::string> expr_get_var_ids(XMLNode node) {
   return result;
 }
 
+static bool name_valid(XMLNode node) {
+  assert(std::string("name") == node.name());
+  for (auto child : node.children()) {
+    if (child.type() != pugi::node_pcdata
+        && std::string("pos:position") != child.name()) {
+      return false;
+    }
+  }
+  return true;
+}
+/**
+ * Get all the innermost <name> value
+ * <name><name></name> <other>...</other> </name> will only get the inner most name
+ */
+std::set<std::string> get_used_names(XMLNode node) {
+  std::set<std::string> ret;
+  if (std::string("name") == node.name()) {
+    if (name_valid(node)) {
+      std::string text = node.child_value();
+      if (!text.empty()) {
+        ret.insert(text);
+      }
+    }
+  }
+  for (auto name_xpath_node : node.select_nodes(".//name")) {
+    pugi::xml_node n = name_xpath_node.node();
+    if (name_valid(n)) {
+      std::string text = n.child_value();
+      if (!text.empty()) {
+        ret.insert(text);
+      }
+    }
+  }
+  return ret;
+}
+
+
+TEST(XMLNodeTest, GetUsedNameTest) {
+  pugi::xml_document doc;
+  const char *str = R"prefix(
+<decl_stmt>
+	<decl>
+		<type>
+			<name pos:line="15" pos:column="5">size_t<pos:position pos:line="15" pos:column="11" />
+			</name>
+		</type> <name pos:line="15" pos:column="12">i<pos:position pos:line="15" pos:column="13" />
+		</name>
+	</decl>;<pos:position pos:line="15" pos:column="14" />
+</decl_stmt>
+)prefix";
+  doc.load_string(str);
+  std::set<std::string> names = get_used_names(doc.document_element());
+  ASSERT_EQ(names.size(), 2);
+}
+
 /**
  * <name> and nested <expr><name>, and also <expr><name><name> for structures.
  * Will ensure no empty items in the set.
+ * FIXME This is very ugly
+ * FIXME (sizeof name) will not be a <expr><name> ... but a <sizeof><name>xxx
  */
 std::set<std::string> get_var_ids(XMLNode node) {
   std::set<std::string> result;

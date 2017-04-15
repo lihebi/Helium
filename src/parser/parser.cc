@@ -62,10 +62,8 @@ DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
     params.insert(name);
   }
   ret->setVars(params);
-
-  // used vars
-  ret->addUsedVars(get_var_ids(decl));
-  
+  // ret->addUsedVars(get_var_ids(decl));
+  ret->addUsedVars(get_used_names(decl));
   return ret;
 }
 
@@ -223,8 +221,6 @@ ReturnStmt *Parser::ParseReturnStmt(XMLNode node) {
     value = ParseExpr(node.child("expr"));
   }
   ReturnStmt *ret = new ReturnStmt(Ctx, ReturnNode, value, BeginLoc, EndLoc);
-  
-  // ret->addUsedVars(get_var_ids(node.child("expr")));
   return ret;
 }
 
@@ -236,7 +232,8 @@ Stmt *Parser::ParseExprStmt(XMLNode node) {
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
   Stmt *ret = new ExprStmt(Ctx, text, BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(node));
+  // ret->addUsedVars(get_var_ids(node));
+  ret->addUsedVars(get_used_names(node));
   return ret;
 }
 
@@ -293,7 +290,6 @@ IfStmt *Parser::ParseIfStmt(XMLNode node) {
   }
 
   IfStmt *ret = new IfStmt(Ctx, condexpr, thenstmt, elsestmt, IfNode, ElseNode, BeginLoc, EndLoc);
-  // ret->addUsedVars(get_var_ids(cond));
   return ret;
 }
 
@@ -362,9 +358,6 @@ SwitchStmt *Parser::ParseSwitchStmt(XMLNode node) {
   if (defnode) {
     ret->AddCase(ParseDefaultStmt(defnode));
   }
-
-  // ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
-  
   return ret;
 }
 
@@ -394,8 +387,6 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
     }
     ret->Add(ParseStmt(n));
   }
-
-  // ret->addUsedVars(get_var_ids(node.child("expr")));
   return ret;
 }
 DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
@@ -474,10 +465,6 @@ ForStmt *Parser::ParseForStmt(XMLNode node) {
   TokenNode *ForNode = new TokenNode(Ctx, "for", TokenBeginLoc, TokenEndLoc);
 
   ForStmt *ret = new ForStmt(Ctx, init, cond, inc, block, ForNode, BeginLoc, EndLoc);
-
-  // ret->addUsedVars(get_var_ids(node.child("control").child("init")));
-  // ret->addUsedVars(get_var_ids(node.child("control").child("condition")));
-  // ret->addUsedVars(get_var_ids(node.child("control").child("incr")));
   
   return ret;
 }
@@ -496,7 +483,6 @@ WhileStmt *Parser::ParseWhileStmt(XMLNode node) {
   SourceLocation TokenEndLoc(begin.first, begin.second + strlen("while"));
   TokenNode *WhileNode = new TokenNode(Ctx, "while", TokenBeginLoc, TokenEndLoc);
   WhileStmt *ret = new WhileStmt(Ctx, cond, body, WhileNode, BeginLoc, EndLoc);
-  // ret->addUsedVars(get_var_ids(while_get_condition_expr(node)));
   return ret;
 }
 
@@ -531,7 +517,6 @@ DoStmt *Parser::ParseDoStmt(XMLNode node) {
   TokenNode *WhileNode = new TokenNode(Ctx, "while", WhileBeginLoc, WhileEndLoc);
   
   DoStmt *ret = new DoStmt(Ctx, cond, block, DoNode, WhileNode, BeginLoc, EndLoc);
-  // ret->addUsedVars(get_var_ids(node.child("condition").child("expr")));
   return ret;
 }
 
@@ -554,7 +539,8 @@ Expr *Parser::ParseExpr(XMLNode node) {
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
   Expr *ret = new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(node));
+  // ret->addUsedVars(get_var_ids(node));
+  ret->addUsedVars(get_used_names(node));
   return ret;
 }
 Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
@@ -568,7 +554,8 @@ Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
   // FIXME error if no semicolon
   if (text.back() == ';') text.pop_back();
   Expr *ret = new Expr(Ctx, text, BeginLoc, EndLoc);
-  ret->addUsedVars(get_var_ids(node));
+  // ret->addUsedVars(get_var_ids(node));
+  ret->addUsedVars(get_used_names(node));
   return ret;
 }
 

@@ -255,6 +255,7 @@ public:
   virtual void visit(v2::DeclStmt *node);
   virtual void visit(v2::ExprStmt *node);
   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
+  void dump(std::ostream &os);
 private:
   void insertDefUse(v2::ASTNodeBase *use);
   // this will be empty after traversal

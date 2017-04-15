@@ -216,4 +216,8 @@ std::string call_get_name(XMLNode);
 
 
 
+std::set<std::string> get_used_names(XMLNode node);
+
+
+
 #endif /* XMLNODE_H */

@@ -127,3 +127,25 @@ void SymbolTableBuilder::insertDefUse(v2::ASTNodeBase *use) {
     }
   }
 }
+
+
+
+/**
+ * Dumping use2def map
+ */
+void SymbolTableBuilder::dump(std::ostream &os) {
+  // std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > Use2DefMap;
+  os << "[SymbolTableBuilder] Use2DefMap:\n";
+  for (auto &m : Use2DefMap) {
+    ASTNodeBase *use = m.first;
+    os << "Use: ";
+    use->dump(os);
+    os << " Def: ";
+    for (ASTNodeBase *def : m.second) {
+      // getting
+      def->dump(os);
+      os << " ";
+    }
+    os << "\n";
+  }
+}

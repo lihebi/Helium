@@ -160,9 +160,14 @@ void Generator::visit(v2::ForStmt *node){
   if (selection.count(ForNode) == 1) Prog += ";";
   Expr *inc = node->getInc();
   if (inc) inc->accept(this);
-  if (selection.count(ForNode) == 1) Prog += ")";
+  if (selection.count(ForNode) == 1) Prog += ") ";
+
+  if (selection.count(ForNode) == 1) Prog += "{";
+
   Stmt *body = node->getBody();
   if (body) body->accept(this);
+
+  if (selection.count(ForNode) == 1) Prog += "}";
 }
 void Generator::visit(v2::WhileStmt *node){
   TokenNode *WhileNode = node->getWhileNode();
@@ -170,9 +175,11 @@ void Generator::visit(v2::WhileStmt *node){
   if (selection.count(WhileNode) == 1) Prog += "(";
   Expr *cond = node->getCond();
   if (cond) cond->accept(this);
-  if (selection.count(WhileNode) == 1) Prog += ")";
+  if (selection.count(WhileNode) == 1) Prog += ") ";
+  if (selection.count(WhileNode) == 1) Prog += "{";
   Stmt *body = node->getBody();
   if (body) body->accept(this);
+  if (selection.count(WhileNode) == 1) Prog += "}";
 }
 void Generator::visit(v2::DoStmt *node){
   TokenNode *DoNode = node->getDoNode();
