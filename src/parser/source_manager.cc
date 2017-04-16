@@ -483,6 +483,49 @@ typedef struct Distribution {
   }
 } Distribution;
 
+void SourceManager::dumpDist(std::set<v2::ASTNodeBase*> sel, std::ostream &os) {
+  // these are not interesting actually
+  // These are how many the specific type of nodes ENCLOSING sel
+  os << "[DumpDist] Size: " << sel.size() << "\n";
+  os << "[DumpDist] File: " << getDistFile(sel) << "\n";
+  os << "[DumpDist] Proc: " << getDistProc(sel) << "\n";
+  os << "[DumpDist] If: " << getDistIf(sel) << "\n";
+  os << "[DumpDist] Switch: " << getDistSwitch(sel) << "\n";
+  os << "[DumpDist] Loop: " << getDistLoop(sel) << "\n";
+
+  // these are more interesting
+  // these are all nodes
+  int if_ct=0;
+  int switch_ct=0;
+  int loop_ct=0;
+  for (v2::ASTNodeBase* node : sel) {
+    if (dynamic_cast<v2::IfStmt*>(node)) {
+      if_ct++;
+    } else if (dynamic_cast<v2::SwitchStmt*>(node)) {
+      switch_ct++;
+    } else if (dynamic_cast<v2::WhileStmt*>(node)
+               || dynamic_cast<v2::DoStmt*>(node)
+               || dynamic_cast<v2::ForStmt*>(node)) {
+      loop_ct++;
+    }
+  }
+  os << "[DumpDist] IfNode: " << if_ct << "\n";
+  os << "[DumpDist] SwitchNode: " << switch_ct << "\n";
+  os << "[DumpDist] LoopNode: " << loop_ct << "\n";
+  // lets check for only the local nodes
+}
+
+/**
+ * only leaf nodes in sel will be returned
+ */
+std::set<v2::ASTNodeBase*> SourceManager::filterLeaf(std::set<v2::ASTNodeBase*> sel) {
+  std::set<v2::ASTNodeBase*> ret;
+  for (v2::ASTNodeBase *node : sel) {
+    if (node->isLeaf()) ret.insert(node);
+  }
+  return ret;
+}
+
 // #tok | #patch |
 // #file | #per(file) | #proc | #per(proc) | #if | #per(if)
 // #loop | #per(loop) | # switch | #per(switch)

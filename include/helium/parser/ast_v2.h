@@ -94,6 +94,7 @@ namespace v2 {
     void setVars(std::set<std::string> vars) {this->vars = vars;}
     std::set<std::string> getVars() {return vars;}
     virtual std::set<std::string> getIdToResolve() {return {};}
+    virtual bool isLeaf() {return false;}
   protected:
     ASTContext *Ctx = nullptr;
     SourceLocation BeginLoc;
@@ -136,6 +137,7 @@ namespace v2 {
       return "TokenNode";
     }
     virtual std::set<std::string> getIdToResolve();
+    virtual bool isLeaf() {return true;}
   private:
     std::string Text;
   };
@@ -183,6 +185,7 @@ namespace v2 {
     // void setVars(std::set<std::string> vars) {this->vars = vars;}
     // std::set<std::string> getVars() {return vars;}
     virtual std::set<std::string> getIdToResolve();
+    virtual bool isLeaf() {return true;}
   private:
     std::string Text;
     // std::set<std::string> vars;
@@ -206,6 +209,7 @@ namespace v2 {
     }
     virtual std::string getNodeName() {return "ExprStmt";}
     virtual std::set<std::string> getIdToResolve();
+    virtual bool isLeaf() {return true;}
   private:
     std::string Text;
   };
@@ -373,6 +377,7 @@ namespace v2 {
          << " BreakStmt)";
     }
     virtual std::string getNodeName() {return "BreakStmt";}
+    virtual bool isLeaf() {return true;}
   };
   class ContinueStmt : public Stmt {
   public:
@@ -386,6 +391,7 @@ namespace v2 {
          << " ContinueStmt)";
     }
     virtual std::string getNodeName() {return "ContinueStmt";}
+    virtual bool isLeaf() {return true;}
   };
   class ReturnStmt : public Stmt {
   public:
@@ -553,6 +559,7 @@ namespace v2 {
     }
     virtual std::string getNodeName() {return "Expr";}
     virtual std::set<std::string> getIdToResolve();
+    virtual bool isLeaf() {return true;}
   private:
     std::string Text;
   };

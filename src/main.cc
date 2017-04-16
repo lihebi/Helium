@@ -104,8 +104,27 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     std::cout << "[main] Rerun this by: helium " << target.string() << " --sel " << sel_file.string() << "\n";
     std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << sel_file.string() << "\n";
     std::cout << "[main] Doing Grammar Patching .." << "\n";
+
+    std::cout << "[main] Dump Dist for Sel: " << "\n";
+    sourceManager->dumpDist(sel, std::cout);
+    {
+      std::set<v2::ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
+      std::cout << "[main] Dump Dist for Sel Token: " << "\n";
+      sourceManager->dumpDist(tmp, std::cout);
+    }
+
     // (HEBI: Grammar Patch)
     sel = sourceManager->grammarPatch(sel);
+
+    std::cout << "[main] Dump Dist for Patch: " << "\n";
+    sourceManager->dumpDist(sel, std::cout);
+    {
+      std::set<v2::ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
+      std::cout << "[main] Dump Dist for Patch Token: " << "\n";
+      sourceManager->dumpDist(tmp, std::cout);
+    }
+    
+    
     // (HEBI: Def-use)
     sel = sourceManager->defUse(sel);
     // (HEBI: Grammar Patch)

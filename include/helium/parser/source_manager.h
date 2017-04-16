@@ -103,6 +103,9 @@ public:
 
   void dump(std::ostream &os);
   std::set<v2::ASTNodeBase*> patchFunctionHeader(std::set<v2::ASTNodeBase*> sel);
+
+  void dumpDist(std::set<v2::ASTNodeBase*> sel, std::ostream &os);
+  std::set<v2::ASTNodeBase*> filterLeaf(std::set<v2::ASTNodeBase*> sel);
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
