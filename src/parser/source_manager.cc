@@ -274,7 +274,8 @@ std::set<v2::ASTNodeBase*> get_rand(std::vector<v2::ASTNodeBase*> nodes, int num
   std::set<v2::ASTNodeBase*> ret;
   // return all nodes or simply empty?
   if (num > nodes.size()) return ret;
-  std::set<int> idxes = utils::rand_ints(0, nodes.size()-1, num);
+  std::set<int> idxes = utils::rand_ints(0, nodes.size(), num);
+  assert(idxes.size() == num);
   for (int idx : idxes) {
     ret.insert(nodes[idx]);
   }

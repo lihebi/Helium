@@ -51,6 +51,10 @@ namespace utils {
     }
     // int neg = rand_int(-10, -7);
     // std::cout << neg  << "\n";
+    {
+      std::set<int> tmp = rand_ints(1, 8, 2);
+      EXPECT_EQ(tmp.size(), 2);
+    }
   }
 
   bool rand_bool() {
