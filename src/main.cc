@@ -307,7 +307,8 @@ void create_sel(fs::path target_cache_dir) {
   int sel_tok = HeliumOptions::Instance()->GetInt("sel-tok");
   // create selection
   // create selection folder if not exist
-  if (!fs::exists(target_sel_dir)) fs::create_directories(target_sel_dir);
+  if (fs::exists(target_sel_dir)) fs::remove_all(target_sel_dir);
+  fs::create_directories(target_sel_dir);
   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
   // create and overwrite random/ folder
   fs::remove_all(target_sel_dir / "random");
