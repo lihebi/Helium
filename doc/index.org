@@ -1,0 +1,58 @@
+#+TITLE: Index
+
+* Unsupported Helium Features
+- type definition inside function
+  - Cannot do this because this type is scoped
+  - should not use global snippet
+  - instead, should rely on symbol table
+  - but my symbol table is built on AST, AST is built from srcml. The
+    symbol table is not good.
+
+- no header includes. The code only contain function decl
+  - extern void write_port(unsigned short port, unsigned char data);
+- likewise, for scoped snippets, we do not support.
+  - static function that is defined multiple times
+  - multiple main function
+  - Solution: now filter out projects with multiple functions with the same name
+
+- Clang Error
+  - clang error recovery will skip
+    - unknowtype foo,bar; - I can only get foo, but not bar. If this
+      is global variable, I'll have no idea of the existance of bar.
+
+- Other errors
+  - return xxx,xxx,xxx; My AST is only getting the first one because
+    the way I parse srcml output. This might cause type error
+
+- Def-use imprecision
+  - declaration is precise
+  - use is not precise.
+    - //expr/name
+    - //name => <macro><argument> even if it is not a macro, but a preprocessed va_args
+    - extract_id_to_resolve(get_text(decl))
+
+- Declare a variable can also be complex. This can be organized as:
+  declare a variable using a inline structure. This will be parsed as <union> instead of a <decl_stmt>
+
+- snippet of declaration of a variable is not included
+#+BEGIN_SRC C
+  static const struct {
+    const char *str;
+    int expected_len;
+  } success_tests[] = {{"{}", 2},
+
+                       {"{a:\"\xd0\xb1\xe3\x81\xaf\xf0\xa2\xb3\x82\"}", 15},
+                       {"{a:\"\\u0006\"}", 12},
+                       {" { } ", 4},
+                       {"{a:1}", 5},
+                       {"{a:1.23}", 8},
+                       {"{a:1e23}", 8},
+                       {"{a:1.23e2}", 10},
+                       {"{a:-123}", 8},
+...
+#+END_SRC
+
+* Filter applied
+- no ruby,js,etc files
+- C more than 70%
+- all headers are either locally found or system supported
