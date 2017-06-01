@@ -1,5 +1,8 @@
 #ifndef CLANG_SNIPPET_H
 #define CLANG_SNIPPET_H
+
+#include <set>
+
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
