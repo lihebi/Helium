@@ -96,6 +96,28 @@ make systype.tags
    ./configure
    #+END_EXAMPLE
 
+
+** Compile on Mac
+Use Homebrew to install LLVM. This will not be sym-linked to
+=/usr/local= because Apple has its own llvm, that will cause
+trouble. So when using cmake, specify which cmake to use:
+
+#+BEGIN_EXAMPLE
+CMAKE_PREFIX_PATH=/usr/local/Cellar/llvm/4.0.0_1/ cmake ..
+#+END_EXAMPLE
+
+I'd rather build llvm myself to improve the portability. On mac, build
+LLVM with install prefix set to ~/usr/local, and compile Helium like
+this:
+
+#+BEGIN_EXAMPLE
+LLVM_DIR=~/usr/local/lib/cmake/llvm/ Clang_DIR=~/usr/local/lib/cmake/clang/ cmake ..
+#+END_EXAMPLE
+
+UPDATE: I still cannot compile on Mac because the link problem of
+clang libraries. It simply cannot find the symbols clang::ASTConsumer,
+clang::ASTFrontendAction, etc. Give up, use only linux.
+
 * Run
 
   Now the ==helium== command should be available. Run it without arguments will show the help information.
