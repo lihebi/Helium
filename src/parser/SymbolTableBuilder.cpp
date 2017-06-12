@@ -126,6 +126,8 @@ void SymbolTableBuilder::insertDefUse(v2::ASTNodeBase *use) {
       Use2DefMap[use].insert(def);
     }
   }
+  // record the table right at the end of inserting for this node
+  PersistTables[use]=Table;
 }
 
 

@@ -8,6 +8,8 @@
 
 #include "helium/resolver/SnippetV2.h"
 
+#include "helium/type/io_helper.h"
+
 #include <regex>
 
 using namespace v2;
@@ -180,12 +182,21 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
       // if (name == "sdscatfmt") {
       //   builder.dump(std::cout);
       // }
+      std::map<v2::ASTNodeBase*, v2::SymbolTable> tables = builder.getPersistTables();
+      // merging into central storage
+      PersistTables.insert(tables.begin(), tables.end());
     }
   }
   
   // process sel
   // this needs to be recursive
   std::set<v2::ASTNodeBase*> ret = sel;
+
+  // output variable is tricky
+  // i'm going to put at the end of the generated function
+  // the output is all used variables
+  // this includes all input variables, plus those uses that is not input
+  OutputVarNodes.clear();
 
   std::vector<v2::ASTNodeBase*> worklist(sel.begin(), sel.end());
   std::set<v2::ASTNodeBase*> done;
@@ -195,12 +206,24 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
     done.insert(node);
     if (use2def.count(node) == 1) {
       std::set<ASTNodeBase*> tmp = use2def[node];
+      // output vars
+      OutputVarNodes.insert(tmp.begin(), tmp.end());
       ret.insert(tmp.begin(), tmp.end());
       for (auto *n : tmp) {
         if (done.count(n) == 0) worklist.push_back(n);
       }
     }
   }
+
+  // record input and output variable
+  // input variable is easy: the ones in ret but not in sel
+  InputVarNodes.clear();
+  for (v2::ASTNodeBase* node : ret) {
+    if (sel.count(node) == 0) {
+      InputVarNodes.insert(node);
+    }
+  }
+  
   // for (v2::ASTNodeBase *node : sel) {
   //   if (use2def.count(node) == 1) {
   //     std::set<ASTNodeBase*> tmp = use2def[node];
@@ -349,6 +372,99 @@ std::set<v2::ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
   return get_rand(tokens, num);
 }
 
+
+/**
+ * Selection format:
+ * [
+ // the selection is a list of files
+ {
+ file: "/abs/path/to/src.c",
+ sel: [
+ // each file specify a list of selection
+   {
+   line: 8, // 1. select both line and column
+   col: 9
+   },
+   {line: 20}, // 2. select only line
+   {
+   line: 10,
+   col: 20
+   }
+ ]
+ }
+ * ]
+ */
+
+std::set<v2::ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
+  map<string, set<pair<int, int> > > selection;
+  if (fs::exists(sel_file)) {
+    rapidjson::Document document;
+    std::ifstream ifs(sel_file.string());
+    rapidjson::IStreamWrapper isw(ifs);
+    document.ParseStream(isw);
+    assert(document.IsArray());
+    // iterate through the list of files
+    for (rapidjson::Value &field : document.GetArray()) {
+      assert(field.IsObject());
+      std::string file = field["file"].GetString();
+      for (rapidjson::Value &sel : field["sel"].GetArray()) {
+        assert(sel.IsObject());
+        int line = -1, col = -1;
+        if (sel.HasMember("line")) {
+          line = sel["line"].GetInt();
+        }
+        if (sel.HasMember("col")) {
+          col = sel["col"].GetInt();
+        }
+        // add line and col into selection
+        selection[file].insert(std::make_pair(line, col));
+      }
+    }
+  }
+  // from the selection, get ASTNodes
+  set<ASTNodeBase*> ret;
+  for (auto sel : selection) {
+    fs::path file = matchFile(sel.first);
+    if (!file.empty()) {
+      ASTContext *ast = File2ASTMap[file];
+      TokenVisitor *tokenVisitor = new TokenVisitor();
+      // Create Token Visitor for that AST
+      TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+      tokenVisitor->visit(unit);
+      // apply and select the tokens based on source range
+      vector<v2::ASTNodeBase*> tokens = tokenVisitor->getTokens();
+      map<v2::ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
+      for (const pair<int,int> &p : sel.second) {
+        int line = p.first;
+        int column = p.second;
+        // I know this is inefficient
+        for (v2::ASTNodeBase *token : tokens) {
+          SourceLocation begin = token->getBeginLoc();
+          SourceLocation end = token->getEndLoc();
+          if (column == -1) {
+            // only need to compare the line
+            if (begin.getLine() <= line && line <= end.getLine()) {
+              ret.insert(token);
+            }
+          } else {
+            SourceLocation loc(line, column);
+            if (begin <= loc && loc <= end) {
+              // this token is selected
+              // print it out for now
+              std::cout << "[SourceManager] Found selected token: ";
+              token->dump(std::cout);
+              std::cout << "\n";
+              ret.insert(token);
+            }
+          }
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+
 std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   map<string, set<pair<int,int> > > selection;
   if (fs::exists(sel_file)) {
@@ -436,6 +552,52 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   // maybe here: get/set the distribution information
   // std::cout << "Total selected tokens: " << ret.size() << "\n";
   return ret;
+}
+
+
+void SourceManager::dumpJsonSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os) {
+  // dump to os
+  // document: array of fileObjs
+  rapidjson::Document doc;
+  doc.SetArray();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+  for (auto &m : AST2TokenVisitorMap) {
+    ASTContext *ast = m.first;
+    TokenVisitor *tokenVisitor = m.second;
+    fs::path file = AST2FileMap[ast];
+    // fileObj: one for a single file
+    rapidjson::Value fileObj;
+    fileObj.SetObject();
+    // file attribute
+    {
+      rapidjson::Value str;
+      str.SetString(file.string().c_str(), allocator);
+      fileObj.AddMember("file", str, allocator);
+    }
+    // array of sel attribute 
+    rapidjson::Value selArray;
+    selArray.SetArray();
+    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+    for (ASTNodeBase *token : tokens) {
+      if (selection.count(token) == 1) {
+        SourceLocation loc = token->getBeginLoc();
+        rapidjson::Value locObj;
+        locObj.SetObject();
+        locObj.AddMember("line", loc.getLine(), allocator);
+        locObj.AddMember("col", loc.getColumn(), allocator);
+        selArray.PushBack(locObj, allocator);
+      }
+    }
+    fileObj.AddMember("sel", selArray, allocator);
+
+    // add this fileObj to doc
+    doc.PushBack(fileObj, allocator);
+  }
+  // save the doc to the os
+  rapidjson::StringBuffer sb;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+  doc.Accept(writer);
+  os << sb.GetString() << "\n";
 }
 
 
@@ -675,6 +837,26 @@ bool SourceManager::shouldPutIntoMain(std::set<v2::ASTNodeBase*> sel) {
   
 }
 
+/**
+ * return the last of the nodes
+ */
+v2::ASTNodeBase *lastNode(std::set<v2::ASTNodeBase*> nodes) {
+  v2::ASTNodeBase* ret = nullptr;
+  for (auto *node : nodes) {
+    if (!ret) ret=node;
+    else {
+      // should not be compound stmt, because that would make a wrong output position
+      if (dynamic_cast<v2::CompoundStmt*>(node)) continue;
+      SourceLocation loc = node->getEndLoc();
+      SourceLocation retloc = ret->getEndLoc();
+      if (retloc < loc) {
+        ret = node;
+      }
+    }
+  }
+  return ret;
+}
+
 std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   // analyze distribution
   // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
@@ -685,6 +867,8 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   // ret += "#include <stdlib.h>\n";
   // ret += "#include <string.h>\n";
   ret += "#include \"main.h\"\n";
+
+  ret += FileIOHelper::GetIOCode();
   
   if (shouldPutIntoMain(sel)) {
     std::string body;
@@ -693,6 +877,34 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       generator->setSelection(sel);
       generator->adjustReturn(true);
       // generator->setSelection(sel);
+
+
+      // set input position
+      generator->setInputVarNodes(InputVarNodes);
+      // set output var and position
+      // 1. get the last of the selection
+      v2::ASTNodeBase *last = lastNode(sel);
+      // 2. get the vars used in the sel => stored in OutputVarNodes
+      // 3. get the alive ones at the last node of sel
+      // FIXME make sure this exists
+      v2::SymbolTable symbol_table = PersistTables[last];
+      // std::set<std::string> symbols = symbol_table.getNewlyAdded();
+      // newly added is used to get the really used vars from the "input/output var nodes"
+      std::set<std::string> usedvars;
+      for (auto *node : sel) {
+        std::set<std::string> vars = node->getUsedVars();
+        usedvars.insert(vars.begin(), vars.end());
+      }
+      std::map<std::string, v2::ASTNodeBase*> allsymbols = symbol_table.getAll();
+      std::map<std::string, v2::ASTNodeBase*> toinstrument;
+      for (std::string var : usedvars) {
+        if (allsymbols.count(var) == 1) {
+          toinstrument[var] = allsymbols[var];
+        }
+      }
+      // 4. instrument after the last of sel
+      generator->setOutputInstrument(toinstrument, last, symbol_table);
+      
       ASTContext *ast = m.second;
       TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
       decl->accept(generator);
@@ -701,6 +913,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     }
     ret += "// Should into main\n";
     ret += "int main(int argc, char *argv[]) {\n";
+    ret += FileIOHelper::GetFilePointersInit();
     ret += body;
     ret += "  return 0;\n";
     ret += "}\n";
@@ -721,6 +934,7 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
 
     ret += "// Should NOT into main\n";
     ret += "int main(int argc, char *argv[]) {\n";
+    ret += FileIOHelper::GetFilePointersInit();
     // TODO call to those functions
     ret += "  return 0;\n";
     ret += "}\n";
@@ -1090,7 +1304,9 @@ std::string get_makefile() {
     + "clean:\n"
     + "\trm -rf *.out *.gcda *.gcno\n"
     + "test:\n"
-    + "\tbash test.sh";
+    + "\tbash test.sh\n"
+    + "run:\n"
+    + "\t./a.out\n";
   return makefile;
 }
 

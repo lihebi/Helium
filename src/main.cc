@@ -71,7 +71,7 @@ std::vector<fs::path> load_sel(fs::path sel_dir) {
       fs::recursive_directory_iterator it(sel_dir), eod;
       BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
         // must be .sel file
-        if (is_regular_file(p) && p.extension() == ".sel") {
+        if (is_regular_file(p) && p.extension() == ".json") {
           ret.push_back(sel_config);
         }
       }
@@ -80,7 +80,7 @@ std::vector<fs::path> load_sel(fs::path sel_dir) {
     fs::recursive_directory_iterator it(sel_dir), eod;
     BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
       // must be .sel file
-      if (is_regular_file(p) && p.extension() == ".sel") {
+      if (is_regular_file(p) && p.extension() == ".json") {
         ret.push_back(p);
       }
     }
@@ -99,7 +99,8 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
   if (!fs::exists(gen_program_dir)) fs::create_directories(gen_program_dir);
   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
   for (fs::path sel_file : sels) {
-    std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
+    // std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
+    std::set<v2::ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
     std::cout << "---------------------" << "\n";
     std::cout << "[main] Rerun this by: helium " << target.string() << " --sel " << sel_file.string() << "\n";
     std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << sel_file.string() << "\n";
@@ -149,6 +150,25 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     // do compilation
     if (do_compile(gen_dir)) {
       std::cout << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
+
+      // run tests
+      std::cout << "[main] Running program in that target folder .." << "\n";
+      std::string run_cmd = "make run -C " + gen_dir.string();
+      // run_cmd += " 2>&1";
+      utils::exec(run_cmd.c_str(), NULL);
+      int return_code=-1;
+      std::string error_msg = utils::exec_sh(run_cmd.c_str(), &return_code);
+      std::cout << "[main] Output written to " << gen_dir.string() << "/helium_output.txt" << "\n";
+      if (return_code == 0) {
+        std::cout << "[main] Run Success" << "\n";
+      } else {
+        // This error message will be make error message
+        // if the return code of a.out is not 0, it will be
+        //   make: *** [Makefile:10: run] Error 1
+        // if seg fault, it will be
+        //   make: *** [Makefile:10: run] Segmentation fault (core dumped)
+        std::cout << "[main] Run Failure" << "\n";
+      }
     } else {
       std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
     }
@@ -316,14 +336,16 @@ void create_sel(fs::path target_cache_dir) {
 
   for (int i=0;i<sel_num;i++) {
     std::set<v2::ASTNodeBase*> selection;
-    fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".sel");
+    // fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".sel");
+    fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".json");
     std::ofstream os;
     os.open(file.string().c_str());
     assert(os.is_open());
     // selection = sourceManager->genRandSelSameFunc(1);
     // selection = sourceManager->genRandSel(sel_tok);
     selection = sourceManager->genRandSelFunc(sel_tok);
-    sourceManager->dumpSelection(selection, os);
+    // sourceManager->dumpSelection(selection, os);
+    sourceManager->dumpJsonSelection(selection, os);
     os.close();
     std::cout << "Selection file wrote to " << file.string() << "\n";
   }

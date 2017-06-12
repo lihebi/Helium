@@ -61,7 +61,9 @@ DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
   std::set<std::string> params;
   for (XMLNode n : decl.children("decl")) {
     std::string name = decl_get_name(n);
+    std::string type = decl_get_type(n);
     params.insert(name);
+    ret->addFullVar(name, type);
   }
   ret->setVars(params);
   // ret->addUsedVars(get_var_ids(decl));

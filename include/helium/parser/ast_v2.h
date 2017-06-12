@@ -93,6 +93,12 @@ namespace v2 {
 
     void setVars(std::set<std::string> vars) {this->vars = vars;}
     std::set<std::string> getVars() {return vars;}
+
+    void addFullVar(std::string name, std::string type) {
+      fullVars[name] = type;
+    }
+    std::map<std::string, std::string> getFullVars() {return fullVars;}
+    
     virtual std::set<std::string> getIdToResolve() {return {};}
     virtual bool isLeaf() {return false;}
   protected:
@@ -100,8 +106,11 @@ namespace v2 {
     SourceLocation BeginLoc;
     SourceLocation EndLoc;
     std::set<std::string> UsedVars;
+
     // vars declared in this node
     std::set<std::string> vars;
+    // name to type map
+    std::map<std::string, std::string> fullVars;
   };
 
   class Decl : public ASTNodeBase {

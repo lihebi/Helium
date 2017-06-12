@@ -29,7 +29,8 @@ std::string IntType::GetDeclCode(std::string var) {
 
 std::string IntType::GetInputCode(std::string var) {
   // return "input_int(&" + var + ");\n";
-  return IOHelper::GetInputCall("int", var);
+  // return IOHelper::GetInputCall("int", var);
+  return IOHelper::GetInputCallWithName("int", var, var);
 }
 
 std::string IntType::GetOutputCode(std::string var) {
@@ -86,7 +87,7 @@ std::string BoolType::GetDeclCode(std::string var) {
 }
 
 std::string BoolType::GetInputCode(std::string var) {
-  return IOHelper::GetInputCall("bool", var);
+  return IOHelper::GetInputCallWithName("bool", var, var);
   // return "input_bool(&" + var + ");\n";
 }
 
@@ -125,7 +126,7 @@ std::string CharType::GetDeclCode(std::string var) {
 }
 
 std::string CharType::GetInputCode(std::string var) {
-  return IOHelper::GetInputCall("char", var);
+  return IOHelper::GetInputCallWithName("char", var, var);
   // return "input_char(&"+var+");\n";
 }
 

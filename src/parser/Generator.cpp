@@ -2,6 +2,9 @@
 #include "helium/parser/ast_v2.h"
 #include "helium/parser/source_manager.h"
 #include "helium/utils/string_utils.h"
+
+#include "helium/type/type.h"
+#include "helium/type/primitive_type.h"
 #include <iostream>
 
 using std::vector;
@@ -11,18 +14,39 @@ using std::set;
 
 using namespace v2;
 
+void Generator::outputInstrument(v2::ASTNodeBase *node) {
+  if (OutputPosition == node) {
+    Prog += "// Output Position\n";
+    for (auto &m : OutputInstrument) {
+      std::string var = m.first;
+      v2::ASTNodeBase *def = m.second;
+      std::map<std::string, std::string> vars = def->getFullVars();
+      if (vars.count(var) == 1) {
+        std::string type = vars[var];
+        Type *t = TypeFactory::CreateType(type);
+        if (dynamic_cast<PrimitiveType*>(t)) {
+          std::string code = t->GetOutputCode(var);
+          Prog += code + "\n";
+        } else {
+          Prog += "// output not used: " + var + " of type " + type + "\n";
+        }
+      }
+    }
+  }
+}
+
 
 // high level
 void Generator::visit(v2::TokenNode *node){
   if (selection.count(node) == 1) {
     Prog += node->getText() + " ";
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::TranslationUnitDecl *node){
   std::vector<ASTNodeBase*> nodes = node->getDecls();
-  for (ASTNodeBase *node : nodes) {
-    if (node) node->accept(this);
-  }
+  Visitor::visit(node);
+  outputInstrument(node);
 }
 void Generator::visit(v2::FunctionDecl *node){
   TokenNode *ReturnNode = node->getReturnTypeNode();
@@ -53,20 +77,24 @@ void Generator::visit(v2::FunctionDecl *node){
   }
   // param node should handle parenthesis
   TokenNode *ParamNode = node->getParamNode();
-  if (ParamNode) ParamNode->accept(this);
+  if (ParamNode) {
+    ParamNode->accept(this);
+    if (InputVarNodes.count(ParamNode)==1) {
+      // TODO one param is an input
+    }
+  }
   // compound should handle curly braces
   Stmt *body = node->getBody();
   if (body) body->accept(this);
+  outputInstrument(node);
 }
 void Generator::visit(v2::CompoundStmt *node){
   // Braces
   TokenNode *CompNode = node->getCompNode();
   if (selection.count(CompNode) == 1) {Prog += "{\n";}
-  std::vector<Stmt*> stmts = node->getBody();
-  for (Stmt *stmt : stmts) {
-    if (stmt) stmt->accept(this);
-  }
+  Visitor::visit(node);
   if (selection.count(CompNode) == 1) {Prog += "}\n";}
+  outputInstrument(node);
 }
 // condition
 void Generator::visit(v2::IfStmt *node){
@@ -97,6 +125,7 @@ void Generator::visit(v2::IfStmt *node){
   Stmt *else_stmt = node->getElse();
   if (else_stmt) else_stmt->accept(this);
   if (selection.count(ElseNode) == 1) {Prog += "}";}
+  outputInstrument(node);
 }
 void Generator::visit(v2::SwitchStmt *node){
   TokenNode *SwitchNode = node->getSwitchNode();
@@ -117,6 +146,7 @@ void Generator::visit(v2::SwitchStmt *node){
     if (c) c->accept(this);
   }
   if (selection.count(SwitchNode) == 1) Prog += "}\n";
+  outputInstrument(node);
 }
 void Generator::visit(v2::CaseStmt *node){
   TokenNode *token = node->getCaseNode();
@@ -132,6 +162,7 @@ void Generator::visit(v2::CaseStmt *node){
   for (Stmt *stmt : body) {
     if (stmt) stmt->accept(this);
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::DefaultStmt *node){
   TokenNode *token = node->getDefaultNode();
@@ -145,6 +176,7 @@ void Generator::visit(v2::DefaultStmt *node){
   for (Stmt *stmt : body) {
     if (stmt) stmt->accept(this);
   }
+  outputInstrument(node);
 }
 // loop
 void Generator::visit(v2::ForStmt *node){
@@ -168,6 +200,7 @@ void Generator::visit(v2::ForStmt *node){
   if (body) body->accept(this);
 
   if (selection.count(ForNode) == 1) Prog += "}";
+  outputInstrument(node);
 }
 void Generator::visit(v2::WhileStmt *node){
   TokenNode *WhileNode = node->getWhileNode();
@@ -180,6 +213,7 @@ void Generator::visit(v2::WhileStmt *node){
   Stmt *body = node->getBody();
   if (body) body->accept(this);
   if (selection.count(WhileNode) == 1) Prog += "}";
+  outputInstrument(node);
 }
 void Generator::visit(v2::DoStmt *node){
   TokenNode *DoNode = node->getDoNode();
@@ -194,17 +228,20 @@ void Generator::visit(v2::DoStmt *node){
   Expr *cond = node->getCond();
   if (cond) cond->accept(this);
   if (selection.count(WhileNode) == 1) {Prog += ");";}
+  outputInstrument(node);
 }
 // single
 void Generator::visit(v2::BreakStmt *node){
   if (selection.count(node)) {
     Prog += "break;\n";
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::ContinueStmt *node){
   if (selection.count(node)) {
     Prog += "continue;\n";
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::ReturnStmt *node){
   TokenNode *ReturnNode = node->getReturnNode();
@@ -219,17 +256,38 @@ void Generator::visit(v2::ReturnStmt *node){
   if (selection.count(ReturnNode) == 1) {
     Prog += ";\n";
   }
+  outputInstrument(node);
 }
 // expr stmt
 void Generator::visit(v2::Expr *node){
   if (selection.count(node) == 1) {
     Prog += node->getText();
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::DeclStmt *node){
   if (selection.count(node) == 1) {
     Prog += node->getText() + "\n";
+
+    if (InputVarNodes.count(node)==1) {
+      // The variable is input variable
+      // generate input code
+      // 1. get the type and the name of the variable
+      std::map<std::string, std::string> fullVars = node->getFullVars();
+      // 2. if it is primitive type, read from the input file
+      for (auto &m : fullVars) {
+        Type *t = TypeFactory::CreateType(m.second);
+        if (dynamic_cast<PrimitiveType*>(t)) {
+          std::string code = t->GetInputCode(m.first);
+          Prog += "// Input code for " + m.first + " of type " + m.second + "\n";
+          Prog += code + "\n";
+        } else {
+          Prog += "// TODO input not used: " + m.first + " of type " + m.second + "\n";
+        }
+      }
+    }
   }
+  outputInstrument(node);
 }
 void Generator::visit(v2::ExprStmt *node){
   if (selection.count(node) == 1) {
@@ -238,4 +296,5 @@ void Generator::visit(v2::ExprStmt *node){
       + std::to_string(node->getBeginLoc().getLine()) + "\n";
     Prog += node->getText() + "\n";
   }
+  outputInstrument(node);
 }

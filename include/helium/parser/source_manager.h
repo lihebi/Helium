@@ -87,6 +87,7 @@ public:
    * TODO change such utility function to static to avoid mis-use
    */
   std::set<v2::ASTNodeBase*> loadSelection(fs::path sel_file);
+  std::set<v2::ASTNodeBase*> loadJsonSelection(fs::path sel_file);
   /**
    * Dump selection into a file, and can be later load.
    * The dump information is more than the hand written one. It will contain the ID of the token.
@@ -97,6 +98,8 @@ public:
    * line column
    */
   void dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os);
+  void dumpJsonSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os);
+  
   void analyzeDistribution(std::set<v2::ASTNodeBase*> selection,
                            std::set<v2::ASTNodeBase*> patch,
                            std::ostream &os);
@@ -137,6 +140,12 @@ private:
   // token visitor, always available because it is useful
   std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
   std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+
+  std::set<v2::ASTNodeBase*> InputVarNodes;
+  std::set<v2::ASTNodeBase*> OutputVarNodes;
+
+
+  std::map<v2::ASTNodeBase*, v2::SymbolTable> PersistTables;
   
   // std::vector<v2::ASTNodeBase*> Nodes;
   // std::map<v2::ASTNodeBase*,int> IDs;

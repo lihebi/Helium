@@ -210,9 +210,12 @@ namespace v2 {
      * id is declared in node
      */
     void add(std::string id, v2::ASTNodeBase *node) {
+      newlyAdded.clear();
+      newlyAdded.insert(id);
       Stack.back()[id] = node;
     }
     void add(std::set<std::string> ids, v2::ASTNodeBase *node) {
+      newlyAdded = ids;
       for (const std::string&id : ids) {
         add(id, node);
       }
@@ -223,11 +226,34 @@ namespace v2 {
       }
       return nullptr;
     }
+    std::set<std::string> getNewlyAdded() {return newlyAdded;}
+    /**
+     * get all visible ones
+     */
+    std::map<std::string, v2::ASTNodeBase*> getAll() {
+      std::map<std::string, v2::ASTNodeBase*> ret;
+      for (std::map<std::string, v2::ASTNodeBase*> v : Stack) {
+        for (auto m : v) {
+          ret[m.first] = m.second;
+        }
+      }
+      return ret;
+    }
   private:
     std::vector<std::map<std::string, v2::ASTNodeBase*> > Stack;
+    // this is a hack
+    // i notice in symboltablebuilder, each node adds exactly once (may be using vars)
+    // so newly added can record the variables the current node defines
+    std::set<std::string> newlyAdded;
   };
 };
 
+/**
+ * The symbol table should be easy to access for each node.
+ * So I might consider to
+ * - create the symbol table right after I create the AST
+ * - store the symbol table with the AST nodes
+ */
 class SymbolTableBuilder : public Visitor {
 public:
   SymbolTableBuilder() {}
@@ -256,12 +282,15 @@ public:
   virtual void visit(v2::ExprStmt *node);
   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
   void dump(std::ostream &os);
+  std::map<v2::ASTNodeBase*, v2::SymbolTable> getPersistTables() {return PersistTables;}
 private:
   void insertDefUse(v2::ASTNodeBase *use);
   // this will be empty after traversal
   v2::SymbolTable Table;
   // this is the result
   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > Use2DefMap;
+  // record table at each node, for later usage
+  std::map<v2::ASTNodeBase*, v2::SymbolTable> PersistTables;
 };
 
 /**
@@ -519,16 +548,31 @@ public:
     selection = sel;
   }
 
+  void setInputVarNodes(std::set<v2::ASTNodeBase*> nodes) {
+    InputVarNodes = nodes;
+  }
+
   std::string getProgram() {
     return Prog;
   }
   void adjustReturn(bool b) {
     AdjustReturn = b;
   }
+
+  void setOutputInstrument(std::map<std::string, v2::ASTNodeBase*> toinstrument, v2::ASTNodeBase *last, v2::SymbolTable symtbl) {
+    OutputInstrument = toinstrument;
+    OutputPosition = last;
+    OutputPositionSymtbl = symtbl;
+  }
+  void outputInstrument(v2::ASTNodeBase *node);
 private:
   std::string Prog;
   std::set<v2::ASTNodeBase*> selection;
   bool AdjustReturn = false;
+  std::set<v2::ASTNodeBase*> InputVarNodes;
+  std::map<std::string, v2::ASTNodeBase*> OutputInstrument;
+  v2::ASTNodeBase *OutputPosition = nullptr;
+  v2::SymbolTable OutputPositionSymtbl;
 };
 
 
@@ -619,6 +663,47 @@ private:
   std::map<std::string, std::vector<v2::ASTNodeBase*> > PathMap;
 
   std::vector<v2::ASTNodeBase*> Nodes;
+};
+
+
+struct InstrumentPoint {
+  // true for before
+  // false for after
+  bool before = true;
+  v2::ASTNodeBase *node = nullptr;
+};
+
+/**
+ * Decide the instrumentation point before and after each node.
+ */
+class InstrumentPointVisitor : public Visitor {
+public:
+  InstrumentPointVisitor() {}
+  ~InstrumentPointVisitor() {}
+  // high level
+  virtual void visit(v2::TokenNode *node);
+  virtual void visit(v2::TranslationUnitDecl *node);
+  virtual void visit(v2::FunctionDecl *node);
+  virtual void visit(v2::CompoundStmt *node);
+  // condition
+  virtual void visit(v2::IfStmt *node);
+  virtual void visit(v2::SwitchStmt *node);
+  virtual void visit(v2::CaseStmt *node);
+  virtual void visit(v2::DefaultStmt *node);
+  // loop
+  virtual void visit(v2::ForStmt *node);
+  virtual void visit(v2::WhileStmt *node);
+  virtual void visit(v2::DoStmt *node);
+  // single
+  virtual void visit(v2::BreakStmt *node);
+  virtual void visit(v2::ContinueStmt *node);
+  virtual void visit(v2::ReturnStmt *node);
+  // expr stmt
+  virtual void visit(v2::Expr *node);
+  virtual void visit(v2::DeclStmt *node);
+  virtual void visit(v2::ExprStmt *node);
+private:
+  std::map<v2::ASTNodeBase*, InstrumentPoint> After;
 };
 
 #endif /* VISITOR_H */
