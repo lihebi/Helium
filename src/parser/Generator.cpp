@@ -22,9 +22,15 @@ void Generator::outputInstrument(v2::ASTNodeBase *node) {
       v2::ASTNodeBase *def = m.second;
       std::map<std::string, std::string> vars = def->getFullVars();
       if (vars.count(var) == 1) {
+        
+        sum_output_var++;
+        
         std::string type = vars[var];
         Type *t = TypeFactory::CreateType(type);
         if (dynamic_cast<PrimitiveType*>(t)) {
+          
+          sum_used_output_var++;
+          
           std::string code = t->GetOutputCode(var);
           Prog += code + "\n";
         } else {
@@ -33,6 +39,7 @@ void Generator::outputInstrument(v2::ASTNodeBase *node) {
       }
     }
   }
+  // write the summary to a file
 }
 
 
@@ -276,8 +283,14 @@ void Generator::visit(v2::DeclStmt *node){
       std::map<std::string, std::string> fullVars = node->getFullVars();
       // 2. if it is primitive type, read from the input file
       for (auto &m : fullVars) {
+        
+        sum_input_var++;
+        
         Type *t = TypeFactory::CreateType(m.second);
         if (dynamic_cast<PrimitiveType*>(t)) {
+
+          sum_used_input_var++;
+          
           std::string code = t->GetInputCode(m.first);
           Prog += "// Input code for " + m.first + " of type " + m.second + "\n";
           Prog += code + "\n";

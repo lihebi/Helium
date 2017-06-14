@@ -869,6 +869,13 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
   ret += "#include \"main.h\"\n";
 
   ret += FileIOHelper::GetIOCode();
+
+  struct IOData {
+    int output_var=0;
+    int used_output_var=0;
+    int input_var=0;
+    int used_input_var=0;
+  } iodata;
   
   if (shouldPutIntoMain(sel)) {
     std::string body;
@@ -910,6 +917,12 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       decl->accept(generator);
       std::string prog = generator->getProgram();
       body += prog;
+      std::vector<int> iodata_raw = generator->getIOSummary();
+      assert(iodata_raw.size() == 4);
+      iodata.output_var += iodata_raw[0];
+      iodata.used_output_var += iodata_raw[1];
+      iodata.input_var += iodata_raw[2];
+      iodata.used_input_var += iodata_raw[3];
     }
     ret += "// Should into main\n";
     ret += "int main(int argc, char *argv[]) {\n";
@@ -939,6 +952,20 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
     ret += "  return 0;\n";
     ret += "}\n";
   }
+  // at the end, I'm going to put some comments about IOData
+  ret += "// IOData.output_var = " + std::to_string(iodata.output_var) + "\n";
+  ret += "// IOData.used_output_var = " + std::to_string(iodata.used_output_var) + "\n";
+  ret += "// IOData.input_var = " + std::to_string(iodata.input_var) + "\n";
+  ret += "// IOData.used_input_var = " + std::to_string(iodata.used_input_var) + "\n";
+
+
+  // output to stdout as log
+  std::cout << "[SourceManager] IOData (I|used/all/O|used/all) "
+            << iodata.used_input_var << " / " << iodata.input_var << " | "
+            << iodata.used_output_var << " / " << iodata.output_var << "\n";
+  std::cerr << "[SourceManager] IOData (I|used/all/O|used/all) "
+            << iodata.used_input_var << " / " << iodata.input_var << " | "
+            << iodata.used_output_var << " / " << iodata.output_var << "\n";
   return ret;
 }
 
@@ -1306,7 +1333,7 @@ std::string get_makefile() {
     + "test:\n"
     + "\tbash test.sh\n"
     + "run:\n"
-    + "\t./a.out\n";
+    + "\ttimeout 1 ./a.out 2>&1 >/dev/null\n";
   return makefile;
 }
 

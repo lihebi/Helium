@@ -77,21 +77,40 @@ std::vector<fs::path> load_sel(fs::path sel_dir) {
       }
     }
   } else {
-    fs::recursive_directory_iterator it(sel_dir), eod;
-    BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-      // must be .sel file
-      if (is_regular_file(p) && p.extension() == ".json") {
-        ret.push_back(p);
+    if (fs::is_directory(sel_dir)) {
+      fs::recursive_directory_iterator it(sel_dir), eod;
+      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+        // must be .sel file
+        if (is_regular_file(p) && p.extension() == ".json") {
+          ret.push_back(p);
+        }
       }
     }
   }
   return ret;
 }
 
+
 void helium_run(fs::path target, fs::path target_cache_dir) {
+
+
+  // to count how many sels. this variable will be stored in
+  // helium_var.txt and will not be cleared unless remove the file
+  int sel_count=0;
+  fs::path user_home(getenv("HOME"));
+  fs::path helium_home = user_home / ".helium.d";
+  // load "~/helium.d/helium_var.txt"
+  if (fs::exists(helium_home / "helium_var.txt")) {
+    std::ifstream is((helium_home / "helium_var.txt").string());
+    is >> sel_count;
+    is.close();
+  }
+  
   // (HEBI: Running)
   // Put the selection file in specific folder, Helium will find them itself.
-  std::vector<fs::path> sels = load_sel(target_cache_dir / "sel");
+  // Which folder to select
+  // std::vector<fs::path> sels = load_sel(target_cache_dir / "sel");
+  std::vector<fs::path> sels = load_sel(target_cache_dir / "iclonesel");
   std::cout << "[main] Running Helium on " << target.string() << " .." << "\n";
   // fs::path target_sel_dir = helium_home / "sel" / target_cache_dir_name;
   
@@ -99,6 +118,14 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
   if (!fs::exists(gen_program_dir)) fs::create_directories(gen_program_dir);
   SourceManager *sourceManager = new SourceManager(target_cache_dir / "cpp");
   for (fs::path sel_file : sels) {
+    sel_count++;
+
+    std::cerr << "[PROCESS] Global Sel Count: " << sel_count << "\n";
+    std::ofstream os((helium_home / "helium_var.txt").string());
+    os << sel_count;
+    os.close();
+
+    
     // std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
     std::set<v2::ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
     std::cout << "---------------------" << "\n";
@@ -150,6 +177,7 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     // do compilation
     if (do_compile(gen_dir)) {
       std::cout << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
+      std::cerr << "[main] Compile Success !!!" << "\n";
 
       // run tests
       std::cout << "[main] Running program in that target folder .." << "\n";
@@ -171,6 +199,7 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
       }
     } else {
       std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
+      std::cerr << "[main] Compile Failure ..." << "\n";
     }
   }
 }

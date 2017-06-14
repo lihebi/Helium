@@ -433,7 +433,6 @@
       "/usr/lib/libmvec-2.25.so",
       "/usr/lib/libSegFault.so",
       "/usr/lib/libpcprofile.so",
-      "/usr/lib/libmemusage.so",
       "/usr/lib/libutil-2.25.so",
       "/usr/lib/librt-2.25.so",
       "/usr/lib/libresolv-2.25.so",

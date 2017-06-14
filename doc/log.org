@@ -1,0 +1,8 @@
+#+TITLE: This is a log file when I'm doing implementation
+
+
+manual-core-glibc.json contains a package:
+
+libmemusage
+
+Linking this library will cause the executable to produce Memory usage summary.

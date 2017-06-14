@@ -565,6 +565,9 @@ public:
     OutputPositionSymtbl = symtbl;
   }
   void outputInstrument(v2::ASTNodeBase *node);
+  std::vector<int> getIOSummary() {
+    return {sum_output_var, sum_used_output_var, sum_input_var, sum_used_input_var};
+  }
 private:
   std::string Prog;
   std::set<v2::ASTNodeBase*> selection;
@@ -573,6 +576,12 @@ private:
   std::map<std::string, v2::ASTNodeBase*> OutputInstrument;
   v2::ASTNodeBase *OutputPosition = nullptr;
   v2::SymbolTable OutputPositionSymtbl;
+  // summary about output instrumentation
+  int sum_output_var=0;
+  int sum_used_output_var=0;
+  // summary about input instrumentation
+  int sum_input_var=0;
+  int sum_used_input_var=0;
 };
 
 

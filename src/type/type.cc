@@ -171,6 +171,8 @@ Type *TypeFactory::CreateType(std::string str) {
     return new BoolType();
   }
   // structure
+  // DEBUG
+  return NULL;
   // now str should contain only the type name, e.g. structure name
   if (HeliumOptions::Instance()->GetBool("use-struct-type")) {
     std::pair<int,int> p = SnippetDB::Instance()->QueryStruct(str);
