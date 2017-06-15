@@ -715,4 +715,145 @@ private:
   std::map<v2::ASTNodeBase*, InstrumentPoint> After;
 };
 
+
+
+namespace v2 {
+
+  class CFGNode {
+  public:
+    CFGNode(ASTNodeBase*node) {
+      astnode = node;
+    }
+    ~CFGNode() {}
+    std::string getLabel();
+  private:
+    ASTNodeBase *astnode=nullptr;
+  };
+  class CFG {
+  public:
+    CFG() {}
+    ~CFG() {}
+    /**
+     * Getter and setter. Will not actually add nodes, just set as in or out
+     */
+    void addIn(CFGNode *node) {
+      INs.insert(node);
+    }
+    void addIn(std::set<CFGNode*> nodes) {
+      INs.insert(nodes.begin(), nodes.end());
+    }
+    void addOut(CFGNode *node) {
+      OUTs.insert(node);
+    }
+    void addOut(std::set<CFGNode*> nodes) {
+      OUTs.insert(nodes.begin(), nodes.end());
+    }
+    void setIn(CFGNode *node) {
+      INs.clear();
+      INs.insert(node);
+    }
+    void setIn(std::set<CFGNode*> nodes) {
+      INs.clear();
+      INs.insert(nodes.begin(), nodes.end());
+    }
+    void setOut(CFGNode *node) {
+      OUTs.clear();
+      OUTs.insert(node);
+    }
+    void setOut(std::set<CFGNode*> nodes) {
+      OUTs.clear();
+      OUTs.insert(nodes.begin(), nodes.end());
+    }
+    void clearIn() {
+      INs.clear();
+    }
+    void clearOut() {
+      OUTs.clear();
+    }
+
+    // add nodes
+    void addNode(CFGNode *node) {
+      allNodes.insert(node);
+    }
+    void addNodes(std::set<CFGNode*> nodes) {
+      allNodes.insert(nodes.begin(), nodes.end());
+    }
+    std::set<CFGNode*> getIns() {return INs;}
+    std::set<CFGNode*> getOuts() {return OUTs;}
+    /**
+     * Merge
+     */
+    void merge(CFG *cfg);
+    void mergeBranch(CFG *cfg, CFGNode*node, bool b);
+    void mergeCase(CFG *cfg, CFGNode *node);
+    
+    void addEdge(CFGNode *from, CFGNode *to) {
+      edges[from] = to;
+    }
+    void addEdges(std::map<CFGNode*, CFGNode*> e) {
+      edges.insert(e.begin(), e.end());
+    }
+    std::set<CFGNode*> getAllNodes() {return allNodes;}
+    std::map<CFGNode*, CFGNode*> getAllEdges() {return edges;}
+    std::string visualize();
+  private:
+    std::set<CFGNode*> INs;
+    std::set<CFGNode*> OUTs;
+    std::set<CFGNode*> allNodes;
+    std::map<CFGNode*, CFGNode*> edges;
+    // not back edge, just reverse of edges
+    std::map<CFGNode*, CFGNode*> reverse_edges;
+  };
+};
+
+class CFGBuilder : public Visitor {
+public:
+  CFGBuilder() {}
+  ~CFGBuilder() {}
+  // high level
+  virtual void visit(v2::TokenNode *node);
+  virtual void visit(v2::TranslationUnitDecl *node);
+  virtual void visit(v2::FunctionDecl *node);
+  virtual void visit(v2::CompoundStmt *node);
+  // condition
+  virtual void visit(v2::IfStmt *node);
+  virtual void visit(v2::SwitchStmt *node);
+  virtual void visit(v2::CaseStmt *node);
+  virtual void visit(v2::DefaultStmt *node);
+  // loop
+  virtual void visit(v2::ForStmt *node);
+  virtual void visit(v2::WhileStmt *node);
+  virtual void visit(v2::DoStmt *node);
+  // single
+  virtual void visit(v2::BreakStmt *node);
+  virtual void visit(v2::ContinueStmt *node);
+  virtual void visit(v2::ReturnStmt *node);
+  // expr stmt
+  virtual void visit(v2::Expr *node);
+  virtual void visit(v2::DeclStmt *node);
+  virtual void visit(v2::ExprStmt *node);
+
+  void pre(v2::ASTNodeBase* node);
+
+  v2::CFG* getCFG() {return cur_cfg;}
+
+  v2::CFG* getInnerCFG(v2::ASTNodeBase* node) {
+    assert(node);
+    assert(Node2CFG.count(node) == 1);
+    return Node2CFG[node];
+  }
+  void addInnerCFG(v2::ASTNodeBase* node, v2::CFG *cfg) {
+    assert(cfg);
+    assert(node);
+    Node2CFG[node]=cfg;
+  }
+
+  void createCurrent(v2::ASTNodeBase *node);
+private:
+  v2::CFG *cur_cfg = nullptr;
+  v2::CFGNode *cur_cfgnode = nullptr;
+  // do not use this alone
+  std::map<v2::ASTNodeBase*, v2::CFG*> Node2CFG;
+};
+
 #endif /* VISITOR_H */

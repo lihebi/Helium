@@ -4,7 +4,7 @@
 #include "helium/resolver/SnippetAction.h"
 #include "helium/parser/HeaderManager.h"
 
-#include "helium/resolver/graph.h"
+#include "helium/utils/graph.h"
 #include "helium/utils/string_utils.h"
 
 #include "helium/resolver/resolver.h"

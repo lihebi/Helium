@@ -163,7 +163,9 @@ CompoundStmt *Parser::ParseCompoundStmt(XMLNode node) {
   for (XMLNode n : element_children(node)) {
     std::string NodeName = n.name();
     Stmt *stmt = ParseStmt(n);
-    ret->Add(stmt);
+    if (stmt) {
+      ret->Add(stmt);
+    }
   }
   return ret;
 }

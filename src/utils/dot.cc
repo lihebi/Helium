@@ -115,6 +115,7 @@ std::string visualize_dot_graph(const std::string& dot, bool open, std::string f
   // std::cout << "wrote to file: " + filename << "\n";
   // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
   // utils::exec(cmd_png.c_str());
+  utils::exec(png_convert_cmd.c_str());
 
   if (open) {
 #ifdef __MACH__
@@ -125,5 +126,5 @@ std::string visualize_dot_graph(const std::string& dot, bool open, std::string f
 #endif
     utils::exec(display_cmd.c_str());
   }
-  return filename;
+  return png_filename;
 }

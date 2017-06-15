@@ -14,6 +14,7 @@ add_library(HeliumParser
   Printer.cpp
   TokenVisitor.cpp
   SymbolTableBuilder.cpp
+  CFGBuilder.cpp
 
   
   ast.cc

@@ -71,6 +71,7 @@ namespace hebigraph {
         Node2Vertex.erase(x);
       }
     }
+
     void dump(std::ostream &os) {
       os << "Num of Vertices: " << num_vertices(g) << "\n";
       os << "Num of Edges: " << num_edges(g) << "\n";
@@ -111,13 +112,90 @@ namespace hebigraph {
       }
       return ret;
     }
+
+    /**
+     * Merge one graph into this graph
+     * Merging all the nodes and edges
+     */
+    void merge(Graph gother) {
+      // get the nodes
+      // create nodes
+      {
+        VertexIter begin,end;
+        boost::tie(begin,end) = vertices(gother);
+        for (VertexIter it=begin;it!=end;++it) {
+          Vertex v = *it;
+          addNode(gother.Vertex2Node[v]);
+        }
+      }
+      {
+        // get edges
+        // create edges
+        EdgeIter begin,end;
+        boost::tie(begin,end) = edges(gother);
+        for (EdgeIter it=begin;it!=end;++it) {
+          Edge e = *it;
+          Vertex src = source(e, gother);
+          Vertex dst = target(e, gother);
+          addEdge(gother.Vertex2Node[src], gother.Vertex2Node[dst]);
+        }
+      }
+    }
+
+    std::set<T> getEntry() {
+      std::set<T> ret;
+      VertexIter begin,end;
+      boost::tie(begin,end) = vertices(g);
+      for (VertexIter it=begin;it!=end;++it) {
+        Vertex v = *it;
+        if (in_degree(v, g) == 0) ret.insert(Vertex2Node[v]);
+      }
+      return ret;
+    }
+    std::set<T> getExit() {
+      std::set<T> ret;
+      VertexIter begin,end;
+      boost::tie(begin,end) = vertices(g);
+      for (VertexIter it=begin;it!=end;++it) {
+        Vertex v = *it;
+        if (out_degree(v, g) == 0) ret.insert(Vertex2Node[v]);
+      }
+      return ret;
+    }
+    /**
+     * Connect with other graph.
+     */
+    void connect(Graph gother) {
+      // 1. record exit nodes and other's entry
+      std::set<T> orig_exit = getExit();
+      std::set<T> other_entry = gother.getEntry();
+      // 2. merge gother
+      merge(gother);
+      // 3. Add edge from this exit to gother's entry
+      for (T x : orig_exit) {
+        for (T y : other_entry) {
+          addEdge(x, y);
+        }
+      }
+    }
+    /**
+     * Connect not from this graph's exit, but from node "from"
+     */
+    void connect(Graph gother, T from) {
+      std::set<T> other_entry = gother.getEntry();
+      merge(gother);
+      for (T to : other_entry) {
+        addEdge(from, to);
+      }
+    }
+    // TODO Labeling
+    // TODO export to dot, agg, etc
+
   private:
     std::map<T,Vertex> Node2Vertex;
     std::map<Vertex,T> Vertex2Node;
     adjacency_list<vecS, vecS, bidirectionalS> g;
   };
 }
-
-
 
 #endif /* GRAPH_H */

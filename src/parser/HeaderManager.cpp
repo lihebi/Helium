@@ -5,7 +5,7 @@
 #include "helium/resolver/SnippetV2.h"
 
 #include "helium/utils/helium_options.h"
-#include "helium/resolver/graph.h"
+#include "helium/utils/graph.h"
 
 #include <regex>
 
