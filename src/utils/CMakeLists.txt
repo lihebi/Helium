@@ -1,4 +1,5 @@
 add_library(HeliumUtils
+  graph.cc
         color_utils.cc
         dot.cc
         dump.cc

@@ -23,8 +23,6 @@ void CFGBuilder::createCurrent(v2::ASTNodeBase *node) {
   cur_cfg = new v2::CFG();
   cur_cfgnode = new v2::CFGNode(node);
   cur_cfg->addNode(cur_cfgnode);
-  cur_cfg->setIn(cur_cfgnode);
-  cur_cfg->setOut(cur_cfgnode);
 }
 
 void CFGBuilder::visit(v2::TokenNode *node) {
@@ -177,63 +175,23 @@ std::string CFGNode::getLabel() {
 
 
 std::string CFG::visualize() {
-  DotGraph graph;
-  std::map<CFGNode*, int> IDs;
-  int ID=0;
-  for (CFGNode* node : allNodes) {
-    assert(node);
-    graph.AddNode(std::to_string(ID), node->getLabel());
-    IDs[node]=ID;
-    ID++;
-  }
-  for (auto m : edges) {
-    graph.AddEdge(std::to_string(IDs[m.first]),
-                  std::to_string(IDs[m.second]));
-  }
-  std::string dotstring = graph.dump();
-  return visualize_dot_graph(dotstring);
+  // TODO
+  return graph.visualize([](CFGNode *node)->std::string{return node->getLabel();});
+  // return hebigraph::visualize(graph);
+  // DotGraph graph;
+  // std::map<CFGNode*, int> IDs;
+  // int ID=0;
+  // for (CFGNode* node : allNodes) {
+  //   assert(node);
+  //   graph.AddNode(std::to_string(ID), node->getLabel());
+  //   IDs[node]=ID;
+  //   ID++;
+  // }
+  // for (auto m : edges) {
+  //   graph.AddEdge(std::to_string(IDs[m.first]),
+  //                 std::to_string(IDs[m.second]));
+  // }
+  // std::string dotstring = graph.dump();
+  // return visualize_dot_graph(dotstring);
 }
 
-
-void CFG::merge(CFG *cfg) {
-  assert(cfg);
-  // connect this end to cfg's entry
-  std::set<CFGNode*> ins = cfg->getIns();
-  std::set<CFGNode*> outs = cfg->getOuts();
-  for (CFGNode *from : OUTs) {
-    for (CFGNode *to : ins) {
-      addEdge(from, to);
-    }
-  }
-  setOut(outs);
-  addNodes(cfg->getAllNodes());
-  addEdges(cfg->getAllEdges());
-}
-void CFG::mergeBranch(CFG *cfg, CFGNode*node, bool b) {
-  std::set<CFGNode*> ins = cfg->getIns();
-  std::set<CFGNode*> outs = cfg->getOuts();
-  std::cout << "Merging " << (b?"true":"false") << " branch" << "\n";
-  std::cout << "Edges: " << edges.size() << "\n";
-  for (CFGNode *n : ins) {
-    std::cout << "Adding an edge" << "\n";
-    addEdge(node, n);
-  }
-  for (CFGNode *n : outs) {
-    addOut(n);
-  }
-  std::cout << "Edges after: " << edges.size() << "\n";
-  addNodes(cfg->getAllNodes());
-  addEdges(cfg->getAllEdges());
-}
-void CFG::mergeCase(CFG *cfg, CFGNode *node) {
-  std::set<CFGNode*> ins = cfg->getIns();
-  std::set<CFGNode*> outs = cfg->getOuts();
-  for (CFGNode *n : ins) {
-    addEdge(node, n);
-  }
-  for (CFGNode *n : outs) {
-    addOut(n);
-  }
-  addNodes(cfg->getAllNodes());
-  addEdges(cfg->getAllEdges());
-}

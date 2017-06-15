@@ -10,6 +10,7 @@
 #include <boost/algorithm/string/join.hpp>
 
 #include "helium/parser/source_location.h"
+#include "helium/utils/graph.h"
 
 namespace v2 {
   class ASTContext;
@@ -733,76 +734,35 @@ namespace v2 {
   public:
     CFG() {}
     ~CFG() {}
-    /**
-     * Getter and setter. Will not actually add nodes, just set as in or out
-     */
-    void addIn(CFGNode *node) {
-      INs.insert(node);
-    }
-    void addIn(std::set<CFGNode*> nodes) {
-      INs.insert(nodes.begin(), nodes.end());
-    }
-    void addOut(CFGNode *node) {
-      OUTs.insert(node);
-    }
-    void addOut(std::set<CFGNode*> nodes) {
-      OUTs.insert(nodes.begin(), nodes.end());
-    }
-    void setIn(CFGNode *node) {
-      INs.clear();
-      INs.insert(node);
-    }
-    void setIn(std::set<CFGNode*> nodes) {
-      INs.clear();
-      INs.insert(nodes.begin(), nodes.end());
-    }
-    void setOut(CFGNode *node) {
-      OUTs.clear();
-      OUTs.insert(node);
-    }
-    void setOut(std::set<CFGNode*> nodes) {
-      OUTs.clear();
-      OUTs.insert(nodes.begin(), nodes.end());
-    }
-    void clearIn() {
-      INs.clear();
-    }
-    void clearOut() {
-      OUTs.clear();
-    }
 
     // add nodes
     void addNode(CFGNode *node) {
-      allNodes.insert(node);
+      graph.addNode(node);
     }
     void addNodes(std::set<CFGNode*> nodes) {
-      allNodes.insert(nodes.begin(), nodes.end());
+      for (CFGNode *node : nodes) {
+        graph.addNode(node);
+      }
     }
-    std::set<CFGNode*> getIns() {return INs;}
-    std::set<CFGNode*> getOuts() {return OUTs;}
     /**
      * Merge
      */
-    void merge(CFG *cfg);
-    void mergeBranch(CFG *cfg, CFGNode*node, bool b);
-    void mergeCase(CFG *cfg, CFGNode *node);
+    void merge(CFG *cfg) {
+      this->graph.connect(cfg->graph);
+    }
+    void mergeBranch(CFG *cfg, CFGNode*node, bool b) {
+      this->graph.connect(cfg->graph, node);
+    }
+    void mergeCase(CFG *cfg, CFGNode *node) {
+      this->graph.connect(cfg->graph, node);
+    }
     
     void addEdge(CFGNode *from, CFGNode *to) {
-      edges[from] = to;
+      graph.addEdge(from, to);
     }
-    void addEdges(std::map<CFGNode*, CFGNode*> e) {
-      edges.insert(e.begin(), e.end());
-    }
-    std::set<CFGNode*> getAllNodes() {return allNodes;}
-    std::map<CFGNode*, CFGNode*> getAllEdges() {return edges;}
     std::string visualize();
   private:
-    std::set<CFGNode*> INs;
-    std::set<CFGNode*> OUTs;
-    std::set<CFGNode*> allNodes;
-    std::map<CFGNode*, CFGNode*> edges;
-    // not back edge, just reverse of edges
-    std::map<CFGNode*, CFGNode*> reverse_edges;
+    hebigraph::Graph<CFGNode*> graph;
   };
 };
 
