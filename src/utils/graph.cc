@@ -51,6 +51,13 @@ namespace hebigraph {
     }
   }
 
+  template <typename T> void Graph<T>::connect(T t, std::string label) {
+    std::set<T> Exits = getExit();
+    for (T Exit : Exits) {
+      addEdge(Exit, t, label);
+    }
+  }
+
   template <typename T> void Graph<T>::connect(Graph gother, T from, std::string label) {
     std::set<T> other_entry = gother.getEntry();
     merge(gother);

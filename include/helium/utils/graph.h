@@ -128,15 +128,16 @@ namespace hebigraph {
 
     std::set<T> getEntry();
     std::set<T> getExit();
+
     /**
      * Connect with other graph.
      */
     void connect(Graph gother, std::string label="");
+    void connect(T t, std::string label="");
     /**
      * Connect not from this graph's exit, but from node "from"
      */
     void connect(Graph gother, T from, std::string label="");
-    // TODO Labeling
     /**
      * visualize by exporting to graph
      */

@@ -117,8 +117,15 @@ void CFGBuilder::visit(v2::ForStmt *node) {
   Visitor::visit(node);
   createCurrent(node);
   Stmt *body = node->getBody();
-  cur_cfg->merge(getInnerCFG(body));
-  // TODO back edge
+  // back edge taken care of in mergeLoop
+  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
+  // create another node for the end of for
+  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
+  cur_cfg->addNode(out_cfgnode);
+  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
+  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
+  cur_cfg->addNode(in_cfgnode);
+  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
   addInnerCFG(node, cur_cfg);
 }
 void CFGBuilder::visit(v2::WhileStmt *node) {
@@ -126,8 +133,14 @@ void CFGBuilder::visit(v2::WhileStmt *node) {
   Visitor::visit(node);
   createCurrent(node);
   Stmt *body = node->getBody();
-  cur_cfg->merge(getInnerCFG(body));
-  // TODO back edge
+  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
+  // create loop out node
+  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
+  cur_cfg->addNode(out_cfgnode);
+  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
+  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
+  cur_cfg->addNode(in_cfgnode);
+  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
   addInnerCFG(node, cur_cfg);
 }
 void CFGBuilder::visit(v2::DoStmt *node) {
@@ -135,10 +148,17 @@ void CFGBuilder::visit(v2::DoStmt *node) {
   Visitor::visit(node);
   createCurrent(node);
   Stmt *body = node->getBody();
-  cur_cfg->merge(getInnerCFG(body));
-  // TODO back edge
+  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
+  // create loop out node
+  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
+  cur_cfg->addNode(out_cfgnode);
+  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
+  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
+  cur_cfg->addNode(in_cfgnode);
+  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
   addInnerCFG(node, cur_cfg);
 }
+
 void CFGBuilder::visit(v2::BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
@@ -175,9 +195,14 @@ void CFGBuilder::visit(v2::ExprStmt *node) {
 
 
 std::string CFGNode::getLabel() {
-  std::ostringstream ss;
-  astnode->dump(ss);
-  return ss.str();
+  if (astnode) {
+    std::ostringstream ss;
+    astnode->dump(ss);
+    return ss.str();
+  } else {
+    assert(!dummy.empty());
+    return dummy;
+  }
 }
 
 

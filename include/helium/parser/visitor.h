@@ -725,10 +725,14 @@ namespace v2 {
     CFGNode(ASTNodeBase*node) {
       astnode = node;
     }
+    CFGNode(std::string dummy) {
+      this->dummy = dummy;
+    }
     ~CFGNode() {}
     std::string getLabel();
   private:
     ASTNodeBase *astnode=nullptr;
+    std::string dummy;
   };
   class CFG {
   public:
@@ -755,6 +759,14 @@ namespace v2 {
     }
     void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
       this->graph.connect(cfg->graph, node, case_label);
+    }
+    /**
+     * 1. connect this->exit and cfg->entry
+     * 2. connect cfg->exit to loop_head
+     */
+    void mergeLoop(CFG *cfg, CFGNode *loop_head) {
+      this->graph.connect(cfg->graph);
+      this->graph.connect(loop_head, "back");
     }
     
     void addEdge(CFGNode *from, CFGNode *to) {
