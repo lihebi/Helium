@@ -14,10 +14,15 @@
 namespace hebigraph {
 
   using namespace boost;
-// using namespace std;
+  // using namespace std;
   // typedef pair<int,int> Edge;
 
-  typedef adjacency_list<vecS, vecS, bidirectionalS> GraphType;
+  struct edge_label_t {
+    typedef edge_property_tag kind;
+  };
+  typedef property<edge_label_t, std::string> EdgeLabelProperty;
+
+  typedef adjacency_list<vecS, vecS, bidirectionalS, no_property, EdgeLabelProperty> GraphType;
   
   typedef graph_traits<GraphType>::vertex_descriptor Vertex;
   typedef graph_traits<GraphType>::edge_descriptor Edge;
@@ -45,9 +50,11 @@ namespace hebigraph {
     bool hasEdge(T x, T y) {
       return edge(Node2Vertex[x], Node2Vertex[y], g).second;
     }
-    void addEdge(T x, T y) {
+    void addEdge(T x, T y, std::string label="") {
       if (hasEdge(x, y)) return;
-      add_edge(Node2Vertex[x], Node2Vertex[y], g);
+      Edge e = add_edge(Node2Vertex[x], Node2Vertex[y], g).first;
+      // add edge label
+      put(edge_label_t(), g, e, label);
     }
     void removeEdge(T x, T y) {
       if (!hasEdge(x,y)) return;
@@ -124,11 +131,11 @@ namespace hebigraph {
     /**
      * Connect with other graph.
      */
-    void connect(Graph gother);
+    void connect(Graph gother, std::string label="");
     /**
      * Connect not from this graph's exit, but from node "from"
      */
-    void connect(Graph gother, T from);
+    void connect(Graph gother, T from, std::string label="");
     // TODO Labeling
     /**
      * visualize by exporting to graph
@@ -137,7 +144,8 @@ namespace hebigraph {
   private:
     std::map<T,Vertex> Node2Vertex;
     std::map<Vertex,T> Vertex2Node;
-    adjacency_list<vecS, vecS, bidirectionalS> g;
+    // adjacency_list<vecS, vecS, bidirectionalS> g;
+    GraphType g;
   };
 
   template <typename T> std::string visualize(Graph<T> g);

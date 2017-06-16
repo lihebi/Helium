@@ -81,7 +81,14 @@ void CFGBuilder::visit(v2::SwitchStmt *node) {
   
   vector<SwitchCase*> cases = node->getCases();
   for (SwitchCase *c : cases) {
-    cur_cfg->mergeCase(getInnerCFG(c), cur_cfgnode);
+    // get case condition
+    std::string case_label;
+    if (dynamic_cast<CaseStmt*>(c)) {
+      case_label = dynamic_cast<CaseStmt*>(c)->getCond()->getText();
+    } else if (dynamic_cast<DefaultStmt*>(c)) {
+      case_label = "default";
+    }
+    cur_cfg->mergeCase(getInnerCFG(c), cur_cfgnode, case_label);
   }
   addInnerCFG(node, cur_cfg);
 }

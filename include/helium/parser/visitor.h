@@ -751,10 +751,10 @@ namespace v2 {
       this->graph.connect(cfg->graph);
     }
     void mergeBranch(CFG *cfg, CFGNode*node, bool b) {
-      this->graph.connect(cfg->graph, node);
+      this->graph.connect(cfg->graph, node, (b?"true":"false"));
     }
-    void mergeCase(CFG *cfg, CFGNode *node) {
-      this->graph.connect(cfg->graph, node);
+    void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
+      this->graph.connect(cfg->graph, node, case_label);
     }
     
     void addEdge(CFGNode *from, CFGNode *to) {

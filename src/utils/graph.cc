@@ -29,14 +29,15 @@ namespace hebigraph {
         Vertex dst = target(e, g);
         T srcT = Vertex2Node[src];
         T dstT = Vertex2Node[dst];
-        dotgraph.AddEdge(std::to_string(IDs[srcT]), std::to_string(IDs[dstT]));
+        std::string label = get(edge_label_t(), g, e);
+        dotgraph.AddEdge(std::to_string(IDs[srcT]), std::to_string(IDs[dstT]), label);
       }
     }
     std::string dotstring = dotgraph.dump();
     return visualize_dot_graph(dotstring);
   }
 
-  template <typename T> void Graph<T>::connect(Graph gother) {
+  template <typename T> void Graph<T>::connect(Graph gother, std::string label) {
     // 1. record exit nodes and other's entry
     std::set<T> orig_exit = getExit();
     std::set<T> other_entry = gother.getEntry();
@@ -45,16 +46,16 @@ namespace hebigraph {
     // 3. Add edge from this exit to gother's entry
     for (T x : orig_exit) {
       for (T y : other_entry) {
-        addEdge(x, y);
+        addEdge(x, y, label);
       }
     }
   }
 
-  template <typename T> void Graph<T>::connect(Graph gother, T from) {
+  template <typename T> void Graph<T>::connect(Graph gother, T from, std::string label) {
     std::set<T> other_entry = gother.getEntry();
     merge(gother);
     for (T to : other_entry) {
-      addEdge(from, to);
+      addEdge(from, to, label);
     }
   }
 
@@ -79,7 +80,9 @@ namespace hebigraph {
         Edge e = *it;
         Vertex src = source(e, gother.g);
         Vertex dst = target(e, gother.g);
-        addEdge(gother.Vertex2Node[src], gother.Vertex2Node[dst]);
+        // Also I need to transfer the edge label
+        std::string label = get(edge_label_t(), gother.g, e);
+        addEdge(gother.Vertex2Node[src], gother.Vertex2Node[dst], label);
       }
     }
   }
