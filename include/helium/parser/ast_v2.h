@@ -490,7 +490,7 @@ namespace v2 {
   public:
     SwitchCase(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
     ~SwitchCase() {}
-    void Add(Stmt *stmt) {Body.push_back(stmt);}
+    void Add(Stmt *stmt) {assert(stmt); Body.push_back(stmt);}
     std::vector<Stmt*> getBody() {return Body;}
   protected:
     std::vector<Stmt*> Body;

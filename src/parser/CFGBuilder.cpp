@@ -134,6 +134,8 @@ void CFGBuilder::visit(v2::SwitchStmt *node) {
   }
 
   cfg->graph.addEdge(cfg->outs, switch_out);
+  // clear the last case/default out
+  cfg->outs.clear();
 
   // handle break
   for (CFGNode *node : break_nodes) {
@@ -141,6 +143,9 @@ void CFGBuilder::visit(v2::SwitchStmt *node) {
     cfg->addEdge(node, switch_out);
   }
   break_nodes.clear();
+
+  cfg->ins.insert(switch_node);
+  cfg->outs.insert(switch_out);
   
   addInnerCFG(node, cfg);
 }
@@ -168,8 +173,11 @@ void CFGBuilder::visit(v2::DefaultStmt *node) {
   Visitor::visit(node);
   CFG *cfg = new CFG();
   CFGNode *def_node = new CFGNode(node);
+  cfg->addNode(def_node);
+  cfg->addOut(def_node);
 
   vector<Stmt*> stmts = node->getBody();
+  std::cout << "Default has: " << stmts.size() << "\n";
   for (Stmt *stmt : stmts) {
     CFG *inner = getInnerCFG(stmt);
     cfg->graph.merge(inner->graph);
@@ -275,7 +283,6 @@ void CFGBuilder::visit(v2::BreakStmt *node) {
   break_nodes.insert(break_node);
 }
 void CFGBuilder::visit(v2::ContinueStmt *node) {
-  std::cout << "Processing continue .." << "\n";
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();

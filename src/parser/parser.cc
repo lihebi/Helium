@@ -395,7 +395,10 @@ CaseStmt *Parser::ParseCaseStmt(XMLNode node) {
         std::string(n.name()) == "default") {
       break;
     }
-    ret->Add(ParseStmt(n));
+    Stmt *stmt = ParseStmt(n);
+    if (stmt) {
+      ret->Add(stmt);
+    }
   }
   return ret;
 }
@@ -416,7 +419,10 @@ DefaultStmt *Parser::ParseDefaultStmt(XMLNode node) {
         std::string(n.name()) == "default") {
       break;
     }
-    ret->Add(ParseStmt(n));
+    Stmt *stmt = ParseStmt(n);
+    if (stmt) {
+      ret->Add(stmt);
+    }
   }
   return ret;
 }
