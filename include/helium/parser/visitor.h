@@ -751,30 +751,76 @@ namespace v2 {
     /**
      * Merge
      */
-    void merge(CFG *cfg) {
-      this->graph.connect(cfg->graph);
-    }
-    void mergeBranch(CFG *cfg, CFGNode*node, bool b) {
-      this->graph.connect(cfg->graph, node, (b?"true":"false"));
-    }
-    void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
-      this->graph.connect(cfg->graph, node, case_label);
+    void connect(CFG *cfg) {
+      this->graph.merge(cfg->graph);
+      for (CFGNode *from : this->outs) {
+        for (CFGNode *to : cfg->ins) {
+          this->graph.addEdge(from, to);
+        }
+      }
+      this->outs = cfg->outs;
     }
     /**
-     * 1. connect this->exit and cfg->entry
-     * 2. connect cfg->exit to loop_head
+     * add node and connect all exits to it (it will be the out)
      */
-    void mergeLoop(CFG *cfg, CFGNode *loop_head) {
-      this->graph.connect(cfg->graph);
-      this->graph.connect(loop_head, "back");
+    void connect(CFGNode *node) {
+      this->graph.addNode(node);
+      for (CFGNode *from : this->outs) {
+        this->graph.addEdge(from, node);
+      }
+      this->outs.clear();
+      this->outs.insert(node);
+    }
+    void mergeBranch(CFG *cfg, CFGNode* node, bool b) {
+      for (CFGNode *to : cfg->ins) {
+        this->graph.addEdge(node, to, (b?"true":"false"));
+      }
+      this->outs.insert(cfg->outs.begin(), cfg->outs.end());
+    }
+
+    void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
+      for (CFGNode *to : cfg->ins) {
+        this->graph.addEdge(node, to, case_label);
+      }
+      this->outs.insert(cfg->outs.begin(), cfg->outs.end());
     }
     
     void addEdge(CFGNode *from, CFGNode *to) {
       graph.addEdge(from, to);
     }
+    /**
+     * remove the out edge of node
+     * Used to handle break, continue, return
+     */
+    void removeOutEdge(CFGNode *node) {
+      graph.removeOutEdge(node);
+    }
     std::string visualize();
-  private:
+
+    /**
+     * I still need to set in and out manually because, return xx; a=b;
+     * When I remove the return out edge, a=b; will be the input.
+     * There're several such bugs
+     */
+    void addIn(CFGNode *node) {
+      ins.insert(node);
+    }
+    void addOut(CFGNode *node) {
+      outs.insert(node);
+    }
+    void clearIn(CFGNode *node) {
+      ins.clear();
+    }
+    void clearOut(CFGNode *node) {
+      outs.clear();
+    }
+    // friend class CFGBuilder;
+    // friend is not working, probably due to namespace
+    // i'm making the fields public for the time
     hebigraph::Graph<CFGNode*> graph;
+    std::set<CFGNode*> ins;
+    std::set<CFGNode*> outs;
+  private:
   };
 };
 
@@ -807,7 +853,17 @@ public:
 
   void pre(v2::ASTNodeBase* node);
 
+  /**
+   * CFG for the top level passed in
+   */
   v2::CFG* getCFG() {return cur_cfg;}
+
+  v2::CFG *getCFGByNode(v2::ASTNodeBase *node) {
+    if (Node2CFG.count(node)) {
+      return Node2CFG[node];
+    }
+    return nullptr;
+  }
 
   v2::CFG* getInnerCFG(v2::ASTNodeBase* node) {
     assert(node);
@@ -818,14 +874,18 @@ public:
     assert(cfg);
     assert(node);
     Node2CFG[node]=cfg;
+    // record current, for the top level output
+    cur_cfg = cfg;
   }
 
-  void createCurrent(v2::ASTNodeBase *node);
 private:
   v2::CFG *cur_cfg = nullptr;
-  v2::CFGNode *cur_cfgnode = nullptr;
+  // v2::CFGNode *cur_cfgnode = nullptr;
   // do not use this alone
   std::map<v2::ASTNodeBase*, v2::CFG*> Node2CFG;
+  std::set<v2::CFGNode*> break_nodes;
+  std::set<v2::CFGNode*> continue_nodes;
+  std::set<v2::CFGNode*> return_nodes;
 };
 
 #endif /* VISITOR_H */

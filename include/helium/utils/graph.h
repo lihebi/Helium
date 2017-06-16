@@ -60,6 +60,23 @@ namespace hebigraph {
       if (!hasEdge(x,y)) return;
       remove_edge(Node2Vertex[x], Node2Vertex[y], g);
     }
+    void addEdge(std::set<T> fromset, std::set<T> toset, std::string label="") {
+      for (T from : fromset) {
+        for (T to : toset) {
+          addEdge(from, to, label);
+        }
+      }
+    }
+    void addEdge(std::set<T> fromset, T to, std::string label="") {
+      for (T from : fromset) {
+        addEdge(from, to, label);
+      }
+    }
+    void addEdge(T from, std::set<T> toset, std::string label="") {
+      for (T to : toset) {
+        addEdge(from, to, label);
+      }
+    }
 
     bool hasNode(T x) {
       return Node2Vertex.count(x) == 1;
@@ -76,6 +93,27 @@ namespace hebigraph {
         remove_vertex(Node2Vertex[x], g);
         Vertex2Node.erase(Node2Vertex[x]);
         Node2Vertex.erase(x);
+      }
+    }
+
+    void removeOutEdge(T x) {
+      if (Node2Vertex.count(x) == 1) {
+        EdgeIter begin,end;
+        boost::tie(begin, end) = edges(g);
+        std::set<Vertex> toset;
+        for (EdgeIter it=begin;it!=end;++it) {
+          Edge e = *it;
+          if (Node2Vertex[x] == source(e, g)) {
+            // FIXME can i remove edge during iteration?
+            // remove_edge(e, g);
+            // T to = Vertex2Node[target(e, g)];
+            toset.insert(target(e, g));
+          }
+        }
+        // remvoe
+        for (Vertex to : toset) {
+          remove_edge(Node2Vertex[x], to, g);
+        }
       }
     }
 
@@ -121,27 +159,11 @@ namespace hebigraph {
     }
 
     /**
-     * Merge one graph into this graph
-     * Merging all the nodes and edges
-     */
-    void merge(Graph gother);
-
-    std::set<T> getEntry();
-    std::set<T> getExit();
-
-    /**
-     * Connect with other graph.
-     */
-    void connect(Graph gother, std::string label="");
-    void connect(T t, std::string label="");
-    /**
-     * Connect not from this graph's exit, but from node "from"
-     */
-    void connect(Graph gother, T from, std::string label="");
-    /**
      * visualize by exporting to graph
      */
     std::string visualize(std::string (*labelFunc)(T));
+
+    void merge(Graph<T> &rhs);
   private:
     std::map<T,Vertex> Node2Vertex;
     std::map<Vertex,T> Vertex2Node;
@@ -150,6 +172,27 @@ namespace hebigraph {
   };
 
   template <typename T> std::string visualize(Graph<T> g);
+
+  // /**
+  //  * Connect graph -> graph
+  //  */
+  // friend template <typename T>
+  // Graph<T> connect(Graph<T> from, std::set<T> fromnodes,
+  //                  Graph<T> to, std::set<T> tonodes,
+  //                  std::string label="");
+  // /**
+  //  * Connect graph -> node
+  //  */
+  // friend template <typename T>
+  // Graph<T> connect(Graph<T> from, std::set<T> fromnodes,
+  //                  std::set<T> to, std::string label="");
+  // /**
+  //  * Connect node -> graph
+  //  */
+  // friend template <typename T>
+  // Graph<T> connect(std::set<T> from,
+  //                  Graph<T> to, std::set<T> tonodes,
+  //                  std::string label="");
 }
 
 #endif /* GRAPH_H */

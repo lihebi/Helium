@@ -19,12 +19,6 @@ void CFGBuilder::pre(v2::ASTNodeBase *node) {
   // std::cout << std::flush;
 }
 
-void CFGBuilder::createCurrent(v2::ASTNodeBase *node) {
-  cur_cfg = new v2::CFG();
-  cur_cfgnode = new v2::CFGNode(node);
-  cur_cfg->addNode(cur_cfgnode);
-}
-
 void CFGBuilder::visit(v2::TokenNode *node) {
   pre(node);
   Visitor::visit(node);
@@ -32,54 +26,98 @@ void CFGBuilder::visit(v2::TokenNode *node) {
 void CFGBuilder::visit(v2::TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
+  CFG *cfg = new CFG();
+  for (ASTNodeBase *n : node->getDecls()) {
+    CFG *inner = getInnerCFG(n);
+    cfg->graph.merge(inner->graph);
+    cfg->ins.insert(inner->ins.begin(), inner->ins.end());
+    cfg->outs.insert(inner->outs.begin(), inner->outs.end());
+  }
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::FunctionDecl *node) {
   pre(node);
   // create a seperate CFG
   // create cfg from function
   Visitor::visit(node);
-  v2::CFG *bodyCFG = getInnerCFG(node->getBody());
+  v2::CFG *cfg = new CFG();
+  v2::CFGNode *func_node = new CFGNode(node);
+  v2::CFGNode *func_out = new CFGNode("func-out");
+  cfg->addNode(func_node);
+  cfg->addNode(func_out);
+  v2::CFG *inner = getInnerCFG(node->getBody());
+  cfg->graph.merge(inner->graph);
+  cfg->graph.addEdge(func_node, inner->ins);
+  cfg->graph.addEdge(inner->outs, func_out);
 
-  createCurrent(node);
+  // handle return: just remove out node
+  for (CFGNode *node : return_nodes) {
+    // cfg->removeOutEdge(node);
+    cfg->addEdge(node, func_out);
+  }
   
-  cur_cfg->merge(bodyCFG);
-  
-  addInnerCFG(node, cur_cfg);
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
+  v2::CFG *cfg = new CFG();
+  v2::CFGNode *comp_node = new CFGNode(node);
+  cfg->addNode(comp_node);
+  cfg->outs.insert(comp_node);
+  cfg->ins.insert(comp_node);
+
   std::vector<Stmt*> stmts = node->getBody();
-  createCurrent(node);
   for (Stmt *stmt : stmts) {
-    cur_cfg->merge(getInnerCFG(stmt));
+    CFG *inner = getInnerCFG(stmt);
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(cfg->outs, inner->ins);
+    cfg->outs = inner->outs;
   }
-  addInnerCFG(node, cur_cfg);
+  
+  addInnerCFG(node, cfg);
 }
 
 void CFGBuilder::visit(v2::IfStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+  v2::CFG *cfg = new CFG();
+  v2::CFGNode *if_node = new CFGNode(node);
+  v2::CFGNode *if_out = new CFGNode("if-out");
+  cfg->addNode(if_node);
+  cfg->addNode(if_out);
+  // then (must have)
+  CFG *thenCFG = getInnerCFG(node->getThen());
+  cfg->graph.merge(thenCFG->graph);
+  cfg->graph.addEdge(if_node, thenCFG->ins, "true");
+  cfg->graph.addEdge(thenCFG->outs, if_out);
 
-  if (node->getThen()) {
-    CFG *thenCFG = getInnerCFG(node->getThen());
-    cur_cfg->mergeBranch(thenCFG, cur_cfgnode, true);
-  }
+  // else
   if (node->getElse()) {
     CFG *elseCFG = getInnerCFG(node->getElse());
-    cur_cfg->mergeBranch(elseCFG, cur_cfgnode, false);
+    cfg->graph.merge(elseCFG->graph);
+    cfg->graph.addEdge(if_node, elseCFG->ins, "false");
+    cfg->graph.addEdge(elseCFG->outs, if_out);
+  } else {
+    cfg->graph.addEdge(if_node, if_out, "false");
   }
-  addInnerCFG(node, cur_cfg);
+
+  cfg->addIn(if_node);
+  cfg->addOut(if_out);
+  
+  addInnerCFG(node, cfg);
 }
 
 void CFGBuilder::visit(v2::SwitchStmt *node) {
   pre(node);
   Visitor::visit(node);
-
-  createCurrent(node);
+  v2::CFG *cfg = new CFG();
+  v2::CFGNode *switch_node = new CFGNode(node);
+  CFGNode *switch_out = new CFGNode("switch-out");
+  cfg->addNode(switch_node);
+  cfg->addNode(switch_out);
   
-  vector<SwitchCase*> cases = node->getCases();
+  std::vector<SwitchCase*> cases = node->getCases();
   for (SwitchCase *c : cases) {
     // get case condition
     std::string case_label;
@@ -88,94 +126,175 @@ void CFGBuilder::visit(v2::SwitchStmt *node) {
     } else if (dynamic_cast<DefaultStmt*>(c)) {
       case_label = "default";
     }
-    cur_cfg->mergeCase(getInnerCFG(c), cur_cfgnode, case_label);
+    CFG *inner = getInnerCFG(c);
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(switch_node, inner->ins, case_label);
+    cfg->graph.addEdge(cfg->outs, inner->ins, "flow-over");
+    cfg->outs = inner->outs;
   }
-  addInnerCFG(node, cur_cfg);
+
+  cfg->graph.addEdge(cfg->outs, switch_out);
+
+  // handle break
+  for (CFGNode *node : break_nodes) {
+    // cfg->removeOutEdge(node);
+    cfg->addEdge(node, switch_out);
+  }
+  break_nodes.clear();
+  
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+  CFG *cfg = new CFG();
+  CFGNode *case_node = new CFGNode(node);
+  cfg->addNode(case_node);
+  cfg->addOut(case_node);
+
   vector<Stmt*> stmts = node->getBody();
   for (Stmt *stmt : stmts) {
-    cur_cfg->merge(getInnerCFG(stmt));
+    CFG *inner = getInnerCFG(stmt);
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(cfg->outs, inner->ins);
+    cfg->outs = inner->outs;
   }
-  addInnerCFG(node, cur_cfg);
+
+  cfg->addIn(case_node);
+  addInnerCFG(node, cfg); 
 }
 void CFGBuilder::visit(v2::DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+  CFG *cfg = new CFG();
+  CFGNode *def_node = new CFGNode(node);
+
   vector<Stmt*> stmts = node->getBody();
   for (Stmt *stmt : stmts) {
-    cur_cfg->merge(getInnerCFG(stmt));
+    CFG *inner = getInnerCFG(stmt);
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(cfg->outs, inner->ins);
+    cfg->outs = inner->outs;
   }
-  addInnerCFG(node, cur_cfg);
+
+  cfg->addIn(def_node);
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::ForStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+
+  CFG *cfg = new v2::CFG();
+  CFGNode *loop_node = new v2::CFGNode(node);
+  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  cfg->addNode(loop_node);
+  cfg->addNode(loop_out);
+
   Stmt *body = node->getBody();
-  // back edge taken care of in mergeLoop
-  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
-  // create another node for the end of for
-  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
-  cur_cfg->addNode(out_cfgnode);
-  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
-  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
-  cur_cfg->addNode(in_cfgnode);
-  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
-  addInnerCFG(node, cur_cfg);
+  CFG *inner = getInnerCFG(body);
+  cfg->graph.merge(inner->graph);
+  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+  cfg->graph.addEdge(inner->outs, loop_node, "back");
+
+  // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
+  cfg->graph.addEdge(break_nodes, loop_out, "break");
+  break_nodes.clear();
+  cfg->graph.addEdge(continue_nodes, loop_node, "continue");
+  continue_nodes.clear();
+
+  cfg->addIn(loop_node);
+  cfg->graph.addEdge(loop_node, loop_out, "loop-false");
+  cfg->addOut(loop_out);
+
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::WhileStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+  
+  CFG *cfg = new v2::CFG();
+  CFGNode *loop_node = new v2::CFGNode(node);
+  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  cfg->addNode(loop_node);
+  cfg->addNode(loop_out);
+
   Stmt *body = node->getBody();
-  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
-  // create loop out node
-  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
-  cur_cfg->addNode(out_cfgnode);
-  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
-  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
-  cur_cfg->addNode(in_cfgnode);
-  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
-  addInnerCFG(node, cur_cfg);
+  CFG *inner = getInnerCFG(body);
+  cfg->graph.merge(inner->graph);
+  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+  cfg->graph.addEdge(inner->outs, loop_node, "back");
+
+  // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
+  cfg->graph.addEdge(break_nodes, loop_out, "break");
+  break_nodes.clear();
+  cfg->graph.addEdge(continue_nodes, loop_node, "continue");
+  continue_nodes.clear();
+
+  cfg->addIn(loop_node);
+  cfg->graph.addEdge(loop_node, loop_out, "loop-false");
+  cfg->addOut(loop_out);
+
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::DoStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
+  CFG *cfg = new v2::CFG();
+  CFGNode *loop_node = new v2::CFGNode(node);
+  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  cfg->addNode(loop_node);
+  cfg->addNode(loop_out);
+
   Stmt *body = node->getBody();
-  cur_cfg->mergeLoop(getInnerCFG(body), cur_cfgnode);
-  // create loop out node
-  v2::CFGNode *out_cfgnode = new v2::CFGNode("loop-out");
-  cur_cfg->addNode(out_cfgnode);
-  cur_cfg->addEdge(cur_cfgnode, out_cfgnode);
-  v2::CFGNode *in_cfgnode = new v2::CFGNode("loop-in");
-  cur_cfg->addNode(in_cfgnode);
-  cur_cfg->addEdge(in_cfgnode, cur_cfgnode);
-  addInnerCFG(node, cur_cfg);
+  CFG *inner = getInnerCFG(body);
+  cfg->graph.merge(inner->graph);
+  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+  cfg->graph.addEdge(inner->outs, loop_node, "back");
+
+  // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
+  cfg->graph.addEdge(break_nodes, loop_out, "break");
+  break_nodes.clear();
+  cfg->graph.addEdge(continue_nodes, loop_node, "continue");
+  continue_nodes.clear();
+
+  cfg->addIn(loop_node);
+  cfg->graph.addEdge(loop_node, loop_out, "loop-false");
+  cfg->addOut(loop_out);
+
+  addInnerCFG(node, cfg);
 }
 
 void CFGBuilder::visit(v2::BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
-  addInnerCFG(node, cur_cfg);
+  CFG *cfg = new CFG();
+  CFGNode *break_node = new CFGNode(node);
+  cfg->addNode(break_node);
+  cfg->addIn(break_node);
+  addInnerCFG(node, cfg);
+  break_nodes.insert(break_node);
 }
 void CFGBuilder::visit(v2::ContinueStmt *node) {
+  std::cout << "Processing continue .." << "\n";
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
-  addInnerCFG(node, cur_cfg);
+  CFG *cfg = new CFG();
+  CFGNode *continue_node = new CFGNode(node);
+  cfg->addNode(continue_node);
+  cfg->addIn(continue_node);
+  addInnerCFG(node, cfg);
+  continue_nodes.insert(continue_node);
 }
 void CFGBuilder::visit(v2::ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
-  addInnerCFG(node, cur_cfg);
+  CFG *cfg = new CFG();
+  CFGNode *return_node = new CFGNode(node);
+  cfg->addNode(return_node);
+  cfg->addIn(return_node);
+  // cfg->addOut(return_node);
+  addInnerCFG(node, cfg);
+  return_nodes.insert(return_node);
 }
 void CFGBuilder::visit(v2::Expr *node) {
   pre(node);
@@ -183,14 +302,22 @@ void CFGBuilder::visit(v2::Expr *node) {
 void CFGBuilder::visit(v2::DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
-  addInnerCFG(node, cur_cfg);
+  CFG *cfg = new CFG();
+  CFGNode *cfgnode = new CFGNode(node);
+  cfg->addNode(cfgnode);
+  cfg->addIn(cfgnode);
+  cfg->addOut(cfgnode);
+  addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(v2::ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
-  createCurrent(node);
-  addInnerCFG(node, cur_cfg);
+  CFG *cfg = new CFG();
+  CFGNode *cfgnode = new CFGNode(node);
+  cfg->addNode(cfgnode);
+  cfg->addIn(cfgnode);
+  cfg->addOut(cfgnode);
+  addInnerCFG(node, cfg);
 }
 
 
