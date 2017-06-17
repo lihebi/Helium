@@ -1,5 +1,6 @@
 add_library(HeliumUtils
   graph.cc
+  AggGraph.cpp
         color_utils.cc
         dot.cc
         dump.cc

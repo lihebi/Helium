@@ -30,6 +30,10 @@ int main(int argc, char *argv[]) {
 
   std::cout << "PNG file outputed to " << output_file << "\n";
 
+  // agg
+  std::string agg_filename = cfg->visualizeAgg();
+  std::cout << "AGG file outputed to " << agg_filename << "\n";
+
   std::cout << "End" << "\n";
   return 0;
 }

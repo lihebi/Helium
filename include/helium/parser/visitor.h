@@ -796,6 +796,7 @@ namespace v2 {
       graph.removeOutEdge(node);
     }
     std::string visualize();
+    std::string visualizeAgg();
 
     /**
      * I still need to set in and out manually because, return xx; a=b;

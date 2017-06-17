@@ -162,6 +162,7 @@ namespace hebigraph {
      * visualize by exporting to graph
      */
     std::string visualize(std::string (*labelFunc)(T));
+    std::string visualizeAgg(std::string (*labelFunc)(T));
 
     void merge(Graph<T> &rhs);
   private:

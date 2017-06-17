@@ -96,27 +96,11 @@ std::string DotGraph::dump() {
  */
 std::string visualize_dot_graph(const std::string& dot, bool open, std::string filename) {
   std::string dir = utils::create_tmp_dir();
-  // std::string extension = filename.substr(filename.find_last_of('.'));
-  // if (extension == "dot") {
-  //   utils::write_file(dir + "/" + filename, dot);
-  //   std::cout << "wrote to file: " + dir + "/out.dot"  << "\n";
-  // } else if (extension == "png") {
-  //   assert(false); // TODO
-  // } else {
-  //   // using dot
-  //   filename += ".dot";
-  //   utils::write_file(dir + "/" + filename, dot);
-  //   std::cout << "wrote to file: " + dir + "/" + filename  << "\n";
-  // }
   std::string png_filename = dir + "/" + filename + ".png";
   filename =  dir + "/" + filename + ".dot";
   std::string png_convert_cmd = "dot -Tpng -o " + png_filename + " " + filename;
   utils::write_file(filename, dot);
-  // std::cout << "wrote to file: " + filename << "\n";
-  // std::string cmd_png = "dot -Tpng "+dir+"/out.dot -o "+dir+"/out.png";
-  // utils::exec(cmd_png.c_str());
   utils::exec(png_convert_cmd.c_str());
-
   if (open) {
 #ifdef __MACH__
     std::string display_cmd = "open " + filename;

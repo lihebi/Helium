@@ -1,0 +1,56 @@
+#+TITLE: CFG Tool
+
+Output format: agg: http://www.user.tu-berlin.de/o.runge/agg/down_V21/index.html
+
+#+BEGIN_SRC xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <Document version="1.0">
+    <GraphTransformationSystem ID="I1" name="Class">
+      <Types>
+        <NodeType ID="I2" name="Statement"/>
+        <NodeType ID="I3" name="Branch"/>
+        <NodeType ID="I4" name="Loophead"/>
+        <NodeType ID="I5" name="Helper"/>
+        <EdgeType ID="I6" name="Forward"/>
+        <EdgeType ID="I7" name="Backward"/>
+      </Types>
+      <Graph ID="I0" name="Graph">
+      
+        <Node ID="I8" type="I4">
+        </Node>
+        <Node ID="I9" type="I4">
+        </Node>
+        <Node ID="I10" type="I3">
+        </Node>
+        <Node ID="I11" type="I2">
+        </Node>
+        <Node ID="I12" type="I5">
+        </Node>
+        <Node ID="I13" type="I5">
+        </Node>
+        <Node ID="I14"  type = "I5">
+        </Node>
+        <Edge ID="I15" source="I8" target="I9" type="I6">
+        </Edge>
+        <Edge ID="I16" source="I9" target="I10" type="I6">
+        </Edge>
+        <Edge ID="I17" source="I10" target="I11" type="I6">
+        </Edge>
+        <Edge ID="I18" source="I10" target="I12" type="I6">
+        </Edge>
+        <Edge ID="I19" source="I11" target="I12" type="I6">
+        </Edge>
+        <Edge ID="I20" source="I12" target="I9" type="I7">
+        </Edge>
+        <Edge ID="I21" source="I8" target="I14" type="I6">
+        </Edge>	
+        <Edge ID="I22" source="I13" target="I8" type="I7">
+        </Edge>	
+        <Edge ID="I23" source="I9" target="I13" type="I6">
+        </Edge>
+      </Graph>
+      <Constraints/>
+    
+    </GraphTransformationSystem>
+  </Document>
+#+END_SRC

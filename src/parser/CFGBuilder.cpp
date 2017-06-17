@@ -341,23 +341,13 @@ std::string CFGNode::getLabel() {
 
 
 std::string CFG::visualize() {
-  // TODO
-  return graph.visualize([](CFGNode *node)->std::string{return node->getLabel();});
-  // return hebigraph::visualize(graph);
-  // DotGraph graph;
-  // std::map<CFGNode*, int> IDs;
-  // int ID=0;
-  // for (CFGNode* node : allNodes) {
-  //   assert(node);
-  //   graph.AddNode(std::to_string(ID), node->getLabel());
-  //   IDs[node]=ID;
-  //   ID++;
-  // }
-  // for (auto m : edges) {
-  //   graph.AddEdge(std::to_string(IDs[m.first]),
-  //                 std::to_string(IDs[m.second]));
-  // }
-  // std::string dotstring = graph.dump();
-  // return visualize_dot_graph(dotstring);
+  return graph.visualize
+    ([](CFGNode *node)->std::string
+     {return node->getLabel();});
 }
 
+std::string CFG::visualizeAgg() {
+  return graph.visualizeAgg
+    ([](CFGNode *node)->std::string
+     {return node->getLabel();});
+}
