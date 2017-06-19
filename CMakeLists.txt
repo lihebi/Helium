@@ -50,7 +50,7 @@ set(LLVM_LINK_COMPONENTS support)
 
 ## Setting Clang
 # this is required
-find_package(Clang REQUIRED CONFIG)
+# find_package(Clang REQUIRED CONFIG)
 
 # why I need this??? Otherwise error: undefined reference to typeinfo for xxx
 # add_compile_options(-fno-rtti)
