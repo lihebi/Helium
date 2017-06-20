@@ -17,7 +17,8 @@ XMLDoc *XMLDocReader::ReadFile(std::string filename) {
   if (m_docs.count(filename) == 1) return m_docs[filename];
   std::string cmd;
   // cmd = "srcml --position -lC " + filename;
-  cmd = "helium-srcml --position " + filename;
+  // cmd = "helium-srcml --position " + filename;
+  cmd = "srcml-client.py " + filename;
   
   // cmd = "srcml " + filename;
   std::string xml = utils::exec(cmd.c_str(), NULL);
@@ -36,7 +37,8 @@ XMLDoc* XMLDocReader::ReadString(const std::string &code) {
   std::cerr << "warning: [XMLDocReader::ReadString] create from string" << "\n";
   std::string cmd;
   // cmd = "srcml --position -lC";
-  cmd = "helium-srcml --position -";
+  // cmd = "helium-srcml --position -";
+  cmd = "srcml-client.py -";
   // std::string cmd = "srcml -lC";
   std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
@@ -60,10 +62,13 @@ XMLDoc* XMLDocReader::ReadSnippet(int id) {
 
 // I should try my best to fill the filename here
 XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string filename) {
-  std::string cmd = "helium-srcml --position - ";
-  if (!filename.empty()) {
-    cmd += " -f " + filename;
-  }
+  std::string cmd;
+  // cmd = "helium-srcml --position - ";
+  cmd = "srcml-client.py -";
+  // FIXME
+  // if (!filename.empty()) {
+  //   cmd += " -f " + filename;
+  // }
   // std::string cmd = "srcml -lC";
   std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
@@ -73,7 +78,8 @@ XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code, std::string f
 
 XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
   std::string cmd;
-  cmd = "helium-srcml --position " + filename;
+  // cmd = "helium-srcml --position " + filename;
+  cmd = "srcml-client.py " + filename;
   std::string xml = utils::exec(cmd.c_str(), NULL);
   pugi::xml_document *doc = new pugi::xml_document();
   doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
