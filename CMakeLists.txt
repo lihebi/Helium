@@ -37,20 +37,27 @@ find_package (Threads)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
 
 find_package( Boost 1.40 COMPONENTS system filesystem program_options regex timer REQUIRED )
-include_directories( ${Boost_INCLUDE_DIR} )
+include_directories(${Boost_INCLUDE_DIRS})
 
 
 ## Setting LLVM
 find_package(LLVM REQUIRED CONFIG)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMCOnfig.cmake in: ${LLVM_DIR}")
+# message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+# message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+# message(STATUS "LLVM include: ${LLVM_INCLUDE_DIRS}")
+# message(STATUS "LLVM library: ${LLVM_LIBRARY_DIRS}")
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
+# link_directories(${LLVM_LIBRARY_DIRS})
 set(LLVM_LINK_COMPONENTS support)
 
 ## Setting Clang
 # this is required
-# find_package(Clang REQUIRED CONFIG)
+find_package(Clang REQUIRED CONFIG)
+# message(STATUS "Found Clang ${Clang_PACKAGE_VERSION}")
+# message(STATUS "Using ClangConfig.cmake in: ${CLANG_INSTALL_PREFIX}")
+# message(STATUS "Clang include: ${Clang_INCLUDE_DIRS}")
+# message(STATUS "Clang library: ${Clang_LIBRARY_DIRS}")
 
 # why I need this??? Otherwise error: undefined reference to typeinfo for xxx
 # add_compile_options(-fno-rtti)
