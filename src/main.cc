@@ -391,7 +391,9 @@ void load_header_config() {
   {
     std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-config-json");
     for (std::string vi : v) {
-      HeaderManager::Instance()->jsonAddConf(vi);
+      // 1. escape ~
+      // 2. resolve sym link
+      HeaderManager::Instance()->jsonAddConf(fs::canonical(utils::escape_tide(vi)));
     }
   }
 }
