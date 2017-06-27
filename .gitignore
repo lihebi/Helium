@@ -26,9 +26,6 @@ helium.xml
 
 # helium.conf
 
-tmp/*
-
-
 # latex related
 *.fdb_latexmk
 *.fls

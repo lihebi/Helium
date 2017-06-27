@@ -1,6 +1,6 @@
 #include "helium/parser/HeaderManager.h"
 
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 
 #include "helium/resolver/SnippetV2.h"
 

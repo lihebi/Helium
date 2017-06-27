@@ -1,4 +1,4 @@
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

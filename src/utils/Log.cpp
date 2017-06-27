@@ -1,5 +1,5 @@
 #include "helium/utils/log.h"
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 
 #include "helium/utils/helium_options.h"
 #include <iostream>

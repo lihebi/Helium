@@ -1,6 +1,5 @@
-#include "helium/resolver/clangSnippet.h"
-
-#include "helium/utils/fs_utils.h"
+#include "helium/resolver/ClangSnippet.h"
+#include "helium/utils/FSUtils.h"
 #include <iostream>
 
 using namespace clang;

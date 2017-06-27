@@ -1,10 +1,10 @@
-#include "helium/utils/helper.h"
-#include "helium/utils/common.h"
-#include "helium/utils/log.h"
-#include "helium/utils/utils.h"
+#include "helium/utils/Helper.h"
+#include "helium/utils/Common.h"
+#include "helium/utils/Log.h"
+#include "helium/utils/Utils.h"
 #include <iostream>
 
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 
 /**
  * Get true linum in consideration of line marker

@@ -1,13 +1,13 @@
-#include "helium/resolver/SnippetV2.h"
+#include "helium/type/Snippet.h"
 #include "helium/utils/fs_utils.h"
 
 #include "helium/resolver/SnippetAction.h"
 #include "helium/parser/HeaderManager.h"
 
 #include "helium/utils/graph.h"
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 
-#include "helium/resolver/resolver.h"
+
 #include <rapidjson/istreamwrapper.h>
 
 using namespace v2;

@@ -1,7 +1,7 @@
 #ifndef XML_DOC_READER_H
 #define XML_DOC_READER_H
 
-#include "xmlnode.h"
+#include "XMLNode.h"
 
 /**
  * Read the xml document by SrcML.

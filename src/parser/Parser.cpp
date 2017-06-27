@@ -1,11 +1,11 @@
-#include "helium/parser/parser.h"
-#include "helium/parser/xml_doc_reader.h"
-#include "helium/parser/ast_v2.h"
+#include "helium/parser/Parser.h"
+#include "helium/utils/XMLDocReader.h"
+#include "helium/parser/AST.h"
 
-#include "helium/parser/xmlnode_helper.h"
-#include "helium/utils/string_utils.h"
+#include "helium/utils/XMLNodeHelper.h"
+#include "helium/utils/StringUtils.h"
 
-#include "helium/resolver/resolver.h"
+
 
 
 using std::vector;

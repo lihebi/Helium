@@ -1,18 +1,28 @@
 add_library(HeliumUtils
-  graph.cc
+  Utils.cpp
+  Common.cpp
+  Helper.cpp
+  HeliumOptions.cpp
+  
+  Dot.cpp
+  Graph.cpp
   AggGraph.cpp
-        color_utils.cc
-        dot.cc
-        dump.cc
-        fs_utils.cc
-        log.cc
-        new_thread.cc
-        thread_utils.cc
-        table.cc
-        rand_utils.cc
-        string_utils.cc
-        utils.cc
-        xml_utils.cc
-        common.cc
-        helium_options.cc
-        helper.cc)
+
+  ColorUtils.cpp
+
+  Dom.cpp
+  XMLDocReader.cpp
+  XMLNode.cpp
+  XMLNodeHelper.cpp
+  XMLUtils.cpp
+
+  Dump.cpp
+  Log.cpp
+
+  Table.cpp
+
+  FSUtils.cpp
+  RandUtils.cpp
+  StringUtils.cpp
+  ThreadUtils.cpp
+  )

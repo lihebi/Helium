@@ -1,7 +1,6 @@
-
-#include "helium/utils/dot.h"
+#include "helium/utils/Dot.h"
 #include <gtest/gtest.h>
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 
 
 static std::string dot_id_filter(std::string s) {

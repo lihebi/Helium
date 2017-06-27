@@ -1,7 +1,7 @@
-#include "helium/parser/source_manager.h"
+#include "helium/parser/SourceManager.h"
 
 #include "helium/parser/parser.h"
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 
 #include "helium/utils/rand_utils.h"
 #include "helium/parser/GrammarPatcher.h"

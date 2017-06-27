@@ -1,7 +1,7 @@
 #include "helium/resolver/cache.h"
 
 #include "helium/utils/fs_utils.h"
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 #include "helium/utils/thread_utils.h"
 #include "helium/resolver/clangSnippet.h"
 #include "helium/resolver/snippet.h"

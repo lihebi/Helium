@@ -1,6 +1,6 @@
 #include "helium/utils/table.h"
 #include <iostream>
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 
 Table* TableFactory::Create(fs::path file) {
   if (!fs::exists(file)) {

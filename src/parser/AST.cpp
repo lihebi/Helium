@@ -1,9 +1,8 @@
-#include "helium/parser/ast_v2.h"
+#include "helium/parser/AST.h"
 #include <iostream>
 
-#include "helium/parser/source_manager.h"
+#include "helium/parser/SourceManager.h"
 
-#include "helium/resolver/resolver.h"
 
 using namespace v2;
 

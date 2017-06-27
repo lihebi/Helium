@@ -1,4 +1,4 @@
-#include "helium/utils/graph.h"
+#include "helium/utils/Graph.h"
 #include "helium/parser/visitor.h"
 #include "helium/utils/dot.h"
 #include "helium/utils/AggGraph.h"

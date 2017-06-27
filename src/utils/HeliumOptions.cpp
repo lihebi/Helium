@@ -1,6 +1,6 @@
-#include "helium/utils/helium_options.h"
-#include "helium/utils/utils.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/HeliumOptions.h"
+#include "helium/utils/Utils.h"
+#include "helium/utils/FSUtils.h"
 #include <iostream>
 #include <fstream>
 

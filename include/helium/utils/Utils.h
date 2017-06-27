@@ -1,19 +1,19 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
-#include "common.h"
+#include "Common.h"
 
 #include <pugixml.hpp>
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "rand_utils.h"
+#include "RandUtils.h"
 
-#include "xml_utils.h"
-#include "string_utils.h"
-#include "thread_utils.h"
-#include "fs_utils.h"
-#include "color_utils.h"
+#include "XMLUtils.h"
+#include "StringUtils.h"
+#include "ThreadUtils.h"
+#include "FSUtils.h"
+#include "ColorUtils.h"
 
 namespace utils {
   bool is_number(const std::string& s);

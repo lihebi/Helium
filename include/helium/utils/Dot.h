@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "common.h"
+#include "Common.h"
 
 typedef enum _DotNodeColorKind {
   DNCK_Yellow,

@@ -1,9 +1,15 @@
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 #include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
 
 #include <fcntl.h>
 
@@ -275,7 +281,19 @@ std::string utils::exec_sh(const char* cmd, int *status, double timeout_d) {
     }
   }
 
-  
+
+  std::string new_exec(const char* cmd) {
+    char buffer[128];
+    std::string result = "";
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw std::runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+      if (fgets(buffer, 128, pipe.get()) != NULL)
+        result += buffer;
+    }
+    return result;
+  }
+
 }
 
 

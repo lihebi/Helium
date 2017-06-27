@@ -1,10 +1,10 @@
-#include "helium/utils/utils.h"
+#include "helium/utils/Utils.h"
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <iterator>
 #include <fstream>
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/FSUtils.h"
 
 namespace fs = boost::filesystem;
 using namespace utils;

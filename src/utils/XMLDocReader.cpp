@@ -1,6 +1,6 @@
-#include "helium/parser/xml_doc_reader.h"
-#include "helium/utils/utils.h"
-#include "helium/parser/xmlnode_helper.h"
+#include "helium/utils/XMLDocReader.h"
+#include "helium/utils/Utils.h"
+#include "helium/utils/XMLNodeHelper.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 

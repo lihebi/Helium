@@ -1,7 +1,7 @@
 #include "helium/parser/visitor.h"
-#include "helium/parser/ast_v2.h"
-#include "helium/parser/source_manager.h"
-#include "helium/utils/string_utils.h"
+#include "helium/parser/AST.h"
+#include "helium/parser/SourceManager.h"
+#include "helium/utils/StringUtils.h"
 #include <iostream>
 
 #include <gtest/gtest.h>

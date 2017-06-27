@@ -1,4 +1,4 @@
-#include "helium/utils/color_utils.h"
+#include "helium/utils/ColorUtils.h"
 
 namespace utils {
   const char* RED = "\033[31m";

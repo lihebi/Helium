@@ -12,7 +12,7 @@ target_link_libraries(helium-ast-printer
   ${Boost_LIBRARIES}
   ${GTEST_BOTH_LIBRARIES})
 
-target_link_libraries(helium-ast-printer pugixml sqlite3 ctags)
+target_link_libraries(helium-ast-printer pugixml sqlite3)
 
 
 
@@ -32,7 +32,7 @@ target_link_libraries(helium-cfg-printer
   ${Boost_LIBRARIES}
   ${GTEST_BOTH_LIBRARIES})
 
-target_link_libraries(helium-cfg-printer pugixml sqlite3 ctags)
+target_link_libraries(helium-cfg-printer pugixml sqlite3)
 
 
 # add_test (NAME ast-printer-test COMMAND helium-ast-printer ../../test/cfgtest/if.c)
