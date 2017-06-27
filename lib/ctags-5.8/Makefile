@@ -11,8 +11,8 @@ $(REAL_NAME):
 	$(CC) -shared -Wl,-soname,$(SO_NAME) -o $(REAL_NAME) $(OBJ)
 
 install: $(REAL_NAME)
-	cp $(REAL_NAME) /usr/local/lib
-	cp $(HEADERS) /usr/local/include
+	cp $(REAL_NAME) /usr/lib
+	cp $(HEADERS) /usr/include
 
 clean:
 	rm -rf *.o
