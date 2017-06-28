@@ -10,7 +10,6 @@ add_library(HeliumParser
   Distributor.cpp
   Generator.cpp
   GrammarPatcher.cpp
-  InstrumentPointVisitor.cpp
   LevelVisitor.cpp
   ParentIndexer.cpp
   Printer.cpp

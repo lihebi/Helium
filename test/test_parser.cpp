@@ -1,16 +1,15 @@
-#include "helium/parser/parser.h"
+#include "helium/parser/Parser.h"
 #include <gtest/gtest.h>
 #include <vector>
 #include <string>
 
 #include "helium/parser/GrammarPatcher.h"
-#include "helium/utils/string_utils.h"
+#include "helium/utils/StringUtils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 namespace fs = boost::filesystem;
-using namespace v2;
 
 using namespace std;
 
@@ -751,7 +750,7 @@ int foo() {
     
   SymbolTableBuilder builder;
   unit->accept(&builder);
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = builder.getUse2DefMap();
 
   // for (auto m : u2d) {
   //   m.first->dump(std::cout);
@@ -833,7 +832,7 @@ int foo(int a, int b) {
     
   SymbolTableBuilder builder;
   unit->accept(&builder);
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = builder.getUse2DefMap();
   EXPECT_EQ(u2d.size(), 4);
 
   ASSERT_EQ(u2d.count(while_cond), 1);
@@ -900,7 +899,7 @@ int foo() {
     
   SymbolTableBuilder builder;
   unit->accept(&builder);
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = builder.getUse2DefMap();
   // for (auto &m : u2d) {
   //   m.first->dump(std::cout);
   //   std::cout << " ==> ";

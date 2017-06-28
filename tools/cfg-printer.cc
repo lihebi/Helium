@@ -1,9 +1,8 @@
-#include "helium/parser/ast_v2.h"
-#include "helium/parser/parser.h"
-#include "helium/parser/visitor.h"
+#include "helium/parser/AST.h"
+#include "helium/parser/Parser.h"
+#include "helium/parser/Visitor.h"
 #include <iostream>
 
-using namespace v2;
 /**
  * print the AST associated with the file
  */
@@ -25,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   CFGBuilder builder;
   unit->accept(&builder);
-  v2::CFG *cfg = builder.getCFG();
+  CFG *cfg = builder.getCFG();
   std::string output_file = cfg->visualize();
 
   std::cout << "PNG file outputed to " << output_file << "\n";

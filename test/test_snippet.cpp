@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "helium/resolver/snippet.h"
-#include "helium/resolver/snippet_db.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/FSUtils.h"
 
-#include "helium/resolver/cache.h"
-#include "helium/resolver/SnippetAction.h"
-#include "helium/resolver/SnippetV2.h"
+#include "helium/type/Cache.h"
+#include "helium/type/SnippetAction.h"
+#include "helium/type/Snippet.h"
 
 
 #include <boost/filesystem.hpp>
@@ -15,147 +13,6 @@
 namespace fs = boost::filesystem;
 
 using namespace std;
-
-
-
-const char *snippet_a_c = R"prefix(
-int global_a;
-struct TempA {
-} temp_a;
-
-int aoo() {
-  struct A1 a;
-  struct B b;
-  foo();
-}
-)prefix";
-
-const char *snippet_a_h = R"prefix(
-struct A1 {
-};
-struct A2 {
-  struct A1;
-};
-
-typedef struct A2 A2;
-typedef struct A3 {
-  struct A2 a2;
-} A3Alias;
-)prefix";
-
-const char *snippet_b_c = R"prefix(
-void foo() {
-  bar();
-  return;
-}
-void bar() {
-  return;
-}
-)prefix";
-
-const char *snippet_b_h = R"prefix(
-void foo();
-void bar();
-struct B {
-  int b;
-};
-)prefix";
-
-const char *snippet_sub_c = R"prefix(
-void subc() {
-  foo();
-  bar();
-}
-)prefix";
-
-const char *snippet_lib_c = R"prefix(
-void libc() {
-  foo();
-}
-)prefix";
-
-class SnippetTest : public ::testing::Test {
-public:
-  virtual void SetUp() {
-    // create folder
-    fs::path temp_dir = fs::temp_directory_path();
-    unique_dir = fs::unique_path(temp_dir / "%%%%-%%%%-%%%%-%%%%");
-    fs::create_directories(unique_dir);
-    fs::create_directories(unique_dir / "src");
-    fs::create_directories(unique_dir / "include");
-    fs::create_directories(unique_dir / "lib");
-    fs::create_directories(unique_dir / "src" / "sub");
-
-    fs::path file_a_c = unique_dir / "src" / "a.c";
-    fs::path file_a_h = unique_dir / "src" / "a.h";
-    fs::path file_b_c = unique_dir / "src" / "b.c";
-    fs::path file_b_h = unique_dir / "include" / "b.h";
-    fs::path file_sub_c = unique_dir / "src" / "sub" / "sub.c";
-    fs::path file_lib_c = unique_dir / "lib" / "lib.c";
-
-    // write source file
-    fs::ofstream of;
-    utils::write_file(file_a_c.string(), snippet_a_c);
-    utils::write_file(file_a_h.string(), snippet_a_h);
-    utils::write_file(file_b_c.string(), snippet_b_c);
-    utils::write_file(file_b_h.string(), snippet_b_h);
-    utils::write_file(file_sub_c.string(), snippet_sub_c);
-    utils::write_file(file_lib_c.string(), snippet_lib_c);
-     
-
-    // Create cache
-    std::string target_dir_name = fs::canonical(unique_dir).string();
-    std::replace(target_dir_name.begin(), target_dir_name.end(), '/', '_');
-    fs::path user_home(getenv("HOME"));
-    fs::path helium_home = user_home / ".helium.d";
-    if (!fs::exists(helium_home)) {
-      fs::create_directory(helium_home);
-    }
-    fs::path cache_dir = helium_home / "cache";
-    target_cache_dir = fs::path(helium_home / "cache" / target_dir_name);
-    fs::path target_sel_dir = fs::path(helium_home / "sel" / target_dir_name);
-    // 1. preprocess
-    fs::create_directories(target_cache_dir);
-    create_src(unique_dir, target_cache_dir, target_sel_dir);
-    create_cpp(target_cache_dir);
-    
-    std::cout << "Created " << unique_dir.string() << "\n";
-
-    // Check if entries are in database
-    SnippetDB::Instance()->Load(target_cache_dir / "snippet.db", target_cache_dir / "code");
-
-    {
-      set<int> ids = SnippetDB::Instance()->LookUp("A");
-      ASSERT_EQ(ids.size(), 1);
-      int id = *ids.begin();
-      SnippetMeta meta = SnippetDB::Instance()->GetMeta(id);
-      std::cout << "===== A:" << "\n";
-      meta.dump(std::cout);
-      std::cout << "===== Deps:" << "\n";
-      std::string code = SnippetDB::Instance()->GetCode(id);
-      set<int> deps = SnippetDB::Instance()->GetDep(id);
-      for (int dep : deps) {
-        SnippetMeta dep_meta = SnippetDB::Instance()->GetMeta(dep);
-        dep_meta.dump(std::cout);
-      }
-      std::cout << "Code: " << code << "\n";
-    }
-  } 
-  virtual void TearDown() {
-    // TODO remove from cache
-    // fs::remove_all(target_cache_dir);
-    // remove it
-    // fs::remove_all(unique_dir);
-  }
-private:
-  fs::path unique_dir;
-  fs::path target_cache_dir;
-};
-
-// TEST_F(SnippetTest, MySnippetTest) {
-// }
-
-
 
 class NewSnippetTest : public ::testing::Test {
 protected:
@@ -187,16 +44,16 @@ protected:
 TEST_F(NewSnippetTest, MyTest) {
   {
     // std::cout << file_a_h.string() << "\n";
-    std::vector<v2::Snippet*> snippets = createSnippets(file_a_h);
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    std::vector<Snippet*> snippets = createSnippets(file_a_h);
+    SnippetManager *manager = new SnippetManager();
     manager->add(snippets);
     manager->process();
     // manager->dump(std::cout);
-    v2::Snippet *A1 = manager->getone("A1", "RecordSnippet");
-    v2::Snippet *A2 = manager->getone("A2", "RecordSnippet");
-    v2::Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
-    v2::Snippet *A3 = manager->getone("A3", "RecordSnippet");
-    v2::Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
+    Snippet *A1 = manager->getone("A1", "RecordSnippet");
+    Snippet *A2 = manager->getone("A2", "RecordSnippet");
+    Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
+    Snippet *A3 = manager->getone("A3", "RecordSnippet");
+    Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
     ASSERT_TRUE(A1);
     ASSERT_TRUE(A2);
     ASSERT_TRUE(A3);
@@ -209,15 +66,15 @@ TEST_F(NewSnippetTest, MyTest) {
     EXPECT_EQ(A3Alias->getCode(), "typedef struct A3 {\n  struct A2 a2;\n} A3Alias");
   }
   {
-    std::vector<v2::Snippet*> snippets = createSnippets(file_a_c);
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    std::vector<Snippet*> snippets = createSnippets(file_a_c);
+    SnippetManager *manager = new SnippetManager();
     manager->add(snippets);
     manager->process();
 
-    v2::Snippet *global_a = manager->getone("global_a", "VarSnippet");
-    v2::Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
-    v2::Snippet *myvar = manager->getone("myvar", "VarSnippet");
-    v2::Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
+    Snippet *global_a = manager->getone("global_a", "VarSnippet");
+    Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
+    Snippet *myvar = manager->getone("myvar", "VarSnippet");
+    Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
     ASSERT_TRUE(global_a);
     ASSERT_TRUE(temp_a);
     ASSERT_TRUE(myvar);
@@ -230,22 +87,22 @@ TEST_F(NewSnippetTest, MyTest) {
     EXPECT_EQ(aoo->getCode(), "int aoo() {\n  struct A1 a;\n  struct B b;\n  foo();\n}");
   }
   {
-    std::vector<v2::Snippet*> snippets = createSnippets(file_var_c);
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    std::vector<Snippet*> snippets = createSnippets(file_var_c);
+    SnippetManager *manager = new SnippetManager();
     manager->add(snippets);
     manager->process();
 
-    v2::Snippet *a = manager->getone("a", "VarSnippet");
-    v2::Snippet *b = manager->getone("b", "VarSnippet");
-    v2::Snippet *c = manager->getone("c", "VarSnippet");
-    v2::Snippet *d = manager->getone("d", "VarSnippet");
-    v2::Snippet *e = manager->getone("e", "VarSnippet");
-    v2::Snippet *f = manager->getone("f", "VarSnippet");
-    v2::Snippet *gg = manager->getone("gg", "VarSnippet");
-    v2::Snippet *p = manager->getone("p", "VarSnippet");
-    v2::Snippet *longvar = manager->getone("longvar", "VarSnippet");
-    v2::Snippet *long_var = manager->getone("long_var", "VarSnippet");
-    v2::Snippet *longvarinit = manager->getone("longvarinit", "VarSnippet");
+    Snippet *a = manager->getone("a", "VarSnippet");
+    Snippet *b = manager->getone("b", "VarSnippet");
+    Snippet *c = manager->getone("c", "VarSnippet");
+    Snippet *d = manager->getone("d", "VarSnippet");
+    Snippet *e = manager->getone("e", "VarSnippet");
+    Snippet *f = manager->getone("f", "VarSnippet");
+    Snippet *gg = manager->getone("gg", "VarSnippet");
+    Snippet *p = manager->getone("p", "VarSnippet");
+    Snippet *longvar = manager->getone("longvar", "VarSnippet");
+    Snippet *long_var = manager->getone("long_var", "VarSnippet");
+    Snippet *longvarinit = manager->getone("longvarinit", "VarSnippet");
     
     ASSERT_TRUE(a && b && c && d && e && f && gg && p && longvar && long_var && longvarinit);
 
@@ -264,14 +121,14 @@ TEST_F(NewSnippetTest, MyTest) {
 
   {
     // test decl
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    SnippetManager *manager = new SnippetManager();
     manager->add(createSnippets(file_decl_h));
     manager->process();
 
-    v2::Snippet *A = manager->getone("A", "RecordDeclSnippet");
-    v2::Snippet *B = manager->getone("B", "RecordDeclSnippet");
-    v2::Snippet *foo = manager->getone("foo", "FunctionDeclSnippet");
-    v2::Snippet *bar = manager->getone("bar", "FunctionDeclSnippet");
+    Snippet *A = manager->getone("A", "RecordDeclSnippet");
+    Snippet *B = manager->getone("B", "RecordDeclSnippet");
+    Snippet *foo = manager->getone("foo", "FunctionDeclSnippet");
+    Snippet *bar = manager->getone("bar", "FunctionDeclSnippet");
 
     ASSERT_TRUE(A && B && foo && bar);
 
@@ -283,7 +140,7 @@ TEST_F(NewSnippetTest, MyTest) {
 
   {
     // test dependency
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    SnippetManager *manager = new SnippetManager();
     manager->add(createSnippets(file_a_c));
     manager->add(createSnippets(file_a_h));
     manager->add(createSnippets(file_b_c));
@@ -292,22 +149,22 @@ TEST_F(NewSnippetTest, MyTest) {
     manager->add(createSnippets(file_lib_c));
     manager->process();
 
-    v2::Snippet *A1 = manager->getone("A1", "RecordSnippet");
-    v2::Snippet *A2 = manager->getone("A2", "RecordSnippet");
-    v2::Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
-    v2::Snippet *A2Decl = manager->getone("A2", "RecordDeclSnippet");
-    v2::Snippet *A3 = manager->getone("A3", "RecordSnippet");
-    v2::Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
+    Snippet *A1 = manager->getone("A1", "RecordSnippet");
+    Snippet *A2 = manager->getone("A2", "RecordSnippet");
+    Snippet *A2Typedef = manager->getone("A2", "TypedefSnippet");
+    Snippet *A2Decl = manager->getone("A2", "RecordDeclSnippet");
+    Snippet *A3 = manager->getone("A3", "RecordSnippet");
+    Snippet *A3Alias = manager->getone("A3Alias", "TypedefSnippet");
     
-    v2::Snippet *global_a = manager->getone("global_a", "VarSnippet");
-    v2::Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
-    v2::Snippet *myvar = manager->getone("myvar", "VarSnippet");
-    v2::Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
+    Snippet *global_a = manager->getone("global_a", "VarSnippet");
+    Snippet *temp_a = manager->getone("temp_a", "VarSnippet");
+    Snippet *myvar = manager->getone("myvar", "VarSnippet");
+    Snippet *aoo = manager->getone("aoo", "FunctionSnippet");
 
 
     // manager->dump(std::cout);
     
-    std::set<v2::Snippet*> dep;
+    std::set<Snippet*> dep;
     dep = A1->getDeps();
     EXPECT_EQ(dep.size(), 0);
     dep = A2->getDeps();
@@ -328,7 +185,7 @@ TEST_F(NewSnippetTest, MyTest) {
     EXPECT_EQ(dep.count(A2Decl), 1);
 
     // outer
-    std::set<v2::Snippet*> outer;
+    std::set<Snippet*> outer;
     // manager->dump(std::cout);
     // manager->dumpSnippetsVerbose(std::cout);
     outer = A3->getOuters();
@@ -340,8 +197,8 @@ TEST_F(NewSnippetTest, MyTest) {
 
   {
     // Test save and load back
-    std::vector<v2::Snippet*> snippets = createSnippets(file_var_c);
-    v2::SnippetManager *manager = new v2::SnippetManager();
+    std::vector<Snippet*> snippets = createSnippets(file_var_c);
+    SnippetManager *manager = new SnippetManager();
     manager->add(snippets);
     manager->process();
 
@@ -351,16 +208,16 @@ TEST_F(NewSnippetTest, MyTest) {
     // std::cout << "Saved to " << random_json << "\n";
 
     // a new manager to load
-    v2::SnippetManager *manager2 = new v2::SnippetManager();
+    SnippetManager *manager2 = new SnippetManager();
     manager2->loadJson(random_json);
 
     // verify
-    std::vector<v2::Snippet*> snippets2 = manager2->getSnippets();
+    std::vector<Snippet*> snippets2 = manager2->getSnippets();
     // check snippet and snippet2
     ASSERT_EQ(snippets.size(), snippets2.size());
     for (int i=0;i<snippets.size();i++) {
-      v2::Snippet *s1 = snippets[i];
-      v2::Snippet *s2 = snippets2[i];
+      Snippet *s1 = snippets[i];
+      Snippet *s2 = snippets2[i];
       EXPECT_EQ(s1->getName(), s2->getName());
       // dep and outers
       EXPECT_EQ(s1->getDepsAsId(), s2->getDepsAsId());

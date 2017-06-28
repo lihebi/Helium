@@ -2,7 +2,7 @@
 
 #include "helium/utils/StringUtils.h"
 
-#include "helium/resolver/SnippetV2.h"
+#include "helium/type/Snippet.h"
 
 #include "helium/utils/HeliumOptions.h"
 #include "helium/utils/Graph.h"

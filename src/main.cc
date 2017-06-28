@@ -17,6 +17,11 @@
 #include "helium/type/Snippet.h"
 #include "helium/type/SnippetAction.h"
 
+#include "helium/utils/ThreadUtils.h"
+#include "helium/utils/ColorUtils.h"
+#include "helium/utils/StringUtils.h"
+#include "helium/utils/RandUtils.h"
+
 
 #include <gtest/gtest.h>
 #include <sqlite3.h>
@@ -120,8 +125,8 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     os.close();
 
     
-    // std::set<v2::ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
-    std::set<v2::ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
+    // std::set<ASTNodeBase*> sel = sourceManager->loadSelection(sel_file);
+    std::set<ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
     std::cout << "---------------------" << "\n";
     std::cout << "[main] Rerun this by: helium " << target.string() << " --sel " << sel_file.string() << "\n";
     std::cout << "[main] Selected " << sel.size() << " tokens on Selection file " << sel_file.string() << "\n";
@@ -130,7 +135,7 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     std::cout << "[main] Dump Dist for Sel: " << "\n";
     sourceManager->dumpDist(sel, std::cout);
     {
-      std::set<v2::ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
+      std::set<ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
       std::cout << "[main] Dump Dist for Sel Token: " << "\n";
       sourceManager->dumpDist(tmp, std::cout);
     }
@@ -141,7 +146,7 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     std::cout << "[main] Dump Dist for Patch: " << "\n";
     sourceManager->dumpDist(sel, std::cout);
     {
-      std::set<v2::ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
+      std::set<ASTNodeBase*> tmp = sourceManager->filterLeaf(sel);
       std::cout << "[main] Dump Dist for Patch Token: " << "\n";
       sourceManager->dumpDist(tmp, std::cout);
     }
@@ -153,7 +158,7 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
     // I might want to do another grammar patching in case def use breaks it
     sel = sourceManager->grammarPatch(sel);
     std::cout << "[main] Patch size: "<< sel.size() << " ==> ";
-    for (v2::ASTNodeBase *node : sel) {node->dump(std::cout);}
+    for (ASTNodeBase *node : sel) {node->dump(std::cout);}
     std::cout << "\n";
       
     std::string prog = sourceManager->generateProgram(sel);
@@ -290,7 +295,7 @@ void helium_utility(fs::path target) {
    */
   if (HeliumOptions::Instance()->Has("check-cache-valid")) {
     std::string reason;
-    bool valid = v2::GlobalSnippetManager::Instance()->checkValid(reason);
+    bool valid = GlobalSnippetManager::Instance()->checkValid(reason);
     if (valid) exit(0);
     else {
       std::cout << "Invalid because " << reason << "\n";
@@ -334,7 +339,7 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
 
   // The new snippet system
   std::cout << "== Creating snippets, deps, outers ..." << "\n";
-  v2::SnippetManager *snippet_manager = new v2::SnippetManager();
+  SnippetManager *snippet_manager = new SnippetManager();
   snippet_manager->traverseDir(target_cache_dir / "cpp");
 
   // snippet_manager->dumpLight(std::cout);
@@ -358,7 +363,7 @@ void create_sel(fs::path target_cache_dir) {
   fs::create_directories(target_sel_dir / "random");
 
   for (int i=0;i<sel_num;i++) {
-    std::set<v2::ASTNodeBase*> selection;
+    std::set<ASTNodeBase*> selection;
     // fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".sel");
     fs::path file = target_sel_dir / "random" / (std::to_string(i) + ".json");
     std::ofstream os;
@@ -460,9 +465,9 @@ int main(int argc, char* argv[]) {
   HeaderManager::Instance()->jsonResolve();
   fs::path snippet_file = target_cache_dir / "snippets.json";
   std::cout << "[main] Loading snippet from " << snippet_file << "\n";
-  v2::GlobalSnippetManager::Instance()->loadJson(snippet_file);
-  v2::GlobalSnippetManager::Instance()->processAfterLoad();
-  v2::GlobalSnippetManager::Instance()->dump(std::cout);
+  GlobalSnippetManager::Instance()->loadJson(snippet_file);
+  GlobalSnippetManager::Instance()->processAfterLoad();
+  GlobalSnippetManager::Instance()->dump(std::cout);
 
   // (HEBI: Utility 3)
   helium_utility(target);

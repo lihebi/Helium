@@ -5,7 +5,7 @@
 #include "helium/utils/StringUtils.h"
 #include <iostream>
 
-#include "helium/utils/dot.h"
+#include "helium/utils/Dot.h"
 
 using std::vector;
 using std::string;

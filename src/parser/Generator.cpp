@@ -3,8 +3,7 @@
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
 
-#include "helium/type/type.h"
-#include "helium/type/primitive_type.h"
+#include "helium/type/Type.h"
 #include <iostream>
 
 using std::vector;

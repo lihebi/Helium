@@ -3,7 +3,7 @@
 
 #include "helium/parser/AST.h"
 #include <string>
-#include "helium/parser/xmlnode.h"
+#include "helium/utils/XMLNode.h"
 
 /**
  * \defgroup parser

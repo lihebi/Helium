@@ -23,7 +23,7 @@ public:
    * Since it is created from string, the default filename is empty.
    * But it is able to set the file name
    */
-  static XMLDoc* CreateDocFromString(const std::string &code, std::string filename = "");
+  static XMLDoc* CreateDocFromString(const std::string &code);
   static XMLDoc* CreateDocFromFile(std::string filename);
 };
 

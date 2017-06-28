@@ -1,14 +1,14 @@
 #include "helium/parser/SourceManager.h"
 
-#include "helium/parser/parser.h"
+#include "helium/parser/Parser.h"
 #include "helium/utils/StringUtils.h"
 
 #include "helium/utils/RandUtils.h"
 #include "helium/parser/GrammarPatcher.h"
 
-#include "helium/resolver/SnippetV2.h"
+#include "helium/type/Snippet.h"
 
-#include "helium/type/io_helper.h"
+#include "helium/type/IOHelper.h"
 
 #include <regex>
 

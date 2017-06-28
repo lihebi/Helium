@@ -1,4 +1,4 @@
-#include "helium/utils/graph.h"
+#include "helium/utils/Graph.h"
 #include <iostream>
 
 #include <gtest/gtest.h>

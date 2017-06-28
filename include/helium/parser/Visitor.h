@@ -671,49 +671,6 @@ private:
   std::vector<ASTNodeBase*> Nodes;
 };
 
-
-struct InstrumentPoint {
-  // true for before
-  // false for after
-  bool before = true;
-  ASTNodeBase *node = nullptr;
-};
-
-/**
- * Decide the instrumentation point before and after each node.
- */
-class InstrumentPointVisitor : public Visitor {
-public:
-  InstrumentPointVisitor() {}
-  ~InstrumentPointVisitor() {}
-  // high level
-  virtual void visit(TokenNode *node);
-  virtual void visit(TranslationUnitDecl *node);
-  virtual void visit(FunctionDecl *node);
-  virtual void visit(CompoundStmt *node);
-  // condition
-  virtual void visit(IfStmt *node);
-  virtual void visit(SwitchStmt *node);
-  virtual void visit(CaseStmt *node);
-  virtual void visit(DefaultStmt *node);
-  // loop
-  virtual void visit(ForStmt *node);
-  virtual void visit(WhileStmt *node);
-  virtual void visit(DoStmt *node);
-  // single
-  virtual void visit(BreakStmt *node);
-  virtual void visit(ContinueStmt *node);
-  virtual void visit(ReturnStmt *node);
-  // expr stmt
-  virtual void visit(Expr *node);
-  virtual void visit(DeclStmt *node);
-  virtual void visit(ExprStmt *node);
-private:
-  std::map<ASTNodeBase*, InstrumentPoint> After;
-};
-
-
-
 class CFGNode {
 public:
   CFGNode(ASTNodeBase*node) {

@@ -5,6 +5,8 @@
 #include "helium/utils/XMLNodeHelper.h"
 #include "helium/utils/StringUtils.h"
 
+#include "helium/utils/Exception.h"
+
 
 
 
@@ -70,7 +72,7 @@ DeclStmt *Parser::ParseDeclStmt(XMLNode decl) {
   // ret->addUsedVars(get_used_names(decl));
   // FIXME It is very hard to get the used variables. I need a precise parser
   // Now I'm using everything
-  ret->addUsedVars(extract_id_to_resolve(get_text(decl)));
+  ret->addUsedVars(utils::extract_id_to_resolve(get_text(decl)));
   return ret;
 }
 
@@ -243,7 +245,7 @@ Stmt *Parser::ParseExprStmt(XMLNode node) {
   Stmt *ret = new ExprStmt(Ctx, text, BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(extract_id_to_resolve(get_text(node)));
+  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 
@@ -557,7 +559,7 @@ Expr *Parser::ParseExpr(XMLNode node) {
   Expr *ret = new Expr(Ctx, get_text(node), BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(extract_id_to_resolve(get_text(node)));
+  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
@@ -573,7 +575,7 @@ Expr *Parser::ParseExprWithoutSemicolon(XMLNode node) {
   Expr *ret = new Expr(Ctx, text, BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(extract_id_to_resolve(get_text(node)));
+  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 

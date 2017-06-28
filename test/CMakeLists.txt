@@ -4,14 +4,11 @@ add_executable(heliumtest
   test_generator.cpp
   test_graph.cpp
   test_SourceManager.cpp
-  test_main.cc)
-
+)
 target_link_libraries(heliumtest
         HeliumUtils
-        HeliumParser
-        HeliumResolver
         HeliumType
-        HeliumWorkflow)
+        HeliumParser)
 
 target_link_libraries(heliumtest
         ${Boost_FILESYSTEM_LIBRARY}

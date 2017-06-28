@@ -1,5 +1,5 @@
-#include "helium/parser/source_manager.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/parser/SourceManager.h"
+#include "helium/utils/FSUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -17,7 +17,6 @@
 #include <boost/foreach.hpp>
 
 namespace fs = boost::filesystem;
-using namespace v2;
 
 using namespace std;
 
@@ -29,7 +28,7 @@ TEST(SourceManagerTest, MyTest) {
   {
     SourceManager *sourceManager = new SourceManager(bench);
 
-    std::set<v2::ASTNodeBase*> sel = sourceManager->genRandSel(1);
+    std::set<ASTNodeBase*> sel = sourceManager->genRandSel(1);
 
     std::ofstream os;
     fs::path unique_p = fs::unique_path(temp_dir / "%%%%-%%%%-%%%%-%%%%");
@@ -43,7 +42,7 @@ TEST(SourceManagerTest, MyTest) {
     // std::cout << "Content: " << "\n";
     // std::cout << utils::read_file(unique_p.string()) << "\n";
 
-    std::set<v2::ASTNodeBase*> sel_load = sourceManager->loadSelection(unique_p);
+    std::set<ASTNodeBase*> sel_load = sourceManager->loadSelection(unique_p);
     
     EXPECT_EQ(sel, sel_load);
 
