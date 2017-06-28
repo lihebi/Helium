@@ -1,11 +1,9 @@
-#include "helium/resolver/cache.h"
+#include "helium/type/Cache.h"
 
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/FSUtils.h"
 #include "helium/utils/StringUtils.h"
-#include "helium/utils/thread_utils.h"
-#include "helium/resolver/clangSnippet.h"
-#include "helium/resolver/snippet.h"
-#include "helium/resolver/snippet_db.h"
+#include "helium/utils/ThreadUtils.h"
+#include "helium/type/ClangSnippet.h"
 
 #include <iostream>
 #include <vector>

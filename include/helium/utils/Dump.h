@@ -1,6 +1,17 @@
 #ifndef DUMP_H
 #define DUMP_H
-#include "common.h"
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+
+
 /**
  * echo "benchmark, file count, func count, compile success, compile error, build rate, time(s)"
  * ALso

@@ -1,5 +1,14 @@
-#include "helium/utils/fs_utils.h"
-#include "helium/utils/common.h"
+#include "helium/utils/FSUtils.h"
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

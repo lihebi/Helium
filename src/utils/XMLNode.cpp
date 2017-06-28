@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 #include "helium/utils/Utils.h"
 #include "helium/utils/XMLDocReader.h"
-#include "helium/utils/helium_options.h"
-#include "helium/utils/log.h"
+#include "helium/utils/HeliumOptions.h"
+#include "helium/utils/Log.h"
 
 #include "helium/utils/XMLNodeHelper.h"
 

@@ -1,6 +1,5 @@
 add_library(HeliumUtils
   Utils.cpp
-  Common.cpp
   Helper.cpp
   HeliumOptions.cpp
   

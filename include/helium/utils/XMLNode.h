@@ -2,7 +2,17 @@
 #define XMLNODE_H
 
 #include <pugixml.hpp>
-#include "helium/utils/Common.h"
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+
 
 typedef pugi::xml_node XMLNode;
 typedef pugi::xml_document XMLDoc;

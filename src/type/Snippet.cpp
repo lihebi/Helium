@@ -1,16 +1,15 @@
 #include "helium/type/Snippet.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/FSUtils.h"
+#include "helium/utils/StringUtils.h"
 
-#include "helium/resolver/SnippetAction.h"
+#include "helium/type/SnippetAction.h"
 #include "helium/parser/HeaderManager.h"
 
-#include "helium/utils/graph.h"
+#include "helium/utils/Graph.h"
 #include "helium/utils/StringUtils.h"
 
 
 #include <rapidjson/istreamwrapper.h>
-
-using namespace v2;
 
 using std::set;
 using std::vector;
@@ -77,19 +76,19 @@ std::string read_file_for_code_until_semicolon(fs::path file, SourceLocation beg
   return ret;
 }
 
-void v2::FunctionSnippet::readCode() {
+void FunctionSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
 }
-void v2::FunctionDeclSnippet::readCode() {
+void FunctionDeclSnippet::readCode() {
   Code = read_file_for_code_until_semicolon(File, Begin, End);
 }
-void v2::RecordSnippet::readCode() {
+void RecordSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
 }
-void v2::RecordDeclSnippet::readCode() {
+void RecordDeclSnippet::readCode() {
   Code = read_file_for_code_until_semicolon(File, Begin, End);
 }
-void v2::EnumSnippet::readCode() {
+void EnumSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
 }
 
@@ -107,11 +106,11 @@ void TypedefSnippet::readCode() {
   Code = read_file_for_code_until_semicolon(File, Begin, End);
 }
 
-void v2::Snippet::dump(std::ostream &os) {
+void Snippet::dump(std::ostream &os) {
   os << Name;
 }
 
-void v2::Snippet::dumpVerbose(std::ostream &os) {
+void Snippet::dumpVerbose(std::ostream &os) {
   rapidjson::Document doc;
   doc.SetObject();
   rapidjson::Value v = saveJson(doc.GetAllocator());
@@ -340,7 +339,7 @@ std::string SnippetManager::dumpComment() {
 }
 
 
-std::set<v2::Snippet*> v2::Snippet::getAllDeps() {
+std::set<Snippet*> Snippet::getAllDeps() {
   std::set<Snippet*> worklist;
   std::set<Snippet*> done;
   std::set<Snippet*> ret;
@@ -358,18 +357,18 @@ std::set<v2::Snippet*> v2::Snippet::getAllDeps() {
   return ret;
 }
 
-std::set<v2::Snippet*> v2::SnippetManager::getAllDeps(std::set<v2::Snippet*> snippets) {
-  std::set<v2::Snippet*> deps;
+std::set<Snippet*> SnippetManager::getAllDeps(std::set<Snippet*> snippets) {
+  std::set<Snippet*> deps;
   for (auto *s : snippets) {
-    // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
-    std::set<v2::Snippet*> dep = s->getAllDeps();
+    // std::set<Snippet*> dep = GlobalSnippetManager::Instance()->getAllDep(s);
+    std::set<Snippet*> dep = s->getAllDeps();
     deps.insert(dep.begin(), dep.end());
   }
   snippets.insert(deps.begin(), deps.end());
   return snippets;
 }
 
-std::set<v2::Snippet*> SnippetManager::replaceNonOuters(std::set<Snippet*> ss) {
+std::set<Snippet*> SnippetManager::replaceNonOuters(std::set<Snippet*> ss) {
   std::set<Snippet*> ret;
   std::vector<Snippet*> worklist(ss.begin(), ss.end());
   std::set<Snippet*> done;
@@ -391,7 +390,7 @@ void SnippetManager::traverseDir(fs::path dir) {
   fs::recursive_directory_iterator it(dir), eod;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (p.extension() == ".c" || p.extension() == ".h") {
-      std::vector<v2::Snippet*> snippets = createSnippets(p);
+      std::vector<Snippet*> snippets = createSnippets(p);
       add(snippets);
     }
   }
@@ -405,13 +404,13 @@ void SnippetManager::traverseDir(fs::path dir) {
  * 1. use the snippet got, infer the header dependence
  * 2. use that header dependence to sort the files
  */
-std::vector<v2::Snippet*> SnippetManager::sort(std::set<Snippet*> snippets) {
+std::vector<Snippet*> SnippetManager::sort(std::set<Snippet*> snippets) {
   // DONE ELSEWHERE get header dependence
   // DONE ELSEWHERE sort within file
   // sort across file
-  std::vector<v2::Snippet*> ret;
+  std::vector<Snippet*> ret;
   // SnippetV is already sorted
-  for (v2::Snippet *s : SnippetV) {
+  for (Snippet *s : SnippetV) {
     if (snippets.count(s) == 1) ret.push_back(s);
   }
   return ret;
@@ -500,7 +499,7 @@ void SnippetManager::sortFiles() {
 /**
  * push back
  */
-rapidjson::Value v2::Snippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
+rapidjson::Value Snippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
   // rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
   rapidjson::Value array(rapidjson::kObjectType);
   rapidjson::Value obj(rapidjson::kObjectType);
@@ -536,7 +535,7 @@ rapidjson::Value v2::Snippet::saveJson(rapidjson::Document::AllocatorType &alloc
   // document.PushBack(obj, allocator);
  }
 
-void v2::Snippet::loadJson(rapidjson::Value &obj) {
+void Snippet::loadJson(rapidjson::Value &obj) {
   assert(obj.IsObject());
   Name = obj["name"].GetString();
   ID = obj["id"].GetInt();
@@ -547,7 +546,7 @@ void v2::Snippet::loadJson(rapidjson::Value &obj) {
            obj["end"]["col"].GetInt()};
   // deps and outers have to be add later
 }
-rapidjson::Value v2::EnumSnippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
+rapidjson::Value EnumSnippet::saveJson(rapidjson::Document::AllocatorType &allocator) {
   rapidjson::Value v = Snippet::saveJson(allocator);
   v.AddMember("kind", "EnumSnippet", allocator);
   rapidjson::Value fields(rapidjson::kArrayType);
@@ -559,7 +558,7 @@ rapidjson::Value v2::EnumSnippet::saveJson(rapidjson::Document::AllocatorType &a
   v.AddMember("fields", fields, allocator);
   return v;
 }
-void v2::EnumSnippet::loadJson(rapidjson::Value &v) {
+void EnumSnippet::loadJson(rapidjson::Value &v) {
   Snippet::loadJson(v);
   for (rapidjson::Value &field : v["fields"].GetArray()) {
     Fields.push_back(field.GetString());

@@ -1,11 +1,11 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 
 // high level
-void InstrumentPointVisitor::visit(v2::TokenNode *node) {}
-void InstrumentPointVisitor::visit(v2::TranslationUnitDecl *node) {}
-void InstrumentPointVisitor::visit(v2::FunctionDecl *node) {
-  v2::CompoundStmt *compstmt =
-    dynamic_cast<v2::CompoundStmt*>(node->getBody());
+void InstrumentPointVisitor::visit(TokenNode *node) {}
+void InstrumentPointVisitor::visit(TranslationUnitDecl *node) {}
+void InstrumentPointVisitor::visit(FunctionDecl *node) {
+  CompoundStmt *compstmt =
+    dynamic_cast<CompoundStmt*>(node->getBody());
   std::vector<Stmt*> stmts = compstmt->getBody();
   if (!stmts.empty()) {
     Stmt *first = *stmts.begin();
@@ -16,25 +16,25 @@ void InstrumentPointVisitor::visit(v2::FunctionDecl *node) {
     Visitor::visit(node);
   }
 }
-void InstrumentPointVisitor::visit(v2::CompoundStmt *node) {
+void InstrumentPointVisitor::visit(CompoundStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
 // condition
-void InstrumentPointVisitor::visit(v2::IfStmt *node) {
+void InstrumentPointVisitor::visit(IfStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::SwitchStmt *node) {
+void InstrumentPointVisitor::visit(SwitchStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::CaseStmt *node) {
+void InstrumentPointVisitor::visit(CaseStmt *node) {
 }
-void InstrumentPointVisitor::visit(v2::DefaultStmt *node) {
+void InstrumentPointVisitor::visit(DefaultStmt *node) {
 }
 // loop
-void InstrumentPointVisitor::visit(v2::ForStmt *node) {
+void InstrumentPointVisitor::visit(ForStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
@@ -42,41 +42,41 @@ void InstrumentPointVisitor::visit(v2::ForStmt *node) {
 /**
  * Common statement
  */
-void InstrumentPointVisitor::stmt(v2::Stmt *node) {
+void InstrumentPointVisitor::stmt(Stmt *node) {
   After[node] = {false, node};
 }
-void InstrumentPointVisitor::visit(v2::WhileStmt *node) {
+void InstrumentPointVisitor::visit(WhileStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::DoStmt *node) {
+void InstrumentPointVisitor::visit(DoStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
 // single
-void InstrumentPointVisitor::visit(v2::BreakStmt *node) {
+void InstrumentPointVisitor::visit(BreakStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::ContinueStmt *node) {
+void InstrumentPointVisitor::visit(ContinueStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::ReturnStmt *node) {
+void InstrumentPointVisitor::visit(ReturnStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
 // expr stmt
-void InstrumentPointVisitor::visit(v2::Expr *node) {
+void InstrumentPointVisitor::visit(Expr *node) {
   // rely on the top of stack
   After[node] = Stack.top();
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::DeclStmt *node) {
+void InstrumentPointVisitor::visit(DeclStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }
-void InstrumentPointVisitor::visit(v2::ExprStmt *node) {
+void InstrumentPointVisitor::visit(ExprStmt *node) {
   stmt(node);
   Visitor::visit(node);
 }

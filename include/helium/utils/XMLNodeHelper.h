@@ -1,7 +1,7 @@
 #ifndef XMLNODE_HELPER_H
 #define XMLNODE_HELPER_H
 
-#include "xmlnode.h"
+#include "XMLNode.h"
 
 /*******************************
  ** Help function

@@ -1,4 +1,4 @@
-#include "helium/parser/source_location.h"
+#include "helium/parser/SourceLocation.h"
 #include <gtest/gtest.h>
 
 std::ostream& operator<<(std::ostream &os, const SourceLocation &loc) {

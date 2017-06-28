@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -9,20 +9,20 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 // high level
-void SymbolTableBuilder::visit(v2::TokenNode *node) {
+void SymbolTableBuilder::visit(TokenNode *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::TranslationUnitDecl *node) {
+void SymbolTableBuilder::visit(TranslationUnitDecl *node) {
   Table.pushScope();
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
 }
-void SymbolTableBuilder::visit(v2::FunctionDecl *node) {
+void SymbolTableBuilder::visit(FunctionDecl *node) {
   Table.pushScope();
   // (HEBI: FunctionDecl)
   std::set<std::string> vars = node->getVars();
@@ -33,34 +33,34 @@ void SymbolTableBuilder::visit(v2::FunctionDecl *node) {
   Visitor::visit(node);
   Table.popScope();
 }
-void SymbolTableBuilder::visit(v2::CompoundStmt *node) {
+void SymbolTableBuilder::visit(CompoundStmt *node) {
   Table.pushScope();
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
 }
 // condition
-void SymbolTableBuilder::visit(v2::IfStmt *node) {
+void SymbolTableBuilder::visit(IfStmt *node) {
   // it is the then and else COMPOUND Statement that creates scope
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::SwitchStmt *node) {
+void SymbolTableBuilder::visit(SwitchStmt *node) {
   Table.pushScope();
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
 }
-void SymbolTableBuilder::visit(v2::CaseStmt *node) {
+void SymbolTableBuilder::visit(CaseStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::DefaultStmt *node) {
+void SymbolTableBuilder::visit(DefaultStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
 // loop
-void SymbolTableBuilder::visit(v2::ForStmt *node) {
+void SymbolTableBuilder::visit(ForStmt *node) {
   Table.pushScope();
   // std::set<std::string> vars = node->getVars();
   Expr *init = node->getInit();
@@ -72,56 +72,56 @@ void SymbolTableBuilder::visit(v2::ForStmt *node) {
   Visitor::visit(node);
   Table.popScope();
 }
-void SymbolTableBuilder::visit(v2::WhileStmt *node) {
+void SymbolTableBuilder::visit(WhileStmt *node) {
   Table.pushScope();
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
 }
-void SymbolTableBuilder::visit(v2::DoStmt *node) {
+void SymbolTableBuilder::visit(DoStmt *node) {
   Table.pushScope();
   insertDefUse(node);
   Visitor::visit(node);
   Table.popScope();
 }
 // single
-void SymbolTableBuilder::visit(v2::BreakStmt *node) {
+void SymbolTableBuilder::visit(BreakStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::ContinueStmt *node) {
+void SymbolTableBuilder::visit(ContinueStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::ReturnStmt *node) {
+void SymbolTableBuilder::visit(ReturnStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
 // expr stmt
-void SymbolTableBuilder::visit(v2::Expr *node) {
+void SymbolTableBuilder::visit(Expr *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::DeclStmt *node) {
+void SymbolTableBuilder::visit(DeclStmt *node) {
   std::set<std::string> vars = node->getVars();
   // (HEBI: DeclStmt)
   Table.add(vars, node);
   insertDefUse(node);
   Visitor::visit(node);
 }
-void SymbolTableBuilder::visit(v2::ExprStmt *node) {
+void SymbolTableBuilder::visit(ExprStmt *node) {
   insertDefUse(node);
   Visitor::visit(node);
 }
 
 
 
-void SymbolTableBuilder::insertDefUse(v2::ASTNodeBase *use) {
+void SymbolTableBuilder::insertDefUse(ASTNodeBase *use) {
   // for the use of variables, getvarid, and query symbol table
   // get_var_ids() requires a XMLNode, not good at all
   std::set<std::string> used_vars = use->getUsedVars();
   for (std::string var : used_vars) {
-    v2::ASTNodeBase *def = Table.get(var);
+    ASTNodeBase *def = Table.get(var);
     if (def) {
       Use2DefMap[use].insert(def);
     }
@@ -136,7 +136,7 @@ void SymbolTableBuilder::insertDefUse(v2::ASTNodeBase *use) {
  * Dumping use2def map
  */
 void SymbolTableBuilder::dump(std::ostream &os) {
-  // std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > Use2DefMap;
+  // std::map<ASTNodeBase*,std::set<ASTNodeBase*> > Use2DefMap;
   os << "[SymbolTableBuilder] Use2DefMap:\n";
   for (auto &m : Use2DefMap) {
     ASTNodeBase *use = m.first;

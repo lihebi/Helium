@@ -4,12 +4,12 @@
 
 #include "helium/resolver/SnippetV2.h"
 
-#include "helium/utils/helium_options.h"
-#include "helium/utils/graph.h"
+#include "helium/utils/HeliumOptions.h"
+#include "helium/utils/Graph.h"
 
 #include <regex>
 
-using namespace v2;
+
 
 using std::string;
 using std::vector;

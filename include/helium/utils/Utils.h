@@ -1,7 +1,15 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
-#include "Common.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
 
 #include <pugixml.hpp>
 #include <stdlib.h>

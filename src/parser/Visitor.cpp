@@ -10,19 +10,19 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 
 // Visitor
 
-void Visitor::visit(v2::TokenNode *token) {}
-void Visitor::visit(v2::TranslationUnitDecl *unit) {
+void Visitor::visit(TokenNode *token) {}
+void Visitor::visit(TranslationUnitDecl *unit) {
   std::vector<ASTNodeBase*> nodes = unit->getDecls();
   for (ASTNodeBase *node : nodes) {
     if (node) {node->accept(this);}
   }
 }
-void Visitor::visit(v2::FunctionDecl *function) {
+void Visitor::visit(FunctionDecl *function) {
   TokenNode *ReturnTypeNode = function->getReturnTypeNode();
   if (ReturnTypeNode) ReturnTypeNode->accept(this);
   TokenNode *NameNode = function->getNameNode();
@@ -32,9 +32,9 @@ void Visitor::visit(v2::FunctionDecl *function) {
   Stmt *body = function->getBody();
   if (body) body->accept(this);
 }
-void Visitor::visit(v2::DeclStmt *decl_stmt) {}
-void Visitor::visit(v2::ExprStmt *expr_stmt) {}
-void Visitor::visit(v2::CompoundStmt *comp_stmt) {
+void Visitor::visit(DeclStmt *decl_stmt) {}
+void Visitor::visit(ExprStmt *expr_stmt) {}
+void Visitor::visit(CompoundStmt *comp_stmt) {
   // token node
   comp_stmt->getCompNode()->accept(this);
   std::vector<Stmt*> stmts = comp_stmt->getBody();
@@ -42,7 +42,7 @@ void Visitor::visit(v2::CompoundStmt *comp_stmt) {
     if (stmt) stmt->accept(this);
   }
 }
-void Visitor::visit(v2::ForStmt *for_stmt) {
+void Visitor::visit(ForStmt *for_stmt) {
   TokenNode *token = for_stmt->getForNode();
   if (token) token->accept(this);
   Expr *init = for_stmt->getInit();
@@ -54,7 +54,7 @@ void Visitor::visit(v2::ForStmt *for_stmt) {
   Stmt *body = for_stmt->getBody();
   if (body) body->accept(this);
 }
-void Visitor::visit(v2::WhileStmt *while_stmt) {
+void Visitor::visit(WhileStmt *while_stmt) {
   TokenNode *WhileNode = while_stmt->getWhileNode();
   if (WhileNode) WhileNode->accept(this);
   Expr *cond = while_stmt->getCond();
@@ -62,7 +62,7 @@ void Visitor::visit(v2::WhileStmt *while_stmt) {
   Stmt *body = while_stmt->getBody();
   if (body) body->accept(this);
 }
-void Visitor::visit(v2::DoStmt *do_stmt) {
+void Visitor::visit(DoStmt *do_stmt) {
   TokenNode *DoNode = do_stmt->getDoNode();
   if (DoNode) DoNode->accept(this);
   Stmt *body = do_stmt->getBody();
@@ -72,15 +72,15 @@ void Visitor::visit(v2::DoStmt *do_stmt) {
   Expr *cond = do_stmt->getCond();
   if (cond) cond->accept(this);
 }
-void Visitor::visit(v2::BreakStmt *break_stmt) {}
-void Visitor::visit(v2::ContinueStmt *cont_stmt) {}
-void Visitor::visit(v2::ReturnStmt *ret_stmt) {
+void Visitor::visit(BreakStmt *break_stmt) {}
+void Visitor::visit(ContinueStmt *cont_stmt) {}
+void Visitor::visit(ReturnStmt *ret_stmt) {
   TokenNode *ReturnNode = ret_stmt->getReturnNode();
   if (ReturnNode) ReturnNode->accept(this);
   Expr *value = ret_stmt->getValue();
   if (value) value->accept(this);
 }
-void Visitor::visit(v2::IfStmt *if_stmt) {
+void Visitor::visit(IfStmt *if_stmt) {
   TokenNode *IfNode = if_stmt->getIfNode();
   if (IfNode) IfNode->accept(this);
   Expr *expr = if_stmt->getCond();
@@ -92,7 +92,7 @@ void Visitor::visit(v2::IfStmt *if_stmt) {
   Stmt *else_stmt = if_stmt->getElse();
   if (else_stmt) else_stmt->accept(this);
 }
-void Visitor::visit(v2::SwitchStmt *switch_stmt) {
+void Visitor::visit(SwitchStmt *switch_stmt) {
   TokenNode *SwitchNode = switch_stmt->getSwitchNode();
   if (SwitchNode) SwitchNode->accept(this);
   Expr *cond = switch_stmt->getCond();
@@ -102,7 +102,7 @@ void Visitor::visit(v2::SwitchStmt *switch_stmt) {
     if (c) c->accept(this);
   }
 }
-void Visitor::visit(v2::CaseStmt *case_stmt) {
+void Visitor::visit(CaseStmt *case_stmt) {
   TokenNode *CaseNode = case_stmt->getCaseNode();
   if (CaseNode) CaseNode->accept(this);
   Expr *cond = case_stmt->getCond();
@@ -112,7 +112,7 @@ void Visitor::visit(v2::CaseStmt *case_stmt) {
     if (stmt) stmt->accept(this);
   }
 }
-void Visitor::visit(v2::DefaultStmt *def_stmt) {
+void Visitor::visit(DefaultStmt *def_stmt) {
   TokenNode *DefaultNode = def_stmt->getDefaultNode();
   if (DefaultNode) DefaultNode->accept(this);
   vector<Stmt*> body = def_stmt->getBody();
@@ -120,86 +120,86 @@ void Visitor::visit(v2::DefaultStmt *def_stmt) {
     if (stmt) stmt->accept(this);
   }
 }
-void Visitor::visit(v2::Expr *expr) {
+void Visitor::visit(Expr *expr) {
 }
 
 
 // high level
-void SimplePreorderVisitor::visit(v2::TokenNode *node) {
+void SimplePreorderVisitor::visit(TokenNode *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::TranslationUnitDecl *node) {
+void SimplePreorderVisitor::visit(TranslationUnitDecl *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::FunctionDecl *node) {
+void SimplePreorderVisitor::visit(FunctionDecl *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::CompoundStmt *node) {
+void SimplePreorderVisitor::visit(CompoundStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
 // condition
-void SimplePreorderVisitor::visit(v2::IfStmt *node) {
+void SimplePreorderVisitor::visit(IfStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::SwitchStmt *node) {
+void SimplePreorderVisitor::visit(SwitchStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::CaseStmt *node) {
+void SimplePreorderVisitor::visit(CaseStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::DefaultStmt *node) {
+void SimplePreorderVisitor::visit(DefaultStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
 // loop
-void SimplePreorderVisitor::visit(v2::ForStmt *node) {
+void SimplePreorderVisitor::visit(ForStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::WhileStmt *node) {
+void SimplePreorderVisitor::visit(WhileStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::DoStmt *node) {
+void SimplePreorderVisitor::visit(DoStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
 // single
-void SimplePreorderVisitor::visit(v2::BreakStmt *node) {
+void SimplePreorderVisitor::visit(BreakStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::ContinueStmt *node) {
+void SimplePreorderVisitor::visit(ContinueStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::ReturnStmt *node) {
+void SimplePreorderVisitor::visit(ReturnStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
 // expr stmt
-void SimplePreorderVisitor::visit(v2::Expr *node) {
+void SimplePreorderVisitor::visit(Expr *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::DeclStmt *node) {
+void SimplePreorderVisitor::visit(DeclStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
-void SimplePreorderVisitor::visit(v2::ExprStmt *node) {
+void SimplePreorderVisitor::visit(ExprStmt *node) {
   Nodes.push_back(node);
   Visitor::visit(node);
 }
 
 
-void Matcher::pre(v2::ASTNodeBase* node) {
+void Matcher::pre(ASTNodeBase* node) {
   std::string name = node->getNodeName();
   Stack.push_back(name);
   // push to map
@@ -213,91 +213,91 @@ void Matcher::post() {
 }
 
 // high level
-void Matcher::visit(v2::TokenNode *node) {
+void Matcher::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::TranslationUnitDecl *node) {
+void Matcher::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::FunctionDecl *node) {
+void Matcher::visit(FunctionDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::CompoundStmt *node) {
+void Matcher::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // condition
-void Matcher::visit(v2::IfStmt *node) {
+void Matcher::visit(IfStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::SwitchStmt *node) {
+void Matcher::visit(SwitchStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::CaseStmt *node) {
+void Matcher::visit(CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::DefaultStmt *node) {
+void Matcher::visit(DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // loop
-void Matcher::visit(v2::ForStmt *node) {
+void Matcher::visit(ForStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::WhileStmt *node) {
+void Matcher::visit(WhileStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::DoStmt *node) {
+void Matcher::visit(DoStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // single
-void Matcher::visit(v2::BreakStmt *node) {
+void Matcher::visit(BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::ContinueStmt *node) {
+void Matcher::visit(ContinueStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::ReturnStmt *node) {
+void Matcher::visit(ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // expr stmt
-void Matcher::visit(v2::Expr *node) {
+void Matcher::visit(Expr *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::DeclStmt *node) {
+void Matcher::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Matcher::visit(v2::ExprStmt *node) {
+void Matcher::visit(ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
@@ -305,7 +305,7 @@ void Matcher::visit(v2::ExprStmt *node) {
 
 
 
-v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line) {
+ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line) {
   for (auto *node : Nodes) {
     SourceLocation begin = node->getBeginLoc();
     if (node->getNodeName() == name && begin.getLine() == line) {
@@ -314,7 +314,7 @@ v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line) {
   }
   return nullptr;
 }
-v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line, int nth) {
+ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line, int nth) {
   for (auto *node : Nodes) {
     SourceLocation begin = node->getBeginLoc();
     if (node->getNodeName() == name && begin.getLine() == line) {
@@ -327,7 +327,7 @@ v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, int line, int nth) {
 }
 
 
-v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc) {
+ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc) {
   for (auto *node : Nodes) {
     SourceLocation begin = node->getBeginLoc();
     if (node->getNodeName() == name && begin == loc) {
@@ -336,7 +336,7 @@ v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc) {
   }
   return nullptr;
 }
-v2::ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc, int nth) {
+ASTNodeBase* Matcher::getNodeByLoc(std::string name, SourceLocation loc, int nth) {
   for (auto *node : Nodes) {
     SourceLocation begin = node->getBeginLoc();
     if (node->getNodeName() == name && begin == loc) {

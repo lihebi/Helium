@@ -1,7 +1,7 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
-// #include "helium/parser/ast_v2.h"
+// #include "helium/parser/AST.h"
 
 #include <vector>
 #include <map>
@@ -9,34 +9,32 @@
 #include <sstream>
 #include <boost/algorithm/string/join.hpp>
 
-#include "helium/parser/source_location.h"
-#include "helium/utils/graph.h"
+#include "helium/parser/SourceLocation.h"
+#include "helium/utils/Graph.h"
 
-namespace v2 {
-  class ASTContext;
+class ASTContext;
   
-  class ASTNodeBase;
-  class TokenNode;
-  class TranslationUnitDecl;
-  class FunctionDecl;
-  class Decl;
-  class Stmt;
-  class DeclStmt;
-  class ExprStmt;
-  class CompoundStmt;
-  class ForStmt;
-  class WhileStmt;
-  class DoStmt;
-  class BreakStmt;
-  class ContinueStmt;
-  class ReturnStmt;
-  class IfStmt;
-  class SwitchStmt;
-  class SwitchCase;
-  class CaseStmt;
-  class DefaultStmt;
-  class Expr;
-}
+class ASTNodeBase;
+class TokenNode;
+class TranslationUnitDecl;
+class FunctionDecl;
+class Decl;
+class Stmt;
+class DeclStmt;
+class ExprStmt;
+class CompoundStmt;
+class ForStmt;
+class WhileStmt;
+class DoStmt;
+class BreakStmt;
+class ContinueStmt;
+class ReturnStmt;
+class IfStmt;
+class SwitchStmt;
+class SwitchCase;
+class CaseStmt;
+class DefaultStmt;
+class Expr;
 
 
 /**
@@ -55,27 +53,27 @@ public:
   Visitor() {}
   virtual ~Visitor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 };
 
 
@@ -84,32 +82,32 @@ public:
   SimplePreorderVisitor() {}
   virtual ~SimplePreorderVisitor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
-  std::vector<v2::ASTNodeBase*> getNodes() {
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
+  std::vector<ASTNodeBase*> getNodes() {
     return Nodes;
   }
 private:
-  std::vector<v2::ASTNodeBase*> Nodes;
+  std::vector<ASTNodeBase*> Nodes;
 };
 
 /**
@@ -123,27 +121,27 @@ public:
 
 
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
   std::string prettyPrint(std::string aststr);
 
@@ -151,7 +149,7 @@ public:
     return prettyPrint(oss.str());
   }
 private:
-  void pre(v2::ASTNodeBase *node);
+  void pre(ASTNodeBase *node);
   void post();
   std::ostringstream oss;
 };
@@ -162,91 +160,89 @@ public:
   LevelVisitor() {}
   virtual ~LevelVisitor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  std::map<v2::ASTNodeBase*, int> getLevels() {return Levels;}
-  int getLevel(v2::ASTNodeBase *node);
-  v2::ASTNodeBase *getLowestLevelNode(std::set<v2::ASTNodeBase*> nodes);
+  std::map<ASTNodeBase*, int> getLevels() {return Levels;}
+  int getLevel(ASTNodeBase *node);
+  ASTNodeBase *getLowestLevelNode(std::set<ASTNodeBase*> nodes);
 private:
-  void pre(v2::ASTNodeBase* node) {Levels[node]=lvl; lvl++;}
+  void pre(ASTNodeBase* node) {Levels[node]=lvl; lvl++;}
   void post() {lvl--;}
-  std::map<v2::ASTNodeBase*, int> Levels;
+  std::map<ASTNodeBase*, int> Levels;
   int lvl=0;
 };
 
-namespace v2 {
-  class SymbolTable {
-  public:
-    SymbolTable() {}
-    ~SymbolTable() {}
+class SymbolTable {
+public:
+  SymbolTable() {}
+  ~SymbolTable() {}
 
-    void pushScope() {
-      Stack.push_back({});
-    }
-    void popScope() {
-      Stack.pop_back();
-    }
+  void pushScope() {
+    Stack.push_back({});
+  }
+  void popScope() {
+    Stack.pop_back();
+  }
 
-    /**
-     * id is declared in node
-     */
-    void add(std::string id, v2::ASTNodeBase *node) {
-      newlyAdded.clear();
-      newlyAdded.insert(id);
-      Stack.back()[id] = node;
+  /**
+   * id is declared in node
+   */
+  void add(std::string id, ASTNodeBase *node) {
+    newlyAdded.clear();
+    newlyAdded.insert(id);
+    Stack.back()[id] = node;
+  }
+  void add(std::set<std::string> ids, ASTNodeBase *node) {
+    newlyAdded = ids;
+    for (const std::string&id : ids) {
+      add(id, node);
     }
-    void add(std::set<std::string> ids, v2::ASTNodeBase *node) {
-      newlyAdded = ids;
-      for (const std::string&id : ids) {
-        add(id, node);
+  }
+  ASTNodeBase* get(std::string id) {
+    for (int i=Stack.size()-1;i>=0;i--) {
+      if (Stack[i].count(id) == 1) return Stack[i][id];
+    }
+    return nullptr;
+  }
+  std::set<std::string> getNewlyAdded() {return newlyAdded;}
+  /**
+   * get all visible ones
+   */
+  std::map<std::string, ASTNodeBase*> getAll() {
+    std::map<std::string, ASTNodeBase*> ret;
+    for (std::map<std::string, ASTNodeBase*> v : Stack) {
+      for (auto m : v) {
+        ret[m.first] = m.second;
       }
     }
-    v2::ASTNodeBase* get(std::string id) {
-      for (int i=Stack.size()-1;i>=0;i--) {
-        if (Stack[i].count(id) == 1) return Stack[i][id];
-      }
-      return nullptr;
-    }
-    std::set<std::string> getNewlyAdded() {return newlyAdded;}
-    /**
-     * get all visible ones
-     */
-    std::map<std::string, v2::ASTNodeBase*> getAll() {
-      std::map<std::string, v2::ASTNodeBase*> ret;
-      for (std::map<std::string, v2::ASTNodeBase*> v : Stack) {
-        for (auto m : v) {
-          ret[m.first] = m.second;
-        }
-      }
-      return ret;
-    }
-  private:
-    std::vector<std::map<std::string, v2::ASTNodeBase*> > Stack;
-    // this is a hack
-    // i notice in symboltablebuilder, each node adds exactly once (may be using vars)
-    // so newly added can record the variables the current node defines
-    std::set<std::string> newlyAdded;
-  };
+    return ret;
+  }
+private:
+  std::vector<std::map<std::string, ASTNodeBase*> > Stack;
+  // this is a hack
+  // i notice in symboltablebuilder, each node adds exactly once (may be using vars)
+  // so newly added can record the variables the current node defines
+  std::set<std::string> newlyAdded;
 };
 
 /**
@@ -260,38 +256,38 @@ public:
   SymbolTableBuilder() {}
   virtual ~SymbolTableBuilder() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
   void dump(std::ostream &os);
-  std::map<v2::ASTNodeBase*, v2::SymbolTable> getPersistTables() {return PersistTables;}
+  std::map<ASTNodeBase*, SymbolTable> getPersistTables() {return PersistTables;}
 private:
-  void insertDefUse(v2::ASTNodeBase *use);
+  void insertDefUse(ASTNodeBase *use);
   // this will be empty after traversal
-  v2::SymbolTable Table;
+  SymbolTable Table;
   // this is the result
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > Use2DefMap;
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > Use2DefMap;
   // record table at each node, for later usage
-  std::map<v2::ASTNodeBase*, v2::SymbolTable> PersistTables;
+  std::map<ASTNodeBase*, SymbolTable> PersistTables;
 };
 
 /**
@@ -303,38 +299,38 @@ public:
   TokenVisitor() {}
   ~TokenVisitor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  std::vector<v2::ASTNodeBase*> getTokens() {return Tokens;}
-  std::map<v2::ASTNodeBase*,int> getIdMap() {return IdMap;}
-  int getId(v2::ASTNodeBase *node) {
+  std::vector<ASTNodeBase*> getTokens() {return Tokens;}
+  std::map<ASTNodeBase*,int> getIdMap() {return IdMap;}
+  int getId(ASTNodeBase *node) {
     if (IdMap.count(node) == 1) return IdMap[node];
     return -1;
   }
 private:
   int id = 0;
-  std::map<v2::ASTNodeBase*,int> IdMap; // ID start from 0
-  std::vector<v2::ASTNodeBase*> Tokens; // this is actually ID->Node implemented in vector
+  std::map<ASTNodeBase*,int> IdMap; // ID start from 0
+  std::vector<ASTNodeBase*> Tokens; // this is actually ID->Node implemented in vector
 };
 
 /**
@@ -346,47 +342,47 @@ public:
   ~ParentIndexer() {}
 
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> getParentMap() {return ParentMap;}
-  std::vector<v2::ASTNodeBase*> getChildren(v2::ASTNodeBase* parent) {
+  std::map<ASTNodeBase*, ASTNodeBase*> getParentMap() {return ParentMap;}
+  std::vector<ASTNodeBase*> getChildren(ASTNodeBase* parent) {
     if (ChildrenMap.count(parent) == 1) {
       return ChildrenMap[parent];
     }
     return {};
   }
 
-  v2::ASTNodeBase *getParent(v2::ASTNodeBase *node) {
+  ASTNodeBase *getParent(ASTNodeBase *node) {
     if (ParentMap.count(node) == 1) return ParentMap[node];
     return nullptr;
   }
 private:
-  void pre(v2::ASTNodeBase* node);
+  void pre(ASTNodeBase* node);
   void post();
-  std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> ParentMap;
-  std::map<v2::ASTNodeBase*, std::vector<v2::ASTNodeBase*> > ChildrenMap;
+  std::map<ASTNodeBase*, ASTNodeBase*> ParentMap;
+  std::map<ASTNodeBase*, std::vector<ASTNodeBase*> > ChildrenMap;
 
-  std::vector<v2::ASTNodeBase*> Stack;
+  std::vector<ASTNodeBase*> Stack;
 };
 
 
@@ -411,59 +407,59 @@ public:
   Distributor() {}
   ~Distributor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  void pre(v2::ASTNodeBase *node);
+  void pre(ASTNodeBase *node);
   void post();
 
   /**
    * get how many functions enclosing these nodes
    * Note these nodes may not belong to this AST
    */
-  int getDistFunc(std::set<v2::ASTNodeBase*> sel) {
+  int getDistFunc(std::set<ASTNodeBase*> sel) {
     return getDist(sel, func_nodes);
   }
-  std::set<v2::ASTNodeBase*> getDistFuncNodes(std::set<v2::ASTNodeBase*> sel) {
+  std::set<ASTNodeBase*> getDistFuncNodes(std::set<ASTNodeBase*> sel) {
     return getDistNodes(sel, func_nodes);
   }
-  int getDistIf(std::set<v2::ASTNodeBase*> sel) {
+  int getDistIf(std::set<ASTNodeBase*> sel) {
     return getDist(sel, if_nodes);
   }
-  int getDistLoop(std::set<v2::ASTNodeBase*> sel) {
-    std::set<v2::ASTNodeBase*> loop_nodes;
+  int getDistLoop(std::set<ASTNodeBase*> sel) {
+    std::set<ASTNodeBase*> loop_nodes;
     loop_nodes.insert(for_nodes.begin(), for_nodes.end());
     loop_nodes.insert(while_nodes.begin(), while_nodes.end());
     loop_nodes.insert(do_nodes.begin(), do_nodes.end());
     return getDist(sel, loop_nodes);
   }
-  int getDistSwitch(std::set<v2::ASTNodeBase*> sel) {
+  int getDistSwitch(std::set<ASTNodeBase*> sel) {
     return getDist(sel, switch_nodes);
   }
 
   /**
    * Generic function for get distribution
    */
-  int getDist(std::set<v2::ASTNodeBase*> sel, std::set<v2::ASTNodeBase*> nodes) {
+  int getDist(std::set<ASTNodeBase*> sel, std::set<ASTNodeBase*> nodes) {
     int ret=0;
     for (auto *node : nodes) {
       for (auto *s : sel) {
@@ -475,8 +471,8 @@ public:
     }
     return ret;
   }
-  std::set<v2::ASTNodeBase*> getDistNodes(std::set<v2::ASTNodeBase*> sel, std::set<v2::ASTNodeBase*> nodes) {
-    std::set<v2::ASTNodeBase*> ret;
+  std::set<ASTNodeBase*> getDistNodes(std::set<ASTNodeBase*> sel, std::set<ASTNodeBase*> nodes) {
+    std::set<ASTNodeBase*> ret;
     for (auto *node : nodes) {
       for (auto *s : sel) {
         if (ContainMap[node].count(s) == 1) {
@@ -490,24 +486,24 @@ public:
 
   void dump(std::ostream &os);
 
-  std::set<v2::ASTNodeBase*> getIfNodes() {return if_nodes;}
-  std::set<v2::ASTNodeBase*> getSwitchNodes() {return switch_nodes;}
-  std::set<v2::ASTNodeBase*> getForNodes() {return for_nodes;}
-  std::set<v2::ASTNodeBase*> getDoNodes() {return do_nodes;}
-  std::set<v2::ASTNodeBase*> getWhileNodes() {return while_nodes;}
-  std::set<v2::ASTNodeBase*> getFuncNodes() {return func_nodes;}
+  std::set<ASTNodeBase*> getIfNodes() {return if_nodes;}
+  std::set<ASTNodeBase*> getSwitchNodes() {return switch_nodes;}
+  std::set<ASTNodeBase*> getForNodes() {return for_nodes;}
+  std::set<ASTNodeBase*> getDoNodes() {return do_nodes;}
+  std::set<ASTNodeBase*> getWhileNodes() {return while_nodes;}
+  std::set<ASTNodeBase*> getFuncNodes() {return func_nodes;}
   
   
 private:
-  std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ContainMap;
-  std::set<v2::ASTNodeBase*> if_nodes;
-  std::set<v2::ASTNodeBase*> switch_nodes;
-  std::set<v2::ASTNodeBase*> for_nodes;
-  std::set<v2::ASTNodeBase*> do_nodes;
-  std::set<v2::ASTNodeBase*> while_nodes;
-  std::set<v2::ASTNodeBase*> func_nodes;
+  std::map<ASTNodeBase*, std::set<ASTNodeBase*> > ContainMap;
+  std::set<ASTNodeBase*> if_nodes;
+  std::set<ASTNodeBase*> switch_nodes;
+  std::set<ASTNodeBase*> for_nodes;
+  std::set<ASTNodeBase*> do_nodes;
+  std::set<ASTNodeBase*> while_nodes;
+  std::set<ASTNodeBase*> func_nodes;
 
-  std::vector<v2::ASTNodeBase*> Stack;
+  std::vector<ASTNodeBase*> Stack;
 };
 
 
@@ -522,34 +518,34 @@ public:
   Generator() {}
   virtual ~Generator() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
 
-  void setSelection(std::set<v2::ASTNodeBase*> sel) {
+  void setSelection(std::set<ASTNodeBase*> sel) {
     selection = sel;
   }
 
-  void setInputVarNodes(std::set<v2::ASTNodeBase*> nodes) {
+  void setInputVarNodes(std::set<ASTNodeBase*> nodes) {
     InputVarNodes = nodes;
   }
 
@@ -560,23 +556,23 @@ public:
     AdjustReturn = b;
   }
 
-  void setOutputInstrument(std::map<std::string, v2::ASTNodeBase*> toinstrument, v2::ASTNodeBase *last, v2::SymbolTable symtbl) {
+  void setOutputInstrument(std::map<std::string, ASTNodeBase*> toinstrument, ASTNodeBase *last, SymbolTable symtbl) {
     OutputInstrument = toinstrument;
     OutputPosition = last;
     OutputPositionSymtbl = symtbl;
   }
-  void outputInstrument(v2::ASTNodeBase *node);
+  void outputInstrument(ASTNodeBase *node);
   std::vector<int> getIOSummary() {
     return {sum_output_var, sum_used_output_var, sum_input_var, sum_used_input_var};
   }
 private:
   std::string Prog;
-  std::set<v2::ASTNodeBase*> selection;
+  std::set<ASTNodeBase*> selection;
   bool AdjustReturn = false;
-  std::set<v2::ASTNodeBase*> InputVarNodes;
-  std::map<std::string, v2::ASTNodeBase*> OutputInstrument;
-  v2::ASTNodeBase *OutputPosition = nullptr;
-  v2::SymbolTable OutputPositionSymtbl;
+  std::set<ASTNodeBase*> InputVarNodes;
+  std::map<std::string, ASTNodeBase*> OutputInstrument;
+  ASTNodeBase *OutputPosition = nullptr;
+  SymbolTable OutputPositionSymtbl;
   // summary about output instrumentation
   int sum_output_var=0;
   int sum_used_output_var=0;
@@ -606,29 +602,29 @@ public:
   Matcher() {}
   virtual ~Matcher() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  std::vector<v2::ASTNodeBase*> match(std::string name) {
+  std::vector<ASTNodeBase*> match(std::string name) {
     if (PathMap.count(name) == 1) {
       return PathMap[name];
     }
@@ -645,16 +641,16 @@ public:
    * use line, don't care about column
    * Must start on that line
    */
-  v2::ASTNodeBase* getNodeByLoc(std::string name, int line);
+  ASTNodeBase* getNodeByLoc(std::string name, int line);
   /**
    * nth: 0 means first, 1 means second
    */
-  v2::ASTNodeBase* getNodeByLoc(std::string name, int line, int nth);
+  ASTNodeBase* getNodeByLoc(std::string name, int line, int nth);
   /**
    * Use both line and column
    */
-  v2::ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc);
-  v2::ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc, int nth);
+  ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc);
+  ASTNodeBase* getNodeByLoc(std::string name, SourceLocation loc, int nth);
 
   /**
    * Dump:
@@ -664,15 +660,15 @@ public:
   // void dump(std::ostream &os);
 
 private:
-  void pre(v2::ASTNodeBase* node);
+  void pre(ASTNodeBase* node);
   void post();
   std::string currentName() {
     return boost::algorithm::join(Stack, "/");
   }
   std::vector<std::string> Stack;
-  std::map<std::string, std::vector<v2::ASTNodeBase*> > PathMap;
+  std::map<std::string, std::vector<ASTNodeBase*> > PathMap;
 
-  std::vector<v2::ASTNodeBase*> Nodes;
+  std::vector<ASTNodeBase*> Nodes;
 };
 
 
@@ -680,7 +676,7 @@ struct InstrumentPoint {
   // true for before
   // false for after
   bool before = true;
-  v2::ASTNodeBase *node = nullptr;
+  ASTNodeBase *node = nullptr;
 };
 
 /**
@@ -691,138 +687,135 @@ public:
   InstrumentPointVisitor() {}
   ~InstrumentPointVisitor() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 private:
-  std::map<v2::ASTNodeBase*, InstrumentPoint> After;
+  std::map<ASTNodeBase*, InstrumentPoint> After;
 };
 
 
 
-namespace v2 {
+class CFGNode {
+public:
+  CFGNode(ASTNodeBase*node) {
+    astnode = node;
+  }
+  CFGNode(std::string dummy) {
+    this->dummy = dummy;
+  }
+  ~CFGNode() {}
+  std::string getLabel();
+private:
+  ASTNodeBase *astnode=nullptr;
+  std::string dummy;
+};
+class CFG {
+public:
+  CFG() {}
+  ~CFG() {}
 
-  class CFGNode {
-  public:
-    CFGNode(ASTNodeBase*node) {
-      astnode = node;
-    }
-    CFGNode(std::string dummy) {
-      this->dummy = dummy;
-    }
-    ~CFGNode() {}
-    std::string getLabel();
-  private:
-    ASTNodeBase *astnode=nullptr;
-    std::string dummy;
-  };
-  class CFG {
-  public:
-    CFG() {}
-    ~CFG() {}
-
-    // add nodes
-    void addNode(CFGNode *node) {
+  // add nodes
+  void addNode(CFGNode *node) {
+    graph.addNode(node);
+  }
+  void addNodes(std::set<CFGNode*> nodes) {
+    for (CFGNode *node : nodes) {
       graph.addNode(node);
     }
-    void addNodes(std::set<CFGNode*> nodes) {
-      for (CFGNode *node : nodes) {
-        graph.addNode(node);
-      }
-    }
-    /**
-     * Merge
-     */
-    void connect(CFG *cfg) {
-      this->graph.merge(cfg->graph);
-      for (CFGNode *from : this->outs) {
-        for (CFGNode *to : cfg->ins) {
-          this->graph.addEdge(from, to);
-        }
-      }
-      this->outs = cfg->outs;
-    }
-    /**
-     * add node and connect all exits to it (it will be the out)
-     */
-    void connect(CFGNode *node) {
-      this->graph.addNode(node);
-      for (CFGNode *from : this->outs) {
-        this->graph.addEdge(from, node);
-      }
-      this->outs.clear();
-      this->outs.insert(node);
-    }
-    void mergeBranch(CFG *cfg, CFGNode* node, bool b) {
+  }
+  /**
+   * Merge
+   */
+  void connect(CFG *cfg) {
+    this->graph.merge(cfg->graph);
+    for (CFGNode *from : this->outs) {
       for (CFGNode *to : cfg->ins) {
-        this->graph.addEdge(node, to, (b?"true":"false"));
+        this->graph.addEdge(from, to);
       }
-      this->outs.insert(cfg->outs.begin(), cfg->outs.end());
     }
+    this->outs = cfg->outs;
+  }
+  /**
+   * add node and connect all exits to it (it will be the out)
+   */
+  void connect(CFGNode *node) {
+    this->graph.addNode(node);
+    for (CFGNode *from : this->outs) {
+      this->graph.addEdge(from, node);
+    }
+    this->outs.clear();
+    this->outs.insert(node);
+  }
+  void mergeBranch(CFG *cfg, CFGNode* node, bool b) {
+    for (CFGNode *to : cfg->ins) {
+      this->graph.addEdge(node, to, (b?"true":"false"));
+    }
+    this->outs.insert(cfg->outs.begin(), cfg->outs.end());
+  }
 
-    void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
-      for (CFGNode *to : cfg->ins) {
-        this->graph.addEdge(node, to, case_label);
-      }
-      this->outs.insert(cfg->outs.begin(), cfg->outs.end());
+  void mergeCase(CFG *cfg, CFGNode *node, std::string case_label) {
+    for (CFGNode *to : cfg->ins) {
+      this->graph.addEdge(node, to, case_label);
     }
+    this->outs.insert(cfg->outs.begin(), cfg->outs.end());
+  }
     
-    void addEdge(CFGNode *from, CFGNode *to) {
-      graph.addEdge(from, to);
-    }
-    /**
-     * remove the out edge of node
-     * Used to handle break, continue, return
-     */
-    void removeOutEdge(CFGNode *node) {
-      graph.removeOutEdge(node);
-    }
-    std::string visualize();
-    std::string visualizeAgg();
+  void addEdge(CFGNode *from, CFGNode *to) {
+    graph.addEdge(from, to);
+  }
+  /**
+   * remove the out edge of node
+   * Used to handle break, continue, return
+   */
+  void removeOutEdge(CFGNode *node) {
+    graph.removeOutEdge(node);
+  }
+  std::string visualize();
+  std::string visualizeAgg();
 
-    /**
-     * I still need to set in and out manually because, return xx; a=b;
-     * When I remove the return out edge, a=b; will be the input.
-     * There're several such bugs
-     */
-    void addIn(CFGNode *node) {
-      ins.insert(node);
-    }
-    void addOut(CFGNode *node) {
-      outs.insert(node);
-    }
-    void clearIn(CFGNode *node) {
-      ins.clear();
-    }
-    void clearOut(CFGNode *node) {
-      outs.clear();
-    }
-    // friend class CFGBuilder;
-    // friend is not working, probably due to namespace
-    // i'm making the fields public for the time
-    hebigraph::Graph<CFGNode*> graph;
-    std::set<CFGNode*> ins;
-    std::set<CFGNode*> outs;
-  private:
-  };
+  /**
+   * I still need to set in and out manually because, return xx; a=b;
+   * When I remove the return out edge, a=b; will be the input.
+   * There're several such bugs
+   */
+  void addIn(CFGNode *node) {
+    ins.insert(node);
+  }
+  void addOut(CFGNode *node) {
+    outs.insert(node);
+  }
+  void clearIn(CFGNode *node) {
+    ins.clear();
+  }
+  void clearOut(CFGNode *node) {
+    outs.clear();
+  }
+  // friend class CFGBuilder;
+  // friend is not working, probably due to namespace
+  // i'm making the fields public for the time
+  hebigraph::Graph<CFGNode*> graph;
+  std::set<CFGNode*> ins;
+  std::set<CFGNode*> outs;
+private:
 };
 
 class CFGBuilder : public Visitor {
@@ -830,48 +823,48 @@ public:
   CFGBuilder() {}
   ~CFGBuilder() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  void pre(v2::ASTNodeBase* node);
+  void pre(ASTNodeBase* node);
 
   /**
    * CFG for the top level passed in
    */
-  v2::CFG* getCFG() {return cur_cfg;}
+  CFG* getCFG() {return cur_cfg;}
 
-  v2::CFG *getCFGByNode(v2::ASTNodeBase *node) {
+  CFG *getCFGByNode(ASTNodeBase *node) {
     if (Node2CFG.count(node)) {
       return Node2CFG[node];
     }
     return nullptr;
   }
 
-  v2::CFG* getInnerCFG(v2::ASTNodeBase* node) {
+  CFG* getInnerCFG(ASTNodeBase* node) {
     assert(node);
     assert(Node2CFG.count(node) == 1);
     return Node2CFG[node];
   }
-  void addInnerCFG(v2::ASTNodeBase* node, v2::CFG *cfg) {
+  void addInnerCFG(ASTNodeBase* node, CFG *cfg) {
     assert(cfg);
     assert(node);
     Node2CFG[node]=cfg;
@@ -880,13 +873,13 @@ public:
   }
 
 private:
-  v2::CFG *cur_cfg = nullptr;
-  // v2::CFGNode *cur_cfgnode = nullptr;
+  CFG *cur_cfg = nullptr;
+  // CFGNode *cur_cfgnode = nullptr;
   // do not use this alone
-  std::map<v2::ASTNodeBase*, v2::CFG*> Node2CFG;
-  std::set<v2::CFGNode*> break_nodes;
-  std::set<v2::CFGNode*> continue_nodes;
-  std::set<v2::CFGNode*> return_nodes;
+  std::map<ASTNodeBase*, CFG*> Node2CFG;
+  std::set<CFGNode*> break_nodes;
+  std::set<CFGNode*> continue_nodes;
+  std::set<CFGNode*> return_nodes;
 };
 
 #endif /* VISITOR_H */

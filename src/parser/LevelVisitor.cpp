@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -11,104 +11,104 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 
 
 
 // level visitor
-void LevelVisitor::visit(v2::TokenNode *node) {
+void LevelVisitor::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::TranslationUnitDecl *node) {
+void LevelVisitor::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::FunctionDecl *node) {
+void LevelVisitor::visit(FunctionDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::CompoundStmt *node) {
+void LevelVisitor::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // condition
-void LevelVisitor::visit(v2::IfStmt *node) {
+void LevelVisitor::visit(IfStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::SwitchStmt *node) {
+void LevelVisitor::visit(SwitchStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::CaseStmt *node) {
+void LevelVisitor::visit(CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::DefaultStmt *node) {
+void LevelVisitor::visit(DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // loop
-void LevelVisitor::visit(v2::ForStmt *node) {
+void LevelVisitor::visit(ForStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::WhileStmt *node) {
+void LevelVisitor::visit(WhileStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::DoStmt *node) {
+void LevelVisitor::visit(DoStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // single
-void LevelVisitor::visit(v2::BreakStmt *node) {
+void LevelVisitor::visit(BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::ContinueStmt *node) {
+void LevelVisitor::visit(ContinueStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::ReturnStmt *node) {
+void LevelVisitor::visit(ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // expr stmt
-void LevelVisitor::visit(v2::Expr *node) {
+void LevelVisitor::visit(Expr *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::DeclStmt *node) {
+void LevelVisitor::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void LevelVisitor::visit(v2::ExprStmt *node) {
+void LevelVisitor::visit(ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 
 
-int LevelVisitor::getLevel(v2::ASTNodeBase *node) {
+int LevelVisitor::getLevel(ASTNodeBase *node) {
   if (Levels.count(node) == 1) {
     return Levels[node];
   } else {
@@ -117,9 +117,9 @@ int LevelVisitor::getLevel(v2::ASTNodeBase *node) {
 }
 
 
-v2::ASTNodeBase *LevelVisitor::getLowestLevelNode(std::set<v2::ASTNodeBase*> nodes) {
+ASTNodeBase *LevelVisitor::getLowestLevelNode(std::set<ASTNodeBase*> nodes) {
   int retlvl=-1;
-  v2::ASTNodeBase *ret = nullptr;
+  ASTNodeBase *ret = nullptr;
   for (auto *node : nodes) {
     int lvl = getLevel(node);
     if (retlvl < lvl) {

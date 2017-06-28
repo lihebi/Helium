@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -9,78 +9,78 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 
 // high level
-void TokenVisitor::visit(v2::TokenNode *node) {
+void TokenVisitor::visit(TokenNode *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::TranslationUnitDecl *node) {
+void TokenVisitor::visit(TranslationUnitDecl *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::FunctionDecl *node) {
+void TokenVisitor::visit(FunctionDecl *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::CompoundStmt *node) {
+void TokenVisitor::visit(CompoundStmt *node) {
   Visitor::visit(node);
 }
 // condition
-void TokenVisitor::visit(v2::IfStmt *node) {
+void TokenVisitor::visit(IfStmt *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::SwitchStmt *node) {
+void TokenVisitor::visit(SwitchStmt *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::CaseStmt *node) {
+void TokenVisitor::visit(CaseStmt *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::DefaultStmt *node) {
+void TokenVisitor::visit(DefaultStmt *node) {
   Visitor::visit(node);
 }
 // loop
-void TokenVisitor::visit(v2::ForStmt *node) {
+void TokenVisitor::visit(ForStmt *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::WhileStmt *node) {
+void TokenVisitor::visit(WhileStmt *node) {
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::DoStmt *node) {
+void TokenVisitor::visit(DoStmt *node) {
   Visitor::visit(node);
 }
 // single
-void TokenVisitor::visit(v2::BreakStmt *node) {
+void TokenVisitor::visit(BreakStmt *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::ContinueStmt *node) {
+void TokenVisitor::visit(ContinueStmt *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::ReturnStmt *node) {
+void TokenVisitor::visit(ReturnStmt *node) {
   Visitor::visit(node);
 }
 // expr stmt
-void TokenVisitor::visit(v2::Expr *node) {
+void TokenVisitor::visit(Expr *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::DeclStmt *node) {
+void TokenVisitor::visit(DeclStmt *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;
   Visitor::visit(node);
 }
-void TokenVisitor::visit(v2::ExprStmt *node) {
+void TokenVisitor::visit(ExprStmt *node) {
   IdMap[node] = id;
   Tokens.push_back(node);
   id++;

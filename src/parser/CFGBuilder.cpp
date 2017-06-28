@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
@@ -12,18 +12,18 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
 
-void CFGBuilder::pre(v2::ASTNodeBase *node) {
+
+void CFGBuilder::pre(ASTNodeBase *node) {
   // node->dump(std::cout);
   // std::cout << std::flush;
 }
 
-void CFGBuilder::visit(v2::TokenNode *node) {
+void CFGBuilder::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
 }
-void CFGBuilder::visit(v2::TranslationUnitDecl *node) {
+void CFGBuilder::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -35,17 +35,17 @@ void CFGBuilder::visit(v2::TranslationUnitDecl *node) {
   }
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::FunctionDecl *node) {
+void CFGBuilder::visit(FunctionDecl *node) {
   pre(node);
   // create a seperate CFG
   // create cfg from function
   Visitor::visit(node);
-  v2::CFG *cfg = new CFG();
-  v2::CFGNode *func_node = new CFGNode(node);
-  v2::CFGNode *func_out = new CFGNode("func-out");
+  CFG *cfg = new CFG();
+  CFGNode *func_node = new CFGNode(node);
+  CFGNode *func_out = new CFGNode("func-out");
   cfg->addNode(func_node);
   cfg->addNode(func_out);
-  v2::CFG *inner = getInnerCFG(node->getBody());
+  CFG *inner = getInnerCFG(node->getBody());
   cfg->graph.merge(inner->graph);
   cfg->graph.addEdge(func_node, inner->ins);
   cfg->graph.addEdge(inner->outs, func_out);
@@ -58,11 +58,11 @@ void CFGBuilder::visit(v2::FunctionDecl *node) {
   
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::CompoundStmt *node) {
+void CFGBuilder::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
-  v2::CFG *cfg = new CFG();
-  v2::CFGNode *comp_node = new CFGNode(node);
+  CFG *cfg = new CFG();
+  CFGNode *comp_node = new CFGNode(node);
   cfg->addNode(comp_node);
   cfg->outs.insert(comp_node);
   cfg->ins.insert(comp_node);
@@ -78,12 +78,12 @@ void CFGBuilder::visit(v2::CompoundStmt *node) {
   addInnerCFG(node, cfg);
 }
 
-void CFGBuilder::visit(v2::IfStmt *node) {
+void CFGBuilder::visit(IfStmt *node) {
   pre(node);
   Visitor::visit(node);
-  v2::CFG *cfg = new CFG();
-  v2::CFGNode *if_node = new CFGNode(node);
-  v2::CFGNode *if_out = new CFGNode("if-out");
+  CFG *cfg = new CFG();
+  CFGNode *if_node = new CFGNode(node);
+  CFGNode *if_out = new CFGNode("if-out");
   cfg->addNode(if_node);
   cfg->addNode(if_out);
   // then (must have)
@@ -108,11 +108,11 @@ void CFGBuilder::visit(v2::IfStmt *node) {
   addInnerCFG(node, cfg);
 }
 
-void CFGBuilder::visit(v2::SwitchStmt *node) {
+void CFGBuilder::visit(SwitchStmt *node) {
   pre(node);
   Visitor::visit(node);
-  v2::CFG *cfg = new CFG();
-  v2::CFGNode *switch_node = new CFGNode(node);
+  CFG *cfg = new CFG();
+  CFGNode *switch_node = new CFGNode(node);
   CFGNode *switch_out = new CFGNode("switch-out");
   cfg->addNode(switch_node);
   cfg->addNode(switch_out);
@@ -149,7 +149,7 @@ void CFGBuilder::visit(v2::SwitchStmt *node) {
   
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::CaseStmt *node) {
+void CFGBuilder::visit(CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -168,7 +168,7 @@ void CFGBuilder::visit(v2::CaseStmt *node) {
   cfg->addIn(case_node);
   addInnerCFG(node, cfg); 
 }
-void CFGBuilder::visit(v2::DefaultStmt *node) {
+void CFGBuilder::visit(DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -188,13 +188,13 @@ void CFGBuilder::visit(v2::DefaultStmt *node) {
   cfg->addIn(def_node);
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::ForStmt *node) {
+void CFGBuilder::visit(ForStmt *node) {
   pre(node);
   Visitor::visit(node);
 
-  CFG *cfg = new v2::CFG();
-  CFGNode *loop_node = new v2::CFGNode(node);
-  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  CFG *cfg = new CFG();
+  CFGNode *loop_node = new CFGNode(node);
+  CFGNode *loop_out = new CFGNode("loop-out");
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -216,13 +216,13 @@ void CFGBuilder::visit(v2::ForStmt *node) {
 
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::WhileStmt *node) {
+void CFGBuilder::visit(WhileStmt *node) {
   pre(node);
   Visitor::visit(node);
   
-  CFG *cfg = new v2::CFG();
-  CFGNode *loop_node = new v2::CFGNode(node);
-  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  CFG *cfg = new CFG();
+  CFGNode *loop_node = new CFGNode(node);
+  CFGNode *loop_out = new CFGNode("loop-out");
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -244,12 +244,12 @@ void CFGBuilder::visit(v2::WhileStmt *node) {
 
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::DoStmt *node) {
+void CFGBuilder::visit(DoStmt *node) {
   pre(node);
   Visitor::visit(node);
-  CFG *cfg = new v2::CFG();
-  CFGNode *loop_node = new v2::CFGNode(node);
-  v2::CFGNode *loop_out = new v2::CFGNode("loop-out");
+  CFG *cfg = new CFG();
+  CFGNode *loop_node = new CFGNode(node);
+  CFGNode *loop_out = new CFGNode("loop-out");
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -272,7 +272,7 @@ void CFGBuilder::visit(v2::DoStmt *node) {
   addInnerCFG(node, cfg);
 }
 
-void CFGBuilder::visit(v2::BreakStmt *node) {
+void CFGBuilder::visit(BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -282,7 +282,7 @@ void CFGBuilder::visit(v2::BreakStmt *node) {
   addInnerCFG(node, cfg);
   break_nodes.insert(break_node);
 }
-void CFGBuilder::visit(v2::ContinueStmt *node) {
+void CFGBuilder::visit(ContinueStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -292,7 +292,7 @@ void CFGBuilder::visit(v2::ContinueStmt *node) {
   addInnerCFG(node, cfg);
   continue_nodes.insert(continue_node);
 }
-void CFGBuilder::visit(v2::ReturnStmt *node) {
+void CFGBuilder::visit(ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -303,10 +303,10 @@ void CFGBuilder::visit(v2::ReturnStmt *node) {
   addInnerCFG(node, cfg);
   return_nodes.insert(return_node);
 }
-void CFGBuilder::visit(v2::Expr *node) {
+void CFGBuilder::visit(Expr *node) {
   pre(node);
 }
-void CFGBuilder::visit(v2::DeclStmt *node) {
+void CFGBuilder::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();
@@ -316,7 +316,7 @@ void CFGBuilder::visit(v2::DeclStmt *node) {
   cfg->addOut(cfgnode);
   addInnerCFG(node, cfg);
 }
-void CFGBuilder::visit(v2::ExprStmt *node) {
+void CFGBuilder::visit(ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   CFG *cfg = new CFG();

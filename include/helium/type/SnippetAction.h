@@ -5,7 +5,7 @@
  * Action for traverse code and create snippet
  */
 
-#include "helium/resolver/SnippetV2.h"
+#include "helium/type/Snippet.h"
 
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -25,7 +25,7 @@ namespace fs = boost::filesystem;
  * Create snippet for file.
  * This is the only API
  */
-std::vector<v2::Snippet*> createSnippets(fs::path file);
+std::vector<Snippet*> createSnippets(fs::path file);
 
 
 #endif /* SNIPPETACTION_H */

@@ -1,27 +1,21 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "helium/workflow/helium.h"
+#include "helium/utils/XMLDocReader.h"
 
-#include "helium/resolver/snippet_db.h"
-#include "helium/parser/cfg.h"
-#include "helium/parser/xml_doc_reader.h"
-#include "helium/parser/ast_node.h"
+#include "helium/parser/Parser.h"
 
-#include "helium/parser/parser.h"
+#include "helium/utils/HeliumOptions.h"
+#include "helium/utils/FSUtils.h"
+#include "helium/utils/Utils.h"
 
-#include "helium/utils/helium_options.h"
-#include "helium/parser/point_of_interest.h"
-#include "helium/utils/fs_utils.h"
-#include "helium/utils/utils.h"
+#include "helium/parser/SourceManager.h"
 
-#include "helium/parser/source_manager.h"
+#include "helium/type/ClangSnippet.h"
+#include "helium/type/Cache.h"
 
-#include "helium/resolver/clangSnippet.h"
-#include "helium/resolver/cache.h"
-
-#include "helium/resolver/SnippetV2.h"
-#include "helium/resolver/SnippetAction.h"
+#include "helium/type/Snippet.h"
+#include "helium/type/SnippetAction.h"
 
 
 #include <gtest/gtest.h>

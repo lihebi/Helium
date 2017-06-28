@@ -1,5 +1,7 @@
 #include "helium/utils/XMLNode.h"
 
+#include <cstring>
+
 /*******************************
  ** DomUtil
  *******************************/

@@ -15,30 +15,8 @@
 
 class XMLDocReader {
 public:
-  static XMLDocReader *Instance() {
-    if (!m_instance) {
-      m_instance = new XMLDocReader();
-    }
-    return m_instance;
-  }
-  ~XMLDocReader() {
-    for (XMLDoc* doc : m_string_docs) {
-      delete doc;
-    }
-    for (auto m : m_docs) {
-      delete m.second;
-    }
-  }
-  XMLDoc* ReadFile(std::string filename);
-  XMLDoc* ReadString(const std::string &code);
-
-  XMLDoc* ReadSnippet(int snippet_id);
-
-  
-  static std::vector<std::string> QueryCode(const std::string &code, std::string query);
-  static std::string QueryCodeFirst(const std::string &code, std::string query);
-  static std::string QueryCodeFirstDeep(const std::string &code, std::string query);
-  static bool QueryCodeHas(const std::string &code, std::string query);
+  XMLDocReader() {}
+  ~XMLDocReader() {}
   /**
    * These two methods are static, meaning the user is responsible to free the returned document
    * The cache is not used even for the file option, because there's no instance of XMLDocReader involved
@@ -47,12 +25,6 @@ public:
    */
   static XMLDoc* CreateDocFromString(const std::string &code, std::string filename = "");
   static XMLDoc* CreateDocFromFile(std::string filename);
-private:
-  XMLDocReader() {}
-  static XMLDocReader *m_instance;
-  std::map<std::string, XMLDoc*> m_docs;
-  std::vector<XMLDoc*> m_string_docs;
-  std::map<int, XMLDoc*> m_snippet_docs;
 };
 
 #endif /* XML_DOC_READER_H */

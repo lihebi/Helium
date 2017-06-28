@@ -9,7 +9,7 @@
 
 
 using std::vector;
-using namespace v2;
+
 
 // rename this file to srcmlparser.cc
 

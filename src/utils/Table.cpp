@@ -1,4 +1,4 @@
-#include "helium/utils/table.h"
+#include "helium/utils/Table.h"
 #include <iostream>
 #include "helium/utils/Utils.h"
 
@@ -19,7 +19,8 @@ Table* TableFactory::Create(fs::path file) {
   } else if (file.extension() == ".org") {
     ret = new OrgTable();
   } else {
-    error("EE: csv file format " + file.extension().string() + " not supported.");
+    std::cerr << "EE: csv file format " + file.extension().string() + " not supported." << "\n";
+    exit(1);
   }
   
   std::string line;

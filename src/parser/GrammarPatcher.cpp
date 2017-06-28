@@ -1,5 +1,5 @@
 #include "helium/parser/GrammarPatcher.h"
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
@@ -11,11 +11,11 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 
 // the skip map for lazy evaluation
-std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> GlobalSkip;
+std::map<ASTNodeBase*, ASTNodeBase*> GlobalSkip;
 
 void StandAloneGrammarPatcher::process() {
   GlobalSkip.clear();
@@ -141,15 +141,15 @@ void StandAloneGrammarPatcher::process() {
 
   
 }
-bool StandAloneGrammarPatcher::validAlone(v2::ASTNodeBase* node) {
-  if (dynamic_cast<v2::TokenNode*>(node)
-      || dynamic_cast<v2::CaseStmt*>(node)
-      || dynamic_cast<v2::DefaultStmt*>(node)
-      || dynamic_cast<v2::Expr*>(node)) return false;
+bool StandAloneGrammarPatcher::validAlone(ASTNodeBase* node) {
+  if (dynamic_cast<TokenNode*>(node)
+      || dynamic_cast<CaseStmt*>(node)
+      || dynamic_cast<DefaultStmt*>(node)
+      || dynamic_cast<Expr*>(node)) return false;
   else return true;
 }
 
-void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> sel) {
+void StandAloneGrammarPatcher::matchMin(ASTNodeBase *parent, std::set<ASTNodeBase*> sel) {
   // get rules
   // for each rule
   // T=body, S=children
@@ -185,7 +185,7 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
   patcher.setSelection(sel);
   parent->accept(&patcher);
   // patcher.patch(parent);
-  std::set<v2::ASTNodeBase*> patch = patcher.getPatch();
+  std::set<ASTNodeBase*> patch = patcher.getPatch();
   this->Patch.insert(patch.begin(), patch.end());
 
   // DEBUG
@@ -206,11 +206,11 @@ void StandAloneGrammarPatcher::matchMin(v2::ASTNodeBase *parent, std::set<v2::AS
 
 
 // high level
-void GrammarPatcher::visit(v2::TokenNode *node) {
+void GrammarPatcher::visit(TokenNode *node) {
 }
-void GrammarPatcher::visit(v2::TranslationUnitDecl *node) {
+void GrammarPatcher::visit(TranslationUnitDecl *node) {
 }
-void GrammarPatcher::visit(v2::FunctionDecl *node) {
+void GrammarPatcher::visit(FunctionDecl *node) {
   if (GlobalSkip.count(node)==1) return;
   // if function header is selected, it is hard
   // i have to generate a main function, and generate parameters, initialize them, and call the function
@@ -267,7 +267,7 @@ void GrammarPatcher::visit(v2::FunctionDecl *node) {
     merge(&patcher);
   }
 }
-void GrammarPatcher::visit(v2::CompoundStmt *node) {
+void GrammarPatcher::visit(CompoundStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *CompNode = node->getCompNode();
   assert(CompNode);
@@ -285,7 +285,7 @@ void GrammarPatcher::visit(v2::CompoundStmt *node) {
   }
 }
 // condition
-void GrammarPatcher::visit(v2::IfStmt *node) {
+void GrammarPatcher::visit(IfStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *IfNode = node->getIfNode();
   assert(IfNode);
@@ -319,7 +319,7 @@ void GrammarPatcher::visit(v2::IfStmt *node) {
     }
   }
 }
-void GrammarPatcher::visit(v2::SwitchStmt *node) {
+void GrammarPatcher::visit(SwitchStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *SwitchNode = node->getSwitchNode();
   assert(SwitchNode);
@@ -338,13 +338,13 @@ void GrammarPatcher::visit(v2::SwitchStmt *node) {
     Patch.insert(cond);
     // FIXME should have the compound parenthesis
     // FIXME if switch is selected, must clear the skip bit of all the cases
-    for (v2::ASTNodeBase *label_stmt : node->getCases()) {
+    for (ASTNodeBase *label_stmt : node->getCases()) {
       // FIXME not only the label, but also the token and condition node
       GlobalSkip.erase(label_stmt);
-      if (v2::CaseStmt *case_stmt = dynamic_cast<CaseStmt*>(label_stmt)) {
+      if (CaseStmt *case_stmt = dynamic_cast<CaseStmt*>(label_stmt)) {
         GlobalSkip.erase(case_stmt->getCaseNode());
         GlobalSkip.erase(case_stmt->getCond());
-      } else if (v2::DefaultStmt *def_stmt = dynamic_cast<DefaultStmt*>(label_stmt)) {
+      } else if (DefaultStmt *def_stmt = dynamic_cast<DefaultStmt*>(label_stmt)) {
         GlobalSkip.erase(def_stmt->getDefaultNode());
       }
     }
@@ -356,7 +356,7 @@ void GrammarPatcher::visit(v2::SwitchStmt *node) {
   //   if (c) c->accept(this);
   // }
 }
-void GrammarPatcher::visit(v2::CaseStmt *node) {
+void GrammarPatcher::visit(CaseStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *CaseNode = node->getCaseNode();
   Expr *cond = node->getCond();
@@ -387,7 +387,7 @@ void GrammarPatcher::visit(v2::CaseStmt *node) {
   //   if (stmt) stmt->accept(this);
   // }
 }
-void GrammarPatcher::visit(v2::DefaultStmt *node) {
+void GrammarPatcher::visit(DefaultStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *DefaultNode = node->getDefaultNode();
   assert(DefaultNode);
@@ -402,7 +402,7 @@ void GrammarPatcher::visit(v2::DefaultStmt *node) {
   }
 }
 // loop
-void GrammarPatcher::visit(v2::ForStmt *node) {
+void GrammarPatcher::visit(ForStmt *node) {
   if (GlobalSkip.count(node) ==1) {
     // it is indicated to skip, do not patch it
     return;
@@ -427,7 +427,7 @@ void GrammarPatcher::visit(v2::ForStmt *node) {
     merge(&patcher);
   }
 }
-void GrammarPatcher::visit(v2::WhileStmt *node) {
+void GrammarPatcher::visit(WhileStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *WhileNode = node->getWhileNode();
   assert(WhileNode);
@@ -447,7 +447,7 @@ void GrammarPatcher::visit(v2::WhileStmt *node) {
     merge(&patcher);
   }
 }
-void GrammarPatcher::visit(v2::DoStmt *node) {
+void GrammarPatcher::visit(DoStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *DoNode = node->getDoNode();
   assert(DoNode);
@@ -472,13 +472,13 @@ void GrammarPatcher::visit(v2::DoStmt *node) {
   }
 }
 // single
-void GrammarPatcher::visit(v2::BreakStmt *node) {
+void GrammarPatcher::visit(BreakStmt *node) {
   if (GlobalSkip.count(node)==1) return;
 }
-void GrammarPatcher::visit(v2::ContinueStmt *node) {
+void GrammarPatcher::visit(ContinueStmt *node) {
   if (GlobalSkip.count(node)==1) return;
 }
-void GrammarPatcher::visit(v2::ReturnStmt *node) {
+void GrammarPatcher::visit(ReturnStmt *node) {
   if (GlobalSkip.count(node)==1) return;
   TokenNode *ReturnNode = node->getReturnNode();
   assert(ReturnNode);
@@ -491,9 +491,9 @@ void GrammarPatcher::visit(v2::ReturnStmt *node) {
   }
 }
 // expr stmt
-void GrammarPatcher::visit(v2::Expr *node) {
+void GrammarPatcher::visit(Expr *node) {
 }
-void GrammarPatcher::visit(v2::DeclStmt *node) {
+void GrammarPatcher::visit(DeclStmt *node) {
 }
-void GrammarPatcher::visit(v2::ExprStmt *node) {
+void GrammarPatcher::visit(ExprStmt *node) {
 }

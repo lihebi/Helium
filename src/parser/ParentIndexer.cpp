@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -9,9 +9,9 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
 
-void ParentIndexer::pre(v2::ASTNodeBase* node) {
+
+void ParentIndexer::pre(ASTNodeBase* node) {
   if (!Stack.empty()) {
     ParentMap[node] = Stack.back();
     ChildrenMap[Stack.back()].push_back(node);
@@ -23,91 +23,91 @@ void ParentIndexer::post() {
   Stack.pop_back();
 }
 // high level
-void ParentIndexer::visit(v2::TokenNode *node) {
+void ParentIndexer::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::TranslationUnitDecl *node) {
+void ParentIndexer::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::FunctionDecl *node) {
+void ParentIndexer::visit(FunctionDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::CompoundStmt *node) {
+void ParentIndexer::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // condition
-void ParentIndexer::visit(v2::IfStmt *node) {
+void ParentIndexer::visit(IfStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::SwitchStmt *node) {
+void ParentIndexer::visit(SwitchStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::CaseStmt *node) {
+void ParentIndexer::visit(CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::DefaultStmt *node) {
+void ParentIndexer::visit(DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // loop
-void ParentIndexer::visit(v2::ForStmt *node) {
+void ParentIndexer::visit(ForStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::WhileStmt *node) {
+void ParentIndexer::visit(WhileStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::DoStmt *node) {
+void ParentIndexer::visit(DoStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // single
-void ParentIndexer::visit(v2::BreakStmt *node) {
+void ParentIndexer::visit(BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::ContinueStmt *node) {
+void ParentIndexer::visit(ContinueStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::ReturnStmt *node) {
+void ParentIndexer::visit(ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
 // expr stmt
-void ParentIndexer::visit(v2::Expr *node) {
+void ParentIndexer::visit(Expr *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::DeclStmt *node) {
+void ParentIndexer::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void ParentIndexer::visit(v2::ExprStmt *node) {
+void ParentIndexer::visit(ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();

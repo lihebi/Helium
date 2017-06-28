@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -9,9 +9,9 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
 
-void Distributor::pre(v2::ASTNodeBase* node) {
+
+void Distributor::pre(ASTNodeBase* node) {
   // for all the things in stack
   // push contain map
   for (ASTNodeBase* n : Stack) {
@@ -25,97 +25,97 @@ void Distributor::post() {
 }
 
 // high level
-void Distributor::visit(v2::TokenNode *node){
+void Distributor::visit(TokenNode *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::TranslationUnitDecl *node){
+void Distributor::visit(TranslationUnitDecl *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::FunctionDecl *node){
+void Distributor::visit(FunctionDecl *node){
   func_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::CompoundStmt *node){
+void Distributor::visit(CompoundStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
 // condition
-void Distributor::visit(v2::IfStmt *node){
+void Distributor::visit(IfStmt *node){
   if_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::SwitchStmt *node){
+void Distributor::visit(SwitchStmt *node){
   switch_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::CaseStmt *node){
+void Distributor::visit(CaseStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::DefaultStmt *node){
+void Distributor::visit(DefaultStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
 // loop
-void Distributor::visit(v2::ForStmt *node){
+void Distributor::visit(ForStmt *node){
   for_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::WhileStmt *node){
+void Distributor::visit(WhileStmt *node){
   while_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::DoStmt *node){
+void Distributor::visit(DoStmt *node){
   do_nodes.insert(node);
   pre(node);
   Visitor::visit(node);
   post();
 }
 // single
-void Distributor::visit(v2::BreakStmt *node){
+void Distributor::visit(BreakStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::ContinueStmt *node){
+void Distributor::visit(ContinueStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::ReturnStmt *node){
+void Distributor::visit(ReturnStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
 // expr stmt
-void Distributor::visit(v2::Expr *node){
+void Distributor::visit(Expr *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::DeclStmt *node){
+void Distributor::visit(DeclStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Distributor::visit(v2::ExprStmt *node){
+void Distributor::visit(ExprStmt *node){
   pre(node);
   Visitor::visit(node);
   post();
@@ -159,7 +159,7 @@ void Distributor::dump(std::ostream &os) {
 
 
   // containmap
-  // std::map<v2::ASTNodeBase*, std::set<v2::ASTNodeBase*> > ContainMap;
+  // std::map<ASTNodeBase*, std::set<ASTNodeBase*> > ContainMap;
   os << "Contain Map: " << "\n";
   for (auto &m : ContainMap) {
     os << "\t";

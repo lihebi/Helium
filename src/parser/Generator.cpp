@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -12,14 +12,14 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
 
-void Generator::outputInstrument(v2::ASTNodeBase *node) {
+
+void Generator::outputInstrument(ASTNodeBase *node) {
   if (OutputPosition == node) {
     Prog += "// Output Position\n";
     for (auto &m : OutputInstrument) {
       std::string var = m.first;
-      v2::ASTNodeBase *def = m.second;
+      ASTNodeBase *def = m.second;
       std::map<std::string, std::string> vars = def->getFullVars();
       if (vars.count(var) == 1) {
         
@@ -44,18 +44,18 @@ void Generator::outputInstrument(v2::ASTNodeBase *node) {
 
 
 // high level
-void Generator::visit(v2::TokenNode *node){
+void Generator::visit(TokenNode *node){
   if (selection.count(node) == 1) {
     Prog += node->getText() + " ";
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::TranslationUnitDecl *node){
+void Generator::visit(TranslationUnitDecl *node){
   std::vector<ASTNodeBase*> nodes = node->getDecls();
   Visitor::visit(node);
   outputInstrument(node);
 }
-void Generator::visit(v2::FunctionDecl *node){
+void Generator::visit(FunctionDecl *node){
   TokenNode *ReturnNode = node->getReturnTypeNode();
   // output location information
   if (selection.count(ReturnNode)==1) {
@@ -95,7 +95,7 @@ void Generator::visit(v2::FunctionDecl *node){
   if (body) body->accept(this);
   outputInstrument(node);
 }
-void Generator::visit(v2::CompoundStmt *node){
+void Generator::visit(CompoundStmt *node){
   // Braces
   TokenNode *CompNode = node->getCompNode();
   if (selection.count(CompNode) == 1) {Prog += "{\n";}
@@ -104,7 +104,7 @@ void Generator::visit(v2::CompoundStmt *node){
   outputInstrument(node);
 }
 // condition
-void Generator::visit(v2::IfStmt *node){
+void Generator::visit(IfStmt *node){
   TokenNode *IfNode = node->getIfNode();
   assert(IfNode);
   if (selection.count(IfNode)==1) {
@@ -134,7 +134,7 @@ void Generator::visit(v2::IfStmt *node){
   if (selection.count(ElseNode) == 1) {Prog += "}";}
   outputInstrument(node);
 }
-void Generator::visit(v2::SwitchStmt *node){
+void Generator::visit(SwitchStmt *node){
   TokenNode *SwitchNode = node->getSwitchNode();
   assert(SwitchNode);
 
@@ -155,7 +155,7 @@ void Generator::visit(v2::SwitchStmt *node){
   if (selection.count(SwitchNode) == 1) Prog += "}\n";
   outputInstrument(node);
 }
-void Generator::visit(v2::CaseStmt *node){
+void Generator::visit(CaseStmt *node){
   TokenNode *token = node->getCaseNode();
   if (token) token->accept(this);
   Expr *cond = node->getCond();
@@ -171,7 +171,7 @@ void Generator::visit(v2::CaseStmt *node){
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::DefaultStmt *node){
+void Generator::visit(DefaultStmt *node){
   TokenNode *token = node->getDefaultNode();
   if (token) token->accept(this);
   if (selection.count(token) == 1) {
@@ -186,7 +186,7 @@ void Generator::visit(v2::DefaultStmt *node){
   outputInstrument(node);
 }
 // loop
-void Generator::visit(v2::ForStmt *node){
+void Generator::visit(ForStmt *node){
   TokenNode *ForNode = node->getForNode();
   assert(ForNode);
   ForNode->accept(this);
@@ -209,7 +209,7 @@ void Generator::visit(v2::ForStmt *node){
   if (selection.count(ForNode) == 1) Prog += "}";
   outputInstrument(node);
 }
-void Generator::visit(v2::WhileStmt *node){
+void Generator::visit(WhileStmt *node){
   TokenNode *WhileNode = node->getWhileNode();
   if (WhileNode) WhileNode->accept(this);
   if (selection.count(WhileNode) == 1) Prog += "(";
@@ -222,7 +222,7 @@ void Generator::visit(v2::WhileStmt *node){
   if (selection.count(WhileNode) == 1) Prog += "}";
   outputInstrument(node);
 }
-void Generator::visit(v2::DoStmt *node){
+void Generator::visit(DoStmt *node){
   TokenNode *DoNode = node->getDoNode();
   TokenNode *WhileNode = node->getWhileNode();
   assert(DoNode);
@@ -238,19 +238,19 @@ void Generator::visit(v2::DoStmt *node){
   outputInstrument(node);
 }
 // single
-void Generator::visit(v2::BreakStmt *node){
+void Generator::visit(BreakStmt *node){
   if (selection.count(node)) {
     Prog += "break;\n";
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::ContinueStmt *node){
+void Generator::visit(ContinueStmt *node){
   if (selection.count(node)) {
     Prog += "continue;\n";
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::ReturnStmt *node){
+void Generator::visit(ReturnStmt *node){
   TokenNode *ReturnNode = node->getReturnNode();
   if (ReturnNode) {
     // if adjust return, don't output the return
@@ -266,13 +266,13 @@ void Generator::visit(v2::ReturnStmt *node){
   outputInstrument(node);
 }
 // expr stmt
-void Generator::visit(v2::Expr *node){
+void Generator::visit(Expr *node){
   if (selection.count(node) == 1) {
     Prog += node->getText();
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::DeclStmt *node){
+void Generator::visit(DeclStmt *node){
   if (selection.count(node) == 1) {
     Prog += node->getText() + "\n";
 
@@ -302,7 +302,7 @@ void Generator::visit(v2::DeclStmt *node){
   }
   outputInstrument(node);
 }
-void Generator::visit(v2::ExprStmt *node){
+void Generator::visit(ExprStmt *node){
   if (selection.count(node) == 1) {
     // no need semi-colon because <expr_stmt>... ;</expr_stmt>
     Prog += "// " + node->getASTContext()->getFileName() + ":"

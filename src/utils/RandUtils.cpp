@@ -1,8 +1,17 @@
-#include "helium/utils/rand_utils.h"
-#include "helium/utils/common.h"
+#include "helium/utils/RandUtils.h"
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
 
 
 namespace utils {

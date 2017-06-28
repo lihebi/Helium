@@ -1,6 +1,16 @@
-#include "helium/utils/xml_utils.h"
-#include "helium/utils/common.h"
-#include "helium/utils/thread_utils.h"
+#include "helium/utils/XMLUtils.h"
+#include "helium/utils/ThreadUtils.h"
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+
 
 namespace utils {
 

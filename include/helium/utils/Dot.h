@@ -3,7 +3,21 @@
 
 #include <vector>
 #include <string>
-#include "Common.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+
+#include <boost/regex.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 typedef enum _DotNodeColorKind {
   DNCK_Yellow,

@@ -2,8 +2,7 @@
 #define HEADERMANAGER_H
 
 #include <vector>
-#include "helium/parser/ast_v2.h"
-#include "helium/utils/common.h"
+#include "helium/parser/AST.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

@@ -4,20 +4,20 @@
 #include "helium/parser/SourceManager.h"
 
 
-using namespace v2;
 
-std::set<std::string> v2::TokenNode::getIdToResolve() {
+
+std::set<std::string> TokenNode::getIdToResolve() {
   return extract_id_to_resolve(Text);
 }
 
-std::set<std::string> v2::DeclStmt::getIdToResolve() {
+std::set<std::string> DeclStmt::getIdToResolve() {
   return extract_id_to_resolve(Text);
 }
 
-std::set<std::string> v2::ExprStmt::getIdToResolve() {
+std::set<std::string> ExprStmt::getIdToResolve() {
   return extract_id_to_resolve(Text);
 }
 
-std::set<std::string> v2::Expr::getIdToResolve() {
+std::set<std::string> Expr::getIdToResolve() {
   return extract_id_to_resolve(Text);
 }

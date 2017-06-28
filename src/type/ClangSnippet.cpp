@@ -1,4 +1,4 @@
-#include "helium/resolver/ClangSnippet.h"
+#include "helium/type/ClangSnippet.h"
 #include "helium/utils/FSUtils.h"
 #include <iostream>
 

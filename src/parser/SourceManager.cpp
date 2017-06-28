@@ -3,7 +3,7 @@
 #include "helium/parser/parser.h"
 #include "helium/utils/StringUtils.h"
 
-#include "helium/utils/rand_utils.h"
+#include "helium/utils/RandUtils.h"
 #include "helium/parser/GrammarPatcher.h"
 
 #include "helium/resolver/SnippetV2.h"
@@ -12,7 +12,7 @@
 
 #include <regex>
 
-using namespace v2;
+
 
 using std::string;
 using std::vector;
@@ -37,8 +37,8 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
     }
   }
 
-  // std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
-  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+  // std::map<ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+  // std::map<ASTContext*, Distributor*> AST2DistributorMap;
 
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
@@ -69,7 +69,7 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   //   LevelVisitor *levelVisitor = new LevelVisitor();
   //   TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
   //   levelVisitor->visit(decl);
-  //   std::map<v2::ASTNodeBase*, int> levels = levelVisitor->getLevels();
+  //   std::map<ASTNodeBase*, int> levels = levelVisitor->getLevels();
   //   // examine levels
   // }
 }
@@ -154,8 +154,8 @@ std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
 }
 
 
-std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel) {
-  std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > use2def;
+std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
+  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > use2def;
 
 
   // for (auto &m : File2ASTMap) {
@@ -164,7 +164,7 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   //   TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
   //   SymbolTableBuilder *symbolTableBuilder = new SymbolTableBuilder();
   //   unit->accept(symbolTableBuilder);
-  //   std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = symbolTableBuilder->getUse2DefMap();
+  //   std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = symbolTableBuilder->getUse2DefMap();
   //   use2def.insert(u2d.begin(), u2d.end());
   // }
 
@@ -172,17 +172,17 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   // global variables, because they will be included through snippet
   for (auto &m : AST2DistributorMap) {
     Distributor *distributor = m.second;
-    std::set<v2::ASTNodeBase*> funcs = distributor->getFuncNodes();
-    for (v2::ASTNodeBase *func : funcs) {
+    std::set<ASTNodeBase*> funcs = distributor->getFuncNodes();
+    for (ASTNodeBase *func : funcs) {
       SymbolTableBuilder builder;
       func->accept(&builder);
-      std::map<v2::ASTNodeBase*,std::set<v2::ASTNodeBase*> > u2d = builder.getUse2DefMap();
+      std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = builder.getUse2DefMap();
       use2def.insert(u2d.begin(), u2d.end());
       // std::string name = dynamic_cast<FunctionDecl*>(func)->getName();
       // if (name == "sdscatfmt") {
       //   builder.dump(std::cout);
       // }
-      std::map<v2::ASTNodeBase*, v2::SymbolTable> tables = builder.getPersistTables();
+      std::map<ASTNodeBase*, SymbolTable> tables = builder.getPersistTables();
       // merging into central storage
       PersistTables.insert(tables.begin(), tables.end());
     }
@@ -190,7 +190,7 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   
   // process sel
   // this needs to be recursive
-  std::set<v2::ASTNodeBase*> ret = sel;
+  std::set<ASTNodeBase*> ret = sel;
 
   // output variable is tricky
   // i'm going to put at the end of the generated function
@@ -198,10 +198,10 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   // this includes all input variables, plus those uses that is not input
   OutputVarNodes.clear();
 
-  std::vector<v2::ASTNodeBase*> worklist(sel.begin(), sel.end());
-  std::set<v2::ASTNodeBase*> done;
+  std::vector<ASTNodeBase*> worklist(sel.begin(), sel.end());
+  std::set<ASTNodeBase*> done;
   while (!worklist.empty()) {
-    v2::ASTNodeBase *node = worklist.back();
+    ASTNodeBase *node = worklist.back();
     worklist.pop_back();
     done.insert(node);
     if (use2def.count(node) == 1) {
@@ -218,13 +218,13 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   // record input and output variable
   // input variable is easy: the ones in ret but not in sel
   InputVarNodes.clear();
-  for (v2::ASTNodeBase* node : ret) {
+  for (ASTNodeBase* node : ret) {
     if (sel.count(node) == 0) {
       InputVarNodes.insert(node);
     }
   }
   
-  // for (v2::ASTNodeBase *node : sel) {
+  // for (ASTNodeBase *node : sel) {
   //   if (use2def.count(node) == 1) {
   //     std::set<ASTNodeBase*> tmp = use2def[node];
   //     ret.insert(tmp.begin(), tmp.end());
@@ -233,7 +233,7 @@ std::set<v2::ASTNodeBase*> SourceManager::defUse(std::set<v2::ASTNodeBase*> sel)
   return ret;
 }
 
-std::string SourceManager::getTokenUUID(v2::ASTNodeBase* node) {
+std::string SourceManager::getTokenUUID(ASTNodeBase* node) {
   ASTContext *ast = node->getASTContext();
   std::string ret;
   if (AST2FileMap.count(ast) == 0) {
@@ -247,7 +247,7 @@ std::string SourceManager::getTokenUUID(v2::ASTNodeBase* node) {
   return ret;
 }
 
-fs::path SourceManager::getTokenFile(v2::ASTNodeBase* node) {
+fs::path SourceManager::getTokenFile(ASTNodeBase* node) {
   ASTContext *ast = node->getASTContext();
   std::string ret;
   if (AST2FileMap.count(ast) == 1) {
@@ -255,7 +255,7 @@ fs::path SourceManager::getTokenFile(v2::ASTNodeBase* node) {
   }
   return fs::path("");
 }
-int SourceManager::getTokenId(v2::ASTNodeBase* node) {
+int SourceManager::getTokenId(ASTNodeBase* node) {
   ASTContext *ast = node->getASTContext();
   if (AST2TokenVisitorMap.count(ast) != 0) {
     TokenVisitor *tokenVisitor = AST2TokenVisitorMap[ast];
@@ -271,7 +271,7 @@ int SourceManager::getTokenId(v2::ASTNodeBase* node) {
  */
 
 
-std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
+std::set<ASTNodeBase*> SourceManager::generateRandomSelection() {
   // Here I can enforce some criteria, such as intro-procedure
   set<ASTNodeBase*> ret;
   for (auto &m : File2ASTMap) {
@@ -293,8 +293,8 @@ std::set<v2::ASTNodeBase*> SourceManager::generateRandomSelection() {
   return ret;
 }
 
-std::set<v2::ASTNodeBase*> get_rand(std::vector<v2::ASTNodeBase*> nodes, int num) {
-  std::set<v2::ASTNodeBase*> ret;
+std::set<ASTNodeBase*> get_rand(std::vector<ASTNodeBase*> nodes, int num) {
+  std::set<ASTNodeBase*> ret;
   // return all nodes or simply empty?
   if (num > nodes.size()) return ret;
   std::set<int> idxes = utils::rand_ints(0, nodes.size(), num);
@@ -305,9 +305,9 @@ std::set<v2::ASTNodeBase*> get_rand(std::vector<v2::ASTNodeBase*> nodes, int num
   return ret;
 }
 
-std::set<v2::ASTNodeBase*> SourceManager::genRandSel(int num) {
+std::set<ASTNodeBase*> SourceManager::genRandSel(int num) {
   // TODO get all tokens only one time to get performance
-  std::vector<v2::ASTNodeBase*> nodes;
+  std::vector<ASTNodeBase*> nodes;
   // TODO get only tokens inside functions
   // TODO get only tokens inside same functions
   for (auto &m : File2ASTMap) {
@@ -324,15 +324,15 @@ std::set<v2::ASTNodeBase*> SourceManager::genRandSel(int num) {
 /**
  * the tokens must be in functions
  */
-std::set<v2::ASTNodeBase*> SourceManager::genRandSelFunc(int num) {
-  std::vector<v2::ASTNodeBase*> functions;
+std::set<ASTNodeBase*> SourceManager::genRandSelFunc(int num) {
+  std::vector<ASTNodeBase*> functions;
   for (auto &m : AST2DistributorMap) {
     Distributor *dist = m.second;
     std::set<ASTNodeBase*> funcs = dist->getFuncNodes();
     functions.insert(functions.end(), funcs.begin(), funcs.end());
   }
-  std::vector<v2::ASTNodeBase*> nodes;
-  for (v2::ASTNodeBase* func : functions) {
+  std::vector<ASTNodeBase*> nodes;
+  for (ASTNodeBase* func : functions) {
     TokenVisitor visitor;
     func->accept(&visitor);
     vector<ASTNodeBase*> tokens = visitor.getTokens();
@@ -344,9 +344,9 @@ std::set<v2::ASTNodeBase*> SourceManager::genRandSelFunc(int num) {
 /**
  * the tokens must be in the same function
  */
-std::set<v2::ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
+std::set<ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
   // get a vector of vector of nodes, ordered by function
-  std::vector<v2::ASTNodeBase*> functions;
+  std::vector<ASTNodeBase*> functions;
   for (auto &m : AST2DistributorMap) {
     Distributor *dist = m.second;
     std::set<ASTNodeBase*> funcs = dist->getFuncNodes();
@@ -395,7 +395,7 @@ std::set<v2::ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
  * ]
  */
 
-std::set<v2::ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
+std::set<ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
   map<string, set<pair<int, int> > > selection;
   if (fs::exists(sel_file)) {
     rapidjson::Document document;
@@ -432,13 +432,13 @@ std::set<v2::ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
       TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
       tokenVisitor->visit(unit);
       // apply and select the tokens based on source range
-      vector<v2::ASTNodeBase*> tokens = tokenVisitor->getTokens();
-      map<v2::ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
+      vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+      map<ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
       for (const pair<int,int> &p : sel.second) {
         int line = p.first;
         int column = p.second;
         // I know this is inefficient
-        for (v2::ASTNodeBase *token : tokens) {
+        for (ASTNodeBase *token : tokens) {
           SourceLocation begin = token->getBeginLoc();
           SourceLocation end = token->getEndLoc();
           if (column == -1) {
@@ -465,7 +465,7 @@ std::set<v2::ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
 }
 
 
-std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
+std::set<ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   map<string, set<pair<int,int> > > selection;
   if (fs::exists(sel_file)) {
     // this is a list of IDs
@@ -519,14 +519,14 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
       TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
       tokenVisitor->visit(unit);
       // apply and select the tokens based on source range
-      vector<v2::ASTNodeBase*> tokens = tokenVisitor->getTokens();
-      map<v2::ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
+      vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
+      map<ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
       for (const pair<int,int> &p : sel.second) {
         int line = p.first;
         int column = p.second;
         SourceLocation loc(line, column);
         // I know this is inefficient
-        for (v2::ASTNodeBase *token : tokens) {
+        for (ASTNodeBase *token : tokens) {
           SourceLocation begin = token->getBeginLoc();
           SourceLocation end = token->getEndLoc();
           // std::cout << loc << " === " << begin << " -- " << end << " ";
@@ -555,7 +555,7 @@ std::set<v2::ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
 }
 
 
-void SourceManager::dumpJsonSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os) {
+void SourceManager::dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
   // dump to os
   // document: array of fileObjs
   rapidjson::Document doc;
@@ -601,7 +601,7 @@ void SourceManager::dumpJsonSelection(std::set<v2::ASTNodeBase*> selection, std:
 }
 
 
-void SourceManager::dumpSelection(std::set<v2::ASTNodeBase*> selection, std::ostream &os) {
+void SourceManager::dumpSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
   // dump to os
   for (auto &m : AST2TokenVisitorMap) {
     ASTContext *ast = m.first;
@@ -646,7 +646,7 @@ typedef struct Distribution {
   }
 } Distribution;
 
-void SourceManager::dumpDist(std::set<v2::ASTNodeBase*> sel, std::ostream &os) {
+void SourceManager::dumpDist(std::set<ASTNodeBase*> sel, std::ostream &os) {
   // these are not interesting actually
   // These are how many the specific type of nodes ENCLOSING sel
   os << "[DumpDist] Size: " << sel.size() << "\n";
@@ -661,14 +661,14 @@ void SourceManager::dumpDist(std::set<v2::ASTNodeBase*> sel, std::ostream &os) {
   int if_ct=0;
   int switch_ct=0;
   int loop_ct=0;
-  for (v2::ASTNodeBase* node : sel) {
-    if (dynamic_cast<v2::IfStmt*>(node)) {
+  for (ASTNodeBase* node : sel) {
+    if (dynamic_cast<IfStmt*>(node)) {
       if_ct++;
-    } else if (dynamic_cast<v2::SwitchStmt*>(node)) {
+    } else if (dynamic_cast<SwitchStmt*>(node)) {
       switch_ct++;
-    } else if (dynamic_cast<v2::WhileStmt*>(node)
-               || dynamic_cast<v2::DoStmt*>(node)
-               || dynamic_cast<v2::ForStmt*>(node)) {
+    } else if (dynamic_cast<WhileStmt*>(node)
+               || dynamic_cast<DoStmt*>(node)
+               || dynamic_cast<ForStmt*>(node)) {
       loop_ct++;
     }
   }
@@ -681,9 +681,9 @@ void SourceManager::dumpDist(std::set<v2::ASTNodeBase*> sel, std::ostream &os) {
 /**
  * only leaf nodes in sel will be returned
  */
-std::set<v2::ASTNodeBase*> SourceManager::filterLeaf(std::set<v2::ASTNodeBase*> sel) {
-  std::set<v2::ASTNodeBase*> ret;
-  for (v2::ASTNodeBase *node : sel) {
+std::set<ASTNodeBase*> SourceManager::filterLeaf(std::set<ASTNodeBase*> sel) {
+  std::set<ASTNodeBase*> ret;
+  for (ASTNodeBase *node : sel) {
     if (node->isLeaf()) ret.insert(node);
   }
   return ret;
@@ -693,8 +693,8 @@ std::set<v2::ASTNodeBase*> SourceManager::filterLeaf(std::set<v2::ASTNodeBase*> 
 // #file | #per(file) | #proc | #per(proc) | #if | #per(if)
 // #loop | #per(loop) | # switch | #per(switch)
 // result
-void SourceManager::analyzeDistribution(std::set<v2::ASTNodeBase*> selection,
-                                        std::set<v2::ASTNodeBase*> patch,
+void SourceManager::analyzeDistribution(std::set<ASTNodeBase*> selection,
+                                        std::set<ASTNodeBase*> patch,
                                         std::ostream &os) {
   Distribution dist = {0};
   // TODO populate these information
@@ -763,8 +763,8 @@ int SourceManager::getDistSwitch(set<ASTNodeBase*> sel) {
 
 
 
-std::set<v2::ASTContext*> SourceManager::getASTByNodes(std::set<v2::ASTNodeBase*> nodes) {
-  std::set<v2::ASTContext*> ret;
+std::set<ASTContext*> SourceManager::getASTByNodes(std::set<ASTNodeBase*> nodes) {
+  std::set<ASTContext*> ret;
   for (auto *node : nodes) {
     ret.insert(node->getASTContext());
   }
@@ -782,7 +782,7 @@ std::set<v2::ASTContext*> SourceManager::getASTByNodes(std::set<v2::ASTNodeBase*
  * Also, TODO if the selection contains return xxx;, we should not put into main function.
  * This might cause compile error.
  */
-std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNodeBase*> sel) {
+std::set<ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<ASTNodeBase*> sel) {
   int func_ct = 0;
   for (auto &m : AST2DistributorMap) {
     // ASTContext *ast = m.first;
@@ -793,11 +793,11 @@ std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNo
   // TODO detect if return is selected
   else if (func_ct == 1) return sel;
   else {
-    std::set<v2::ASTContext*> asts = getASTByNodes(sel);
-    std::set<v2::ASTNodeBase*> funcs;
-    for (v2::ASTContext *ast : asts) {
+    std::set<ASTContext*> asts = getASTByNodes(sel);
+    std::set<ASTNodeBase*> funcs;
+    for (ASTContext *ast : asts) {
       Distributor *dist = AST2DistributorMap[ast];
-      std::set<v2::ASTNodeBase*> nodes = dist->getDistFuncNodes(sel);
+      std::set<ASTNodeBase*> nodes = dist->getDistFuncNodes(sel);
       funcs.insert(nodes.begin(), nodes.end());
     }
     // now i got all the functiondecl nodes
@@ -819,7 +819,7 @@ std::set<v2::ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<v2::ASTNo
   return sel;
 }
 
-bool SourceManager::shouldPutIntoMain(std::set<v2::ASTNodeBase*> sel) {
+bool SourceManager::shouldPutIntoMain(std::set<ASTNodeBase*> sel) {
   int func_ct = 0;
   for (auto *node : sel) {
     if (dynamic_cast<FunctionDecl*>(node)) return false;
@@ -840,13 +840,13 @@ bool SourceManager::shouldPutIntoMain(std::set<v2::ASTNodeBase*> sel) {
 /**
  * return the last of the nodes
  */
-v2::ASTNodeBase *lastNode(std::set<v2::ASTNodeBase*> nodes) {
-  v2::ASTNodeBase* ret = nullptr;
+ASTNodeBase *lastNode(std::set<ASTNodeBase*> nodes) {
+  ASTNodeBase* ret = nullptr;
   for (auto *node : nodes) {
     if (!ret) ret=node;
     else {
       // should not be compound stmt, because that would make a wrong output position
-      if (dynamic_cast<v2::CompoundStmt*>(node)) continue;
+      if (dynamic_cast<CompoundStmt*>(node)) continue;
       SourceLocation loc = node->getEndLoc();
       SourceLocation retloc = ret->getEndLoc();
       if (retloc < loc) {
@@ -857,9 +857,9 @@ v2::ASTNodeBase *lastNode(std::set<v2::ASTNodeBase*> nodes) {
   return ret;
 }
 
-std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
+std::string SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
   // analyze distribution
-  // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+  // std::map<ASTContext*, Distributor*> AST2DistributorMap;
   sel = patchFunctionHeader(sel);
 
   std::string ret;
@@ -890,11 +890,11 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
       generator->setInputVarNodes(InputVarNodes);
       // set output var and position
       // 1. get the last of the selection
-      v2::ASTNodeBase *last = lastNode(sel);
+      ASTNodeBase *last = lastNode(sel);
       // 2. get the vars used in the sel => stored in OutputVarNodes
       // 3. get the alive ones at the last node of sel
       // FIXME make sure this exists
-      v2::SymbolTable symbol_table = PersistTables[last];
+      SymbolTable symbol_table = PersistTables[last];
       // std::set<std::string> symbols = symbol_table.getNewlyAdded();
       // newly added is used to get the really used vars from the "input/output var nodes"
       std::set<std::string> usedvars;
@@ -902,8 +902,8 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
         std::set<std::string> vars = node->getUsedVars();
         usedvars.insert(vars.begin(), vars.end());
       }
-      std::map<std::string, v2::ASTNodeBase*> allsymbols = symbol_table.getAll();
-      std::map<std::string, v2::ASTNodeBase*> toinstrument;
+      std::map<std::string, ASTNodeBase*> allsymbols = symbol_table.getAll();
+      std::map<std::string, ASTNodeBase*> toinstrument;
       for (std::string var : usedvars) {
         if (allsymbols.count(var) == 1) {
           toinstrument[var] = allsymbols[var];
@@ -971,8 +971,8 @@ std::string SourceManager::generateProgram(std::set<v2::ASTNodeBase*> sel) {
 
 
 
-static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
-  std::set<v2::Snippet*> snippets;
+static std::set<Snippet*> get_snippets(std::set<ASTNodeBase*> sel) {
+  std::set<Snippet*> snippets;
   std::set<std::string> all_ids;
   for (auto *node : sel) {
     std::set<std::string> ids;
@@ -981,7 +981,7 @@ static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
     }
     all_ids.insert(ids.begin(), ids.end());
     for (std::string id : ids) {
-      std::vector<Snippet*> ss = v2::GlobalSnippetManager::Instance()->get(id);
+      std::vector<Snippet*> ss = GlobalSnippetManager::Instance()->get(id);
       
       snippets.insert(ss.begin(), ss.end());
     }
@@ -996,10 +996,10 @@ static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
   std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
   
   // get dependence
-  // std::set<v2::Snippet*> deps;
+  // std::set<Snippet*> deps;
   // for (auto *s : snippets) {
-  //   // std::set<v2::Snippet*> dep = v2::GlobalSnippetManager::Instance()->getAllDep(s);
-  //   std::set<v2::Snippet*> dep = s->getAllDeps();
+  //   // std::set<Snippet*> dep = GlobalSnippetManager::Instance()->getAllDep(s);
+  //   std::set<Snippet*> dep = s->getAllDeps();
   //   deps.insert(dep.begin(), dep.end());
   // }
   // snippets.insert(deps.begin(), deps.end());
@@ -1011,7 +1011,7 @@ static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
     back = snippets;
     std::cout << "[SourceManager] all dep and outer infinite loop ..\n";
     snippets = GlobalSnippetManager::Instance()->getAllDeps(snippets);
-    snippets = v2::GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+    snippets = GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
   }
   
   // std::cout << "get_snippets: " << "\n";
@@ -1028,7 +1028,7 @@ static std::set<v2::Snippet*> get_snippets(std::set<v2::ASTNodeBase*> sel) {
  * to remove duplicate for some snippet (function), but want to keep
  * for others (functiondecl)
  */
-static std::set<v2::Snippet*> remove_dup(std::set<v2::Snippet*> snippets) {
+static std::set<Snippet*> remove_dup(std::set<Snippet*> snippets) {
   // remove duplicate
   // for the same name and same type, only one should be retained.
   // This should be right before sortting
@@ -1207,7 +1207,7 @@ static std::string get_snippet_code_sort(vector<Snippet*> sorted_snippets, set<s
   return ret;
 }
 
-std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
+std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel) {
   std::string ret;
   // suppress the warning
   // "typedef int bool;\n"
@@ -1264,7 +1264,7 @@ std::string SourceManager::generateSupport(std::set<v2::ASTNodeBase*> sel) {
   std::set<Snippet*> snippets = get_snippets(sel);
   snippets = remove_dup(snippets);
   // sort the snippets
-  std::vector<Snippet*> sorted_snippets = v2::GlobalSnippetManager::Instance()->sort(snippets);
+  std::vector<Snippet*> sorted_snippets = GlobalSnippetManager::Instance()->sort(snippets);
 
   std::cout << "[SourceManager] " << sorted_snippets.size() << " Snippets used in main.h: ";
   for (Snippet *s : sorted_snippets) {
@@ -1337,7 +1337,7 @@ std::string get_makefile() {
   return makefile;
 }
 
-void SourceManager::generate(std::set<v2::ASTNodeBase*> sel, fs::path dir) {
+void SourceManager::generate(std::set<ASTNodeBase*> sel, fs::path dir) {
   std::string main_c = generateProgram(sel);
   std::string main_h = generateSupport(sel);
   std::string makefile = get_makefile();
@@ -1355,8 +1355,8 @@ void SourceManager::dump(std::ostream &os) {
     fs::path file = m.first;
     os << "file: " << file.string() << "\n";
     ASTContext *ast = m.second;
-    // std::map<v2::ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
-    // std::map<v2::ASTContext*, Distributor*> AST2DistributorMap;
+    // std::map<ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
+    // std::map<ASTContext*, Distributor*> AST2DistributorMap;
     os << "Distributor:" << "\n";
     Distributor *dist = AST2DistributorMap[ast];
     dist->dump(os);

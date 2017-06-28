@@ -1,12 +1,9 @@
-#include "helium/resolver/SnippetAction.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/type/SnippetAction.h"
+#include "helium/utils/FSUtils.h"
 
-#include "helium/parser/source_location.h"
+#include "helium/parser/SourceLocation.h"
 
-using namespace v2;
-// using namespace clang;
-// using namespace clang::tooling;
-// using namespace llvm;
+#include "helium/type/Snippet.h"
 
 static std::vector<Snippet*> snippets;
 
@@ -43,17 +40,17 @@ public:
     // TESTME body is empty, then does it have a body?
     // TESTME the start include { or not?
     // TESTME it includes function prototype or not?
-    v2::Snippet *s = nullptr;
+    Snippet *s = nullptr;
     if (def == func_decl) {
       clang::SourceLocation body_begin = func_decl->getBody()->getLocStart();
-      s = new v2::FunctionSnippet(name, Filename,
+      s = new FunctionSnippet(name, Filename,
                                   convertLocation(Context, begin),
                                   convertLocation(Context, end),
                                   convertLocation(Context, body_begin));
       snippets.push_back(s);
       return true;
     } else {
-      s = new v2::FunctionDeclSnippet(name, Filename,
+      s = new FunctionDeclSnippet(name, Filename,
                                       convertLocation(Context, begin),
                                       convertLocation(Context, end));
       snippets.push_back(s);
@@ -92,7 +89,7 @@ public:
     clang::SourceLocation end = var_decl->getLocEnd();
     // clang::SourceLocation loc = var_decl->getLocation();
       
-    v2::Snippet *s = new v2::VarSnippet(name, Filename,
+    Snippet *s = new VarSnippet(name, Filename,
                                         convertLocation(Context, begin),
                                         convertLocation(Context, end));
     snippets.push_back(s);
@@ -105,7 +102,7 @@ public:
     // clang::SourceLocation end = range.getEnd();
     clang::SourceLocation begin = decl->getLocStart();
     clang::SourceLocation end = decl->getLocEnd();
-    v2::Snippet *s = new v2::TypedefSnippet(name, Filename,
+    Snippet *s = new TypedefSnippet(name, Filename,
                                             convertLocation(Context, begin),
                                             convertLocation(Context, end));
     snippets.push_back(s);
@@ -120,7 +117,7 @@ public:
       // clang::SourceLocation end = range.getEnd();
       clang::SourceLocation begin = decl->getLocStart();
       clang::SourceLocation end = decl->getLocEnd();
-      v2::EnumSnippet *s = new v2::EnumSnippet(name, Filename,
+      EnumSnippet *s = new EnumSnippet(name, Filename,
                                                convertLocation(Context, begin),
                                                convertLocation(Context, end));
       // all fields
@@ -145,13 +142,13 @@ public:
     clang::SourceLocation begin = decl->getLocStart();
     clang::SourceLocation end = decl->getLocEnd();
     // name can be empty, this is an anonymous record. It must have a typedef or var to enclose it.
-    v2::Snippet *s = nullptr;
+    Snippet *s = nullptr;
     if (def == decl) {
-      s = new v2::RecordSnippet(name, Filename,
+      s = new RecordSnippet(name, Filename,
                                 convertLocation(Context, begin),
                                 convertLocation(Context, end));
     } else {
-      s = new v2::RecordDeclSnippet(name, Filename,
+      s = new RecordDeclSnippet(name, Filename,
                                     convertLocation(Context, begin),
                                     convertLocation(Context, end));
     }

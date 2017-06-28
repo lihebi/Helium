@@ -1,7 +1,15 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "Common.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
 
 void helium_log(std::string s);
 void helium_log_warning(std::string s);

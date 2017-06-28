@@ -1,7 +1,7 @@
-#include "helium/utils/log.h"
+#include "helium/utils/Log.h"
 #include "helium/utils/Utils.h"
 
-#include "helium/utils/helium_options.h"
+#include "helium/utils/HeliumOptions.h"
 #include <iostream>
 
 void helium_log(std::string s) {

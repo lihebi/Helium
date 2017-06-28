@@ -1,4 +1,4 @@
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"
@@ -9,7 +9,7 @@ using std::string;
 using std::map;
 using std::set;
 
-using namespace v2;
+
 
 
 
@@ -45,94 +45,94 @@ string Printer::prettyPrint(string ast) {
 /**
  * Printer
  */
-void Printer::pre(v2::ASTNodeBase *node) {
+void Printer::pre(ASTNodeBase *node) {
   oss << "(" << node->getBeginLoc().getLine() << ":" << node->getBeginLoc().getColumn() << " "
      << node->getNodeName();
 }
 void Printer::post() {oss << ")";}
 
 
-void Printer::visit(v2::TokenNode *node) {
+void Printer::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::TranslationUnitDecl *node) {
+void Printer::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::FunctionDecl *node) {
+void Printer::visit(FunctionDecl *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::IfStmt *node) {
+void Printer::visit(IfStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::SwitchStmt *node) {
+void Printer::visit(SwitchStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::CaseStmt *node) {
+void Printer::visit(CaseStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::DefaultStmt *node) {
+void Printer::visit(DefaultStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::ForStmt *node) {
+void Printer::visit(ForStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::WhileStmt *node) {
+void Printer::visit(WhileStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::DoStmt *node) {
+void Printer::visit(DoStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::CompoundStmt *node) {
+void Printer::visit(CompoundStmt *node) {
   oss<<"\n";pre(node);oss<<"\n";
   Visitor::visit(node);
   post();oss<<"\n";
 }
-void Printer::visit(v2::BreakStmt *node) {
+void Printer::visit(BreakStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::ContinueStmt *node) {
+void Printer::visit(ContinueStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::ReturnStmt *node) {
+void Printer::visit(ReturnStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::Expr *node) {
+void Printer::visit(Expr *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::DeclStmt *node) {
+void Printer::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();
 }
-void Printer::visit(v2::ExprStmt *node) {
+void Printer::visit(ExprStmt *node) {
   pre(node);
   Visitor::visit(node);
   post();

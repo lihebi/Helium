@@ -2,7 +2,19 @@
 #define TABLE_H
 
 
-#include "common.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 /**
  * This file defines the table data file manipulating facilities.
  */

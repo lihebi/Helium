@@ -1,4 +1,4 @@
-#include "helium/utils/dump.h"
+#include "helium/utils/Dump.h"
 #include "helium/utils/Utils.h"
 
 ExpASTDump *ExpASTDump::m_instance = NULL;

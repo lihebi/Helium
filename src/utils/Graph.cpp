@@ -1,8 +1,8 @@
 #include "helium/utils/Graph.h"
-#include "helium/parser/visitor.h"
-#include "helium/utils/dot.h"
+#include "helium/parser/Visitor.h"
+#include "helium/utils/Dot.h"
 #include "helium/utils/AggGraph.h"
-#include "helium/utils/fs_utils.h"
+#include "helium/utils/FSUtils.h"
 
 namespace hebigraph {
   template <typename T> std::string Graph<T>::visualize(std::string (*labelFunc)(T)) {
@@ -127,5 +127,5 @@ namespace hebigraph {
   
 
   
-  template class hebigraph::Graph<v2::CFGNode*>;
+  template class hebigraph::Graph<CFGNode*>;
 }

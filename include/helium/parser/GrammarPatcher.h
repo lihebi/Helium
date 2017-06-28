@@ -4,59 +4,57 @@
 #include <map>
 #include <set>
 #include <sstream>
-#include "helium/parser/visitor.h"
+#include "helium/parser/Visitor.h"
 
-namespace v2 {
-  class ASTContext;
+class ASTContext;
   
-  class ASTNodeBase;
-  class TokenNode;
-  class TranslationUnitDecl;
-  class FunctionDecl;
-  class Decl;
-  class Stmt;
-  class DeclStmt;
-  class ExprStmt;
-  class CompoundStmt;
-  class ForStmt;
-  class WhileStmt;
-  class DoStmt;
-  class BreakStmt;
-  class ContinueStmt;
-  class ReturnStmt;
-  class IfStmt;
-  class SwitchStmt;
-  class SwitchCase;
-  class CaseStmt;
-  class DefaultStmt;
-  class Expr;
-}
+class ASTNodeBase;
+class TokenNode;
+class TranslationUnitDecl;
+class FunctionDecl;
+class Decl;
+class Stmt;
+class DeclStmt;
+class ExprStmt;
+class CompoundStmt;
+class ForStmt;
+class WhileStmt;
+class DoStmt;
+class BreakStmt;
+class ContinueStmt;
+class ReturnStmt;
+class IfStmt;
+class SwitchStmt;
+class SwitchCase;
+class CaseStmt;
+class DefaultStmt;
+class Expr;
 
 
 class StandAloneGrammarPatcher {
 public:
-  StandAloneGrammarPatcher(v2::ASTContext *ast, std::set<v2::ASTNodeBase*> selection)
+  StandAloneGrammarPatcher(ASTContext *ast, std::set<ASTNodeBase*> selection)
     : AST(ast), Selection(selection) {}
   ~StandAloneGrammarPatcher() {}
   void process();
-  void matchMin(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> sel);
-  std::set<v2::ASTNodeBase*> getPatch() {return Patch;}
+  void matchMin(ASTNodeBase *parent, std::set<ASTNodeBase*> sel);
+  std::set<ASTNodeBase*> getPatch() {return Patch;}
 
-  bool validAlone(v2::ASTNodeBase* node);
+  bool validAlone(ASTNodeBase* node);
   
 private:
-  v2::ASTContext *AST = nullptr;
-  std::set<v2::ASTNodeBase*> Selection;
-  std::set<v2::ASTNodeBase*> Worklist;
-  std::set<v2::ASTNodeBase*> Patch;
-  std::map<v2::ASTNodeBase*,v2::ASTNodeBase*> Skip;
+  ASTContext *AST = nullptr;
+  std::set<ASTNodeBase*> Selection;
+  std::set<ASTNodeBase*> Worklist;
+  std::set<ASTNodeBase*> Patch;
+  std::map<ASTNodeBase*,ASTNodeBase*> Skip;
 };
 
 
 typedef struct PatchData {
-  // v2::ASTNodeBase *parent = nullptr;
-  std::set<v2::ASTNodeBase*> selection;
-  // std::set<v2::ASTNodeBase*> patch;
+  // ASTNodeBase *parent = nullptr;
+  std::set<ASTNodeBase*> selection;
+  // std::set<ASTNodeBase*> patch;
 } PatchData;
 
 
@@ -66,50 +64,50 @@ typedef struct PatchData {
  */
 class GrammarPatcher : public Visitor {
 public:
-  // GrammarPatcher(v2::ASTNodeBase *parent, std::set<v2::ASTNodeBase*> selection)
+  // GrammarPatcher(ASTNodeBase *parent, std::set<ASTNodeBase*> selection)
   //   : parent(parent), selection(selection) {}
   GrammarPatcher() {}
-  GrammarPatcher(std::set<v2::ASTNodeBase*> sel) : Selection(sel) {}
+  GrammarPatcher(std::set<ASTNodeBase*> sel) : Selection(sel) {}
   virtual ~GrammarPatcher() {}
   // high level
-  virtual void visit(v2::TokenNode *node);
-  virtual void visit(v2::TranslationUnitDecl *node);
-  virtual void visit(v2::FunctionDecl *node);
-  virtual void visit(v2::CompoundStmt *node);
+  virtual void visit(TokenNode *node);
+  virtual void visit(TranslationUnitDecl *node);
+  virtual void visit(FunctionDecl *node);
+  virtual void visit(CompoundStmt *node);
   // condition
-  virtual void visit(v2::IfStmt *node);
-  virtual void visit(v2::SwitchStmt *node);
-  virtual void visit(v2::CaseStmt *node);
-  virtual void visit(v2::DefaultStmt *node);
+  virtual void visit(IfStmt *node);
+  virtual void visit(SwitchStmt *node);
+  virtual void visit(CaseStmt *node);
+  virtual void visit(DefaultStmt *node);
   // loop
-  virtual void visit(v2::ForStmt *node);
-  virtual void visit(v2::WhileStmt *node);
-  virtual void visit(v2::DoStmt *node);
+  virtual void visit(ForStmt *node);
+  virtual void visit(WhileStmt *node);
+  virtual void visit(DoStmt *node);
   // single
-  virtual void visit(v2::BreakStmt *node);
-  virtual void visit(v2::ContinueStmt *node);
-  virtual void visit(v2::ReturnStmt *node);
+  virtual void visit(BreakStmt *node);
+  virtual void visit(ContinueStmt *node);
+  virtual void visit(ReturnStmt *node);
   // expr stmt
-  virtual void visit(v2::Expr *node);
-  virtual void visit(v2::DeclStmt *node);
-  virtual void visit(v2::ExprStmt *node);
+  virtual void visit(Expr *node);
+  virtual void visit(DeclStmt *node);
+  virtual void visit(ExprStmt *node);
 
-  void setSelection(std::set<v2::ASTNodeBase*> sel) {Selection=sel;}
+  void setSelection(std::set<ASTNodeBase*> sel) {Selection=sel;}
   
-  std::set<v2::ASTNodeBase*> getPatch() {return Patch;}
+  std::set<ASTNodeBase*> getPatch() {return Patch;}
   void merge(GrammarPatcher *patcher) {
     if (patcher) {
       this->Patch.insert(patcher->Patch.begin(), patcher->Patch.end());
     }
   }
-  // std::map<v2::ASTNodeBase*, v2::ASTNodeBase*> getSkip() {return Skip;}
+  // std::map<ASTNodeBase*, ASTNodeBase*> getSkip() {return Skip;}
 private:
-  // std::set<v2::ASTNodeBase*> selection;
-  // std::set<v2::ASTNodeBase*> worklist;
-  // v2::ASTNodeBase *parent = nullptr;
-  // std::set<v2::ASTNodeBase*> selection;
-  std::set<v2::ASTNodeBase*> Selection;
-  std::set<v2::ASTNodeBase*> Patch;
+  // std::set<ASTNodeBase*> selection;
+  // std::set<ASTNodeBase*> worklist;
+  // ASTNodeBase *parent = nullptr;
+  // std::set<ASTNodeBase*> selection;
+  std::set<ASTNodeBase*> Selection;
+  std::set<ASTNodeBase*> Patch;
 };
 
 #endif /* GRAMMARPATCHER_H */
