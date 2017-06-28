@@ -1,4 +1,5 @@
 #include "helium/utils/Utils.h"
+#include "helium/utils/ThreadUtils.h"
 #include <cstring>
 #include <unistd.h>
 #include <sys/types.h>

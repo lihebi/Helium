@@ -1,6 +1,7 @@
 #include "helium/utils/XMLDocReader.h"
 #include "helium/utils/Utils.h"
 #include "helium/utils/XMLNodeHelper.h"
+#include "helium/utils/ThreadUtils.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 

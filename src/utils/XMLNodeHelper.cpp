@@ -3,6 +3,8 @@
 #include <deque>
 
 #include "helium/utils/Utils.h"
+#include "helium/utils/FSUtils.h"
+#include "helium/utils/XMLDocReader.h"
 
 #include <gtest/gtest.h>
 
@@ -25,13 +27,15 @@ std::string get_filename(XMLDoc &doc) {
 TEST(ast_test_case, DISABLED_srcml_test) {
   std::string dir = utils::create_tmp_dir("/tmp/helium-test.XXXXXX");
   utils::write_file(dir+"/a.c", "int a;");
-  XMLDoc doc;
-  utils::file2xml(dir+"/a.c", doc);
-  std::string filename = get_filename(doc);
+  XMLDoc *doc = XMLDocReader::CreateDocFromFile(dir + "a.c");
+  
+  std::string filename = get_filename(*doc);
   EXPECT_EQ(filename, dir+"/a.c");
-  utils::file2xml(dir+"//a.c", doc);
+
+  doc = XMLDocReader::CreateDocFromFile(dir + "/a.c");
+
   // will still have double "//"
-  filename = get_filename(doc.document_element());
+  filename = get_filename(doc->document_element());
   EXPECT_EQ(filename, dir+"/a.c");
 }
 
@@ -442,7 +446,7 @@ std::pair<int, int> get_node_end_position(pugi::xml_node node) {
  * Disabled because absolute path
  */
 TEST(ASTHelperTestCase, DISABLED_GetXMLNodeLine) {
-  XMLDoc doc;
+  XMLDoc *doc = nullptr;
   const char *raw = R"prefix(
 int a;
 int a=0;
@@ -456,8 +460,9 @@ u_char *eom, *cp, *cp1, *rdatap;
 // 9
 int a[3][8];
 )prefix";
-  utils::string2xml(raw, doc);
-  XMLNode root = doc.document_element();
+
+  doc = XMLDocReader::CreateDocFromString(raw);
+  XMLNode root = doc->document_element();
   // root's name is <unit>
   // std::cout << root.name()  << "\n";
   // for (XMLXMLNode node : root.children()) {
@@ -474,7 +479,8 @@ int a[3][8];
     get_node_last_line(node);
   }
 
-  XMLDoc *docp = utils::file2xml("/Users/hebi/github/Helium/utils/mlslice/benchmark/gzip-1.7/lib/asnprintf.c");
+  std::string filename = "/Users/hebi/github/Helium/utils/mlslice/benchmark/gzip-1.7/lib/asnprintf.c";
+  XMLDoc *docp = XMLDocReader::CreateDocFromFile(filename);
   root = docp->document_element();
   ASSERT_TRUE(root.root().child("unit").attribute("xmlns:pos"));
   get_node_line(root);
@@ -723,7 +729,7 @@ using namespace utils;
 std::string get_code_enclosing_line(const std::string& filename, int line_number, std::string tag_name) {
   // pugi::xml_document doc;
   // utils::file2xml(filename, doc);
-  pugi::xml_document *doc = utils::file2xml(filename);
+  XMLDoc *doc = XMLDocReader::CreateDocFromFile(filename);
   pugi::xml_node root =doc->document_element();
   std::string query = ".//" + tag_name;
   pugi::xpath_node_set nodes = root.select_nodes(query.c_str());

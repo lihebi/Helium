@@ -1,8 +1,5 @@
 #include "helium/utils/StringUtils.h"
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <string>
 #include <vector>
 #include <map>
@@ -12,6 +9,11 @@
 #include <cassert>
 #include <algorithm>
 #include <iostream>
+
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 /*******************************
  ** string utils
@@ -188,6 +190,29 @@ namespace utils {
   }
 
 
+
+  const std::set<std::string> c_common_keywords = {
+    // def, head
+    "define", "undef", "ifdef", "ifndef",
+    "main",  "include",
+    // control branch keyword
+    "if", "else", "switch", "case", "default", "for", "do", "while", "break", "goto", "break", "continue",
+    // type
+    "bool", "true", "false"
+    // storage class specifier
+    "auto", "register", "static", "extern", "typedef",
+    // type specifier
+    "void", "char", "short", "int", "long", "float", "double", "signed", "unsigned",
+    "struct", "enum",
+    // type qualifier
+    "const", "volatile",
+    // undefined
+    "sizeof", "return", "asm", "NULL"
+  };
+
+  const std::set<std::string> c_extend_keywords = {
+    "stderr", "stdout", "fprintf"
+  };
   /**
    * Extract id which is not c keyword
    * This is the master copy of this resolving
@@ -197,7 +222,7 @@ namespace utils {
    * @return a set of IDs
    */
   std::set<std::string>
-  utils::extract_id_to_resolve(std::string code) {
+  extract_id_to_resolve(std::string code) {
     // shit, why i need to remove the newline? The regexp does not cross lines???
     // FIXME the code here contains my instrumentation ...
     utils::replace(code, "\n", "");

@@ -1,7 +1,10 @@
 #include "helium/utils/Dot.h"
 #include <gtest/gtest.h>
 #include "helium/utils/Utils.h"
+#include "helium/utils/StringUtils.h"
+#include "helium/utils/FSUtils.h"
 
+#include "helium/utils/ThreadUtils.h"
 
 static std::string dot_id_filter(std::string s) {
   utils::replace(s, "\"", "");

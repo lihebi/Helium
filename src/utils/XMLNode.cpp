@@ -644,12 +644,12 @@ std::vector<std::string> decl_get_dimension(XMLNode node) {
 }
 
 TEST(ast_test_case, decl_get_dimension_test) {
-  XMLDoc doc;
+  XMLDoc *doc = nullptr;
   const char* raw = R"prefix(
 int aa[5][4];
 )prefix";
-  utils::string2xml(raw, doc);
-  XMLNodeList nodes = find_nodes(doc, NK_DeclStmt);
+  doc = XMLDocReader::CreateDocFromString(raw);
+  XMLNodeList nodes = find_nodes(*doc, NK_DeclStmt);
   ASSERT_EQ(nodes.size(), 1);
   XMLNode decl = nodes[0].child("decl");
   std::vector<std::string> dims = decl_get_dimension(decl);
@@ -662,8 +662,10 @@ int aa[5][4];
   raw = R"prefix(
 int aa[];
 )prefix";
-  utils::string2xml(raw, doc);
-  nodes = find_nodes(doc, NK_DeclStmt);
+  
+
+  doc = XMLDocReader::CreateDocFromString(raw);
+  nodes = find_nodes(*doc, NK_DeclStmt);
   ASSERT_EQ(nodes.size(), 1);
   decl = nodes[0].child("decl");
   dims = decl_get_dimension(decl);
@@ -732,7 +734,7 @@ XMLNodeList function_get_param_decls(XMLNode node) {
 }
 
 TEST(ASTTestCase, LegacyFuncTest) {
-  XMLDoc doc;
+  XMLDoc *doc;
   const char *raw = R"prefix(
 
 enum context
@@ -743,8 +745,9 @@ ns_ownercontext(type, transport)
 }
 
 )prefix";
-  utils::string2xml(raw, doc);
-  XMLNodeList nodes = find_nodes(doc, NK_Function);
+
+  doc = XMLDocReader::CreateDocFromString(raw);
+  XMLNodeList nodes = find_nodes(*doc, NK_Function);
   ASSERT_EQ(nodes.size(), 1);
   
   XMLNodeList decls = function_get_param_decls(nodes[0]);

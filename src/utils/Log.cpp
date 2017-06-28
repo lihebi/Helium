@@ -2,6 +2,7 @@
 #include "helium/utils/Utils.h"
 
 #include "helium/utils/HeliumOptions.h"
+#include "helium/utils/FSUtils.h"
 #include <iostream>
 
 void helium_log(std::string s) {

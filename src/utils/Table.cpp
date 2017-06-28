@@ -2,6 +2,8 @@
 #include <iostream>
 #include "helium/utils/Utils.h"
 
+#include "helium/utils/StringUtils.h"
+
 Table* TableFactory::Create(fs::path file) {
   if (!fs::exists(file)) {
     std::cerr << "EE: table file does not exist" << "\n";

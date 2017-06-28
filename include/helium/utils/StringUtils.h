@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <set>
+
 #include <boost/algorithm/string/trim.hpp>
 
 namespace utils {
@@ -52,5 +54,6 @@ namespace utils {
   std::string indent_string(std::string raw, int indent=1);
   
   std::set<std::string> extract_id_to_resolve(std::string code);
+}
 
 #endif /* STRING_UTILS_H */

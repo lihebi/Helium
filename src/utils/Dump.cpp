@@ -1,6 +1,8 @@
 #include "helium/utils/Dump.h"
 #include "helium/utils/Utils.h"
 
+#include "helium/utils/FSUtils.h"
+
 ExpASTDump *ExpASTDump::m_instance = NULL;
 BuildRatePlotDump *BuildRatePlotDump::m_instance = NULL;
 /**

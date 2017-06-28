@@ -250,7 +250,7 @@ void SnippetManager::createDeps() {
   for (Snippet *s : Snippets) {
     s->getCode();
     std::string name = s->getName();
-    set<std::string> ids = extract_id_to_resolve(s->getCode());
+    set<std::string> ids = utils::extract_id_to_resolve(s->getCode());
     // do not query its name itself
     ids.erase(name);
     for (auto &id : ids) {
