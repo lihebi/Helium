@@ -1,9 +1,0 @@
-all: libpugixml.dylib
-
-libpugi.dylib:
-	g++ -dynamiclib -o libpugixml.dylib pugixml.cpp
-
-install: libpugixml.dylib
-	cp libpugixml.dylib /usr/local/lib
-	cp pugixml.hpp /usr/local/include
-	cp pugiconfig.hpp /usr/local/include
