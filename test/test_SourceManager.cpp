@@ -21,7 +21,7 @@ namespace fs = boost::filesystem;
 using namespace std;
 
 
-TEST(SourceManagerTest, MyTest) {
+TEST(SourceManagerTest, DISABLED_MyTest) {
   fs::path user_home = getenv("HOME");
   fs::path bench = user_home / "github" / "benchmark" / "craft" / "function";
   fs::path temp_dir = fs::temp_directory_path();

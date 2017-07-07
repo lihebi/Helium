@@ -6,7 +6,6 @@
 #include <set>
 #include <map>
 #include <assert.h>
-#include <readtags.h>
 #include <sstream>
 
 #include "helium/parser/SourceLocation.h"
