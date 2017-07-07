@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Running AST Printer" << "\n";
 
-  HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
+  HeliumOptions::Instance()->ParseConfigFile("~/.helium.d/helium.conf");
   
   XMLDoc *doc = XMLDocReader::CreateDocFromFile(argv[1]);
   XMLNode node = doc->document_element();

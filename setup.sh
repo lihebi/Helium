@@ -1,11 +1,37 @@
 #!/bin/bash
 
+
+if [ -d $HOME/.helium.d ]; then
+    echo "$HOME/.helium.d exist. Remove to continue."
+    exit 1
+fi
+
+# check if the helium configuration is already there
+if [[ -n `cat $HOME/.bashrc | grep "Helium Configuration"` ]]; then
+    echo "Configuration already exists in current ~/.bashrc. Remove it to continue."
+    exit 1
+fi
+
 mkdir -p $HOME/.helium.d
-# mkdir -p $HOME/.helium.d/etc
-ln -sf `pwd`/helium.conf $HOME/.heliumrc
-# ln -sf `pwd`/etc/headers.conf.d/system.conf $HOME/.helium.d/etc/
-# ln -sf `pwd`/etc/headers.conf.d/third-party.conf $HOME/.helium.d/etc/
-# ln -sf `pwd`/etc/blacklist.conf $HOME/.helium.d/etc
-# ln -sf `pwd`/etc/system.json $HOME/.helium.d/etc/
-# ln -sf `pwd`/etc/third-party.json $HOME/.helium.d/etc/
+
+ln -sf `pwd`/helium.conf $HOME/.helium.d/helium.conf
 ln -sf `pwd`/etc $HOME/.helium.d/
+
+
+# add load to ~/.bashrc
+echo "" >> $HOME/.bashrc
+echo "## ========== Helium Configuration" >> $HOME/.bashrc
+echo "" >> $HOME/.bahsrc
+echo "export HELIUM_HOME=$(pwd)" >> $HOME/.bashrc
+
+
+echo 'export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH' >> $HOME/.bashrc
+echo \
+    'export PATH=$HELIUM_HOME/scripts/analyze:$HELIUM_HOME/scripts/hexp:$PATH'\
+    >> ~/.bashrc
+echo 'export PATH=$HELIUM_HOME/build/bin:$PATH' >> $HOME/.bashrc
+echo 'export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0' >> $HOME/.bashrc
+echo "## ========== End of Helium Configuration" >> $HOME/.bashrc
+
+
+echo "Set up completed. Reload $HOME/.bashrc to take effect."

@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     std::cerr << "EE: HOME env is not set." << "\n";
     exit(1);
   }
-  HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
+  HeliumOptions::Instance()->ParseConfigFile("~/.helium.d/helium.conf");
   // std::string helium_home = HeliumOptions::Instance()->GetString("helium-home");
   // helium_home = utils::escape_tide(helium_home);
   // SystemResolver::Instance()->Load(helium_home + "/systype.tags");

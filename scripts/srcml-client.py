@@ -43,12 +43,12 @@ s.shutdown(socket.SHUT_WR)
 # print ('receiving result ..', file=sys.stderr)
 data = s.recv(1024)
 # write to output.xml
-with open('helium-output-tmp.xml', 'wb') as f:
+with open('/tmp/helium-output-tmp.xml', 'wb') as f:
     while data:
         f.write(data)
         data = s.recv(1024)
 # print ('finished. Closing socket', file=sys.stderr)
 s.close()
 
-with open('helium-output-tmp.xml') as f:
+with open('/tmp/helium-output-tmp.xml') as f:
     print(f.read())

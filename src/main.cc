@@ -411,15 +411,22 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
+  fs::path helium_home(getenv("HELIUM_HOME"));
+  // FIXME path invalid, how to check?
+  if (helium_home.empty()) {
+    std::cerr << "EE: HELIUM_HOME is not set." << "\n";
+    exit(1);
+  }
+
   /* parse arguments */
   HeliumOptions::Instance()->ParseCommandLine(argc, argv);
-  HeliumOptions::Instance()->ParseConfigFile("~/.heliumrc");
+  HeliumOptions::Instance()->ParseConfigFile((helium_home / "helium.conf").string());
   if (HeliumOptions::Instance()->Has("help")) {
     HeliumOptions::Instance()->PrintHelp();
     exit(0);}
 
   fs::path user_home(getenv("HOME"));
-  fs::path helium_home = user_home / ".helium.d";
+  // fs::path helium_home = user_home / ".helium.d";
   if (!fs::exists(helium_home)) {
     fs::create_directory(helium_home);}
   fs::path cache_dir = helium_home / "cache";

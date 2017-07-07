@@ -52,6 +52,8 @@ make install
 
 ** compile and setup
 
+UPDATE: Now, just use the setup.sh script for setup.
+
    You might want to run =ldconfig= to update the library database on
    your system before compile Helium.  In Helium root folder, run =make=
    will compile the project. If your cpu has multiple cores, you can
