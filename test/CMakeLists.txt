@@ -16,4 +16,4 @@ target_link_libraries(heliumtest
         ${Boost_LIBRARIES}
         ${GTEST_BOTH_LIBRARIES})
 
-target_link_libraries(heliumtest pugixml sqlite3 ctags)
+target_link_libraries(heliumtest pugixml sqlite3)
