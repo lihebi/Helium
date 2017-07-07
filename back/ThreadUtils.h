@@ -6,6 +6,24 @@
 #include <cmath>
 #include <iostream>
 
+namespace utils {
+  /*******************************
+   ** thread
+   *******************************/
+  // The timeout is SECONDs!
+  // std::string exec(const char* cmd, int *status=NULL, int timeout=0);
+  std::string exec(const char* cmd, int *status=NULL, double timeout=0);
+  // with input
+  std::string exec_in(const char* cmd, const char* input, int *status=NULL, double timeout=0);
+  // std::pair<std::string, std::string> exec_both(const char* cmd, int *status=NULL, int timeout=0);
+  std::string exec_sh(const char* cmd, int *status, double timeout=0);
+
+
+  std::string new_exec(const char* cmd);
+
+}
+
+
 class ThreadExecutor {
 public:
   ThreadExecutor(std::string cmd) : cmd(cmd) {}
@@ -31,22 +49,6 @@ public:
   void child(int p0[2], int p1[2]);
   void parent(int child_pid, int p0[2], int p1[2]);
   bool checkChildStatus(int child_pid);
-  // helper functions to run and get result
-  static void runForNothing(std::string cmd) {
-    ThreadExecutor exe(cmd);
-    exe.run();
-  }
-  static std::string runForOutput(std::string cmd) {
-    ThreadExecutor exe(cmd);
-    exe.run();
-    return exe.getStdOut();
-  }
-  static std::string runForOutput(std::string cmd, double timeout) {
-    ThreadExecutor exe(cmd);
-    exe.setTimeoutSec(timeout);
-    exe.run();
-    return exe.getStdOut();
-  }
 private:
   std::string cmd;
   std::string input;
@@ -62,6 +64,5 @@ private:
   std::string stderr;
   double UsedTime = 0;
 };
-
 
 #endif /* THREAD_UTILS_H */

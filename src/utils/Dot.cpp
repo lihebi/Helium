@@ -102,15 +102,15 @@ std::string visualize_dot_graph(const std::string& dot, bool open, std::string f
   filename =  dir + "/" + filename + ".dot";
   std::string png_convert_cmd = "dot -Tpng -o " + png_filename + " " + filename;
   utils::write_file(filename, dot);
-  utils::exec(png_convert_cmd.c_str());
+
+  ThreadExecutor(png_convert_cmd).run();
   if (open) {
 #ifdef __MACH__
     std::string display_cmd = "open " + filename;
 #else
-    utils::exec(png_convert_cmd.c_str());
     std::string display_cmd = "feh -F --zoom 100 "+ png_filename;
 #endif
-    utils::exec(display_cmd.c_str());
+    ThreadExecutor(display_cmd).run();
   }
   return png_filename;
 }

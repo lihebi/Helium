@@ -107,7 +107,7 @@ void create_cpp(fs::path target_cache_dir) {
       // redirect the clang preprocessor stderr to /dev/null
       std::string cmd = cpp_cmd + " " + p.string()
         + " >> " + to.string() + " 2>/dev/null";
-      utils::new_exec(cmd.c_str());
+      ThreadExecutor(cmd).run();
     }
   }
 

@@ -44,14 +44,13 @@ using std::pair;
  */
 bool do_compile(fs::path dir) {
   std::string clean_cmd = "make clean -C " + dir.string();
+  ThreadExecutor(clean_cmd).run();
   std::string cmd = "make -C " + dir.string();
   cmd += " 2>&1";
-  utils::exec(clean_cmd.c_str(), NULL);
-  int return_code;
-  std::string error_msg = utils::exec_sh(cmd.c_str(), &return_code);
-  std::cout << "[main] Error Message:" << "\n";
-  std::cout << error_msg << "\n";
-  if (return_code == 0) {
+  ThreadExecutor exe(cmd);
+  exe.run();
+  std::cout << "[main] Error Message:" << "\n" << exe.getStdOut() << "\n";
+  if (exe.getReturnCode() == 0) {
     return true;
   } else {
     return false;
@@ -182,11 +181,11 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
       std::cout << "[main] Running program in that target folder .." << "\n";
       std::string run_cmd = "make run -C " + gen_dir.string();
       // run_cmd += " 2>&1";
-      utils::exec(run_cmd.c_str(), NULL);
-      int return_code=-1;
-      std::string error_msg = utils::exec_sh(run_cmd.c_str(), &return_code);
-      std::cout << "[main] Output written to " << gen_dir.string() << "/helium_output.txt" << "\n";
-      if (return_code == 0) {
+      ThreadExecutor exe(run_cmd);
+      exe.run();
+      std::cout << "[main] Output written to "
+                << gen_dir.string() << "/helium_output.txt" << "\n";
+      if (exe.getReturnCode() == 0) {
         std::cout << "[main] Run Success" << "\n";
       } else {
         // This error message will be make error message

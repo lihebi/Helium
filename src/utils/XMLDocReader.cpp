@@ -11,7 +11,6 @@ namespace fs = boost::filesystem;
 XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code) {
   std::string cmd;
   cmd = "srcml-client.py -";
-  // std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
 
   ThreadExecutor exe(cmd);
   exe.setInput(code);
@@ -28,9 +27,7 @@ XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code) {
 
 XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
   std::string cmd;
-  // cmd = "helium-srcml --position " + filename;
   cmd = "srcml-client.py " + filename;
-  // std::string xml = utils::exec(cmd.c_str(), NULL);
 
   ThreadExecutor exe(cmd);
   exe.setTimeoutSec(0.2);
