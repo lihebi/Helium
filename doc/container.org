@@ -1,0 +1,46 @@
+#+TITLE: Helium Tools Release
+
+* source file to CFG tool
+
+To run the tool, first install docker. Then run the following commands from a shell app like Windows PowerShell.
+Pull the images:
+
+#+BEGIN_EXAMPLE
+docker pull lihebi/srcml-server
+docker pull lihebi/helium-arch
+#+END_EXAMPLE
+Create a network bridge
+
+#+BEGIN_EXAMPLE
+docker network create --driver bridge srcml-inner-network
+#+END_EXAMPLE
+
+Create srcml-server container named srcml-server-container
+#+BEGIN_EXAMPLE
+docker run --network srcml-inner-network --name srcml-server-container -d lihebi/srcml-server
+#+END_EXAMPLE
+
+Create Helium container named helium-container.
+
+MODIFY the path C:... to one folder on your system. It is used as a shared folder. Inside the container it is mounted at /mnt
+
+#+BEGIN_EXAMPLE
+docker run -it --network srcml-inner-network --name helium-container --link srcml-server-container -v C:\path\to\a\folder:/mnt lihebi/helium-arch
+#+END_EXAMPLE
+
+Now you should be already inside helium-container, and the helium and helium-cfg-printer command should be ready to use.
+
+Put a c source file and run like this:
+#+BEGIN_EXAMPLE
+helium-cfg-printer /path/to/a.c
+#+END_EXAMPLE
+
+There are some benchmarks in /root/benchmark folder, for example you can run:
+#+BEGIN_EXAMPLE
+helium-cfg-printer /root/benchmark/craft/grammar/a.c
+#+END_EXAMPLE
+
+It will output a png file and a ggx file, the path will be printed. Then you can copy them to the shared folder like this:
+#+BEGIN_EXAMPLE
+cp /path/to/output.png /mnt
+#+END_EXAMPLE

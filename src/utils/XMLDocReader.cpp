@@ -11,9 +11,18 @@ namespace fs = boost::filesystem;
 XMLDoc* XMLDocReader::CreateDocFromString(const std::string &code) {
   std::string cmd;
   cmd = "srcml-client.py -";
-  std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
+  // std::string xml = utils::exec_in(cmd.c_str(), code.c_str(), NULL);
+
+  ThreadExecutor exe(cmd);
+  exe.setInput(code);
+  exe.setTimeoutSec(0.2);
+  exe.run();
+
+  assert(exe.getReturnCode()==0 && "SrcML error");
+  std::string output = exe.getStdOut();
+
   pugi::xml_document *doc = new pugi::xml_document();
-  doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
+  doc->load_string(output.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
   return doc;
 }
 
@@ -21,8 +30,16 @@ XMLDoc* XMLDocReader::CreateDocFromFile(std::string filename) {
   std::string cmd;
   // cmd = "helium-srcml --position " + filename;
   cmd = "srcml-client.py " + filename;
-  std::string xml = utils::exec(cmd.c_str(), NULL);
+  // std::string xml = utils::exec(cmd.c_str(), NULL);
+
+  ThreadExecutor exe(cmd);
+  exe.setTimeoutSec(0.2);
+  exe.run();
+
+  assert(exe.getReturnCode() == 0 && "SrcML error");
+  std::string output = exe.getStdOut();
+  
   pugi::xml_document *doc = new pugi::xml_document();
-  doc->load_string(xml.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
+  doc->load_string(output.c_str(), pugi::parse_default | pugi::parse_ws_pcdata);
   return doc;
 }

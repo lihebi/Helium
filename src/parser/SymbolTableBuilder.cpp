@@ -122,7 +122,8 @@ void SymbolTableBuilder::insertDefUse(ASTNodeBase *use) {
   std::set<std::string> used_vars = use->getUsedVars();
   for (std::string var : used_vars) {
     ASTNodeBase *def = Table.get(var);
-    if (def) {
+    // filter out def==use
+    if (def && def != use) {
       Use2DefMap[use].insert(def);
     }
   }

@@ -752,14 +752,14 @@ int foo() {
   unit->accept(&builder);
   std::map<ASTNodeBase*,std::set<ASTNodeBase*> > u2d = builder.getUse2DefMap();
 
-  // for (auto m : u2d) {
-  //   m.first->dump(std::cout);
-  //   std::cout << " ==> ";
-  //   for (auto *node : m.second) {
-  //     node->dump(std::cout);
-  //   }
-  //   std::cout << "\n";
-  // }
+  for (auto m : u2d) {
+    m.first->dump(std::cout);
+    std::cout << " ==> ";
+    for (auto *node : m.second) {
+      node->dump(std::cout);
+    }
+    std::cout << "\n";
+  }
 
   EXPECT_EQ(u2d.size(), 5);
   // while (a<c)

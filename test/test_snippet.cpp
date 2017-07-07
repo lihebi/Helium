@@ -17,8 +17,15 @@ using namespace std;
 class NewSnippetTest : public ::testing::Test {
 protected:
   void SetUp() {
-    fs::path user_home = getenv("HOME");
-    fs::path dir = user_home / "github" / "benchmark" / "craft" / "snippet";
+    // fs::path user_home = getenv("HOME");
+    // fs::path dir = user_home / "github" / "benchmark" / "craft" / "snippet";
+    fs::path helium_home = getenv("HELIUM_HOME");
+    if (helium_home.empty()) {
+      cerr << "HELIUM_HOME is not set" << "\n";
+      exit(1);
+    }
+    fs::path dir = helium_home / "test/data/snippet";
+    
     file_a_c = dir / "src" / "a.c";
     file_a_h = dir / "src" / "a.h";
     file_var_c = dir / "src" / "var.c";
@@ -134,8 +141,8 @@ TEST_F(NewSnippetTest, MyTest) {
 
     EXPECT_EQ(A->getCode(), "struct A");
     EXPECT_EQ(B->getCode(), "struct B");
-    EXPECT_EQ(foo->getCode(), "int foo()");
-    EXPECT_EQ(bar->getCode(), "int bar()");
+    EXPECT_EQ(foo->getCode(), "void foo()");
+    EXPECT_EQ(bar->getCode(), "void bar()");
   }
 
   {
