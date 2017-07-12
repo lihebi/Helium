@@ -210,4 +210,62 @@ private:
 };
 
 
+/**
+ * manage local includes
+ * 1. local includes, manage the dependence
+ * 2. system includes, record what is used
+ */
+class IncludeManager {
+public:
+  IncludeManager() {}
+  ~IncludeManager() {}
+  void parse(fs::path benchmark);
+  
+  void dump(std::ostream &os);
+  void load(fs::path jsonfile);
+private:
+  std::set<std::string> LocalIncludes;
+  std::set<std::string> SystemIncludes;
+  std::vector<std::string> SortedLocalIncludes;
+};
+
+class Library {
+public:
+  Library(std::string name, std::set<std::string> includes, std::set<std::string> libs) {
+    this->name = name;
+    this->includes = includes;
+    for (std::string inc : includes) {
+      if (!fs::exists(inc)) exist=false;
+    }
+    // for now, only consider /usr/lib/libxxx.so
+    std::regex libreg("^/usr/lib/lib(.*)\\.so$");
+    for (std::string lib : libs) {
+      std::smatch match;
+      if (std::regex_match(lib, match, libreg)) {
+        std::string name = match[1].str();
+        this->libs.insert("-l" + name);
+      }
+    }
+  }
+  ~Library() {}
+private:
+  std::string name;
+  std::set<std::string> includes;
+  std::set<std::string> libs;
+  bool exist = true;
+};
+
+/**
+ * Manage the system available library
+ */
+class LibraryManager {
+public:
+  LibraryManager() {}
+  ~LibraryManager() {}
+  void parse(fs::path jsonfile);
+private:
+  std::vector<Library*> _libraries;
+};
+
+
 #endif /* HEADERMANAGER_H */

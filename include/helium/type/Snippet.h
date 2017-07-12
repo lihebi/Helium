@@ -396,6 +396,13 @@ public:
   // FIXME Instance()??? make the constructor private
   SnippetManager() {}
   ~SnippetManager() {}
+
+  // TODO NOW
+  void parse(fs::path benchmark);
+  void load(fs::path jsonfile);
+  void dump(std::ofstream &os);
+
+  
   void add(Snippet *s) {
     s->setId(Snippets.size());
     Snippets.push_back(s);
@@ -503,14 +510,6 @@ public:
     }
     return ret;
   }
-  // std::set<Snippet*> getDep(Snippet* s) {
-  //   if (Deps.count(s) == 1) return Deps[s];
-  //   return {};
-  // }
-  // std::set<Snippet*> getOuter(Snippet *s) {
-  //   if (Outers.count(s) == 1) return Outers[s];
-  //   return {};
-  // }
   /**
    * Recursively get all deps
    */
@@ -555,7 +554,7 @@ private:
   // std::map<int, std::set<int> > IdDeps;
 };
 
-
+// TODO remove this
 class GlobalSnippetManager : public SnippetManager {
 public:
   static GlobalSnippetManager *Instance() {

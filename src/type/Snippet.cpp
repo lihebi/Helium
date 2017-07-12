@@ -435,8 +435,6 @@ void SnippetManager::sortFiles() {
     FileMap[s->getFile()].insert(s);
     all_files.insert(s->getFile());
   }
-  // HeaderManager::Instance()->dumpDeps(std::cout);
-
   
   std::vector<std::string> sorted = HeaderManager::Instance()->getSortedHeaders();
   std::vector<std::string> newsorted;

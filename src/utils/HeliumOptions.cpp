@@ -23,25 +23,21 @@ HeliumOptions::HeliumOptions() {
   general_options.add_options()
     ("help,h", "produce help message") // --help, -h
     ("verbose,v", "verbose mode")
-
     ("config,f", po::value<std::string>(), "config file")
-
-    ("tagfile,t", po::value<std::string>(), "tag file")
-    ("snippet-db-folder,s", po::value<std::string>()->default_value("snippets"), "snippet database folder")
-
-    ("src-folder,c", po::value<std::string>()->default_value("src"), "source file folder (not orig)")
     ("output,o", po::value<std::string>(), "output location")
-    ("print,p", po::value<std::string>()->implicit_value(""), "what to be print")
-    ("debug,d", po::value<std::string>()->implicit_value(""), "debugging pause point")
-    ("slice", po::value<std::string>(),
-     "slice to use, as the code selection. THIS WILL SET THE CODE SELECTION METHOD TO SLICE")
-    ("slice-file", po::value<std::string>(), "the slice file, this will be used as a mask on the AST")
+    ("preprocess", "use c preprocessor to do preprocessing")
+    ("create-snippet", "analyze and snippet")
+    ("create-selection", "create random selection")
+    ("create-headerdep", "create header dependence")
+    ("create-include-dep", "create include manager json file")
+    ("run", "run helium")
+    ("selection", po::value<std::string>(), "selection folder or file")
+    ("snippet", po::value<std::string>(), "snippet json file")
+    ("include-dep", po::value<std::string>(), "include manager file")
     ;
-
 
   po::options_description primary_options("Primary");
   primary_options.add_options()
-    ("setup", "setup")
     ("create-cache", "create cache")
     ("ls-cache", "show cached projects")
     ("rm-cache", "remove cache")

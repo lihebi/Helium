@@ -426,3 +426,166 @@ void HeaderManager::jsonTopoSortHeaders() {
   // sorted header size
   // std::cout << "Sorted Header size: " << SortedHeaders.size() << "\n";
 }
+
+
+static std::set<std::string> get_all_files(fs::path benchmark) {
+  std::set<std::string> ret;
+  fs::recursive_directory_iterator it(benchmark), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".h" || p.extension() == ".c") {
+      ret.insert(p.string());
+    }
+  }
+  return ret;
+}
+
+
+static std::vector<std::string>
+topo_sort(std::map<std::string, std::set<std::string> > deps) {
+  hebigraph::Graph<std::string> graph;
+  // FIXME if a file does not depend on others, it should also be added to the graph
+  for (auto &m : deps) {
+    graph.addNode(m.first);
+  }
+  for (auto &m : deps) {
+    std::string from = m.first;
+    if (!graph.hasNode(from)) graph.addNode(from);
+    for (std::string to : m.second) {
+      // arrow means "used by", while FileDep means "depend on",
+      // they are opposite, reflected here
+      if (!graph.hasNode(to)) graph.addNode(to);
+      // std::cout << "adding edge " << to << " => " << from << "\n";
+      graph.addEdge(to, from);
+    }
+  }
+  return graph.topoSort();
+}
+
+
+void IncludeManager::parse(fs::path benchmark) {
+  fs::recursive_directory_iterator it(benchmark), eod;
+  std::set<std::string> all_files = get_all_files(benchmark);
+
+
+  std::map<std::string, std::set<std::string> > deps;
+  
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (p.extension() == ".h" || p.extension() == ".c") {
+      std::ifstream ifs(p.string());
+      assert(ifs.is_open());
+      std::string line;
+      while (std::getline(ifs, line)) {
+        std::smatch match;
+        // quotes "a.h"
+        if (std::regex_search(line, match, include_quote_reg)) {
+          std::string file = match[1];
+          LocalIncludes.insert(file);
+          std::set<std::string> matches = filter_suffix(all_files, file);
+          for (std::string to : matches) {
+            if (p.string() != to) {
+              deps[p.string()].insert(to);
+            }
+          }
+        }
+        // angle <a.h>
+        if (std::regex_search(line, match, include_angle_reg)) {
+          std::string file = match[1];
+          SystemIncludes.insert(file);
+        }
+      }
+    }
+  }
+  topo_sort(deps);
+}
+
+
+/**
+ *
+ {
+ "LocalIncludes": ["a.h", "b.h", "c.h"],
+ "SystemIncludes": ["stdio.h", "stdlib.h"],
+ "SortedLocalIncludes": ["c.h", "a.h"]
+ }
+ */
+void IncludeManager::dump(std::ostream &os) {
+  rapidjson::Document doc;
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+  doc.SetObject();
+  rapidjson::Value local(rapidjson::kArrayType);
+  for (std::string inc : LocalIncludes) {
+    rapidjson::Value str;
+    str.SetString(inc.c_str(), allocator);
+    local.PushBack(str, allocator);
+  }
+  doc.AddMember("LocalIncludes", local, allocator);
+  rapidjson::Value system(rapidjson::kArrayType);
+  for (std::string inc : SystemIncludes) {
+    rapidjson::Value str;
+    str.SetString(inc.c_str(), allocator);
+    system.PushBack(str, allocator);
+  }
+  doc.AddMember("SystemIncludes", system, allocator);
+  rapidjson::Value sorted_local(rapidjson::kArrayType);
+  for (std::string inc : SortedLocalIncludes) {
+    rapidjson::Value str;
+    str.SetString(inc.c_str(), allocator);
+    sorted_local.PushBack(str, allocator);
+  }
+  doc.AddMember("SortedLocalIncludes", sorted_local, allocator);
+
+  rapidjson::StringBuffer sb;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+  doc.Accept(writer);
+  os << sb.GetString() << "\n";
+}
+void IncludeManager::load(fs::path jsonfile) {
+  rapidjson::Document doc;
+  std::ifstream ifs (jsonfile.string());
+  rapidjson::IStreamWrapper isw(ifs);
+  doc.ParseStream(isw);
+  assert(doc.IsObject());
+
+  LocalIncludes.clear();
+  SystemIncludes.clear();
+  SortedLocalIncludes.clear();
+  for (rapidjson::Value &field : doc["LocalIncludes"].GetArray()) {
+    LocalIncludes.insert(field.GetString());
+  }
+  for (rapidjson::Value &field : doc["SystemIncludes"].GetArray()) {
+    SystemIncludes.insert(field.GetString());
+  }
+  for (rapidjson::Value &field : doc["SortedLocalIncludes"].GetArray()) {
+    SortedLocalIncludes.push_back(field.GetString());
+  }
+}
+
+
+
+void LibraryManager::parse(fs::path jsonfile) {
+  rapidjson::Document document;
+  std::ifstream ifs(jsonfile.string());
+  rapidjson::IStreamWrapper isw(ifs);
+  document.ParseStream(isw);
+  assert(document.IsArray());
+
+  for (rapidjson::Value &v : document.GetArray()) {
+    assert(v.IsObject());
+    std::string name;
+    std::set<std::string> includes;
+    std::set<std::string> libs;
+    if (v.HasMember("package")) {
+      name = v["package"].GetString();
+    }
+    if (v.HasMember("includes")) {
+      for (rapidjson::Value &header : v["includes"].GetArray()) {
+        includes.insert(header.GetString());
+      }
+    }
+    if (v.HasMember("libs")) {
+      for (rapidjson::Value &lib : v["libs"].GetArray()) {
+        libs.insert(lib.GetString());
+      }
+    }
+    _libraries.push_back(new Library(name, includes, libs));
+  }
+}

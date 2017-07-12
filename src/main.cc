@@ -88,6 +88,74 @@ std::vector<fs::path> load_sel(fs::path sel_dir) {
   return ret;
 }
 
+std::vector<fs::path> get_selections(fs::path selection) {
+  std::vector<fs::path> ret;
+  if (fs::exists(selection)) {
+    if (fs::is_regular_file(selection)) {
+      // single selection file
+      ret.push_back(selection);
+    } else if (fs::is_directory(selection)){
+      // multiple ret
+      fs::recursive_directory_iterator it(selection), eod;
+      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+        // must be .sel file
+        if (is_regular_file(p) && p.extension() == ".json") {
+          ret.push_back(p);
+        }
+      }
+    }
+  }
+  return ret;
+}
+void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
+                      SnippetManager *snip_manager,
+                      IncludeManager *inc_manager,
+                      LibraryManager *lib_manager) {
+  SourceManager *sourceManager = new SourceManager(indir);
+  std::vector<fs::path> sels = get_selections(selection);
+  for (fs::path sel_file : sels) {
+    std::set<ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
+    sourceManager->dumpDist(sel, std::cout);
+    sel = sourceManager->grammarPatch(sel);
+    sel = sourceManager->defUse(sel);
+    // I might want to do another grammar patching in case def use breaks it
+    sel = sourceManager->grammarPatch(sel);
+    std::string prog = sourceManager->generateProgram(sel);
+    
+    // Generate into folder and do compilation
+    // use the sel filename as the folder
+    fs::path gen_dir = outdir / sel_file.filename();
+    sourceManager->generate(sel, gen_dir);
+    std::cout << "[main] Code written to " << gen_dir.string() << "\n";
+    // do compilation
+    if (do_compile(gen_dir)) {
+      std::cerr << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
+
+      // run tests
+      std::cout << "[main] Running program in that target folder .." << "\n";
+      std::string run_cmd = "make run -C " + gen_dir.string();
+      // run_cmd += " 2>&1";
+      ThreadExecutor exe(run_cmd);
+      exe.run();
+      std::cout << "[main] Output written to "
+                << gen_dir.string() << "/helium_output.txt" << "\n";
+      if (exe.getReturnCode() == 0) {
+        std::cout << "[main] Run Success" << "\n";
+      } else {
+        // This error message will be make error message
+        // if the return code of a.out is not 0, it will be
+        //   make: *** [Makefile:10: run] Error 1
+        // if seg fault, it will be
+        //   make: *** [Makefile:10: run] Segmentation fault (core dumped)
+        std::cout << "[main] Run Failure" << "\n";
+      }
+    } else {
+      std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
+      std::cerr << "[main] Compile Failure ..." << "\n";
+    }
+  }
+}
+
 
 void helium_run(fs::path target, fs::path target_cache_dir) {
 
@@ -202,128 +270,6 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
   }
 }
 
-void general_utility() {
-  fs::path user_home(getenv("HOME"));
-  fs::path helium_home = user_home / ".helium.d";
-  fs::path cache_dir = helium_home / "cache";
-  if (HeliumOptions::Instance()->Has("ls-cache")) {
-    for (fs::directory_entry &e : fs::directory_iterator(cache_dir)) {
-      fs::path p = e.path();
-      if (fs::is_directory(p)) {
-        std::cout << p.filename().string() << "\n";}}
-    exit(0);}
-  if (HeliumOptions::Instance()->Has("rm-cache")) {
-    std::string toremove = HeliumOptions::Instance()->GetString("target");
-    if (fs::exists(cache_dir / toremove)) {
-      fs::remove_all(cache_dir / toremove);
-      exit(0);
-    } else {
-      std::cerr << "No such cache: " << toremove << "\n";
-      exit(1);}}
-  if (HeliumOptions::Instance()->Has("system-info")) {
-    HeaderManager::Instance()->dump(std::cout);
-    exit(0);
-  }
-}
-
-
-void target_utility(fs::path target) {
-  fs::path user_home(getenv("HOME"));
-  fs::path helium_home = user_home / ".helium.d";
-  if (HeliumOptions::Instance()->Has("check-headers")) {
-    // checking if header is captured
-    // read target
-    // target should be a list of headers, one per line
-    std::ifstream ifs(target.string());
-    assert(ifs.is_open());
-    std::string line;
-    std::vector<std::string> suc;
-    std::vector<std::string> fail;
-    while (getline(ifs, line)) {
-      utils::trim(line);
-      if (!line.empty()) {
-        bool res = HeaderManager::Instance()->jsonCheckHeader(line);
-        if (res) suc.push_back(line);
-        else fail.push_back(line);
-      }
-    }
-    ifs.close();
-    // output
-    std::cout << "Found: ";
-    for (std::string s : suc) {
-      std::cout << s << " ";
-    }
-    std::cout << "\n";
-    std::cout << "Not Found: ";
-    for (std::string s : fail) {
-      std::cout << s << " ";
-    }
-    std::cout << "\n";
-    // exit(0);
-
-    if (fail.size() == 0) exit(0);
-    else exit(1);
-  }
-  if (HeliumOptions::Instance()->Has("check-headers-bench")) {
-    // parse the bench
-    HeaderManager::Instance()->jsonParseBench(target);
-    // if (HeaderManager::Instance()->jsonValidBench()) {
-    // }
-
-    std::string reason;
-    bool valid = HeaderManager::Instance()->jsonValidBench(reason);
-    if (valid) exit(0);
-    else {
-      std::cout << reason << "\n";
-      exit(1);
-    }
-  }
-}
-
-void helium_utility(fs::path target) {
-  if (HeliumOptions::Instance()->Has("bench-info")) {
-    std::cout << "== Header Dependencies:" << "\n";
-    HeaderManager::Instance()->dumpDeps(std::cout);
-    HeaderManager::Instance()->dump(std::cout);
-    exit(0);
-  }
-  /**
-   * check if the cache is valid
-   * Need to create cache first
-   * - check whether a function is defined multiple times
-   */
-  if (HeliumOptions::Instance()->Has("check-cache-valid")) {
-    std::string reason;
-    bool valid = GlobalSnippetManager::Instance()->checkValid(reason);
-    if (valid) exit(0);
-    else {
-      std::cout << "Invalid because " << reason << "\n";
-      exit(1);
-    }
-  }
-}
-
-void check_blocklist(fs::path blockconf, std::string name) {
-  std::ifstream ifs(blockconf.string());
-  assert(ifs.is_open());
-  std::string line;
-  std::set<std::string> blocklist;
-  while (std::getline(ifs, line)) {
-    utils::trim(line);
-    if (line.empty() || line[0]=='#') continue;
-    std::string proj = utils::split(line)[0];
-    blocklist.insert(proj);
-  }
-  ifs.close();
-  for (std::string s : blocklist) {
-    // std::cout << "checking " << s << "\n";
-    if (name.find(s) != std::string::npos) {
-      std::cout << "[main] This project is in blacklist. Skipped." << "\n";
-      exit(0);
-    }
-  }
-}
-
 void create_cache(fs::path target, fs::path target_cache_dir) {
   fs::path target_sel_dir = target_cache_dir / "sel";
   // remove folder
@@ -378,24 +324,24 @@ void create_sel(fs::path target_cache_dir) {
   }
 }
 
-void load_header_config() {
-  {
-    std::vector<std::string> v;
-    v = HeliumOptions::Instance()->GetStringVector("header-valid-include-paths");
-    for (std::string s : v) {
-      HeaderManager::Instance()->jsonAddValidIncludePath(s);
-    }
-  }
-  {
-    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-config-json");
-    for (std::string vi : v) {
-      // 1. escape ~
-      // 2. resolve sym link
-      HeaderManager::Instance()->jsonAddConf(fs::canonical(utils::escape_tide(vi)));
-    }
+/**
+ * Create selection. Output to outdir, one per json file.
+ */
+void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
+  if (fs::exists(outdir)) fs::remove_all(outdir);
+  fs::create_directories(outdir);
+  SourceManager *sourceManager = new SourceManager(indir);
+  for (int i=0;i<num;i++) {
+    std::set<ASTNodeBase*> selection;
+    fs::path file = outdir / (std::to_string(i) + ".json");
+    std::ofstream os;
+    os.open(file.string().c_str());
+    assert(os.is_open());
+    selection = sourceManager->genRandSelFunc(num_token);
+    sourceManager->dumpJsonSelection(selection, os);
+    os.close();
   }
 }
-
 
 /**
  * \mainpage Helium Reference Manual
@@ -404,14 +350,12 @@ void load_header_config() {
  */
 int main(int argc, char* argv[]) {
   utils::seed_rand();
-  const char *home = getenv("HOME");
-  if (!home) {
+  fs::path user_home(getenv("HOME"));
+  if (user_home.empty()) {
     std::cerr << "EE: HOME env is not set." << "\n";
     exit(1);
   }
-
   fs::path helium_home(getenv("HELIUM_HOME"));
-  // FIXME path invalid, how to check?
   if (helium_home.empty()) {
     std::cerr << "EE: HELIUM_HOME is not set." << "\n";
     exit(1);
@@ -420,65 +364,62 @@ int main(int argc, char* argv[]) {
   /* parse arguments */
   HeliumOptions::Instance()->ParseCommandLine(argc, argv);
   HeliumOptions::Instance()->ParseConfigFile((helium_home / "helium.conf").string());
+
   if (HeliumOptions::Instance()->Has("help")) {
     HeliumOptions::Instance()->PrintHelp();
-    exit(0);}
+    exit(0);
+  }
 
-  fs::path user_home(getenv("HOME"));
-  // fs::path helium_home = user_home / ".helium.d";
-  if (!fs::exists(helium_home)) {
-    fs::create_directory(helium_home);}
-  fs::path cache_dir = helium_home / "cache";
+  fs::path indir = HeliumOptions::Instance()->GetString("target");
+  fs::path outdir = HeliumOptions::Instance()->GetString("output");
+  // absolute path
+  indir = fs::canonical(indir);
+  outdir = fs::canonical(outdir);
 
-  load_header_config();
-  // (HEBI: Utility 1)
-  general_utility();
-  
-  // Reading target folder. This is the parameter
-  std::string target_str = HeliumOptions::Instance()->GetString("target");
-  target_str = utils::escape_tide(target_str);
-  fs::path target(target_str);
-
-  // (HEBI: Utility 2)
-  target_utility(target);
-
-  if (!fs::exists(target)) {
-    std::cerr << "EE: target folder or file " << target.string() << " does not exist." << "\n";
-    exit(1);}
-  // target is absolute path
-  target = fs::canonical(target);
-  std::string target_dir_name = target.string();
-  std::replace(target_dir_name.begin(), target_dir_name.end(), '/', '_');
-  fs::path target_cache_dir(helium_home / "cache" / target_dir_name);
-  // fs::path target_sel_dir(helium_home / "sel" / target_dir_name);
-  fs::path target_sel_dir = target_cache_dir / "sel";
-
-  check_blocklist(helium_home / "etc" / "blacklist.conf", target_dir_name);
-
-
-  if (HeliumOptions::Instance()->Has("create-cache")) {create_cache(target, target_cache_dir); exit(0);}
-  if (HeliumOptions::Instance()->Has("create-sel")) {create_sel(target_cache_dir); exit(0);}
-
-  if (!fs::exists(target_cache_dir)) {
-    std::cerr << "The benchmark is not processed."
-              << "Run helium --create-cache /path/to/benchmark" << "\n";
-    exit(1);}
-
-  std::cout << "[main] Loading header manager .." << "\n";
-  HeaderManager::Instance()->jsonParseBench(target);
-  HeaderManager::Instance()->adjustDeps(target.string(), (target_cache_dir / "cpp").string());
-  HeaderManager::Instance()->jsonTopoSortHeaders();
-  HeaderManager::Instance()->jsonResolve();
-  fs::path snippet_file = target_cache_dir / "snippets.json";
-  std::cout << "[main] Loading snippet from " << snippet_file << "\n";
-  GlobalSnippetManager::Instance()->loadJson(snippet_file);
-  GlobalSnippetManager::Instance()->processAfterLoad();
-  GlobalSnippetManager::Instance()->dump(std::cout);
-
-  // (HEBI: Utility 3)
-  helium_utility(target);
-
-  helium_run(target, target_cache_dir);
+  if (HeliumOptions::Instance()->Has("preprocess")) {
+    preprocess(indir, outdir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-snippet")) {
+    std::cout << "== Creating snippe ts, deps, outers ..." << "\n";
+    SnippetManager *snippet_manager = new SnippetManager();
+    snippet_manager->traverseDir(indir);
+    // this actually is a json file
+    snippet_manager->saveJson(outdir);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-selection")) {
+    int num = HeliumOptions::Instance()->GetInt("sel-num");
+    int num_token = HeliumOptions::Instance()->GetInt("sel-tok");
+    create_selection(indir, outdir, num, num_token);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("create-include-dep")) {
+    IncludeManager includeManager;
+    includeManager.parse(indir);
+    std::ofstream ofs(outdir.string());
+    includeManager.dump(ofs);
+    exit(0);
+  }
+  if (HeliumOptions::Instance()->Has("run")) {
+    fs::path selection = HeliumOptions::Instance()->GetString("selection");
+    fs::path snippet = HeliumOptions::Instance()->GetString("snippet");
+    fs::path include_dep = HeliumOptions::Instance()->GetString("include-dep");
+    SnippetManager *snip_manager = new SnippetManager();
+    snip_manager->loadJson(snippet);
+    snip_manager->processAfterLoad();
+    IncludeManager *inc_manager = new IncludeManager();
+    inc_manager->load(include_dep);
+    LibraryManager *lib_manager = new LibraryManager();
+    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-config-json");
+    for (std::string vi : v) {
+      // 1. escape ~
+      // 2. resolve sym link
+      lib_manager->parse(fs::canonical(utils::escape_tide(vi)));
+    }
+    run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
+    exit(0);
+  }
   std::cout << "[main] End Of Helium" << "\n";
   return 0;
 }

@@ -74,6 +74,8 @@ void create_src(fs::path target, fs::path target_cache_dir, fs::path target_sel_
   }
 }
 
+
+
 /**
  * 1. create cpp folder
  * 2. preprocess src and put into cpp folder
@@ -154,4 +156,143 @@ void create_cpp(fs::path target_cache_dir) {
       }
     }
   }
+}
+
+
+
+
+
+
+
+
+
+
+static void copy_src_files(fs::path indir, fs::path outdir) {
+  fs::recursive_directory_iterator it(indir), eod;
+  BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+    if (is_regular_file(p)) {
+      if (p.extension() == ".c" || p.extension() == ".h") {
+        fs::path to = outdir / fs::relative(p, indir);
+        fs::create_directories(to.parent_path());
+        if (fs::exists(to)) fs::remove(to);
+        fs::copy_file(p, to);
+      }
+    }
+  }
+}
+
+/**
+ * remove #include<assert.h>
+ */
+static void post_copy(fs::path dir) {
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+    if (is_regular_file(p)) {
+      if (p.extension() == ".c" || p.extension() == ".h") {
+        fs::path from(p);
+        fs::path to(p.string() + ".helium");
+        std::ifstream ifs(from.string());
+        std::ofstream ofs(to.string());
+        assert(ifs.is_open());
+        assert(ofs.is_open());
+        std::string line;
+        while (std::getline(ifs, line)) {
+          // check if it is #include <assert.h>
+          if (line.find("<assert.h>") != std::string::npos) {
+            ofs << "// HELIUM_REMOVED " << line << "\n";
+          } else {
+            ofs << line << "\n";
+          }
+        }
+        ifs.close();
+        ofs.close();
+        fs::remove(from);
+        fs::copy_file(to, from);
+        fs::remove(to);
+      }
+    }
+  }
+}
+
+static std::string get_cpp_cmd(fs::path dir) {
+  fs::recursive_directory_iterator it(dir), eod;
+  vector<fs::path> dirs;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_directory(p)) {
+      dirs.push_back(p);
+    }
+  }
+  std::string include_cmd;
+  for (auto &p : dirs) {
+    include_cmd += "-I" + p.string() + " ";
+  }
+  std::string cpp_cmd = "clang -E " + include_cmd;
+  return cpp_cmd;
+}
+
+// remove extra things added by preprocessor using include files
+// std::cout << "Removing extra for cpp-ed file .." << "\n";
+static void post_cpp(fs::path dir) {
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_regular_file(p)) {
+      std::ifstream is;
+      is.open(p.string());
+      std::string code;
+      if (is.is_open()) {
+        std::string line;
+        std::string output;
+        bool b = false;
+        while(getline(is, line)) {
+          if (!line.empty() && line[0] == '#') {
+            // this might be a line marker
+            vector<string> v = utils::split(line);
+            if (v.size() < 3) continue;
+            string filename = v[2];
+            if (filename.empty() || filename[0] != '"' || filename.back() != '"') continue;
+            filename = filename.substr(1);
+            filename.pop_back();
+            if (filename == p.string()) b=true;
+            else b=false;
+          } else {
+            if (b) {
+              output += line + "\n";
+            }
+          }
+        }
+        is.close();
+        // output to the same file
+        utils::write_file(p.string(), output);
+      }
+    }
+  }
+}
+
+static void cpp(fs::path dir) {
+  std::string cpp_cmd = get_cpp_cmd(dir);
+  fs::recursive_directory_iterator it(dir), eod;
+  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+    if (fs::is_regular_file(p)) {
+      std::string cmd = cpp_cmd + " " + p.string();
+      ThreadExecutor exe(cmd);
+      exe.run();
+      std::string output = exe.getStdOut();
+      utils::write_file(p, output);
+    }
+  }
+}
+
+
+/**
+ * @param indir dir of oroginal benchmark
+ * @param outdir dir to put preprocessed files
+ */
+void preprocess(fs::path indir, fs::path outdir) {
+  if (fs::exists(outdir)) fs::remove_all(outdir);
+  fs::create_directories(outdir);
+  
+  copy_src_files(indir, outdir);
+  post_copy(outdir);
+  cpp(outdir);
+  post_cpp(outdir);
 }
