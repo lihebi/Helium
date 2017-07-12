@@ -26,13 +26,11 @@ echo "export HELIUM_HOME=$(pwd)" >> $HOME/.bashrc
 
 
 echo 'export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH' >> $HOME/.bashrc
-echo \
-    'export PATH=$HELIUM_HOME/scripts/analyze:$HELIUM_HOME/scripts/hexp:$HELIUM_HOME/lib/RCFReader:$HELIUM_HOME/lib/iclones:$PATH'\
-    >> ~/.bashrc
+echo 'export PATH=$HELIUM_HOME/scripts/analyze::$HELIUM_HOME/scripts/hexp:$PATH' >> ~/.bashrc
+echo 'export PATH=$HELIUM_HOME/scripts/experiment:$PATH' >> $HOME/.bashrc
+echo 'export PATH=$HELIUM_HOME/lib/RCFReader:$HELIUM_HOME/lib/iclones:$PATH' >> $HOME/.bashrc
 echo 'export PATH=$HELIUM_HOME/build/bin:$PATH' >> $HOME/.bashrc
 echo 'export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0' >> $HOME/.bashrc
-# echo 'alias iclones="$HELIUM_HOME/lib/iclones/iclones"' >> $HOME/.bashrc
-# echo 'alias rcfreader="java -jar $HELIUM_HOME/lib/RCFReader/build/libs/RCFReader.jar"' >> $HOME/.bashrc
 
 echo "## ========== End of Helium Configuration" >> $HOME/.bashrc
 
