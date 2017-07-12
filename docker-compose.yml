@@ -1,0 +1,16 @@
+version: '2'
+services:
+  srcml-server-container:
+    image: "lihebi/srcml-server"
+  helium:
+    image: "lihebi/arch-helium"
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+    volumes:
+      - helium-data:/data
+volumes:
+  # create a volume with default
+  helium-data:
+    # this must be created externally
+    external: true
