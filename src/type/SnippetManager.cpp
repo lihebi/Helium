@@ -197,10 +197,9 @@ void SnippetManager::load(fs::path jsonfile) {
     }
   }
   // key map
-  std::map<std::string, std::vector<Snippet*> > key2snippets;
   for (Snippet *s : m_snippets) {
     for (std::string key : s->getKeys()) {
-      key2snippets[key].push_back(s);
+      m_key2snippets[key].push_back(s);
     }
   }
 }

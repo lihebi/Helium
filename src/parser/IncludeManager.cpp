@@ -86,9 +86,13 @@ void IncludeManager::parse(fs::path benchmark) {
           std::string file = match[1];
           LocalIncludes.insert(file);
           std::set<std::string> matches = filter_suffix(all_files, file);
-          for (std::string to : matches) {
-            if (p.string() != to) {
-              deps[p.string()].insert(to);
+          // Now the to and p are both absolute path
+          // I want to remove the benchmark prefix
+          for (std::string m : matches) {
+            if (p.string() != m) {
+              fs::path from = fs::relative(p, benchmark);
+              fs::path to = fs::relative(fs::path(m), benchmark);
+              deps[from.string()].insert(to.string());
             }
           }
         }

@@ -26,7 +26,7 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   fs::recursive_directory_iterator it(cppfolder), eod;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (p.extension() == ".c") {
-      std::cout << "[SourceManager] " << "parsing " << p.string() << "\n";
+      // std::cout << "[SourceManager] " << "parsing " << p.string() << "\n";
       Parser *parser = new Parser(p.string());
       ASTContext *ast = parser->getASTContext();
       ast->setSourceManager(this);
@@ -1296,30 +1296,28 @@ get_system_flags(IncludeManager *inc_man,
 }
 
 std::string get_makefile(IncludeManager *inc_man, LibraryManager *lib_man) {
-  std::string makefile;
-  makefile += "CC:=clang\n";
-  makefile += ".PHONY: all clean test\n";
-  makefile = makefile + "a.out: main.c\n"
-    + "\t$(CC) -g "
-    // comment out because <unistd.h> will not include <optarg.h>
-    + "-std=c11 "
-    + "main.c "
-    // gnulib should not be used:
-    // 1. Debian can install it in the system header, so no longer need to clone
-    // 2. helium-lib already has those needed headers, if installed correctly by instruction
-    // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
-    + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
-    + "-fprofile-arcs -ftest-coverage " // gcov coverage
-    + get_system_flags(inc_man, lib_man)
-    + ""
-    + "\n"
-    + "clean:\n"
-    + "\trm -rf *.out *.gcda *.gcno\n"
-    + "test:\n"
-    + "\tbash test.sh\n"
-    + "run:\n"
-    + "\ttimeout 1 ./a.out 2>&1 >/dev/null\n";
-  return makefile;
+  std::string prefix;
+  prefix += "CC:=clang\n";
+  prefix += "SYSTEM_FLAGS=" + get_system_flags(inc_man, lib_man) + "\n";
+  prefix += "COV_FLAGS=-fprofile-arcs -ftest-coverage\n";
+  prefix += "\n";
+  prefix += ".PHONY: all clean test\n";
+
+  const char *raw = R"prefix(
+a.out: main.c
+	$(CC) -g -std=c11 main.c $(COV_FLAGS) $(SYSTEM_FLAGS)
+
+clean:
+	rm -rf *.out *.gcda *.gcno
+test:
+	bash test.sh
+run:
+	timeout 1 ./a.out 2>&1 >/dev/null
+)prefix";
+
+  std::string ret;
+  ret += prefix + raw;
+  return ret;
 }
 
 void SourceManager::generate(std::set<ASTNodeBase*> sel,

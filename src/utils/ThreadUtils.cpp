@@ -53,22 +53,25 @@ void ThreadExecutor::handle_signal(int signal) {
 }
 
 
-void ThreadExecutor::child(int p0[2], int p1[2]) {
+void ThreadExecutor::child(int p0[2], int p1[2], int p2[2]) {
   // children
   if (dup2(p0[0], STDIN_FILENO) == -1 // stdin
       || dup2(p1[1], STDOUT_FILENO) == -1 // stdout
+      || dup2(p2[1], STDERR_FILENO) == -1 // stderr
       ) {
     perror("dup error");
     exit(1);
   }
 
   // direct stderr to /dev/null
-  int null_fd = open("/dev/null", O_RDONLY);
-  dup2(null_fd, STDERR_FILENO);
+  // int null_fd = open("/dev/null", O_RDONLY);
+  // dup2(null_fd, STDERR_FILENO);
   close(p0[0]);
   close(p0[1]);
   close(p1[0]);
   close(p1[1]);
+  close(p2[0]);
+  close(p2[1]);
   // prepare the command
   char **argv = NULL;
   // the argv is malloc-ed, but anyway the process will exit, it will be released
@@ -105,7 +108,7 @@ bool ThreadExecutor::checkChildStatus(int child_pid) {
   }
 }
 
-void ThreadExecutor::parent(int child_pid, int p0[2], int p1[2]) {
+void ThreadExecutor::parent(int child_pid, int p0[2], int p1[2], int p2[2]) {
   close(p0[0]);
   close(p1[1]);
   // write to child's input
@@ -136,6 +139,7 @@ void ThreadExecutor::parent(int child_pid, int p0[2], int p1[2]) {
     fd_set set;
     FD_ZERO(&set);
     FD_SET(p1[0], &set);
+    FD_SET(p2[0], &set);
     
     int result;
     if (use_timeout) {
@@ -167,6 +171,15 @@ void ThreadExecutor::parent(int child_pid, int p0[2], int p1[2]) {
           stdout.append(buf, nread);
         }
       }
+      if (FD_ISSET(p2[0], &set)) {
+        char buf[BUFSIZ];
+        int nread = read(p2[0], buf, sizeof(buf));
+        if (nread == -1) perror("read");
+        else if (nread == 0) {
+        } else {
+          stderr.append(buf, nread);
+        }
+      }
     }
 
     gettimeofday(&time2, NULL);
@@ -184,9 +197,10 @@ void ThreadExecutor::parent(int child_pid, int p0[2], int p1[2]) {
 
 void ThreadExecutor::run() {
   // create pipe
-  int p0[2], p1[2];
+  int p0[2], p1[2], p2[2];
   if (pipe(p0) == -1
       || pipe(p1) == -1
+      || pipe(p2) == -1
       ) {
     perror("pipe");
     exit(1);
@@ -198,10 +212,10 @@ void ThreadExecutor::run() {
     exit(1);
   }
   if (pid == 0) {
-    child(p0, p1);
+    child(p0, p1, p2);
   }
   // parent
-  parent(pid, p0, p1);
+  parent(pid, p0, p1, p2);
 }
 
 

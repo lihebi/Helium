@@ -47,10 +47,11 @@ bool do_compile(fs::path dir) {
   std::string clean_cmd = "make clean -C " + dir.string();
   ThreadExecutor(clean_cmd).run();
   std::string cmd = "make -C " + dir.string();
-  cmd += " 2>&1";
+  // cmd += " 2>&1";
   ThreadExecutor exe(cmd);
   exe.run();
-  std::cout << "[main] Error Message:" << "\n" << exe.getStdOut() << "\n";
+  // std::cout << "[main] do compile: stdout" << "\n" << exe.getStdOut() << "\n";
+  std::cout << "[main] do compile Stderr: " << exe.getStdErr() << "\n";
   if (exe.getReturnCode() == 0) {
     return true;
   } else {
@@ -81,9 +82,12 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
                       SnippetManager *snip_manager,
                       IncludeManager *inc_manager,
                       LibraryManager *lib_manager) {
+  if (fs::exists(outdir)) fs::remove_all(outdir);
+  fs::create_directories(outdir);
   SourceManager *sourceManager = new SourceManager(indir);
   std::vector<fs::path> sels = get_selections(selection);
   for (fs::path sel_file : sels) {
+    std::cout << "------------------------------" << "\n";
     std::set<ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
     sourceManager->dumpDist(sel, std::cout);
     sel = sourceManager->grammarPatch(sel);
@@ -92,32 +96,29 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     sel = sourceManager->grammarPatch(sel);
     // Generate into folder and do compilation
     // use the sel filename as the folder
-    fs::path gen_dir = outdir / sel_file.filename();
+    fs::path gen_dir = outdir / sel_file.filename().stem();
     
     sourceManager->generate(sel, gen_dir, snip_manager, inc_manager, lib_manager);
-    
     std::cout << "[main] Code written to " << gen_dir.string() << "\n";
     // do compilation
     if (do_compile(gen_dir)) {
       std::cerr << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
-
       // run tests
       std::cout << "[main] Running program in that target folder .." << "\n";
-      std::string run_cmd = "make run -C " + gen_dir.string();
-      // run_cmd += " 2>&1";
+      std::string run_cmd = gen_dir.string() + "/a.out";
       ThreadExecutor exe(run_cmd);
+      exe.setTimeoutSec(0.2);
       exe.run();
       std::cout << "[main] Output written to "
                 << gen_dir.string() << "/helium_output.txt" << "\n";
       if (exe.getReturnCode() == 0) {
         std::cout << "[main] Run Success" << "\n";
       } else {
-        // This error message will be make error message
-        // if the return code of a.out is not 0, it will be
-        //   make: *** [Makefile:10: run] Error 1
-        // if seg fault, it will be
-        //   make: *** [Makefile:10: run] Segmentation fault (core dumped)
-        std::cout << "[main] Run Failure" << "\n";
+        if (exe.isTimedOut()) {
+          std::cerr << "[main] Run Failure by Timeout" << "\n";
+        } else {
+          std::cerr << "[main] Run Failure, return code: " << exe.getReturnCode() << "\n";
+        }
       }
     } else {
       std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
@@ -176,32 +177,33 @@ int main(int argc, char* argv[]) {
   }
 
   fs::path indir = options->GetString("target");
-  fs::path outdir = options->GetString("output");
   // absolute path
   indir = fs::canonical(indir);
-  outdir = fs::canonical(outdir);
 
   if (options->Has("preprocess")) {
+    fs::path outdir = options->GetString("output");
     preprocess(indir, outdir);
     exit(0);
   }
   if (options->Has("create-selection")) {
+    fs::path outdir = options->GetString("output");
     int num = options->GetInt("sel-num");
     int num_token = options->GetInt("sel-tok");
     create_selection(indir, outdir, num, num_token);
     exit(0);
   }
   if (options->Has("create-include-dep")) {
+    fs::path outdir = options->GetString("output");
     IncludeManager inc_man;
     inc_man.parse(indir);
     std::ofstream ofs(outdir.string());
     inc_man.dump(ofs);
+    ofs.close();
     exit(0);
   }
   if (options->Has("create-snippet")) {
-    std::cout << "== Creating snippe ts, deps, outers ..." << "\n";
-    
-    fs::path include_dep = options->GetString("includedep");
+    fs::path outdir = options->GetString("output");
+    fs::path include_dep = options->GetString("include-dep");
     IncludeManager *inc_man = new IncludeManager();
     inc_man->load(include_dep);
     
@@ -210,12 +212,14 @@ int main(int argc, char* argv[]) {
     // this actually is a json file
     std::ofstream ofs(outdir.string());
     snippet_manager->dump(ofs);
+    ofs.close();
     exit(0);
   }
   if (options->Has("run")) {
+    fs::path outdir = options->GetString("output");
     fs::path selection = options->GetString("selection");
     fs::path snippet = options->GetString("snippet");
-    fs::path include_dep = options->GetString("includedep");
+    fs::path include_dep = options->GetString("include-dep");
     SnippetManager *snip_manager = new SnippetManager();
     snip_manager->load(snippet);
     IncludeManager *inc_manager = new IncludeManager();

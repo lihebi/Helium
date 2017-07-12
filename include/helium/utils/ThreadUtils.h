@@ -28,8 +28,8 @@ public:
   }
   void handle_signal(int signal);
 
-  void child(int p0[2], int p1[2]);
-  void parent(int child_pid, int p0[2], int p1[2]);
+  void child(int p0[2], int p1[2], int p2[2]);
+  void parent(int child_pid, int p0[2], int p1[2], int p2[2]);
   bool checkChildStatus(int child_pid);
   // helper functions to run and get result
   static void runForNothing(std::string cmd) {

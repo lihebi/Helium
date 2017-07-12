@@ -27,11 +27,10 @@ HeliumOptions::HeliumOptions() {
     ("create-selection", "create random selection")
     ("create-include-dep", "create include manager json file")
     ("create-snippet", "analyze and snippet")
-    ("create-headerdep", "create header dependence")
     ("run", "run helium")
     ("selection", po::value<std::string>(), "selection folder or file")
     ("snippet", po::value<std::string>(), "snippet json file")
-    ("includedep", po::value<std::string>(), "include manager file")
+    ("include-dep", po::value<std::string>(), "include manager file")
     ;
 
   po::options_description primary_options("Primary");
@@ -188,6 +187,18 @@ void HeliumOptions::ParseConfigFile(std::string config_file) {
 }
 
 void HeliumOptions::PrintHelp() {
+  std::cout << "Helium: Dynamic Analysis Framework" << "\n";
+  std::cout << "\n";
+  std::cout << "Typical workflow:" << "\n";
+  std::cout << "\t" << "helium --preprocess /path/to/bench -o /path/to/prep" << "\n";
+  std::cout << "\t" << "helium --create-include-dep /path/to/benchmark -o include.json" << "\n";
+  std::cout << "\t" << "helium --create-selection /path/to/prep -o seldir" << "\n";
+  std::cout << "\t" << "helium --create-snippet /path/to/prep"
+            << " --include-dep include.json -o snippets.json" << "\n";
+  std::cout << "\t" << "helium --run"
+            << " --snippet snippets.json --selection seldir --include-dep include.json"
+            << " /path/to/prep -o /path/to/generate"<< "\n";
+  std::cout <<  "\n";
   std::cout<< "Usage: helium [options] <folder>" <<std::endl;
   std::cout<< m_help_options << std::endl;
   std::cout << "Refer to manpage of helium(1) for details."  << "\n";
