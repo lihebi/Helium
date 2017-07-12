@@ -1029,22 +1029,22 @@ static std::set<Snippet*> remove_dup(std::set<Snippet*> snippets) {
       // return s1->getName() + s1->getSnippetName() < s2->getName() + s2->getSnippetName();
     }
   };
-  std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";
-  for (Snippet *s : snippets) {
-    std::cout << s->getName() << " "
-              << s->getSnippetName() << "; ";
-  }
-  std::cout << "\n";
+  // std::cout << "[SourceManager] " << snippets.size() << " Snippets BEFORE removing dup: ";
+  // for (Snippet *s : snippets) {
+  //   std::cout << s->getName() << " "
+  //             << s->getSnippetName() << "; ";
+  // }
+  // std::cout << "\n";
   std::set<Snippet*,SnippetComp> nodup;
   nodup.insert(snippets.begin(), snippets.end());
   snippets.clear();
   snippets.insert(nodup.begin(), nodup.end());
-  std::cout << "[SourceManager] " << snippets.size() << " Snippets AFTER removing dup: ";
-  for (Snippet *s : snippets) {
-    std::cout << s->getName() << " "
-              << s->getSnippetName() << "; ";
-  }
-  std::cout << "\n";
+  // std::cout << "[SourceManager] " << snippets.size() << " Snippets AFTER removing dup: ";
+  // for (Snippet *s : snippets) {
+  //   std::cout << s->getName() << " "
+  //             << s->getSnippetName() << "; ";
+  // }
+  // std::cout << "\n";
   // snippets = nodup;
   return snippets;
 }

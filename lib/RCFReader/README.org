@@ -1,0 +1,11 @@
+#+TITLE: RCF Reader
+
+Run gradle build to compile.
+The output is =build/lib/RCFReader.jar=
+
+Run by
+#+BEGIN_EXAMPLE
+java -jar /path/to/RCFReader.jar /path/to/file.rcf
+#+END_EXAMPLE
+
+The output will be on standard output. Redirect it to a file.

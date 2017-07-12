@@ -1,0 +1,10 @@
+#+TITLE: Clone Experiment
+
+
+Running Iclones
+#+BEGIN_EXAMPLE
+./iclones -language c++ -outformat rcf -input /path/to/benchmark -output test.rcf
+#+END_EXAMPLE
+
+Then run the RCFReader according to the README file in lib/RCFReader.
+

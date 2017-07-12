@@ -51,7 +51,7 @@ bool do_compile(fs::path dir) {
   ThreadExecutor exe(cmd);
   exe.run();
   // std::cout << "[main] do compile: stdout" << "\n" << exe.getStdOut() << "\n";
-  std::cout << "[main] do compile Stderr: " << exe.getStdErr() << "\n";
+  // std::cout << "[main] do compile Stderr: " << exe.getStdErr() << "\n";
   if (exe.getReturnCode() == 0) {
     return true;
   } else {
@@ -160,16 +160,16 @@ int main(int argc, char* argv[]) {
     std::cerr << "EE: HOME env is not set." << "\n";
     exit(1);
   }
-  fs::path helium_home(getenv("HELIUM_HOME"));
-  if (helium_home.empty()) {
-    std::cerr << "EE: HELIUM_HOME is not set." << "\n";
-    exit(1);
-  }
+  // fs::path helium_home(getenv("HELIUM_HOME"));
+  // if (helium_home.empty()) {
+  //   std::cerr << "EE: HELIUM_HOME is not set." << "\n";
+  //   exit(1);
+  // }
 
   /* parse arguments */
   HeliumOptions *options = new HeliumOptions;
   options->ParseCommandLine(argc, argv);
-  options->ParseConfigFile((helium_home / "helium.conf").string());
+  options->ParseConfigFile((user_home / ".helium.d" / "helium.conf").string());
 
   if (options->Has("help")) {
     options->PrintHelp();
