@@ -3,7 +3,8 @@ add_library(HeliumParser
   Parser.cpp
   SourceManager.cpp
   SourceLocation.cpp
-  HeaderManager.cpp
+  IncludeManager.cpp
+  LibraryManager.cpp
   
   Visitor.cpp
   CFGBuilder.cpp

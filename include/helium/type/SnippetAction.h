@@ -25,7 +25,7 @@ namespace fs = boost::filesystem;
  * Create snippet for file.
  * This is the only API
  */
-std::vector<Snippet*> createSnippets(fs::path file);
+std::vector<Snippet*> clang_parse_file_for_snippets(fs::path file);
 
 
 #endif /* SNIPPETACTION_H */

@@ -5,6 +5,7 @@
 #include "helium/type/Cache.h"
 #include "helium/type/SnippetAction.h"
 #include "helium/type/Snippet.h"
+#include "helium/type/SnippetManager.h"
 
 
 #include <boost/filesystem.hpp>
@@ -51,7 +52,7 @@ protected:
 TEST_F(NewSnippetTest, MyTest) {
   {
     // std::cout << file_a_h.string() << "\n";
-    std::vector<Snippet*> snippets = createSnippets(file_a_h);
+    std::vector<Snippet*> snippets = clang_parse_file_for_snippets(file_a_h);
     SnippetManager *manager = new SnippetManager();
     manager->add(snippets);
     manager->process();

@@ -3,8 +3,6 @@
 #include <gtest/gtest.h>
 #include "helium/utils/Utils.h"
 #include "helium/utils/XMLDocReader.h"
-#include "helium/utils/HeliumOptions.h"
-#include "helium/utils/Log.h"
 
 #include "helium/utils/XMLNodeHelper.h"
 
@@ -183,18 +181,6 @@ XMLNodeKind xmlnode_to_kind(XMLNode node) {
   try {
     return name_to_kind_map.at(name);
   } catch (const std::out_of_range& e) {
-    if (HeliumOptions::Instance()->GetBool("pause-ast-unkonwn-tag")) {
-      std::cerr << "AST node tagname: " << name << " is not handled." << "\n";
-      std::cout << "-- text:" << "\n";
-      std::cout << get_text(node) << "\n";
-      std::cout << "-- node name:" << "\n";
-      std::cout << node.name() << "\n";
-      std::cout << "-- xml structure:" << "\n";
-      node.print(std::cout);
-      // std::cout << "-- parent:" << "\n";
-      // node.parent().print(std::cout);
-      assert(false && "should not reach here if I have a complete list.");
-    }
     return NK_Other;
   }
 }
@@ -808,7 +794,7 @@ std::string get_function_decl(std::string code) {
       || code.find("(") >= code.find(")")
       || code.find(")") >= code.find("{")
       ) {
-    helium_print_warning("get_function_decl: not a good function");
+    std::cerr << "Waring: get_function_decl: not a good function" << "\n";
     return "";
   }
   

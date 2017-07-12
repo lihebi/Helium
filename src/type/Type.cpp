@@ -2,7 +2,6 @@
 #include "helium/type/IOHelper.h"
 
 #include "helium/utils/Utils.h"
-#include "helium/utils/HeliumOptions.h"
 
 #include <boost/regex.hpp>
 

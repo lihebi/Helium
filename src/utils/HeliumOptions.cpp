@@ -10,8 +10,6 @@ namespace fs = boost::filesystem;
 
 #include <gtest/gtest.h>
 
-HeliumOptions *HeliumOptions::m_instance = NULL;
-
 /*******************************
  ** HeliumOptions
  *******************************/
@@ -26,97 +24,28 @@ HeliumOptions::HeliumOptions() {
     ("config,f", po::value<std::string>(), "config file")
     ("output,o", po::value<std::string>(), "output location")
     ("preprocess", "use c preprocessor to do preprocessing")
-    ("create-snippet", "analyze and snippet")
     ("create-selection", "create random selection")
-    ("create-headerdep", "create header dependence")
     ("create-include-dep", "create include manager json file")
+    ("create-snippet", "analyze and snippet")
+    ("create-headerdep", "create header dependence")
     ("run", "run helium")
     ("selection", po::value<std::string>(), "selection folder or file")
     ("snippet", po::value<std::string>(), "snippet json file")
-    ("include-dep", po::value<std::string>(), "include manager file")
+    ("includedep", po::value<std::string>(), "include manager file")
     ;
 
   po::options_description primary_options("Primary");
   primary_options.add_options()
-    ("create-cache", "create cache")
-    ("ls-cache", "show cached projects")
-    ("rm-cache", "remove cache")
-    ("create-sel", "create selection")
     ("sel-num", po::value<int>()->default_value(10), "how many to generate")
     ("sel-tok", po::value<int>()->default_value(1), "how many token to select")
-    ("sel", po::value<std::string>(), "selection file")
-    ("dump-ast", "dump ast")
     ("hebi", "Experimental")
-    ("system-info", "show system info")
+    // ("system-info", "show system info")
     // ("discover-header", "discover header used in the benchmark on current system.")
     // ("check-header", "check header in project but not exists on current system or conf")
-    ("bench-info", "show the information about target benchmark")
-    ("check-headers", "check whether the headers is captured/supported")
-    ("check-headers-bench", "check the bench for unsupported headers")
-    ("check-cache-valid", "check whether the bench is valid by the snippets in cache")
-    ;
-
-  po::options_description util_options("Utils");
-  util_options.add_options()
-    // ("create-tagfile", "create tag file")
-    ("create-snippet-db", "create snippet database")
-    ("create-header-dep", "create header dependence table")
-    
-    ("show-header-dep", "the new dep printing: from the database")
-    ("show-callgraph", "print callgraph")
-    ("show-config", "print current config")
-    ("show-headers", "print header")
-    ("show-meta", "print meta data")
-    ("show-cfg", "print CFG for each function")
-    ("show-ast", "print AST for each function")
-
-
-    ("show-instrument-code", po::value<std::string>(), "print instrument code")
-
-    // ("check-headers", "check if the headers in headers.conf exists on this machine")
-    ("create-function-ast", "create ast for all the functions in the target benchmarks")
-    ("resolve-system-type", "Resolve a system type and print out result")
-    ;
-
-  po::options_description print_options("Print Options");
-  print_options.add_options()
-    ("print-trace", po::value<bool>()->default_value(false), "print trace")
-    ("print-warning", po::value<bool>()->default_value(false), "print warning")
-
-    ("print-code-output-location", po::value<bool>()->default_value(false), "print output path")
-
-    ("print-compile-error", po::value<bool>()->default_value(false), "print out compile error")
-    ("print-compile-info", po::value<bool>()->default_value(false), "print compile success or error")
-    ("print-compile-info-dot", po::value<bool>()->default_value(false), "print compile success or error by colorred dots")
-
-    ("print-build-rate", po::value<bool>()->default_value(false), "print build rate")
-
-    ("print-test-info", po::value<bool>()->default_value(false), "print test success or error information")
-    ("print-test-info-dot", po::value<bool>()->default_value(false), "print test info in colorred dots")
-
-    ("print-io-spec", po::value<bool>()->default_value(false), "print IO spec") // DEPRECATED
-    ("print-csv", po::value<bool>()->default_value(false), "print csv")
-    ("print-csv-summary", po::value<bool>()->default_value(false), "print csv summary")
-    ("print-analysis-result", po::value<bool>()->default_value(false), "print analysis result")
-    ("print-input-variables", po::value<bool>()->default_value(false), "print the specification of input variables")
-
-    ("print-benchmark-name", po::value<bool>()->default_value(false), "print benchmark running")
-    ("print-segment-meta", po::value<bool>()->default_value(false),
-     "print meta data for segment, including size, #proc, #branch, #loop")
-    ("print-test-meta", po::value<bool>()->default_value(false),
-     "print the testing data, including input number, generation time, total time used, "
-     "stmt-cov, branch-cov, pass number, failure number")
-    ("print-segment-peek", po::value<bool>()->default_value(false), "Peek the head of the segment")
-    ("segment-peek-loc", po::value<int>()->default_value(3), "How many lines to peek")
-
-    ("print-main", po::value<bool>()->default_value(false), "print main function")
-    ("print-unresolved-id", po::value<bool>()->default_value(false), "print unresolved ID in snippet registry") // DEPRECATED
-    ("print-analyze-result-transfer", po::value<bool>()->default_value(false), "print the transfer functions")
-    ("print-analyze-result-meta", po::value<bool>()->default_value(false), "print the meta")
-
-    ("dump-compile-error", po::value<bool>()->default_value(false), "dump compile error message into a file")
-    ("print-sat-stmt", po::value<bool>()->default_value(false), "print sat stmt")
-    ("print-sat-output", po::value<bool>()->default_value(false), "print sat output")
+    // ("bench-info", "show the information about target benchmark")
+    // ("check-headers", "check whether the headers is captured/supported")
+    // ("check-headers-bench", "check the bench for unsupported headers")
+    // ("check-cache-valid", "check whether the bench is valid by the snippets in cache")
     ;
 
   po::options_description debug_options("Debug Options");
@@ -194,9 +123,7 @@ HeliumOptions::HeliumOptions() {
   m_cmdline_options
     .add(general_options)
     .add(primary_options)
-    .add(util_options)
     .add(config_options)
-    .add(print_options)
     .add(debug_options)
     .add(hidden)
     ;
@@ -207,13 +134,10 @@ HeliumOptions::HeliumOptions() {
   m_help_options
     .add(general_options)
     .add(primary_options)
-    // .add(util_options)
-    // .add(config_options)
     ;
 
   m_config_options
     .add(config_options)
-    .add(print_options)
     .add(debug_options)
     ;
   // this "folder" option include only one item

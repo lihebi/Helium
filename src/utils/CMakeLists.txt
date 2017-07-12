@@ -8,7 +8,6 @@ add_library(HeliumUtils
   ThreadUtils.cpp
 
   Dump.cpp
-  Log.cpp
   Table.cpp
 
   HeliumOptions.cpp

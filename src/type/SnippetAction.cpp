@@ -188,7 +188,7 @@ public:
   }
 };
 
-std::vector<Snippet*> createSnippets(fs::path file) {
+std::vector<Snippet*> clang_parse_file_for_snippets(fs::path file) {
   snippets.clear();
   clang::tooling::runToolOnCode(new SnippetAction,
                                 utils::read_file(file.string()),

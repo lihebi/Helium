@@ -15,6 +15,7 @@
 #include "helium/type/Cache.h"
 
 #include "helium/type/Snippet.h"
+#include "helium/type/SnippetManager.h"
 #include "helium/type/SnippetAction.h"
 
 #include "helium/utils/ThreadUtils.h"
@@ -57,37 +58,6 @@ bool do_compile(fs::path dir) {
   }
 }
 
-std::vector<fs::path> load_sel(fs::path sel_dir) {
-  // get selection files
-  std::vector<fs::path> ret;
-  if (HeliumOptions::Instance()->Has("sel")) {
-    fs::path sel_config = HeliumOptions::Instance()->GetString("sel");
-    if (fs::is_regular_file(sel_config)) {
-      ret.push_back(sel_config);
-    }
-    if (fs::is_directory(sel_config)) {
-      fs::recursive_directory_iterator it(sel_dir), eod;
-      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-        // must be .sel file
-        if (is_regular_file(p) && p.extension() == ".json") {
-          ret.push_back(sel_config);
-        }
-      }
-    }
-  } else {
-    if (fs::is_directory(sel_dir)) {
-      fs::recursive_directory_iterator it(sel_dir), eod;
-      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
-        // must be .sel file
-        if (is_regular_file(p) && p.extension() == ".json") {
-          ret.push_back(p);
-        }
-      }
-    }
-  }
-  return ret;
-}
-
 std::vector<fs::path> get_selections(fs::path selection) {
   std::vector<fs::path> ret;
   if (fs::exists(selection)) {
@@ -120,12 +90,12 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     sel = sourceManager->defUse(sel);
     // I might want to do another grammar patching in case def use breaks it
     sel = sourceManager->grammarPatch(sel);
-    std::string prog = sourceManager->generateProgram(sel);
-    
     // Generate into folder and do compilation
     // use the sel filename as the folder
     fs::path gen_dir = outdir / sel_file.filename();
-    sourceManager->generate(sel, gen_dir);
+    
+    sourceManager->generate(sel, gen_dir, snip_manager, inc_manager, lib_manager);
+    
     std::cout << "[main] Code written to " << gen_dir.string() << "\n";
     // do compilation
     if (do_compile(gen_dir)) {
@@ -157,6 +127,128 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
 }
 
 
+
+/**
+ * Create selection. Output to outdir, one per json file.
+ */
+void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
+  if (fs::exists(outdir)) fs::remove_all(outdir);
+  fs::create_directories(outdir);
+  SourceManager *sourceManager = new SourceManager(indir);
+  for (int i=0;i<num;i++) {
+    std::set<ASTNodeBase*> selection;
+    fs::path file = outdir / (std::to_string(i) + ".json");
+    std::ofstream os;
+    os.open(file.string().c_str());
+    assert(os.is_open());
+    selection = sourceManager->genRandSelFunc(num_token);
+    sourceManager->dumpJsonSelection(selection, os);
+    os.close();
+  }
+}
+
+/**
+ * \mainpage Helium Reference Manual
+ *
+ * You might want to browse the important classes. The modules page shows some grouped classes.
+ */
+int main(int argc, char* argv[]) {
+  utils::seed_rand();
+  fs::path user_home(getenv("HOME"));
+  if (user_home.empty()) {
+    std::cerr << "EE: HOME env is not set." << "\n";
+    exit(1);
+  }
+  fs::path helium_home(getenv("HELIUM_HOME"));
+  if (helium_home.empty()) {
+    std::cerr << "EE: HELIUM_HOME is not set." << "\n";
+    exit(1);
+  }
+
+  /* parse arguments */
+  HeliumOptions *options = new HeliumOptions;
+  options->ParseCommandLine(argc, argv);
+  options->ParseConfigFile((helium_home / "helium.conf").string());
+
+  if (options->Has("help")) {
+    options->PrintHelp();
+    exit(0);
+  }
+
+  fs::path indir = options->GetString("target");
+  fs::path outdir = options->GetString("output");
+  // absolute path
+  indir = fs::canonical(indir);
+  outdir = fs::canonical(outdir);
+
+  if (options->Has("preprocess")) {
+    preprocess(indir, outdir);
+    exit(0);
+  }
+  if (options->Has("create-selection")) {
+    int num = options->GetInt("sel-num");
+    int num_token = options->GetInt("sel-tok");
+    create_selection(indir, outdir, num, num_token);
+    exit(0);
+  }
+  if (options->Has("create-include-dep")) {
+    IncludeManager inc_man;
+    inc_man.parse(indir);
+    std::ofstream ofs(outdir.string());
+    inc_man.dump(ofs);
+    exit(0);
+  }
+  if (options->Has("create-snippet")) {
+    std::cout << "== Creating snippe ts, deps, outers ..." << "\n";
+    
+    fs::path include_dep = options->GetString("includedep");
+    IncludeManager *inc_man = new IncludeManager();
+    inc_man->load(include_dep);
+    
+    SnippetManager *snippet_manager = new SnippetManager();
+    snippet_manager->parse(indir, inc_man);
+    // this actually is a json file
+    std::ofstream ofs(outdir.string());
+    snippet_manager->dump(ofs);
+    exit(0);
+  }
+  if (options->Has("run")) {
+    fs::path selection = options->GetString("selection");
+    fs::path snippet = options->GetString("snippet");
+    fs::path include_dep = options->GetString("includedep");
+    SnippetManager *snip_manager = new SnippetManager();
+    snip_manager->load(snippet);
+    IncludeManager *inc_manager = new IncludeManager();
+    inc_manager->load(include_dep);
+    LibraryManager *lib_manager = new LibraryManager();
+    std::vector<std::string> v = options->GetStringVector("header-config-json");
+    for (std::string vi : v) {
+      // 1. escape ~
+      // 2. resolve sym link
+      lib_manager->parse(fs::canonical(utils::escape_tide(vi)));
+    }
+    run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
+    exit(0);
+  }
+  std::cout << "[main] End Of Helium" << "\n";
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
 void helium_run(fs::path target, fs::path target_cache_dir) {
 
 
@@ -270,6 +362,37 @@ void helium_run(fs::path target, fs::path target_cache_dir) {
   }
 }
 
+std::vector<fs::path> load_sel(fs::path sel_dir) {
+  // get selection files
+  std::vector<fs::path> ret;
+  if (options->Has("sel")) {
+    fs::path sel_config = options->GetString("sel");
+    if (fs::is_regular_file(sel_config)) {
+      ret.push_back(sel_config);
+    }
+    if (fs::is_directory(sel_config)) {
+      fs::recursive_directory_iterator it(sel_dir), eod;
+      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+        // must be .sel file
+        if (is_regular_file(p) && p.extension() == ".json") {
+          ret.push_back(sel_config);
+        }
+      }
+    }
+  } else {
+    if (fs::is_directory(sel_dir)) {
+      fs::recursive_directory_iterator it(sel_dir), eod;
+      BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
+        // must be .sel file
+        if (is_regular_file(p) && p.extension() == ".json") {
+          ret.push_back(p);
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 void create_cache(fs::path target, fs::path target_cache_dir) {
   fs::path target_sel_dir = target_cache_dir / "sel";
   // remove folder
@@ -293,11 +416,10 @@ void create_cache(fs::path target, fs::path target_cache_dir) {
   // snippet_manager->save(target_cache_dir);
   snippet_manager->saveJson(target_cache_dir / "snippets.json");
 }
-
 void create_sel(fs::path target_cache_dir) {
   fs::path target_sel_dir = target_cache_dir / "sel";
-  int sel_num = HeliumOptions::Instance()->GetInt("sel-num");
-  int sel_tok = HeliumOptions::Instance()->GetInt("sel-tok");
+  int sel_num = options->GetInt("sel-num");
+  int sel_tok = options->GetInt("sel-tok");
   // create selection
   // create selection folder if not exist
   if (fs::exists(target_sel_dir)) fs::remove_all(target_sel_dir);
@@ -323,103 +445,4 @@ void create_sel(fs::path target_cache_dir) {
     std::cout << "Selection file wrote to " << file.string() << "\n";
   }
 }
-
-/**
- * Create selection. Output to outdir, one per json file.
- */
-void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
-  if (fs::exists(outdir)) fs::remove_all(outdir);
-  fs::create_directories(outdir);
-  SourceManager *sourceManager = new SourceManager(indir);
-  for (int i=0;i<num;i++) {
-    std::set<ASTNodeBase*> selection;
-    fs::path file = outdir / (std::to_string(i) + ".json");
-    std::ofstream os;
-    os.open(file.string().c_str());
-    assert(os.is_open());
-    selection = sourceManager->genRandSelFunc(num_token);
-    sourceManager->dumpJsonSelection(selection, os);
-    os.close();
-  }
-}
-
-/**
- * \mainpage Helium Reference Manual
- *
- * You might want to browse the important classes. The modules page shows some grouped classes.
- */
-int main(int argc, char* argv[]) {
-  utils::seed_rand();
-  fs::path user_home(getenv("HOME"));
-  if (user_home.empty()) {
-    std::cerr << "EE: HOME env is not set." << "\n";
-    exit(1);
-  }
-  fs::path helium_home(getenv("HELIUM_HOME"));
-  if (helium_home.empty()) {
-    std::cerr << "EE: HELIUM_HOME is not set." << "\n";
-    exit(1);
-  }
-
-  /* parse arguments */
-  HeliumOptions::Instance()->ParseCommandLine(argc, argv);
-  HeliumOptions::Instance()->ParseConfigFile((helium_home / "helium.conf").string());
-
-  if (HeliumOptions::Instance()->Has("help")) {
-    HeliumOptions::Instance()->PrintHelp();
-    exit(0);
-  }
-
-  fs::path indir = HeliumOptions::Instance()->GetString("target");
-  fs::path outdir = HeliumOptions::Instance()->GetString("output");
-  // absolute path
-  indir = fs::canonical(indir);
-  outdir = fs::canonical(outdir);
-
-  if (HeliumOptions::Instance()->Has("preprocess")) {
-    preprocess(indir, outdir);
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("create-snippet")) {
-    std::cout << "== Creating snippe ts, deps, outers ..." << "\n";
-    SnippetManager *snippet_manager = new SnippetManager();
-    snippet_manager->traverseDir(indir);
-    // this actually is a json file
-    snippet_manager->saveJson(outdir);
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("create-selection")) {
-    int num = HeliumOptions::Instance()->GetInt("sel-num");
-    int num_token = HeliumOptions::Instance()->GetInt("sel-tok");
-    create_selection(indir, outdir, num, num_token);
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("create-include-dep")) {
-    IncludeManager includeManager;
-    includeManager.parse(indir);
-    std::ofstream ofs(outdir.string());
-    includeManager.dump(ofs);
-    exit(0);
-  }
-  if (HeliumOptions::Instance()->Has("run")) {
-    fs::path selection = HeliumOptions::Instance()->GetString("selection");
-    fs::path snippet = HeliumOptions::Instance()->GetString("snippet");
-    fs::path include_dep = HeliumOptions::Instance()->GetString("include-dep");
-    SnippetManager *snip_manager = new SnippetManager();
-    snip_manager->loadJson(snippet);
-    snip_manager->processAfterLoad();
-    IncludeManager *inc_manager = new IncludeManager();
-    inc_manager->load(include_dep);
-    LibraryManager *lib_manager = new LibraryManager();
-    std::vector<std::string> v = HeliumOptions::Instance()->GetStringVector("header-config-json");
-    for (std::string vi : v) {
-      // 1. escape ~
-      // 2. resolve sym link
-      lib_manager->parse(fs::canonical(utils::escape_tide(vi)));
-    }
-    run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
-    exit(0);
-  }
-  std::cout << "[main] End Of Helium" << "\n";
-  return 0;
-}
+#endif

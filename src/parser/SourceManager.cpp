@@ -857,7 +857,8 @@ ASTNodeBase *lastNode(std::set<ASTNodeBase*> nodes) {
   return ret;
 }
 
-std::string SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
+std::string
+SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
   // analyze distribution
   // std::map<ASTContext*, Distributor*> AST2DistributorMap;
   sel = patchFunctionHeader(sel);
@@ -971,57 +972,33 @@ std::string SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
 
 
 
-static std::set<Snippet*> get_snippets(std::set<ASTNodeBase*> sel) {
-  std::set<Snippet*> snippets;
-  std::set<std::string> all_ids;
+static std::set<Snippet*>
+get_snippets(std::set<ASTNodeBase*> sel,
+             SnippetManager *snip_man) {
+  std::set<Snippet*> ret;
+  // get keys
+  std::set<std::string> keys;
   for (auto *node : sel) {
-    std::set<std::string> ids;
-    if (node) {
-      ids = node->getIdToResolve();
-    }
-    all_ids.insert(ids.begin(), ids.end());
-    for (std::string id : ids) {
-      std::vector<Snippet*> ss = GlobalSnippetManager::Instance()->get(id);
-      
-      snippets.insert(ss.begin(), ss.end());
-    }
+    assert(node);
+    std::set<std::string> v = node->getIdToResolve();
+    keys.insert(v.begin(), v.end());
   }
-  
-  
-  std::cout << "[SourceManager] Got " << all_ids.size() << " IDs: ";
-  for (std::string id : all_ids) {
-    std::cout << id << " ";
+  // query snippets
+  for (std::string key : keys) {
+    std::vector<Snippet*> ss = snip_man->getAll(key);
+    ret.insert(ss.begin(), ss.end());
   }
-  std::cout << "\n";
-  std::cout << "[SourceManager] queried " << snippets.size() << " snippts." << "\n";
-  
-  // get dependence
-  // std::set<Snippet*> deps;
-  // for (auto *s : snippets) {
-  //   // std::set<Snippet*> dep = GlobalSnippetManager::Instance()->getAllDep(s);
-  //   std::set<Snippet*> dep = s->getAllDeps();
-  //   deps.insert(dep.begin(), dep.end());
-  // }
-  // snippets.insert(deps.begin(), deps.end());
-
-
-  // FIXME outers might introduce new dependencies
-  set<Snippet*> back;
-  while (back != snippets) {
-    back = snippets;
-    std::cout << "[SourceManager] all dep and outer infinite loop ..\n";
-    snippets = GlobalSnippetManager::Instance()->getAllDeps(snippets);
-    snippets = GlobalSnippetManager::Instance()->replaceNonOuters(snippets);
+  // get dep and outer
+  std::set<Snippet*> back;
+  // FIXME infinite loop
+  while (back != ret) {
+    back = ret;
+    // std::cout << "[SourceManager] all dep and outer infinite loop ..\n";
+    ret = snip_man->getAllDeps(ret);
+    ret = snip_man->replaceNonOuters(ret);
   }
-  
-  // std::cout << "get_snippets: " << "\n";
-  // for (Snippet *s : snippets) {
-  //   std::cout << s->getId() << " ";
-  // }
-  // std::cout << "\n";
-  return snippets;
+  return ret;
 }
-
 
 /**
  * FIXME this is buggy, the comp functor is hard to get right, i want
@@ -1207,7 +1184,7 @@ static std::string get_snippet_code_sort(vector<Snippet*> sorted_snippets, set<s
   return ret;
 }
 
-std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel) {
+static std::string get_common_header() {
   std::string ret;
   // suppress the warning
   // "typedef int bool;\n"
@@ -1246,39 +1223,41 @@ std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel) {
   ret += "#include <stdbool.h>\n";
   ret += "#include <stdint.h>\n";
   // ret += "#include <string.h>\n";
+  return ret;
+}
 
-  {
-    // std::set<std::string> headers = HeaderManager::Instance()->jsonGetHeaders();
-    std::vector<std::string> headers = HeaderManager::Instance()->jsonGetSortedHeaders();
-    for (std::string s : headers) {
-      ret += "#include <" + s + ">\n";
+static std::vector<std::string>
+get_system_includes(IncludeManager *inc_manager,
+                    LibraryManager *lib_manager) {
+  std::vector<std::string> ret;
+  std::set<std::string> system_incs = inc_manager->getSystemIncludes();
+  for (std::string inc : system_incs) {
+    Library *lib = lib_manager->findLibraryByInclude(inc);
+    if (lib) {
+      ret.push_back(inc);
     }
+  }
+  return ret;
+}
+
+std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel,
+                                           SnippetManager *snip_man,
+                                           IncludeManager *inc_man,
+                                           LibraryManager *lib_man) {
+  std::string ret;
+  ret += get_common_header();
+  for (std::string inc : get_system_includes(inc_man, lib_man)) {
+    ret += "#include <" + inc + ">\n";
   }
 
   sel = patchFunctionHeader(sel);
-  // get the snippets
-
-  // DEBUG
-  // GlobalSnippetManager::Instance()->getManager()->dump(std::cout);
   
-  std::set<Snippet*> snippets = get_snippets(sel);
+  // get the snippets
+  std::set<Snippet*> snippets = get_snippets(sel, snip_man);
   snippets = remove_dup(snippets);
   // sort the snippets
-  std::vector<Snippet*> sorted_snippets = GlobalSnippetManager::Instance()->sort(snippets);
-
-  std::cout << "[SourceManager] " << sorted_snippets.size() << " Snippets used in main.h: ";
-  for (Snippet *s : sorted_snippets) {
-    std::cout << s->getName() << " ";
-  }
-  std::cout << "\n";
-
-
+  std::vector<Snippet*> sorted_snippets = snip_man->sort(snippets);
   // filter out functions used in main.c
-  // std::cout << "Filtering ..." << "\n";
-  // FIXME not only functions in main, but also: variable, structure
-  // FIXME decl variables in main.h if it is in main.c, and got removed in snippets
-  // FIXME for the same decl, although we should only use one, but if
-  // one is extern int var, one is int var, we should use the int one.
   std::set<std::string> main_c_funcs;
   for (auto *node : sel) {
     // node->dump(std::cout);
@@ -1287,32 +1266,38 @@ std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel) {
       main_c_funcs.insert(name);
     }
   }
-
-  ret += HeaderManager::Instance()->dumpDepsInComment();
-  ret += GlobalSnippetManager::Instance()->dumpComment();
-  
-  // this is the switch
-  // old one
-  // std::string snippet_code = get_snippet_code_separate(sorted_snippets, main_c_funcs);
-  // new one
   std::string snippet_code = get_snippet_code_sort(sorted_snippets, main_c_funcs);
 
   ret += snippet_code;
   return ret;
 }
 
-std::string get_makefile() {
-  std::string json_flag;
-  {
-    std::set<std::string> v = HeaderManager::Instance()->jsonGetFlags();
-    for (std::string s : v) {
-      json_flag += s + " ";
+static std::string
+get_system_flags(IncludeManager *inc_man,
+                 LibraryManager *lib_man) {
+  std::set<Library*> used_libs;
+  std::set<std::string> system_incs = inc_man->getSystemIncludes();
+  for (std::string inc : system_incs) {
+    Library *lib = lib_man->findLibraryByInclude(inc);
+    if (lib) {
+      used_libs.insert(lib);
     }
   }
-  
+  // get flags
+  std::string ret;
+  for (Library *lib : used_libs) {
+    if (lib->exists()) {
+      ret += lib->getFlags() + " ";
+    } else {
+      // warning
+    }
+  }
+  return ret;
+}
+
+std::string get_makefile(IncludeManager *inc_man, LibraryManager *lib_man) {
   std::string makefile;
   makefile += "CC:=clang\n";
-  // makefile += "type $(CC) >/dev/null 2>&1 || { echo >&2 \"I require $(CC) but it's not installed.  Aborting.\"; exit 1; }\n";
   makefile += ".PHONY: all clean test\n";
   makefile = makefile + "a.out: main.c\n"
     + "\t$(CC) -g "
@@ -1325,7 +1310,7 @@ std::string get_makefile() {
     // + "-I$(HOME)/github/gnulib/lib " // gnulib headers
     + "-I/usr/include/x86_64-linux-gnu " // linux headers, stat.h
     + "-fprofile-arcs -ftest-coverage " // gcov coverage
-    + json_flag
+    + get_system_flags(inc_man, lib_man)
     + ""
     + "\n"
     + "clean:\n"
@@ -1337,10 +1322,14 @@ std::string get_makefile() {
   return makefile;
 }
 
-void SourceManager::generate(std::set<ASTNodeBase*> sel, fs::path dir) {
+void SourceManager::generate(std::set<ASTNodeBase*> sel,
+                             fs::path dir,
+                             SnippetManager *snip_man,
+                             IncludeManager *inc_man,
+                             LibraryManager *lib_man) {
   std::string main_c = generateProgram(sel);
-  std::string main_h = generateSupport(sel);
-  std::string makefile = get_makefile();
+  std::string main_h = generateSupport(sel, snip_man, inc_man, lib_man);
+  std::string makefile = get_makefile(inc_man, lib_man);
   if (fs::exists(dir)) fs::remove_all(dir);
   fs::create_directories(dir);
   utils::write_file(dir / "main.c", main_c);

@@ -10,12 +10,8 @@ namespace po = boost::program_options;
 
 class HeliumOptions {
 public:
-  static HeliumOptions* Instance() {
-    if (!m_instance) {
-      m_instance = new HeliumOptions();
-    }
-    return m_instance;
-  }
+  HeliumOptions();
+  ~HeliumOptions() {}
   void ParseCommandLine(int argc, char** argv);
   void ParseConfigFile(std::string config_file);
   void PrintHelp();
@@ -34,8 +30,6 @@ public:
     return false;
   }
 private:
-  HeliumOptions();
-  virtual ~HeliumOptions() {}
   
   bool validate();
 
@@ -44,8 +38,6 @@ private:
   po::options_description m_help_options;
   po::positional_options_description m_positional;
   po::variables_map m_vm;
-
-  static HeliumOptions *m_instance;
 };
 
 

@@ -9,7 +9,9 @@
 
 #include <gtest/gtest.h>
 
-#include "helium/parser/HeaderManager.h"
+#include "helium/parser/IncludeManager.h"
+#include "helium/parser/LibraryManager.h"
+#include "helium/type/SnippetManager.h"
 
 namespace fs = boost::filesystem;
 
@@ -42,17 +44,23 @@ public:
    * Generate program based on selection of nodes.
    * These nodes might be in different AST
    */
-  std::string generateProgram(std::set<ASTNodeBase*>);
+  std::string generateProgram(std::set<ASTNodeBase*> sel);
 
   /**
    * Generate main.h
    */
-  std::string generateSupport(std::set<ASTNodeBase*>);
+  std::string generateSupport(std::set<ASTNodeBase*> sel,
+                              SnippetManager *snip_manager,
+                              IncludeManager *inc_manager,
+                              LibraryManager *lib_manager);
 
   /**
    * Generate main.c, main.h, Makefile, into a folder
    */
-  void generate(std::set<ASTNodeBase*> sel, fs::path dir);
+  void generate(std::set<ASTNodeBase*> sel, fs::path dir,
+                SnippetManager *snip_man,
+                IncludeManager *inc_man,
+                LibraryManager *lib_man);
 
   /**
    * DEPRECATED
