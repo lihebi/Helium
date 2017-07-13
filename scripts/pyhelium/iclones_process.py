@@ -10,8 +10,6 @@ import subprocess
 import os
 import shutil
 
-from preprocess import preprocess
-
 """
     [
     {
@@ -141,19 +139,14 @@ def run_parse_result(indir, outdir):
     os.mkdir(output_dir)
     iclone_result_to_selection(result_file, output_dir)
     iclone_result_to_pairs(result_file, output_dir)
-    
-
-def run_helium(benchS, seldir, outputdir):
-    for item in os.listdir(benchS):
-        bench = os.path.join(benchS, item)
-        sel = os.path.join(seldir, 'by-bench', item)
-        if (os.path.exists(sel)):
-            cmd = 'helium --run ' + bench + ' --selection ' + sel +\
-                  ' --snippet ' + os.path.join(bench, 'snippets.json') +\
-                  ' --include-dep ' + os.path.join(bench, 'include.json') +\
-                  ' -o ' + outputdir
-            print(cmd)
-            subprocess.run(cmd, shell=True)
+def create_iclones_selection(indir, outdir):
+    if os.path.exists(outdir): shutil.rmtree(outdir)
+    os.makedir(outdir);
+    rcffile = os.path.join(outdir, 'iclones.rcf')
+    resultfile = os.path.join(outdir, 'iclones-result.txt')
+    run_iclones(args.input, rcffile)
+    run_rcfreader(rcffile, resultfile)
+    run_parse_result(resultfile, args.output)
 
 if __name__ == '__main__':
     # simply call --run-all and parse
@@ -205,21 +198,6 @@ if __name__ == '__main__':
             print('Require seldir to be set')
             exit(1)
         run_helium(args.input, args.seldir, args.output)
-    elif args.run_simple:
-        benchS = args.run_simple
-        if (benchS.endswith('/')):
-            benchS = benchS[:-1]
-        parentdir = os.path.dirname(benchS)
-        prepdir = os.path.join(parentdir, 'preprocessed')
-        iclones_seldir = os.path.join(parentdir, 'iclones-seldir')
-        outputdir = os.path.join(parentdir, 'helium-output')
-        preprocess(benchS, prepdir)
-        rcffile = '/tmp/helium-iclones-result.rcf'
-        resultfile = '/tmp/helium-iclones-result.txt'
-        run_iclones(prepdir, rcffile)
-        run_rcfreader(rcffile, resultfile)
-        run_parse_result(resultfile, iclones_seldir)
-        run_helium(prepdir, iclones_seldir, outputdir)
 
 def gen_result_json():
     result_file = 'ioidpath.txt'

@@ -43,3 +43,5 @@ helium.xml
 cmake-build-debug
 
 gmon.out
+
+__pycache__

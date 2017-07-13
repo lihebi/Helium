@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+
+"""
+pyhelium is the python scripting system of Helium.
+
+This is the main entry point of pyhelium.
+"""
+
+from threading import Thread
+import argparse
+import os
+import subprocess
+
+from iclones_process import create_iclones_selection
+from preprocess import unzip, preprocess, create_selection
+
+def run_helium(benchS, seldir, outputdir):
+    if os.path.exists(outputdir): shutil.rmtree(outputdir)
+    os.makedir(outputdir)
+    for benchname in os.listdir(benchS):
+        bench = os.path.join(benchS, benchname)
+        # sel = os.path.join(seldir, 'by-bench', item)
+        sel = os.path.join(seldir, benchname)
+        if not os.path.exists(sel):
+            print (sel + ' not exists, skipped')
+            continue
+        cmd = 'helium --run ' + bench + ' --selection ' + sel +\
+              ' --snippet ' + os.path.join(bench, 'snippets.json') +\
+              ' --include-dep ' + os.path.join(bench, 'include.json') +\
+              ' -o ' + os.path.join(outputdir, benchname)
+        subprocess.run(cmd, shell=True)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='pyhelium -- Helium Python Scripting System')
+
+    parser.add_argument('--unzip', action='store_true')
+    parser.add_argument('--preprocess', action='store_true')
+    parser.add_argument('--create-selection', action='store_true')
+    parser.add_argument('--create-iclones-selection', action='store_true')
+
+    parser.add_argument('--run-helium', action='store_true',
+                        help='give as input the preprocessed folder')
+    parser.add_argument('-s', '--selection', help='selection files')
+    
+    parser.add_argument('input', help='positional /path/to/benchmark')
+    parser.add_argument('-o', '--output', help='/path/to/output', required=True)
+    args = parser.parse_args()
+
+    if args.unzip:
+        unzip(args.input, args.output)
+    elif args.preprocess:
+        preprocess(args.input, args.output)
+    elif args.create_selection:
+        create_selection(args.input, args.output)
+    elif args.create_iclones_selection:
+        create_iclones_selection(args.input, args.output)
+    elif args.run_helium:
+        if not args.selection:
+            print('need to provide selection file or folder')
+            exit(1)
+        run_helium(args.input, args.selection, args.output)
