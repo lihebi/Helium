@@ -78,6 +78,7 @@ std::vector<fs::path> get_selections(fs::path selection) {
   }
   return ret;
 }
+
 void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
                       SnippetManager *snip_manager,
                       IncludeManager *inc_manager,
@@ -86,10 +87,12 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
   fs::create_directories(outdir);
   SourceManager *sourceManager = new SourceManager(indir);
   std::vector<fs::path> sels = get_selections(selection);
+  std::cout << "[main] Running on " << sels.size() << " selections .." << "\n";
+
+  std::vector<std::string> compile_suc, run_suc;
   for (fs::path sel_file : sels) {
-    std::cout << "------------------------------" << "\n";
     std::set<ASTNodeBase*> sel = sourceManager->loadJsonSelection(sel_file);
-    sourceManager->dumpDist(sel, std::cout);
+    // sourceManager->dumpDist(sel, std::cout);
     sel = sourceManager->grammarPatch(sel);
     sel = sourceManager->defUse(sel);
     // I might want to do another grammar patching in case def use breaks it
@@ -99,31 +102,35 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     fs::path gen_dir = outdir / sel_file.filename().stem();
     
     sourceManager->generate(sel, gen_dir, snip_manager, inc_manager, lib_manager);
-    std::cout << "[main] Code written to " << gen_dir.string() << "\n";
-    // do compilation
     if (do_compile(gen_dir)) {
-      std::cerr << utils::GREEN << "[main] Compile Success !!!" << utils::RESET << "\n";
-      // run tests
-      std::cout << "[main] Running program in that target folder .." << "\n";
+      // compile success
+      compile_suc.push_back(sel_file.filename().string());
+      
       std::string run_cmd = gen_dir.string() + "/a.out";
       ThreadExecutor exe(run_cmd);
       exe.setTimeoutSec(0.2);
       exe.run();
-      std::cout << "[main] Output written to "
-                << gen_dir.string() << "/helium_output.txt" << "\n";
       if (exe.getReturnCode() == 0) {
-        std::cout << "[main] Run Success" << "\n";
+        // run success
+        run_suc.push_back(sel_file.filename().string());
+      } else if (exe.isTimedOut()) {
+        // timeout
       } else {
-        if (exe.isTimedOut()) {
-          std::cerr << "[main] Run Failure by Timeout" << "\n";
-        } else {
-          std::cerr << "[main] Run Failure, return code: " << exe.getReturnCode() << "\n";
-        }
+        // other reason to failure
       }
     } else {
-      std::cout << utils::RED << "[main] Compile Failure ..." << utils::RESET << "\n";
-      std::cerr << "[main] Compile Failure ..." << "\n";
+      // compile failure
     }
+  }
+  // report build rate
+  // I can also get this information from script
+  // by checking if the folder contains a.out file
+  // and if the folder contains helium-output.txt
+  std::cout << "[main] Build Rate: " << compile_suc.size() << " / " << sels.size() << " = "
+            << ((double)compile_suc.size() / sels.size() * 100) << "%" << "\n";
+  if (!compile_suc.empty()) {
+    std::cout << "[main] Run Rate: " << run_suc.size() << " / " << compile_suc.size() << " = "
+              << (double)run_suc.size() / compile_suc.size() * 100 << "%" << "\n";
   }
 }
 

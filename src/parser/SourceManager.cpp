@@ -74,35 +74,6 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   // }
 }
 
-// void SourceManager::dumpTokens() {
-//   for (int i=0;i<Nodes.size();i++) {
-//     std::cout << i << " : " << Nodes[i]->label() << "\n";
-//   }
-// }
-
-
-
-// void SourceManager::dumpASTs() {
-//   for (auto m : File2ASTMap) {
-//     ASTContext *ast = m.second;
-//     std::cout << "== AST:" << "\n";
-//     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-//     std::ostringstream os;
-//     Printer *printer = new Printer(os);
-//     printer->visit(unit);
-//     std::cout << Printer::PrettyPrint(os.str()) << "\n";
-//   }
-// }
-
-// void SourceManager::dumpTokens() {
-//   for (auto &m : File2ASTMap) {
-//     ASTContext *ast = m.second;
-//     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-//     TokenDumper dumper(std::cout);
-//     unit->accept(&dumper);
-//   }
-// }
-
 void SourceManager::dumpASTs() {
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
@@ -130,7 +101,7 @@ fs::path SourceManager::matchFile(fs::path file) {
 }
 
 std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
-  std::cout << "[SourceManager] Doing grammar patching on " << sel.size() << " selected tokens .." << "\n";
+  // std::cout << "[SourceManager] Doing grammar patching on " << sel.size() << " selected tokens .." << "\n";
   std::set<ASTNodeBase*> ret = sel;
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
@@ -451,9 +422,9 @@ std::set<ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
             if (begin <= loc && loc <= end) {
               // this token is selected
               // print it out for now
-              std::cout << "[SourceManager] Found selected token: ";
-              token->dump(std::cout);
-              std::cout << "\n";
+              // std::cout << "[SourceManager] Found selected token: ";
+              // token->dump(std::cout);
+              // std::cout << "\n";
               ret.insert(token);
             }
           }
@@ -540,7 +511,7 @@ std::set<ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
           if (begin <= loc && loc <= end) {
             // this token is selected
             // print it out for now
-            std::cout << "[SourceManager] Found selected token: ";
+            // std::cout << "[SourceManager] Found selected token: ";
             token->dump(std::cout);
             std::cout << "\n";
             ret.insert(token);
@@ -961,12 +932,12 @@ SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
 
 
   // output to stdout as log
-  std::cout << "[SourceManager] IOData (I|used/all/O|used/all) "
-            << iodata.used_input_var << " / " << iodata.input_var << " | "
-            << iodata.used_output_var << " / " << iodata.output_var << "\n";
-  std::cerr << "[SourceManager] IOData (I|used/all/O|used/all) "
-            << iodata.used_input_var << " / " << iodata.input_var << " | "
-            << iodata.used_output_var << " / " << iodata.output_var << "\n";
+  // std::cout << "[SourceManager] IOData (I|used/all/O|used/all) "
+  //           << iodata.used_input_var << " / " << iodata.input_var << " | "
+  //           << iodata.used_output_var << " / " << iodata.output_var << "\n";
+  // std::cerr << "[SourceManager] IOData (I|used/all/O|used/all) "
+  //           << iodata.used_input_var << " / " << iodata.input_var << " | "
+  //           << iodata.used_output_var << " / " << iodata.output_var << "\n";
   return ret;
 }
 

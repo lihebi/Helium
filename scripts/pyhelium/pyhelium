@@ -13,10 +13,11 @@ import subprocess
 
 from iclones_process import create_iclones_selection
 from preprocess import unzip, preprocess, create_selection
+import shutil
 
 def run_helium(benchS, seldir, outputdir):
     if os.path.exists(outputdir): shutil.rmtree(outputdir)
-    os.makedir(outputdir)
+    os.mkdir(outputdir)
     for benchname in os.listdir(benchS):
         bench = os.path.join(benchS, benchname)
         # sel = os.path.join(seldir, 'by-bench', item)
