@@ -19,7 +19,7 @@ def run_helium(indir, seldir, outdir):
     if os.path.exists(outdir): shutil.rmtree(outdir)
     os.mkdir(outdir)
     for benchname in os.listdir(indir):
-        print ('running helium for ' + os.path.join(indir, item) + ' ..')
+        print ('running helium for ' + os.path.join(indir, benchname) + ' ..')
         bench = os.path.join(indir, benchname)
         # sel = os.path.join(seldir, 'by-bench', item)
         sel = os.path.join(seldir, benchname)
