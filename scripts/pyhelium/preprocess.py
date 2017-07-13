@@ -18,6 +18,7 @@ def preprocess(indir, outdir):
     3. create snippets.json
     """
     for item in os.listdir(indir):
+        print ('preprocessing for ' + os.path.join(indir, item) + ' ..')
         benchmark = os.path.join(indir, item)
         outputdir = os.path.join(outdir, item)
         cmd = 'helium --preprocess ' + benchmark + ' -o ' + outputdir
@@ -35,6 +36,7 @@ def create_selection(indir, outdir):
     Create random selection for all cache folder
     """
     for item in os.listdir(indir):
+        print ('creating selection for ' + os.path.join(indir, item) + ' ..')
         benchmark=os.path.join(indir, item)
         outputdir=os.path.join(outdir, item)
         if os.path.isdir(benchmark):
