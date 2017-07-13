@@ -30,7 +30,18 @@ def run_helium(benchS, seldir, outputdir):
               ' --include-dep ' + os.path.join(bench, 'include.json') +\
               ' -o ' + os.path.join(outputdir, benchname)
         subprocess.run(cmd, shell=True)
-
+def analyze_buildrate(indir, outdir):
+    for bench in os.listdir(indir):
+        print ('benchmark: ' + bench)
+        sels = os.listdir(bench)
+        total = sels.size()
+        suc = 0
+        print('total: ' + str(total))
+        for sel in sels:
+            if os.path.exists(os.path.join(bench, sel, 'a.out')):
+                suc+=1
+        print ('build rate: ' + str(suc) + '/' + str(total) + '=' + str(suc/total*100) + '%')
+    pass
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pyhelium -- Helium Python Scripting System')
@@ -43,6 +54,8 @@ if __name__ == '__main__':
     parser.add_argument('--run-helium', action='store_true',
                         help='give as input the preprocessed folder')
     parser.add_argument('-s', '--selection', help='selection files')
+
+    parser.add_argument('--analyze-buildrate', action='store_true')
     
     parser.add_argument('input', help='positional /path/to/benchmark')
     parser.add_argument('-o', '--output', help='/path/to/output', required=True)
@@ -61,3 +74,6 @@ if __name__ == '__main__':
             print('need to provide selection file or folder')
             exit(1)
         run_helium(args.input, args.selection, args.output)
+        # collect build rate information for all of the benchmarks
+    elif args.analyze_buildrate:
+        analyze_buildrate(args.input, args.output)
