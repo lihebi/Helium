@@ -15,12 +15,12 @@ from iclones_process import create_iclones_selection
 from preprocess import unzip, preprocess, create_selection
 import shutil
 
-def run_helium(benchS, seldir, outputdir):
-    if os.path.exists(outputdir): shutil.rmtree(outputdir)
-    os.mkdir(outputdir)
-    for benchname in os.listdir(benchS):
+def run_helium(indir, seldir, outdir):
+    if os.path.exists(outdir): shutil.rmtree(outdir)
+    os.mkdir(outdir)
+    for benchname in os.listdir(indir):
         print ('running helium for ' + os.path.join(indir, item) + ' ..')
-        bench = os.path.join(benchS, benchname)
+        bench = os.path.join(indir, benchname)
         # sel = os.path.join(seldir, 'by-bench', item)
         sel = os.path.join(seldir, benchname)
         if not os.path.exists(sel):
@@ -29,7 +29,7 @@ def run_helium(benchS, seldir, outputdir):
         cmd = 'helium --run ' + bench + ' --selection ' + sel +\
               ' --snippet ' + os.path.join(bench, 'snippets.json') +\
               ' --include-dep ' + os.path.join(bench, 'include.json') +\
-              ' -o ' + os.path.join(outputdir, benchname)
+              ' -o ' + os.path.join(outdir, benchname)
         subprocess.run(cmd, shell=True)
 def analyze_buildrate(indir, outdir):
     for bench in os.listdir(indir):
