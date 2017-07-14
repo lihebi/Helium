@@ -26,14 +26,15 @@ void CFGBuilder::visit(TokenNode *node) {
 void CFGBuilder::visit(TranslationUnitDecl *node) {
   pre(node);
   Visitor::visit(node);
-  CFG *cfg = new CFG();
-  for (ASTNodeBase *n : node->getDecls()) {
-    CFG *inner = getInnerCFG(n);
-    cfg->graph.merge(inner->graph);
-    cfg->ins.insert(inner->ins.begin(), inner->ins.end());
-    cfg->outs.insert(inner->outs.begin(), inner->outs.end());
-  }
-  addInnerCFG(node, cfg);
+  // Doing nother. We don't want to generate CFG for translation unit
+  // CFG *cfg = new CFG();
+  // for (ASTNodeBase *n : node->getDecls()) {
+  //   CFG *inner = getInnerCFG(n);
+  //   cfg->graph.merge(inner->graph);
+  //   cfg->ins.insert(inner->ins.begin(), inner->ins.end());
+  //   cfg->outs.insert(inner->outs.begin(), inner->outs.end());
+  // }
+  // addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(FunctionDecl *node) {
   pre(node);
@@ -46,35 +47,43 @@ void CFGBuilder::visit(FunctionDecl *node) {
   cfg->addNode(func_node);
   cfg->addNode(func_out);
   CFG *inner = getInnerCFG(node->getBody());
-  cfg->graph.merge(inner->graph);
-  cfg->graph.addEdge(func_node, inner->ins);
-  cfg->graph.addEdge(inner->outs, func_out);
+  if (!inner) {
+    cfg->graph.addEdge(func_node, func_out);
+  } else {
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(func_node, inner->ins);
+    cfg->graph.addEdge(inner->outs, func_out);
 
-  // handle return: just remove out node
-  for (CFGNode *node : return_nodes) {
-    // cfg->removeOutEdge(node);
-    cfg->addEdge(node, func_out);
+    // handle return: just remove out node
+    for (CFGNode *node : return_nodes) {
+      // cfg->removeOutEdge(node);
+      cfg->addEdge(node, func_out);
+    }
   }
-  
   addInnerCFG(node, cfg);
 }
 void CFGBuilder::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
-  CFG *cfg = new CFG();
-  CFGNode *comp_node = new CFGNode(node);
-  cfg->addNode(comp_node);
-  cfg->outs.insert(comp_node);
-  cfg->ins.insert(comp_node);
+  // CFGNode *comp_node = new CFGNode(node);
+  // cfg->addNode(comp_node);
+  // cfg->outs.insert(comp_node);
+  // cfg->ins.insert(comp_node);
 
   std::vector<Stmt*> stmts = node->getBody();
+  if (stmts.size() == 0) return;
+  CFG *first_inner = nullptr;
+  CFG *cfg = new CFG();
   for (Stmt *stmt : stmts) {
     CFG *inner = getInnerCFG(stmt);
+    if (!inner) continue;
+    if (!first_inner) first_inner = inner;
     cfg->graph.merge(inner->graph);
     cfg->graph.addEdge(cfg->outs, inner->ins);
     cfg->outs = inner->outs;
   }
-  
+  if (!first_inner) return;
+  cfg->ins = first_inner->ins;
   addInnerCFG(node, cfg);
 }
 
@@ -88,16 +97,24 @@ void CFGBuilder::visit(IfStmt *node) {
   cfg->addNode(if_out);
   // then (must have)
   CFG *thenCFG = getInnerCFG(node->getThen());
-  cfg->graph.merge(thenCFG->graph);
-  cfg->graph.addEdge(if_node, thenCFG->ins, "true");
-  cfg->graph.addEdge(thenCFG->outs, if_out);
+  if (thenCFG) {
+    cfg->graph.merge(thenCFG->graph);
+    cfg->graph.addEdge(if_node, thenCFG->ins, "true");
+    cfg->graph.addEdge(thenCFG->outs, if_out);
+  } else {
+    cfg->graph.addEdge(if_node, if_out, "true");
+  }
 
   // else
   if (node->getElse()) {
     CFG *elseCFG = getInnerCFG(node->getElse());
-    cfg->graph.merge(elseCFG->graph);
-    cfg->graph.addEdge(if_node, elseCFG->ins, "false");
-    cfg->graph.addEdge(elseCFG->outs, if_out);
+    if (elseCFG) {
+      cfg->graph.merge(elseCFG->graph);
+      cfg->graph.addEdge(if_node, elseCFG->ins, "false");
+      cfg->graph.addEdge(elseCFG->outs, if_out);
+    } else {
+      cfg->graph.addEdge(if_node, if_out, "false");
+    }
   } else {
     cfg->graph.addEdge(if_node, if_out, "false");
   }
@@ -127,10 +144,14 @@ void CFGBuilder::visit(SwitchStmt *node) {
       case_label = "default";
     }
     CFG *inner = getInnerCFG(c);
-    cfg->graph.merge(inner->graph);
-    cfg->graph.addEdge(switch_node, inner->ins, case_label);
-    cfg->graph.addEdge(cfg->outs, inner->ins, "flow-over");
-    cfg->outs = inner->outs;
+    if (inner) {
+      cfg->graph.merge(inner->graph);
+      cfg->graph.addEdge(switch_node, inner->ins, case_label);
+      cfg->graph.addEdge(cfg->outs, inner->ins, "flow-over");
+      cfg->outs = inner->outs;
+    } else {
+      continue;
+    }
   }
 
   cfg->graph.addEdge(cfg->outs, switch_out);
@@ -160,9 +181,13 @@ void CFGBuilder::visit(CaseStmt *node) {
   vector<Stmt*> stmts = node->getBody();
   for (Stmt *stmt : stmts) {
     CFG *inner = getInnerCFG(stmt);
-    cfg->graph.merge(inner->graph);
-    cfg->graph.addEdge(cfg->outs, inner->ins);
-    cfg->outs = inner->outs;
+    if (inner) {
+      cfg->graph.merge(inner->graph);
+      cfg->graph.addEdge(cfg->outs, inner->ins);
+      cfg->outs = inner->outs;
+    } else {
+      continue;
+    }
   }
 
   cfg->addIn(case_node);
@@ -180,9 +205,13 @@ void CFGBuilder::visit(DefaultStmt *node) {
   std::cout << "Default has: " << stmts.size() << "\n";
   for (Stmt *stmt : stmts) {
     CFG *inner = getInnerCFG(stmt);
-    cfg->graph.merge(inner->graph);
-    cfg->graph.addEdge(cfg->outs, inner->ins);
-    cfg->outs = inner->outs;
+    if (inner) {
+      cfg->graph.merge(inner->graph);
+      cfg->graph.addEdge(cfg->outs, inner->ins);
+      cfg->outs = inner->outs;
+    } else {
+      continue;
+    }
   }
 
   cfg->addIn(def_node);
@@ -200,9 +229,13 @@ void CFGBuilder::visit(ForStmt *node) {
 
   Stmt *body = node->getBody();
   CFG *inner = getInnerCFG(body);
-  cfg->graph.merge(inner->graph);
-  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
-  cfg->graph.addEdge(inner->outs, loop_node, "back");
+  if (inner) {
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+    cfg->graph.addEdge(inner->outs, loop_node, "back");
+  } else {
+    cfg->graph.addEdge(loop_node, loop_node, "back");
+  }
 
   // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
   cfg->graph.addEdge(break_nodes, loop_out, "break");
@@ -228,9 +261,13 @@ void CFGBuilder::visit(WhileStmt *node) {
 
   Stmt *body = node->getBody();
   CFG *inner = getInnerCFG(body);
-  cfg->graph.merge(inner->graph);
-  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
-  cfg->graph.addEdge(inner->outs, loop_node, "back");
+  if (inner) {
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+    cfg->graph.addEdge(inner->outs, loop_node, "back");
+  } else {
+    cfg->graph.addEdge(loop_node, loop_node, "back");
+  }
 
   // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
   cfg->graph.addEdge(break_nodes, loop_out, "break");
@@ -255,9 +292,13 @@ void CFGBuilder::visit(DoStmt *node) {
 
   Stmt *body = node->getBody();
   CFG *inner = getInnerCFG(body);
-  cfg->graph.merge(inner->graph);
-  cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
-  cfg->graph.addEdge(inner->outs, loop_node, "back");
+  if (inner) {
+    cfg->graph.merge(inner->graph);
+    cfg->graph.addEdge(loop_node, inner->ins, "loop-true");
+    cfg->graph.addEdge(inner->outs, loop_node, "back");
+  } else {
+    cfg->graph.addEdge(loop_node, loop_node, "back");
+  }
 
   // cfg->outs.insert(break_nodes.begin(), break_nodes.end());
   cfg->graph.addEdge(break_nodes, loop_out, "break");
@@ -309,6 +350,13 @@ void CFGBuilder::visit(Expr *node) {
 void CFGBuilder::visit(DeclStmt *node) {
   pre(node);
   Visitor::visit(node);
+  std::string text = node->getText();
+  // remove decl if is does not define the variable
+  if (m_options.count(CFG_NoDecl) == 1) {
+    if (text.find('=') == std::string::npos) {
+      return;
+    }
+  }
   CFG *cfg = new CFG();
   CFGNode *cfgnode = new CFGNode(node);
   cfg->addNode(cfgnode);
@@ -340,14 +388,14 @@ std::string CFGNode::getLabel() {
 }
 
 
-std::string CFG::visualize() {
-  return graph.visualize
+std::string CFG::getDotString() {
+  return graph.getDotString
     ([](CFGNode *node)->std::string
      {return node->getLabel();});
 }
 
-std::string CFG::visualizeAgg() {
-  return graph.visualizeAgg
+std::string CFG::getGgxString() {
+  return graph.getGgxString
     ([](CFGNode *node)->std::string
      {return node->getLabel();});
 }

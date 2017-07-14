@@ -103,5 +103,6 @@ private:
  * @param [in] filename The simple filename
  */
 std::string visualize_dot_graph(const std::string& dot, bool open=false, std::string filename="out");
+void dot2png(fs::path dotfile, fs::path pngfile);
 
 #endif /* DOT_H */

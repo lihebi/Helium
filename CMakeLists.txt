@@ -71,7 +71,7 @@ include_directories(include)
 
 add_subdirectory(src)
 add_subdirectory(test)
-add_subdirectory(tools)
+# add_subdirectory(tools)
 
 find_package(Doxygen)
 if((DOXYGEN_FOUND))

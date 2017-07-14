@@ -5,7 +5,8 @@
 #include "helium/utils/FSUtils.h"
 
 namespace hebigraph {
-  template <typename T> std::string Graph<T>::visualize(std::string (*labelFunc)(T)) {
+  template <typename T> std::string Graph<T>::getDotString(std::string (*labelFunc)(T)) {
+    // std::cout << "Getting dot string" << "\n";
 
     DotGraph dotgraph;
     std::map<T, int> IDs;
@@ -36,10 +37,12 @@ namespace hebigraph {
       }
     }
     std::string dotstring = dotgraph.dump();
-    return visualize_dot_graph(dotstring);
+    // return visualize_dot_graph(dotstring);
+    // std::cout << "Finished getting, returnning" << "\n";
+    return dotstring;
   }
 
-  template <typename T> std::string Graph<T>::visualizeAgg(std::string (*labelFunc)(T)) {
+  template <typename T> std::string Graph<T>::getGgxString(std::string (*labelFunc)(T)) {
     AggGraph agg;
     std::map<T, int> IDs;
     int ID=0;
@@ -71,8 +74,9 @@ namespace hebigraph {
     std::string aggstring = agg.dump();
     std::string dir = utils::create_tmp_dir();
     std::string agg_filename = dir + "/" + "out" + ".ggx";
-    utils::write_file(agg_filename, aggstring);
-    return agg_filename;
+    // utils::write_file(agg_filename, aggstring);
+    // return agg_filename;
+    return aggstring;
   }
   
 

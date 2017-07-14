@@ -746,8 +746,8 @@ public:
   void removeOutEdge(CFGNode *node) {
     graph.removeOutEdge(node);
   }
-  std::string visualize();
-  std::string visualizeAgg();
+  std::string getDotString();
+  std::string getGgxString();
 
   /**
    * I still need to set in and out manually because, return xx; a=b;
@@ -774,6 +774,10 @@ public:
   std::set<CFGNode*> outs;
 private:
 };
+
+typedef enum _CFGBuilderOption {
+  CFG_NoDecl
+} CFGBuilderOption;
 
 class CFGBuilder : public Visitor {
 public:
@@ -818,7 +822,8 @@ public:
 
   CFG* getInnerCFG(ASTNodeBase* node) {
     assert(node);
-    assert(Node2CFG.count(node) == 1);
+    // assert(Node2CFG.count(node) == 1);
+    if (Node2CFG.count(node) == 0) return nullptr;
     return Node2CFG[node];
   }
   void addInnerCFG(ASTNodeBase* node, CFG *cfg) {
@@ -829,7 +834,15 @@ public:
     cur_cfg = cfg;
   }
 
+  void addOption(CFGBuilderOption option) {
+    m_options.insert(option);
+  }
+  void clearOptions(CFGBuilderOption option) {
+    m_options.clear();
+  }
+
 private:
+  std::set<CFGBuilderOption> m_options;
   CFG *cur_cfg = nullptr;
   // CFGNode *cur_cfgnode = nullptr;
   // do not use this alone

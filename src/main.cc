@@ -22,6 +22,8 @@
 #include "helium/utils/ColorUtils.h"
 #include "helium/utils/StringUtils.h"
 #include "helium/utils/RandUtils.h"
+#include "helium/utils/FSUtils.h"
+#include "helium/utils/Dot.h"
 
 
 #include <gtest/gtest.h>
@@ -187,6 +189,36 @@ int main(int argc, char* argv[]) {
   // absolute path
   indir = fs::canonical(indir);
 
+
+  if (options->Has("dump-cfg")) {
+    fs::path outdir = options->GetString("output");
+    if (!fs::is_regular(indir)) {
+      std::cerr << indir << " is not a file." << "\n";
+      exit(1);
+    }
+    if (fs::exists(outdir)) fs::remove_all(outdir);
+    fs::create_directories(outdir);
+    
+    std::string file(indir.string());
+    Parser *parser = new Parser(file);
+    ASTContext *ast = parser->getASTContext();
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    CFGBuilder builder;
+
+    if (options->Has("cfg-no-decl")) {
+      builder.addOption(CFG_NoDecl);
+    }
+    
+    unit->accept(&builder);
+    CFG *cfg = builder.getCFG();
+
+    std::string ggx = cfg->getGgxString();
+    utils::write_file(outdir / "whole.ggx", ggx);
+    std::string dot = cfg->getDotString();
+    utils::write_file(outdir / "whole.dot", dot);
+    dot2png(outdir / "whole.dot", outdir / "whole.png");
+    exit(0);
+  }
   if (options->Has("preprocess")) {
     fs::path outdir = options->GetString("output");
     preprocess(indir, outdir);

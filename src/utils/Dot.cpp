@@ -114,3 +114,9 @@ std::string visualize_dot_graph(const std::string& dot, bool open, std::string f
   }
   return png_filename;
 }
+
+
+void dot2png(fs::path dotfile, fs::path pngfile) {
+  std::string png_convert_cmd = "dot -Tpng -o " + pngfile.string() + " " + dotfile.string();
+  ThreadExecutor(png_convert_cmd).run();
+}

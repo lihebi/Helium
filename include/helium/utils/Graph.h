@@ -96,6 +96,48 @@ namespace hebigraph {
       }
     }
 
+    /**
+     * Remove node gently
+     * 1. get in and out
+     * 2. connect in to out, omit all labels
+     * 3. remove node and in and out edges
+     */
+    void removeNodeGentle(T x) {
+      if (hasNode(x)) {
+        EdgeIter begin,end;
+        boost::tie(begin, end) = edges(g);
+        std::set<Vertex> outset;
+        std::set<Vertex> inset;
+        for (EdgeIter it=begin;it!=end;++it) {
+          Edge e = *it;
+          if (Node2Vertex[x] == source(e, g)) {
+            outset.insert(target(e, g));
+          }
+          if (Node2Vertex[x] == target(e, g)) {
+            inset.insert(source(e, g));
+          }
+        }
+        // connect
+        for (Vertex in : inset) {
+          for (Vertex out : outset) {
+            // addEdge(in, out);
+            add_edge(in, out, g);
+          }
+        }
+        // remove edge
+        for (Vertex in : inset) {
+          remove_edge(in, Node2Vertex[x], g);
+        }
+        for (Vertex out : outset) {
+          remove_edge(Node2Vertex[x], out, g);
+        }
+        // remove node
+        remove_vertex(Node2Vertex[x], g);
+        Vertex2Node.erase(Node2Vertex[x]);
+        Node2Vertex.erase(x);
+      }
+    }
+
     void removeOutEdge(T x) {
       if (Node2Vertex.count(x) == 1) {
         EdgeIter begin,end;
@@ -161,8 +203,8 @@ namespace hebigraph {
     /**
      * visualize by exporting to graph
      */
-    std::string visualize(std::string (*labelFunc)(T));
-    std::string visualizeAgg(std::string (*labelFunc)(T));
+    std::string getDotString(std::string (*labelFunc)(T));
+    std::string getGgxString(std::string (*labelFunc)(T));
 
     void merge(Graph<T> &rhs);
   private:

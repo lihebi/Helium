@@ -38,6 +38,8 @@ HeliumOptions::HeliumOptions() {
     ("sel-num", po::value<int>()->default_value(10), "how many to generate")
     ("sel-tok", po::value<int>()->default_value(1), "how many token to select")
     ("hebi", "Experimental")
+    ("dump-cfg", "dump cfg")
+    ("cfg-no-decl", "if set, no decl node will be on CFG")
     // ("system-info", "show system info")
     // ("discover-header", "discover header used in the benchmark on current system.")
     // ("check-header", "check header in project but not exists on current system or conf")
