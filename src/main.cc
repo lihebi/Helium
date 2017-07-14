@@ -11,7 +11,6 @@
 
 #include "helium/parser/SourceManager.h"
 
-#include "helium/type/ClangSnippet.h"
 #include "helium/type/Cache.h"
 
 #include "helium/type/Snippet.h"
@@ -200,8 +199,8 @@ int main(int argc, char* argv[]) {
     fs::create_directories(outdir);
     
     std::string file(indir.string());
-    Parser *parser = new Parser(file);
-    ASTContext *ast = parser->getASTContext();
+    Parser *parser = new SrcMLParser();
+    ASTContext *ast = parser->parse(file);
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
     CFGBuilder builder;
 

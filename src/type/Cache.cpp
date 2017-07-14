@@ -3,7 +3,6 @@
 #include "helium/utils/FSUtils.h"
 #include "helium/utils/StringUtils.h"
 #include "helium/utils/ThreadUtils.h"
-#include "helium/type/ClangSnippet.h"
 
 #include <iostream>
 #include <vector>

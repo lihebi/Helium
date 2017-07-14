@@ -92,14 +92,14 @@ protected:
       utils::trim(prog);
       of << prog;
       of.close();
-      Parser *parser = new Parser(source.string());
-      parsers.push_back(parser);
-      asts.push_back(parser->getASTContext());
+      // Parser *parser = new Parser(source.string());
+      Parser *parser = new SrcMLParser();
+      asts.push_back(parser->parse(source));
     }
   }
 
   virtual void TearDown() {}
-  vector<Parser*> parsers;
+  // vector<Parser*> parsers;
   vector<ASTContext*> asts;
 };
 
@@ -731,8 +731,8 @@ int foo() {
   ASSERT_TRUE(of.is_open());
   of << prog;
   of.close();
-  Parser *parser = new Parser(source.string());
-  ASTContext *ast = parser->getASTContext();
+  Parser *parser = new SrcMLParser();
+  ASTContext *ast = parser->parse(source);
 
   ParentIndexer indexer;
   Matcher matcher;
@@ -810,8 +810,8 @@ int foo(int a, int b) {
   ASSERT_TRUE(of.is_open());
   of << prog;
   of.close();
-  Parser *parser = new Parser(source.string());
-  ASTContext *ast = parser->getASTContext();
+  Parser *parser = new SrcMLParser();
+  ASTContext *ast = parser->parse(source);
 
   ParentIndexer indexer;
   Matcher matcher;
@@ -867,8 +867,8 @@ int foo() {
   ASSERT_TRUE(of.is_open());
   of << prog;
   of.close();
-  Parser *parser = new Parser(source.string());
-  ASTContext *ast = parser->getASTContext();
+  Parser *parser = new SrcMLParser();
+  ASTContext *ast = parser->parse(source);
 
   ParentIndexer indexer;
   Matcher matcher;

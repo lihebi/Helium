@@ -1,6 +1,8 @@
 add_library(HeliumParser
   AST.cpp
-  Parser.cpp
+  # Parser.cpp
+  SrcMLParser.cpp
+  ClangParser.cpp
   SourceManager.cpp
   SourceLocation.cpp
   IncludeManager.cpp

@@ -27,8 +27,10 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (p.extension() == ".c") {
       // std::cout << "[SourceManager] " << "parsing " << p.string() << "\n";
-      Parser *parser = new Parser(p.string());
-      ASTContext *ast = parser->getASTContext();
+      Parser *parser = new SrcMLParser();
+      ASTContext *ast = parser->parse(p);
+      // Parser *parser = new Parser(p.string());
+      // ASTContext *ast = parser->getASTContext();
       ast->setSourceManager(this);
       // ASTs.push_back(ast);
       // files.push_back(p);
