@@ -10,6 +10,8 @@ from threading import Thread
 import argparse
 import os
 import subprocess
+import pprint
+import json
 
 from iclones_process import create_iclones_selection
 from preprocess import unzip, preprocess, create_selection
@@ -32,17 +34,23 @@ def run_helium(indir, seldir, outdir):
               ' -o ' + os.path.join(outdir, benchname)
         subprocess.run(cmd, shell=True)
 def analyze_buildrate(indir, outdir):
+    """
+    analyze buildrate and output sorted
+    """
+    storage = []
     for bench in os.listdir(indir):
-        print ('benchmark: ' + bench)
-        sels = os.listdir(bench)
-        total = sels.size()
-        suc = 0
-        print('total: ' + str(total))
+        # print ('benchmark: ' + bench)
+        benchdir = os.path.join(indir, bench)
+        sels = os.listdir(benchdir)
+        suc = []
         for sel in sels:
-            if os.path.exists(os.path.join(bench, sel, 'a.out')):
-                suc+=1
-        print ('build rate: ' + str(suc) + '/' + str(total) + '=' + str(suc/total*100) + '%')
-    pass
+            if os.path.exists(os.path.join(benchdir, sel, 'a.out')):
+                suc.append(sel)
+        s = 'build rate: {suc_ct}/{total_ct}={br}%'.format(suc_ct=len(suc), total_ct=len(sels), br=len(suc)/len(sels)*100)
+        storage.append((bench, len(suc)/len(sels)*100))
+    storage = sorted(storage, key=lambda x: x[1], reverse=True)
+    with open(outdir, 'w') as f:
+        pprint.pprint(storage, stream=f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pyhelium -- Helium Python Scripting System')
