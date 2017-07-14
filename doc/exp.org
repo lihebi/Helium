@@ -19,3 +19,8 @@ ssize_t (*original_write)(int, const void *, size_t);
 
 User might define, for example, a feature =#ifdef __USE_MISC=, to make
 =struct timezone= available. We lose that information.
+
+
+* Bad Benchmark
+- prep/atg--chocolat-public: srcml server error
+- wolfganj-xxx-lisp: cause srcml-server-container to stop

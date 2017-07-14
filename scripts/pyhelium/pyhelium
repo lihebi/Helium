@@ -65,9 +65,18 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--selection', help='selection files')
 
     parser.add_argument('--analyze-buildrate', action='store_true')
-    
+
+    # general arguments
     parser.add_argument('input', help='positional /path/to/benchmark')
     parser.add_argument('-o', '--output', help='/path/to/output', required=True)
+    
+    parser.add_argument('--consume-iclones-result', action='store_true')
+    # helium produce: folder
+    # ID is the name of the folder
+    # helium_output.txt file: {#InputVar, #OutputVar, #data}
+    # pairs.json:
+    # [{"type": 3, "IDs": [1,2,3]}]
+    parser.add_argument('--pairs-json', help='/path/to/iclones/pairs.json')
     args = parser.parse_args()
 
     if args.unzip:
