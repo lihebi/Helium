@@ -253,6 +253,22 @@ int main(int argc, char* argv[]) {
     ofs.close();
     exit(0);
   }
+  if (options->Has("build-clang-ast")) {
+    // build clang ast
+    // indir: input folder or file
+    if (fs::is_regular(indir)) {
+      std::cout << "Creating AST for a single file: " << indir << "\n";
+      // input is a file
+      // build AST for this file
+      Parser *parser = new ClangParser();
+      ASTContext *ast = parser->parse(indir);
+      ast->dump(std::cout);
+    } else if (fs::is_directory(indir)) {
+      // create source manager to manage the ASTs
+      std::cout << "TODO" << "\n";
+    }
+    exit(0);
+  }
   if (options->Has("run")) {
     fs::path outdir = options->GetString("output");
     fs::path selection = options->GetString("selection");

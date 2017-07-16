@@ -179,14 +179,9 @@ namespace utils {
    * Will overwrite. If the file doesn't exist, it will create it recursively(the parent directory)
    */
   void
-  write_file(const std::string& file, const std::string& content) {
-    fs::path file_path(file);
-    // fs::path dir = file_path.parent_path();
-    // if (!fs::exists(dir)) {
-    //   fs::create_directories(dir);
-    // }
+  write_file(fs::path file, const std::string& content) {
     std::ofstream os;
-    os.open(file_path.string());
+    os.open(file.string());
     if (os.is_open()) {
       os << content;
       os.close();
@@ -195,16 +190,11 @@ namespace utils {
     }
   }
 
-  void write_file(fs::path p, const std::string &content) {
-    write_file(p.string(), content);
-  }
-
-
   /**
    * Append content to file. Create if not existing.
    */
   void
-  append_file(const std::string& file, const std::string& content) {
+  append_file(fs::path file, const std::string& content) {
     fs::path file_path(file);
     // fs::path dir = file_path.parent_path();
     // if (!fs::exists(dir)) {
@@ -223,9 +213,9 @@ namespace utils {
    * Read a file into string.
    */
   std::string
-  read_file(const std::string& file) {
+  read_file(fs::path file) {
     std::ifstream is;
-    is.open(file);
+    is.open(file.string());
     std::string code;
     if (is.is_open()) {
       std::string line;
@@ -245,9 +235,9 @@ namespace utils {
    * - e.g. 1:1 to 1:1 will contain 1 character
    * - 1:1 to 1:2 will contain two
    */
-  std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn) {
+  std::string read_file(fs::path file, int beginLine, int beginColumn, int endLine, int endColumn) {
     std::ifstream is;
-    is.open(file);
+    is.open(file.string());
     int l=0;
     std::string ret;
     if (is.is_open()) {

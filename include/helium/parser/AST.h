@@ -53,6 +53,12 @@ public:
   SourceManager *getSourceManager() {return Manager;}
   std::vector<ASTNodeBase*> getNodes() {return Nodes;}
   std::string getFileName() {return Filename;}
+  void dump(std::ostream &os) {
+    // TODO
+    // if (Unit) {
+    //   Unit->dump(os);
+    // }
+  }
 private:
   std::string Filename;
   TranslationUnitDecl *Unit = nullptr;

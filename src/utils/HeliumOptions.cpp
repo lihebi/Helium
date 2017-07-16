@@ -31,6 +31,8 @@ HeliumOptions::HeliumOptions() {
     ("selection", po::value<std::string>(), "selection folder or file")
     ("snippet", po::value<std::string>(), "snippet json file")
     ("include-dep", po::value<std::string>(), "include manager file")
+
+    ("build-clang-ast", "build clang AST")
     ;
 
   po::options_description primary_options("Primary");

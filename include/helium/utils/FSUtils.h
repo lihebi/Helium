@@ -28,12 +28,10 @@ namespace utils {
   /*******************************
    * read/write
    *******************************/
-  void write_file(const std::string& file, const std::string& content);
-  void append_file(const std::string& file, const std::string& content);
-  std::string read_file(const std::string& file);
-  std::string read_file(const std::string &file, int beginLine, int beginColumn, int endLine, int endColumn);
-
-  void write_file(fs::path p, const std::string &content);
+  void write_file(fs::path file, const std::string& content);
+  void append_file(fs::path file, const std::string& content);
+  std::string read_file(fs::path file);
+  std::string read_file(fs::path file, int beginLine, int beginColumn, int endLine, int endColumn);
   
   // folders
   void remove_folder(const std::string& folder);
