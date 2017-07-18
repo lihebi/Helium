@@ -258,13 +258,7 @@ IfStmt *SrcMLParser::ParseIfStmt(ASTContext *ctx, XMLNode node) {
   Stmt *thenstmt = nullptr;
   Stmt *elsestmt = nullptr;
   if (then_node) {
-    // thenstmt = ParseBlockAsStmt(then_node.child("block"));
     thenstmt = ParseCompoundStmt(ctx, then_node.child("block"));
-    // if (std::string(then_node.name()) == "block") {
-    //   thenstmt = ParseBlockAsStmt(then_node);
-    // } else {
-    //   thenstmt = ParseStmt(then_node);
-    // }
   } else {
     std::cerr << "Error: no else for if." << "\n";
     exit(1);
@@ -275,7 +269,6 @@ IfStmt *SrcMLParser::ParseIfStmt(ASTContext *ctx, XMLNode node) {
   }
   XMLNode elsenode = node.child("else");
   if (elsenode) {
-    // elsestmt = ParseBlockAsStmt(elsenode.child("block"));
     elsestmt = ParseCompoundStmt(ctx, elsenode.child("block"));
   }
   std::pair<int, int> begin = get_node_begin_position(node);
@@ -333,7 +326,6 @@ IfStmt *SrcMLParser::ParseElseIfAsIfStmt(ASTContext *ctx, XMLNode node) {
     if (std::string(next.name()) == "elseif") {
       elsestmt = ParseElseIfAsIfStmt(ctx, next);
     } else if (std::string(next.name()) == "else") {
-      // elsestmt = ParseBlockAsStmt(next.child("block"));
       elsestmt = ParseCompoundStmt(ctx, next.child("block"));
     } else {
       // error();
@@ -428,26 +420,6 @@ DefaultStmt *SrcMLParser::ParseDefaultStmt(ASTContext *ctx, XMLNode node) {
   return ret;
 }
 
-/**
- * The block can be only a single statement.
- * In this case, srcml still output <block> but with attribute
- * type="pseudo"
- * FIXME should I keep the block even if it is pseudo?
- */
-// Stmt *SrcMLParser::ParseBlockAsStmt(XMLNode node) {
-//   match(node, "block");
-//   // XMLNode block = node.child("block");
-//   Stmt *ret = nullptr;
-//   // if (std::string(node.attribute("type").value()) == "pseudo") {
-//   //   XMLNode child = node.first_child();
-//   //   ret = ParseStmt(child);
-//   // } else {
-//   //   ret = ParseCompoundStmt(node);
-//   // }
-//   ret = ParseCompoundStmt(node);
-//   return ret;
-// }
-
 
 ForStmt *SrcMLParser::ParseForStmt(ASTContext *ctx, XMLNode node) {
   match(node, "for");
@@ -469,7 +441,6 @@ ForStmt *SrcMLParser::ParseForStmt(ASTContext *ctx, XMLNode node) {
   
   Expr *cond = ParseExprWithoutSemicolon(ctx, node.child("control").child("condition"));
   Expr *inc = ParseExpr(ctx, node.child("control").child("incr"));
-  // Stmt *block = ParseBlockAsStmt(node.child("block"));
   Stmt *block = ParseCompoundStmt(ctx, node.child("block"));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
@@ -489,7 +460,6 @@ ForStmt *SrcMLParser::ParseForStmt(ASTContext *ctx, XMLNode node) {
 WhileStmt *SrcMLParser::ParseWhileStmt(ASTContext *ctx, XMLNode node) {
   match(node, "while");
   Expr *cond = ParseExpr(ctx, while_get_condition_expr(node));
-  // Stmt *body = ParseBlockAsStmt(while_get_block(node));
   Stmt *body = ParseCompoundStmt(ctx, while_get_block(node));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);
@@ -508,7 +478,6 @@ DoStmt *SrcMLParser::ParseDoStmt(ASTContext *ctx, XMLNode node) {
   match(node, "do");
   // this might be empty??
   Expr *cond = ParseExpr(ctx, node.child("condition").child("expr"));
-  // Stmt *block = ParseBlockAsStmt(node.child("block"));
   Stmt *block = ParseCompoundStmt(ctx, node.child("block"));
   std::pair<int, int> begin = get_node_begin_position(node);
   std::pair<int, int> end = get_node_end_position(node);

@@ -8,6 +8,17 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
+#include "clang/AST/ASTConsumer.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Frontend/FrontendAction.h"
+#include "clang/Tooling/Tooling.h"
+#include "clang/Frontend/FrontendActions.h"
+#include "llvm/Support/CommandLine.h"
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Rewrite/Core/Rewriter.h"
+
+
 namespace fs = boost::filesystem;
 
 /**
@@ -29,6 +40,72 @@ public:
   virtual ~ClangParser() {}
 
   virtual ASTContext *parse(fs::path file);
+
+
+  static TranslationUnitDecl* parseTranslationUnitDecl
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::TranslationUnitDecl *dec,
+   ASTContext *myctx);
+  static DeclStmt* parseDeclStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::DeclStmt *decl_stmt,
+   ASTContext *myctx);
+  static FunctionDecl *parseFunctionDecl
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::FunctionDecl *func,
+   ASTContext *myctx);
+  static CompoundStmt *parseCompoundStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::CompoundStmt *comp,
+   ASTContext *myctx);
+  static Stmt *parseStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::Stmt *stmt,
+   ASTContext *myctx);
+  static ReturnStmt *parseReturnStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::ReturnStmt *ret_stmt,
+   ASTContext *myctx);
+  static IfStmt *parseIfStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::IfStmt *if_stmt,
+   ASTContext *myctx);
+  static SwitchStmt *parseSwitchStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::SwitchStmt *switch_stmt,
+   ASTContext *myctx);
+  static CaseStmt *parseCaseStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::CaseStmt *case_stmt,
+   ASTContext *myctx);
+  static DefaultStmt *parseDefaultStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::DefaultStmt *def_stmt,
+   ASTContext *myctx);
+  static WhileStmt *parseWhileStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::WhileStmt *while_stmt,
+   ASTContext *myctx);
+  static ForStmt *parseForStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::ForStmt *for_stmt,
+   ASTContext *myctx);
+  static DoStmt *parseDoStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::DoStmt *do_stmt,
+   ASTContext *myctx);
+  static Expr *parseExpr
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::Expr *expr,
+   ASTContext *myctx);
+  static BreakStmt *parseBreakStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::BreakStmt *break_stmt,
+   ASTContext *myctx);
+  static ContinueStmt *parseContinueStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::ContinueStmt *cont_stmt,
+   ASTContext *myctx);
 };
 
 /**
@@ -56,7 +133,6 @@ public:
   CaseStmt *ParseCaseStmt(ASTContext *ctx, XMLNode node);
   DefaultStmt *ParseDefaultStmt(ASTContext *ctx, XMLNode node);
   WhileStmt *ParseWhileStmt(ASTContext *ctx, XMLNode node);
-  Stmt *ParseBlockAsStmt(ASTContext *ctx, XMLNode node);
   ForStmt *ParseForStmt(ASTContext *ctx, XMLNode node);
   DoStmt *ParseDoStmt(ASTContext *ctx, XMLNode node);
   Expr *ParseExpr(ASTContext *ctx, XMLNode node);
