@@ -218,6 +218,29 @@ int main(int argc, char* argv[]) {
     dot2png(outdir / "whole.dot", outdir / "whole.png");
     exit(0);
   }
+
+  if (options->Has("dump-ast")) {
+    if (!fs::is_regular(indir)) {
+      std::cerr << indir << " is not a file." << "\n";
+      exit(1);
+    }
+    // fs::path outdir = options->GetString("output");
+    // if (fs::exists(outdir)) fs::remove_all(outdir);
+    // fs::create_directories(outdir);
+    
+    Parser *parser = new ClangParser();
+    ASTContext *ast = parser->parse(indir);
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    
+    // std::ofstream ofs((outdir / "ast.lisp").string());
+    Printer printer;
+    unit->accept(&printer);
+    std::string output = printer.getString();
+    std::cout << output << "\n";
+    // ofs.close();
+    
+    exit(0);
+  }
   if (options->Has("preprocess")) {
     fs::path outdir = options->GetString("output");
     preprocess(indir, outdir);
@@ -251,22 +274,6 @@ int main(int argc, char* argv[]) {
     std::ofstream ofs(outdir.string());
     snippet_manager->dump(ofs);
     ofs.close();
-    exit(0);
-  }
-  if (options->Has("build-clang-ast")) {
-    // build clang ast
-    // indir: input folder or file
-    if (fs::is_regular(indir)) {
-      std::cout << "Creating AST for a single file: " << indir << "\n";
-      // input is a file
-      // build AST for this file
-      Parser *parser = new ClangParser();
-      ASTContext *ast = parser->parse(indir);
-      ast->dump(std::cout);
-    } else if (fs::is_directory(indir)) {
-      // create source manager to manage the ASTs
-      std::cout << "TODO" << "\n";
-    }
     exit(0);
   }
   if (options->Has("run")) {

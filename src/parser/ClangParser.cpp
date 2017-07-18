@@ -59,7 +59,19 @@ FunctionDecl *ClangParser::parseFunctionDecl
   clang::SourceLocation begin = func->getLocStart();
   clang::SourceLocation end = func->getLocEnd();
   // FIXME nullptr
-  FunctionDecl *ret = new FunctionDecl(myctx, func->getName().str(), nullptr, nullptr, nullptr, mycomp,
+  ;
+  TokenNode *ReturnTypeNode = new TokenNode(myctx, func->getReturnType().getAsString());
+  TokenNode *NameNode = new TokenNode(myctx, func->getNameAsString());
+  std::string param_text;
+  // FIXME this should have both () and ,
+  for (clang::FunctionDecl::param_iterator it=func->param_begin();it!=func->param_end();++it) {
+    clang::ParmVarDecl *param = *it;
+    param_text += rewriter.getRewrittenText(param->getSourceRange());
+  }
+  TokenNode *ParamNode = new TokenNode(myctx, param_text);
+  
+
+  FunctionDecl *ret = new FunctionDecl(myctx, func->getName().str(), ReturnTypeNode, NameNode, ParamNode, mycomp,
                                        source_loc_convert(ctx, begin),
                                        source_loc_convert(ctx, end));
   return ret;
@@ -68,7 +80,8 @@ CompoundStmt *ClangParser::parseCompoundStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::CompoundStmt *comp,
  ASTContext *myctx) {
-  CompoundStmt *ret = new CompoundStmt(myctx, nullptr,
+  TokenNode *CompNode = new TokenNode(myctx, "");
+  CompoundStmt *ret = new CompoundStmt(myctx, CompNode,
                                        source_loc_convert(ctx, comp->getLocStart()),
                                        source_loc_convert(ctx, comp->getLocEnd()));
   for (clang::CompoundStmt::body_iterator it=comp->body_begin(); it!=comp->body_end();++it) {
@@ -84,6 +97,7 @@ Stmt *ClangParser::parseStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::Stmt *stmt,
  ASTContext *myctx) {
+  if (!stmt) return nullptr;
   Stmt *ret = nullptr;
   if (clang::DeclStmt *decl_stmt = clang::dyn_cast<clang::DeclStmt>(stmt)) {
     ret = parseDeclStmt(ctx, rewriter, decl_stmt, myctx);
@@ -115,7 +129,7 @@ ReturnStmt *ClangParser::parseReturnStmt
   clang::Expr *expr = ret_stmt->getRetValue();
   // std::string text = rewriter.getRewrittenText(expr->getSourceRange());
   Expr *myexpr = parseExpr(ctx, rewriter, expr, myctx);
-  ReturnStmt *ret = new ReturnStmt(myctx, nullptr, myexpr,
+  ReturnStmt *ret = new ReturnStmt(myctx, new TokenNode(myctx, "return"), myexpr,
                                    source_loc_convert(ctx, ret_stmt->getLocStart()),
                                    source_loc_convert(ctx, ret_stmt->getLocEnd()));
   return ret;
@@ -131,7 +145,7 @@ IfStmt *ClangParser::parseIfStmt
   Stmt *mythen = parseStmt(ctx, rewriter, then_stmt, myctx);
   Stmt *myelse = parseStmt(ctx, rewriter, else_stmt, myctx);
 
-  IfStmt *ret = new IfStmt(myctx, mycond, mythen, myelse, nullptr, nullptr,
+  IfStmt *ret = new IfStmt(myctx, mycond, mythen, myelse, new TokenNode(myctx, "if"), new TokenNode(myctx, "else"),
                            source_loc_convert(ctx, if_stmt->getLocStart()),
                            source_loc_convert(ctx, if_stmt->getLocEnd()));
   return ret;
@@ -142,7 +156,7 @@ SwitchStmt *ClangParser::parseSwitchStmt
  ASTContext *myctx) {
   clang::Expr *cond = switch_stmt->getCond();
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
-  SwitchStmt *ret = new SwitchStmt(myctx, mycond, nullptr, nullptr,
+  SwitchStmt *ret = new SwitchStmt(myctx, mycond, nullptr, new TokenNode(myctx, "switch"),
                                    source_loc_convert(ctx, switch_stmt->getLocStart()),
                                    source_loc_convert(ctx, switch_stmt->getLocEnd()));
   // case
@@ -167,7 +181,7 @@ CaseStmt *ClangParser::parseCaseStmt
   clang::Expr *expr = case_stmt->getRHS();
   Expr *myexpr = parseExpr(ctx, rewriter, expr, myctx);
 
-  CaseStmt *ret = new CaseStmt(myctx, myexpr, nullptr,
+  CaseStmt *ret = new CaseStmt(myctx, myexpr, new TokenNode(myctx, "case"),
                                source_loc_convert(ctx, case_stmt->getLocStart()),
                                source_loc_convert(ctx, case_stmt->getLocEnd()));
   // FIXME
@@ -182,7 +196,7 @@ DefaultStmt *ClangParser::parseDefaultStmt
  clang::DefaultStmt *def_stmt,
  ASTContext *myctx) {
 
-  DefaultStmt *ret = new DefaultStmt(myctx, nullptr,
+  DefaultStmt *ret = new DefaultStmt(myctx, new TokenNode(myctx, "default"),
                                      source_loc_convert(ctx, def_stmt->getLocStart()),
                                      source_loc_convert(ctx, def_stmt->getLocEnd()));
   clang::Stmt *sub = def_stmt->getSubStmt();
@@ -198,7 +212,7 @@ WhileStmt *ClangParser::parseWhileStmt
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   clang::Stmt *body = while_stmt->getBody();
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  WhileStmt *ret = new WhileStmt(myctx, mycond, mybody, nullptr,
+  WhileStmt *ret = new WhileStmt(myctx, mycond, mybody, new TokenNode(myctx, "while"),
                                  source_loc_convert(ctx, while_stmt->getLocStart()),
                                  source_loc_convert(ctx, while_stmt->getLocEnd()));
   return ret;
@@ -217,7 +231,7 @@ ForStmt *ClangParser::parseForStmt
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   Expr *myinc = parseExpr(ctx, rewriter, inc, myctx);
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  ForStmt *ret = new ForStmt(myctx, myinit, mycond, myinc, mybody, nullptr,
+  ForStmt *ret = new ForStmt(myctx, myinit, mycond, myinc, mybody, new TokenNode(myctx, "for"),
                              source_loc_convert(ctx, for_stmt->getLocStart()),
                              source_loc_convert(ctx, for_stmt->getLocEnd()));
   return ret;
@@ -230,7 +244,7 @@ DoStmt *ClangParser::parseDoStmt
   clang::Stmt *body = do_stmt->getBody();
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  DoStmt *ret = new DoStmt(myctx, mycond, mybody, nullptr, nullptr,
+  DoStmt *ret = new DoStmt(myctx, mycond, mybody, new TokenNode(myctx, "do"), new TokenNode(myctx, "while"),
                            source_loc_convert(ctx, do_stmt->getLocStart()),
                            source_loc_convert(ctx, do_stmt->getLocEnd()));
   return ret;
@@ -267,17 +281,24 @@ ContinueStmt *ClangParser::parseContinueStmt
 
 class ParserConsumer : public clang::ASTConsumer {
 public:
-  explicit ParserConsumer(clang::ASTContext *Context, clang::Rewriter &rewriter)
-    : rewriter(rewriter) {}
+  explicit ParserConsumer(clang::ASTContext *Context, clang::Rewriter &rewriter, ASTContext **retctx)
+    : rewriter(rewriter), retctx(retctx) {}
 
   virtual void HandleTranslationUnit(clang::ASTContext &Context) {
     // Then I don't need source code at all
     clang::TranslationUnitDecl *unit = Context.getTranslationUnitDecl();
     ASTContext *myctx = new ASTContext("dummy-filename.c");
-    ClangParser::parseTranslationUnitDecl(&Context, rewriter, unit, myctx);
+    TranslationUnitDecl *myunit = ClangParser::parseTranslationUnitDecl(&Context, rewriter, unit, myctx);
+    myctx->setTranslationUnitDecl(myunit);
+    if (!retctx) {
+      std::cerr << "retctx is empty" << "\n";
+      exit(1);
+    }
+    if (retctx) {*retctx = myctx;}
   }
 private:
   clang::Rewriter &rewriter;
+  ASTContext **retctx=nullptr;
 };
 
 class ParserAction : public clang::ASTFrontendAction {
@@ -287,20 +308,27 @@ public:
     // suppress compiler diagnostics
     Compiler.getDiagnostics().setClient(new clang::IgnoringDiagConsumer());
     rewriter.setSourceMgr(Compiler.getSourceManager(), Compiler.getLangOpts());
+    setCompilerInstance(&Compiler);
     // return consumer
     return std::unique_ptr<clang::ASTConsumer>
-      (new ParserConsumer(&Compiler.getASTContext(), rewriter));
+      (new ParserConsumer(&Compiler.getASTContext(), rewriter, &retctx));
+  }
+  ASTContext *getMyASTContext() {
+    return retctx;
   }
 private:
   clang::Rewriter rewriter;
+  ASTContext *retctx = nullptr;
 };
 
-void create_by_action(fs::path file) {
+ASTContext* create_by_action(fs::path file) {
   // read from file
   std::string code = utils::read_file(file);
   ParserAction *action = new ParserAction();
   clang::tooling::runToolOnCode(action, code, file.string());
   // Now I should be able to get data from action
+  ASTContext *ctx = action->getMyASTContext();
+  return ctx;
 }
 
 // Unused
@@ -324,14 +352,9 @@ void create_by_build(fs::path file) {
 
 
 ASTContext *ClangParser::parse(fs::path file) {
-  ASTContext *ctx = new ASTContext(file.string());
-  create_by_action(file);
-
-
-  TranslationUnitDecl *unit = nullptr;
-  // TODO
-  // unit = ParseTranslationUnitDecl(root);
-  ctx->setTranslationUnitDecl(unit);
+  std::cout << "clang parser pasing " << file << "\n";
+  // ASTContext *ctx = new ASTContext(file.string());
+  ASTContext *ctx = create_by_action(file);
   return ctx;
 }
 

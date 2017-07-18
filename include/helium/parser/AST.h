@@ -45,23 +45,17 @@ public:
   ASTContext(std::string filename) : Filename(filename) {}
   ~ASTContext() {}
   void setTranslationUnitDecl(TranslationUnitDecl *unit) {
-    Unit = unit;
+    m_unit = unit;
   }
-  TranslationUnitDecl *getTranslationUnitDecl() {return Unit;}
+  TranslationUnitDecl *getTranslationUnitDecl() {return m_unit;}
   int getLevel(ASTNodeBase *node) {return Levels[node];}
   void setSourceManager(SourceManager *manager) {Manager=manager;}
   SourceManager *getSourceManager() {return Manager;}
   std::vector<ASTNodeBase*> getNodes() {return Nodes;}
   std::string getFileName() {return Filename;}
-  void dump(std::ostream &os) {
-    // TODO
-    // if (Unit) {
-    //   Unit->dump(os);
-    // }
-  }
 private:
   std::string Filename;
-  TranslationUnitDecl *Unit = nullptr;
+  TranslationUnitDecl *m_unit = nullptr;
   std::vector<ASTNodeBase*> Nodes;
   std::map<ASTNodeBase*, int> Levels;
   SourceManager *Manager = nullptr;
@@ -134,10 +128,9 @@ public:
   
 class TokenNode : public ASTNodeBase {
 public:
+  TokenNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)) {}
   TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
     : ASTNodeBase(ctx, begin, end), Text(text) {}
-  // TokenNode(ASTContext *ctx, std::string text)
-  //   : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)), Text(text) {}
   ~TokenNode() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
