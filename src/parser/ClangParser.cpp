@@ -1,11 +1,23 @@
 #include "helium/parser/Parser.h"
 #include "helium/utils/FSUtils.h"
 
-static SourceLocation source_loc_convert(clang::ASTContext *ctx, clang::SourceLocation loc) {
+static SourceLocation convert_clang_loc(clang::ASTContext *ctx, clang::SourceLocation loc) {
   clang::FullSourceLoc full = ctx->getFullLoc(loc);
   SourceLocation ret(full.getSpellingLineNumber(), full.getSpellingColumnNumber());
   return ret;
 }
+
+static SourceRange convert_clang_loc(clang::ASTContext *ctx, clang::SourceLocation loc, std::string keyword) {
+  SourceLocation begin = convert_clang_loc(ctx, loc);
+  SourceLocation end = begin + std::make_pair(0, keyword.length());
+  return SourceRange(begin, end);
+}
+static SourceRange convert_clang_loc(clang::ASTContext *ctx, clang::SourceRange range) {
+  return SourceRange(convert_clang_loc(ctx, range.getBegin()),
+                     convert_clang_loc(ctx, range.getEnd()));
+}
+
+
 
 TranslationUnitDecl* ClangParser::parseTranslationUnitDecl
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
@@ -26,11 +38,9 @@ TranslationUnitDecl* ClangParser::parseTranslationUnitDecl
       }
     }
   }
-  clang::SourceLocation begin = unit->getLocStart();
-  clang::SourceLocation end = unit->getLocEnd();
-  TranslationUnitDecl *myunit = new TranslationUnitDecl(myctx, decls,
-                                                        source_loc_convert(ctx, begin),
-                                                        source_loc_convert(ctx, end));
+  TranslationUnitDecl *myunit
+    = new TranslationUnitDecl(myctx, decls,
+                              convert_clang_loc(ctx, unit->getSourceRange()));
   return myunit;
 }
 
@@ -40,11 +50,7 @@ DeclStmt* ClangParser::parseDeclStmt
  ASTContext *myctx) {
   clang::SourceRange range = decl_stmt->getSourceRange();
   std::string mytext = rewriter.getRewrittenText(range);
-  clang::SourceLocation begin = decl_stmt->getLocStart();
-  clang::SourceLocation end = decl_stmt->getLocEnd();
-  DeclStmt *ret = new DeclStmt(myctx, mytext,
-                               source_loc_convert(ctx, begin),
-                               source_loc_convert(ctx, end));
+  DeclStmt *ret = new DeclStmt(myctx, mytext, convert_clang_loc(ctx, decl_stmt->getSourceRange()));
   return ret;
 }
 FunctionDecl *ClangParser::parseFunctionDecl
@@ -56,34 +62,47 @@ FunctionDecl *ClangParser::parseFunctionDecl
   assert(clang::dyn_cast<clang::CompoundStmt>(stmt));
   clang::CompoundStmt *comp = clang::dyn_cast<clang::CompoundStmt>(stmt);
   Stmt *mycomp = parseCompoundStmt(ctx, rewriter, comp, myctx);
-  clang::SourceLocation begin = func->getLocStart();
-  clang::SourceLocation end = func->getLocEnd();
-  // FIXME nullptr
-  ;
-  TokenNode *ReturnTypeNode = new TokenNode(myctx, func->getReturnType().getAsString());
-  TokenNode *NameNode = new TokenNode(myctx, func->getNameAsString());
-  std::string param_text;
+
+  TokenNode *ReturnTypeNode
+    = new TokenNode(myctx, func->getReturnType().getAsString(),
+                    convert_clang_loc(ctx, func->getReturnTypeSourceRange()));
+  TokenNode *NameNode
+    = new TokenNode(myctx, func->getNameAsString(),
+                    convert_clang_loc(ctx, func->getNameInfo().getSourceRange()));
+  std::vector<std::string> params;
   // FIXME this should have both () and ,
-  for (clang::FunctionDecl::param_iterator it=func->param_begin();it!=func->param_end();++it) {
-    clang::ParmVarDecl *param = *it;
-    param_text += rewriter.getRewrittenText(param->getSourceRange());
+  TokenNode *ParamNode = nullptr;
+  if (func->param_size() != 0) {
+    clang::SourceLocation param_begin = func->getParamDecl(0)->getLocStart();
+    clang::SourceLocation param_end = func->getParamDecl(func->param_size()-1)->getLocEnd();
+    for (clang::FunctionDecl::param_iterator it=func->param_begin();it!=func->param_end();++it) {
+      clang::ParmVarDecl *param = *it;
+      // param_text += rewriter.getRewrittenText(param->getSourceRange());
+      params.push_back(rewriter.getRewrittenText(param->getSourceRange()));
+    }
+    std::string param_text = boost::algorithm::join(params, ", ");
+    ParamNode = new TokenNode(myctx, param_text,
+                              convert_clang_loc(ctx, param_begin),
+                              convert_clang_loc(ctx, param_end));
   }
-  TokenNode *ParamNode = new TokenNode(myctx, param_text);
-  
 
   FunctionDecl *ret = new FunctionDecl(myctx, func->getName().str(), ReturnTypeNode, NameNode, ParamNode, mycomp,
-                                       source_loc_convert(ctx, begin),
-                                       source_loc_convert(ctx, end));
+                                       convert_clang_loc(ctx, func->getSourceRange()));
   return ret;
 }
 CompoundStmt *ClangParser::parseCompoundStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::CompoundStmt *comp,
  ASTContext *myctx) {
-  TokenNode *CompNode = new TokenNode(myctx, "");
-  CompoundStmt *ret = new CompoundStmt(myctx, CompNode,
-                                       source_loc_convert(ctx, comp->getLocStart()),
-                                       source_loc_convert(ctx, comp->getLocEnd()));
+  clang::SourceLocation lbraceloc = comp->getLBracLoc();
+  clang::SourceLocation rbraceloc = comp->getRBracLoc();
+  SourceLocation mylloc = convert_clang_loc(ctx, lbraceloc);
+  SourceLocation myrloc = convert_clang_loc(ctx, rbraceloc);
+  TokenNode *lbrace = new TokenNode(myctx, "{", mylloc, mylloc+std::make_pair(0, 1));
+  TokenNode *rbrace = new TokenNode(myctx, "}", myrloc, myrloc+std::make_pair(0,1));
+  CompoundStmt *ret = new CompoundStmt(myctx, lbrace, rbrace,
+                                       convert_clang_loc(ctx, comp->getLocStart()),
+                                       convert_clang_loc(ctx, comp->getLocEnd()));
   for (clang::CompoundStmt::body_iterator it=comp->body_begin(); it!=comp->body_end();++it) {
     clang::Stmt *stmt = *it;
     Stmt *mystmt = parseStmt(ctx, rewriter, stmt, myctx);
@@ -119,19 +138,28 @@ Stmt *ClangParser::parseStmt
     ret = parseContinueStmt(ctx, rewriter, cont_stmt, myctx);
   } else if (clang::ReturnStmt *ret_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
     ret = parseReturnStmt(ctx, rewriter, ret_stmt, myctx);
+  } else if (clang::Expr *expr = clang::dyn_cast<clang::Expr>(stmt)){
+    ret = parseExprStmt(ctx, rewriter, expr, myctx);
+  } else {
+    std::string name = stmt->getStmtClassName();
+    std::cerr << "Stmt of kind " << name << " not supported." << "\n";
   }
   return ret;
 };
+
 ReturnStmt *ClangParser::parseReturnStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::ReturnStmt *ret_stmt,
  ASTContext *myctx) {
   clang::Expr *expr = ret_stmt->getRetValue();
-  // std::string text = rewriter.getRewrittenText(expr->getSourceRange());
   Expr *myexpr = parseExpr(ctx, rewriter, expr, myctx);
-  ReturnStmt *ret = new ReturnStmt(myctx, new TokenNode(myctx, "return"), myexpr,
-                                   source_loc_convert(ctx, ret_stmt->getLocStart()),
-                                   source_loc_convert(ctx, ret_stmt->getLocEnd()));
+  clang::SourceLocation loc = ret_stmt->getReturnLoc();
+  SourceLocation myloc = convert_clang_loc(ctx, loc);
+  ReturnStmt *ret = new ReturnStmt(myctx,
+                                   new TokenNode(myctx, "return", myloc, myloc +std::make_pair(0, 6)),
+                                   myexpr,
+                                   convert_clang_loc(ctx, ret_stmt->getLocStart()),
+                                   convert_clang_loc(ctx, ret_stmt->getLocEnd()));
   return ret;
 }
 IfStmt *ClangParser::parseIfStmt
@@ -145,9 +173,16 @@ IfStmt *ClangParser::parseIfStmt
   Stmt *mythen = parseStmt(ctx, rewriter, then_stmt, myctx);
   Stmt *myelse = parseStmt(ctx, rewriter, else_stmt, myctx);
 
-  IfStmt *ret = new IfStmt(myctx, mycond, mythen, myelse, new TokenNode(myctx, "if"), new TokenNode(myctx, "else"),
-                           source_loc_convert(ctx, if_stmt->getLocStart()),
-                           source_loc_convert(ctx, if_stmt->getLocEnd()));
+  clang::SourceLocation ifloc = if_stmt->getIfLoc();
+  SourceLocation myifloc = convert_clang_loc(ctx, ifloc);
+  clang::SourceLocation elseloc = if_stmt->getElseLoc();
+  SourceLocation myelseloc = convert_clang_loc(ctx, elseloc);
+
+  IfStmt *ret = new IfStmt(myctx, mycond, mythen, myelse,
+                           new TokenNode(myctx, "if", myifloc, myifloc+std::make_pair(0,2)),
+                           myelse? new TokenNode(myctx, "else", myelseloc, myelseloc+std::make_pair(0,4)) : nullptr,
+                           convert_clang_loc(ctx, if_stmt->getLocStart()),
+                           convert_clang_loc(ctx, if_stmt->getLocEnd()));
   return ret;
 }
 SwitchStmt *ClangParser::parseSwitchStmt
@@ -156,9 +191,9 @@ SwitchStmt *ClangParser::parseSwitchStmt
  ASTContext *myctx) {
   clang::Expr *cond = switch_stmt->getCond();
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
-  SwitchStmt *ret = new SwitchStmt(myctx, mycond, nullptr, new TokenNode(myctx, "switch"),
-                                   source_loc_convert(ctx, switch_stmt->getLocStart()),
-                                   source_loc_convert(ctx, switch_stmt->getLocEnd()));
+  SwitchStmt *ret = new SwitchStmt(myctx, mycond, nullptr,
+                                   new TokenNode(myctx, "switch", convert_clang_loc(ctx, switch_stmt->getSwitchLoc(), "switch")),
+                                   convert_clang_loc(ctx, switch_stmt->getSourceRange()));
   // case
   clang::SwitchCase *switch_case =  switch_stmt->getSwitchCaseList();
   while (switch_case) {
@@ -173,6 +208,8 @@ SwitchStmt *ClangParser::parseSwitchStmt
   }
   return ret;
 }
+
+
 CaseStmt *ClangParser::parseCaseStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::CaseStmt *case_stmt,
@@ -180,10 +217,10 @@ CaseStmt *ClangParser::parseCaseStmt
   // FIXME cond?? rhs?
   clang::Expr *expr = case_stmt->getRHS();
   Expr *myexpr = parseExpr(ctx, rewriter, expr, myctx);
-
-  CaseStmt *ret = new CaseStmt(myctx, myexpr, new TokenNode(myctx, "case"),
-                               source_loc_convert(ctx, case_stmt->getLocStart()),
-                               source_loc_convert(ctx, case_stmt->getLocEnd()));
+  CaseStmt *ret = new CaseStmt(myctx, myexpr,
+                               new TokenNode(myctx, "case", convert_clang_loc(ctx, case_stmt->getCaseLoc(), "case")),
+                               convert_clang_loc(ctx, case_stmt->getLocStart()),
+                               convert_clang_loc(ctx, case_stmt->getLocEnd()));
   // FIXME
   // get substatement
   clang::Stmt *sub = case_stmt->getSubStmt();
@@ -196,9 +233,10 @@ DefaultStmt *ClangParser::parseDefaultStmt
  clang::DefaultStmt *def_stmt,
  ASTContext *myctx) {
 
-  DefaultStmt *ret = new DefaultStmt(myctx, new TokenNode(myctx, "default"),
-                                     source_loc_convert(ctx, def_stmt->getLocStart()),
-                                     source_loc_convert(ctx, def_stmt->getLocEnd()));
+  DefaultStmt *ret = new DefaultStmt(myctx,
+                                     new TokenNode(myctx, "default", convert_clang_loc(ctx, def_stmt->getDefaultLoc(), "default")),
+                                     convert_clang_loc(ctx, def_stmt->getLocStart()),
+                                     convert_clang_loc(ctx, def_stmt->getLocEnd()));
   clang::Stmt *sub = def_stmt->getSubStmt();
   Stmt *mysub = parseStmt(ctx, rewriter, sub, myctx);
   ret->Add(mysub);
@@ -212,9 +250,10 @@ WhileStmt *ClangParser::parseWhileStmt
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   clang::Stmt *body = while_stmt->getBody();
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  WhileStmt *ret = new WhileStmt(myctx, mycond, mybody, new TokenNode(myctx, "while"),
-                                 source_loc_convert(ctx, while_stmt->getLocStart()),
-                                 source_loc_convert(ctx, while_stmt->getLocEnd()));
+  WhileStmt *ret = new WhileStmt(myctx, mycond, mybody,
+                                 new TokenNode(myctx, "while", convert_clang_loc(ctx, while_stmt->getWhileLoc(), "while")),
+                                 convert_clang_loc(ctx, while_stmt->getLocStart()),
+                                 convert_clang_loc(ctx, while_stmt->getLocEnd()));
   return ret;
 }
 ForStmt *ClangParser::parseForStmt
@@ -227,13 +266,15 @@ ForStmt *ClangParser::parseForStmt
   clang::Stmt *body = for_stmt->getBody();
   // FIXME expr or stmt?
   // Stmt *myinit = parseStmt(ctx, rewriter, init, myctx);
-  Expr *myinit = nullptr;
+  // Expr *myinit = nullptr;
+  Expr *myinit = parseStmtAsExpr(ctx, rewriter, init, myctx);
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   Expr *myinc = parseExpr(ctx, rewriter, inc, myctx);
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  ForStmt *ret = new ForStmt(myctx, myinit, mycond, myinc, mybody, new TokenNode(myctx, "for"),
-                             source_loc_convert(ctx, for_stmt->getLocStart()),
-                             source_loc_convert(ctx, for_stmt->getLocEnd()));
+  ForStmt *ret = new ForStmt(myctx, myinit, mycond, myinc, mybody,
+                             new TokenNode(myctx, "for", convert_clang_loc(ctx, for_stmt->getForLoc(), "for")),
+                             convert_clang_loc(ctx, for_stmt->getLocStart()),
+                             convert_clang_loc(ctx, for_stmt->getLocEnd()));
   return ret;
 }
 DoStmt *ClangParser::parseDoStmt
@@ -244,9 +285,11 @@ DoStmt *ClangParser::parseDoStmt
   clang::Stmt *body = do_stmt->getBody();
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
-  DoStmt *ret = new DoStmt(myctx, mycond, mybody, new TokenNode(myctx, "do"), new TokenNode(myctx, "while"),
-                           source_loc_convert(ctx, do_stmt->getLocStart()),
-                           source_loc_convert(ctx, do_stmt->getLocEnd()));
+  DoStmt *ret = new DoStmt(myctx, mycond, mybody,
+                           new TokenNode(myctx, "do", convert_clang_loc(ctx, do_stmt->getDoLoc(), "do")),
+                           new TokenNode(myctx, "while", convert_clang_loc(ctx, do_stmt->getWhileLoc(), "while")),
+                           convert_clang_loc(ctx, do_stmt->getLocStart()),
+                           convert_clang_loc(ctx, do_stmt->getLocEnd()));
   return ret;
 }
 Expr *ClangParser::parseExpr
@@ -256,17 +299,42 @@ Expr *ClangParser::parseExpr
   clang::SourceRange range = expr->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
   Expr *ret = new Expr(myctx, text,
-                       source_loc_convert(ctx, expr->getLocStart()),
-                       source_loc_convert(ctx, expr->getLocEnd()));
+                       convert_clang_loc(ctx, expr->getLocStart()),
+                       convert_clang_loc(ctx, expr->getLocEnd()));
   return ret;
 }
+ExprStmt *ClangParser::parseExprStmt
+(clang::ASTContext *ctx, clang::Rewriter &rewriter,
+ clang::Expr *expr,
+ ASTContext *myctx) {
+  clang::SourceRange range = expr->getSourceRange();
+  std::string text = rewriter.getRewrittenText(range);
+  ExprStmt *ret = new ExprStmt(myctx, text,
+                       convert_clang_loc(ctx, expr->getLocStart()),
+                       convert_clang_loc(ctx, expr->getLocEnd()));
+  return ret;
+}
+/**
+ * This is for "for init", as it should be expr, but clang parse it as Stmt
+ */
+Expr *ClangParser::parseStmtAsExpr
+(clang::ASTContext *ctx, clang::Rewriter &rewriter,
+ clang::Stmt *expr,
+ ASTContext *myctx) {
+  clang::SourceRange range = expr->getSourceRange();
+  std::string text = rewriter.getRewrittenText(range);
+  Expr *ret = new Expr(myctx, text,
+                       convert_clang_loc(ctx, range));
+  return ret;
+}
+
 BreakStmt *ClangParser::parseBreakStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::BreakStmt *break_stmt,
  ASTContext *myctx) {
   BreakStmt *ret = new BreakStmt(myctx,
-                                 source_loc_convert(ctx, break_stmt->getLocStart()),
-                                 source_loc_convert(ctx, break_stmt->getLocEnd()));
+                                 convert_clang_loc(ctx, break_stmt->getLocStart()),
+                                 convert_clang_loc(ctx, break_stmt->getLocEnd()));
   return ret;
 }
 ContinueStmt *ClangParser::parseContinueStmt
@@ -274,8 +342,8 @@ ContinueStmt *ClangParser::parseContinueStmt
  clang::ContinueStmt *cont_stmt,
  ASTContext *myctx) {
   ContinueStmt *ret = new ContinueStmt(myctx,
-                                       source_loc_convert(ctx, cont_stmt->getLocStart()),
-                                       source_loc_convert(ctx, cont_stmt->getLocEnd()));
+                                       convert_clang_loc(ctx, cont_stmt->getLocStart()),
+                                       convert_clang_loc(ctx, cont_stmt->getLocEnd()));
   return ret;
 }
 

@@ -98,6 +98,14 @@ public:
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
    clang::Expr *expr,
    ASTContext *myctx);
+  static ExprStmt *parseExprStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::Expr *expr,
+   ASTContext *myctx);
+  static Expr *parseStmtAsExpr
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::Stmt *expr,
+   ASTContext *myctx);
   static BreakStmt *parseBreakStmt
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
    clang::BreakStmt *break_stmt,

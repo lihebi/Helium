@@ -269,11 +269,14 @@ void GrammarPatcher::visit(FunctionDecl *node) {
 }
 void GrammarPatcher::visit(CompoundStmt *node) {
   if (GlobalSkip.count(node)==1) return;
-  TokenNode *CompNode = node->getCompNode();
-  assert(CompNode);
+  TokenNode *lbrace = node->getLBrace();
+  TokenNode *rbrace = node->getRBrace();
+  assert(lbrace);
+  assert(rbrace);
   if (Selection.size() == 0) {
     // this should serve as a stop point for many matchMin
-    Patch.insert(CompNode);
+    Patch.insert(lbrace);
+    Patch.insert(rbrace);
   } else if (Selection.size() == 1) {
     // lazy evaluation & replacement
     // FIXME verify the first in selection is a body statement
@@ -281,7 +284,8 @@ void GrammarPatcher::visit(CompoundStmt *node) {
   } else {
     // this actually should not happen
     // assert(false);
-    Patch.insert(CompNode);
+    Patch.insert(lbrace);
+    Patch.insert(rbrace);
   }
 }
 // condition

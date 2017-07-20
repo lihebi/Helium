@@ -16,6 +16,7 @@ namespace fs = boost::filesystem;
 
 using namespace std;
 
+#if 0
 TEST(GeneratorTest, MyTest) {
   fs::path user_home = getenv("HOME");
   fs::path bench = user_home / "github" / "benchmark" / "craft" / "function";
@@ -45,3 +46,5 @@ TEST(GeneratorTest, MyTest) {
     // std::cout << prog << "\n";
   }
 }
+
+#endif

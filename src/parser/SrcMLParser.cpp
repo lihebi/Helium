@@ -158,8 +158,10 @@ CompoundStmt *SrcMLParser::ParseCompoundStmt(ASTContext *ctx, XMLNode node) {
   SourceLocation BeginLoc(begin.first, begin.second);
   SourceLocation EndLoc(end.first, end.second);
   // COMP_DUMMY
-  TokenNode *CompNode = new TokenNode(ctx, "", BeginLoc, BeginLoc + std::make_pair(0,1));
-  CompoundStmt *ret = new CompoundStmt(ctx, CompNode, BeginLoc, EndLoc);
+  // TokenNode *CompNode = new TokenNode(ctx, "", BeginLoc, BeginLoc + std::make_pair(0,1));
+  TokenNode *lbrace = new TokenNode(ctx, "{", BeginLoc, BeginLoc+std::make_pair(0,1));
+  TokenNode *rbrace= new TokenNode(ctx, "}", EndLoc+std::make_pair(0,-1), EndLoc);
+  CompoundStmt *ret = new CompoundStmt(ctx, lbrace, rbrace, BeginLoc, EndLoc);
   
   for (XMLNode n : element_children(node)) {
     std::string NodeName = n.name();

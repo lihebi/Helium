@@ -75,6 +75,8 @@ class ASTNodeBase {
 public:
   ASTNodeBase(ASTContext *ctx, SourceLocation begin, SourceLocation end)
     : Ctx(ctx), BeginLoc(begin), EndLoc(end)  {}
+  ASTNodeBase(ASTContext *ctx, SourceRange range)
+    : Ctx(ctx), BeginLoc(range.getBegin()), EndLoc(range.getEnd())  {}
   ~ASTNodeBase() {}
   virtual std::string label() {return "";}
   // virtual void accept(Visitor *visitor) {
@@ -116,6 +118,7 @@ class Decl : public ASTNodeBase {
 public:
   Decl(ASTContext *ctx, SourceLocation begin, SourceLocation end)
     : ASTNodeBase(ctx, begin, end) {}
+  Decl(ASTContext *ctx, SourceRange range) : ASTNodeBase(ctx, range) {}
   ~Decl() {}
 };
 
@@ -123,22 +126,24 @@ class Stmt : public ASTNodeBase {
 public:
   Stmt(ASTContext *ctx, SourceLocation begin, SourceLocation end)
     : ASTNodeBase(ctx, begin, end) {}
+  Stmt(ASTContext *ctx, SourceRange range) : ASTNodeBase(ctx, range) {}
   ~Stmt() {}
 };
   
 class TokenNode : public ASTNodeBase {
 public:
-  TokenNode(ASTContext *ctx, std::string text) : ASTNodeBase(ctx, SourceLocation(-1,-1), SourceLocation(-1,-1)) {}
   TokenNode(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
     : ASTNodeBase(ctx, begin, end), Text(text) {}
+  TokenNode(ASTContext *ctx, std::string text, SourceRange range)
+    : ASTNodeBase(ctx, range), Text(text) {}
   ~TokenNode() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " TokenNode: " << Text << ")";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " TokenNode: " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {
     return "TokenNode";
@@ -151,19 +156,19 @@ private:
 
 class TranslationUnitDecl : public Decl {
 public:
-  // TranslationUnitDecl(std::vector<DeclStmt*> decls,
-  //                     std::vector<FunctionDecl*> funcs) {}
   TranslationUnitDecl(ASTContext *ctx, std::vector<ASTNodeBase*> decls,
                       SourceLocation begin, SourceLocation end)
     : Decl(ctx, begin, end), decls(decls) {}
+  TranslationUnitDecl(ASTContext *ctx, std::vector<ASTNodeBase*> decls, SourceRange range)
+    : Decl(ctx, range), decls(decls) {}
   ~TranslationUnitDecl() {}
   std::vector<ASTNodeBase*> getDecls() {return decls;}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "TranslationUnitDecl)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "TranslationUnitDecl";
   }
   virtual std::string getNodeName() {return "TranslationUnitDecl";}
 private:
@@ -179,14 +184,16 @@ class DeclStmt : public Stmt {
 public:
   DeclStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Text(text) {}
+  DeclStmt(ASTContext *ctx, std::string text, SourceRange range)
+    : Stmt(ctx, range), Text(text) {}
   ~DeclStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "DeclStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "DeclStmt " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "DeclStmt";}
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
@@ -205,14 +212,16 @@ class ExprStmt : public Stmt {
 public:
   ExprStmt(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Text(text) {}
+  ExprStmt(ASTContext *ctx, std::string text, SourceRange range)
+    : Stmt(ctx, range), Text(text) {}
   ~ExprStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "ExprStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "ExprStmt " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "ExprStmt";}
   virtual std::set<std::string> getIdToResolve();
@@ -223,8 +232,10 @@ private:
 
 class CompoundStmt : public Stmt {
 public:
-  CompoundStmt(ASTContext *ctx, TokenNode *CompNode, SourceLocation begin, SourceLocation end)
-    : Stmt(ctx, begin, end), CompNode(CompNode) {}
+  CompoundStmt(ASTContext *ctx, TokenNode *lbrace, TokenNode *rbrace, SourceLocation begin, SourceLocation end)
+    : Stmt(ctx, begin, end), m_lbrace(lbrace), m_rbrace(rbrace) {}
+  CompoundStmt(ASTContext *ctx, TokenNode *lbrace, TokenNode *rbrace, SourceRange range)
+    : Stmt(ctx, range), m_lbrace(lbrace), m_rbrace(rbrace) {}
   ~CompoundStmt() {}
   void Add(Stmt *stmt) {
     stmts.push_back(stmt);
@@ -234,17 +245,19 @@ public:
     visitor->visit(this);
   }
 
-  TokenNode *getCompNode() {return CompNode;}
+  TokenNode *getLBrace() {return m_lbrace;}
+  TokenNode *getRBrace() {return m_rbrace;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "CompStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "CompStmt";
   }
   virtual std::string getNodeName() {return "CompoundStmt";}
 private:
   // signature node. Even if compound statement do not have a
   // keyword, I need one to record if I select it or not
   // This is very useful to make the braces correct
-  TokenNode *CompNode = nullptr;
+  TokenNode *m_lbrace = nullptr;
+  TokenNode *m_rbrace = nullptr;
   std::vector<Stmt*> stmts;
 };
 
@@ -255,9 +268,13 @@ public:
                Stmt *body, SourceLocation begin, SourceLocation end)
     : Decl(ctx, begin, end), name(name),
       ReturnTypeNode(ReturnTypeNode), NameNode(NameNode), ParamNode(ParamNode),
-      body(body) {
-    // TODO populate the three token nodes
-  }
+      body(body) {}
+  FunctionDecl(ASTContext *ctx, std::string name,
+               TokenNode *ReturnTypeNode, TokenNode *NameNode, TokenNode *ParamNode,
+               Stmt *body, SourceRange range)
+    : Decl(ctx, range), name(name),
+      ReturnTypeNode(ReturnTypeNode), NameNode(NameNode), ParamNode(ParamNode),
+      body(body) {}
   ~FunctionDecl() {}
   Stmt *getBody() {return body;}
   virtual void accept(Visitor *visitor) {
@@ -268,8 +285,8 @@ public:
   TokenNode *getNameNode() {return NameNode;}
   TokenNode *getParamNode() {return ParamNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "FunctionDecl)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "FunctionDecl";
   }
   virtual std::string getNodeName() {return "FunctionDecl";}
 
@@ -296,6 +313,10 @@ public:
           SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Init(Init), Cond(Cond), Inc(Inc), Body(Body), ForNode(ForNode) {
   }
+  ForStmt(ASTContext *ctx, Expr *Init, Expr *Cond, Expr *Inc, Stmt *Body, TokenNode *ForNode,
+          SourceRange range)
+    : Stmt(ctx, range), Init(Init), Cond(Cond), Inc(Inc), Body(Body), ForNode(ForNode) {
+  }
   ~ForStmt() {}
   Expr *getInit() {return Init;}
   Expr *getCond() {return Cond;}
@@ -306,8 +327,8 @@ public:
   }
   TokenNode *getForNode() {return ForNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "ForStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "ForStmt";
   }
   virtual std::string getNodeName() {return "ForStmt";}
 
@@ -329,6 +350,10 @@ public:
             SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Cond(cond), Body(Body), WhileNode(WhileNode) {
   }
+  WhileStmt(ASTContext *ctx, Expr *cond, Stmt *Body, TokenNode *WhileNode,
+            SourceRange range)
+    : Stmt(ctx, range), Cond(cond), Body(Body), WhileNode(WhileNode) {
+  }
   ~WhileStmt() {}
   Expr *getCond() {return Cond;}
   Stmt *getBody() {return Body;}
@@ -337,8 +362,8 @@ public:
   }
   TokenNode *getWhileNode() {return WhileNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "WhileStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "WhileStmt";
   }
   virtual std::string getNodeName() {return "WhileStmt";}
 private:
@@ -352,6 +377,9 @@ public:
   DoStmt(ASTContext *ctx, Expr *cond, Stmt *body, TokenNode *DoNode, TokenNode *WhileNode,
          SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Cond(cond), Body(body), DoNode(DoNode), WhileNode(WhileNode) {}
+  DoStmt(ASTContext *ctx, Expr *cond, Stmt *body, TokenNode *DoNode, TokenNode *WhileNode,
+         SourceRange range)
+    : Stmt(ctx, range), Cond(cond), Body(body), DoNode(DoNode), WhileNode(WhileNode) {}
   ~DoStmt() {}
   Expr *getCond() {return Cond;}
   Stmt *getBody() {return Body;}
@@ -361,8 +389,8 @@ public:
   TokenNode *getDoNode() {return DoNode;}
   TokenNode *getWhileNode() {return WhileNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "DoStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << "DoStmt";
   }
   virtual std::string getNodeName() {return "DoStmt";}
 private:
@@ -375,13 +403,14 @@ private:
 class BreakStmt : public Stmt {
 public:
   BreakStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
+  BreakStmt(ASTContext *ctx, SourceRange range) : Stmt(ctx, range) {}
   ~BreakStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " BreakStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " BreakStmt";
   }
   virtual std::string getNodeName() {return "BreakStmt";}
   virtual bool isLeaf() {return true;}
@@ -389,13 +418,14 @@ public:
 class ContinueStmt : public Stmt {
 public:
   ContinueStmt(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
+  ContinueStmt(ASTContext *ctx, SourceRange range) : Stmt(ctx, range) {}
   ~ContinueStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " ContinueStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " ContinueStmt";
   }
   virtual std::string getNodeName() {return "ContinueStmt";}
   virtual bool isLeaf() {return true;}
@@ -405,6 +435,9 @@ public:
   ReturnStmt(ASTContext *ctx, TokenNode *ReturnNode, Expr *Value, SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), ReturnNode(ReturnNode), Value(Value) {
   }
+  ReturnStmt(ASTContext *ctx, TokenNode *ReturnNode, Expr *Value, SourceRange range)
+    : Stmt(ctx, range), ReturnNode(ReturnNode), Value(Value) {
+  }
   ~ReturnStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
@@ -412,8 +445,8 @@ public:
   Expr *getValue() {return Value;}
   TokenNode *getReturnNode() {return ReturnNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " ReturnStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " ReturnStmt";
   }
   virtual std::string getNodeName() {return "ReturnStmt";}
 private:
@@ -427,6 +460,12 @@ public:
          TokenNode *IfNode, TokenNode *ElseNode,
          SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt),
+      IfNode(IfNode), ElseNode(ElseNode) {
+  }
+  IfStmt(ASTContext *ctx, Expr *cond, Stmt *thenstmt, Stmt *elsestmt,
+         TokenNode *IfNode, TokenNode *ElseNode,
+         SourceRange range)
+    : Stmt(ctx, range), cond(cond), thenstmt(thenstmt), elsestmt(elsestmt),
       IfNode(IfNode), ElseNode(ElseNode) {
   }
   ~IfStmt() {}
@@ -443,8 +482,8 @@ public:
   TokenNode *getIfNode() {return IfNode;}
   TokenNode *getElseNode() {return ElseNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " IfStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " IfStmt";
   }
   virtual std::string getNodeName() {return "IfStmt";}
 private:
@@ -462,6 +501,10 @@ public:
              SourceLocation begin, SourceLocation end)
     : Stmt(ctx, begin, end), Cond(cond), SwitchNode(SwitchNode) {
   }
+  SwitchStmt(ASTContext *ctx, Expr *cond, Stmt *body, TokenNode *SwitchNode,
+             SourceRange range)
+    : Stmt(ctx, range), Cond(cond), SwitchNode(SwitchNode) {
+  }
   ~SwitchStmt() {}
   void AddCase(SwitchCase *casestmt) {Cases.push_back(casestmt);}
   std::vector<SwitchCase*> getCases() {return Cases;}
@@ -471,8 +514,8 @@ public:
   }
   TokenNode *getSwitchNode() {return SwitchNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " SwitchStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " SwitchStmt";
   }
   virtual std::string getNodeName() {return "SwitchStmt";}
 private:
@@ -487,6 +530,7 @@ private:
 class SwitchCase : public Stmt {
 public:
   SwitchCase(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
+  SwitchCase(ASTContext *ctx, SourceRange range) : Stmt(ctx, range) {}
   ~SwitchCase() {}
   void Add(Stmt *stmt) {assert(stmt); Body.push_back(stmt);}
   std::vector<Stmt*> getBody() {return Body;}
@@ -512,6 +556,9 @@ public:
   CaseStmt(ASTContext *ctx, Expr *cond, TokenNode *CaseNode, SourceLocation begin, SourceLocation end)
     : SwitchCase(ctx, begin, end), Cond(cond), CaseNode(CaseNode) {
   }
+  CaseStmt(ASTContext *ctx, Expr *cond, TokenNode *CaseNode, SourceRange range)
+    : SwitchCase(ctx, range), Cond(cond), CaseNode(CaseNode) {
+  }
   ~CaseStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
@@ -519,8 +566,8 @@ public:
   TokenNode *getCaseNode() {return CaseNode;}
   Expr *getCond() {return Cond;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " CaseStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " CaseStmt";
   }
   virtual std::string getNodeName() {return "CaseStmt";}
 private:
@@ -533,14 +580,17 @@ public:
   DefaultStmt(ASTContext *ctx, TokenNode *DefaultNode, SourceLocation begin, SourceLocation end)
     : SwitchCase(ctx, begin, end), DefaultNode(DefaultNode) {
   }
+  DefaultStmt(ASTContext *ctx, TokenNode *DefaultNode, SourceRange range)
+    : SwitchCase(ctx, range), DefaultNode(DefaultNode) {
+  }
   ~DefaultStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   TokenNode *getDefaultNode() {return DefaultNode;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " DefaultStmt)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " DefaultStmt";
   }
   virtual std::string getNodeName() {return "DefaultStmt";}
 private:
@@ -555,14 +605,16 @@ class Expr : public ASTNodeBase {
 public:
   Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
     : ASTNodeBase(ctx, begin, end), Text(text) {}
+  Expr(ASTContext *ctx, std::string text, SourceRange range)
+    : ASTNodeBase(ctx, range), Text(text) {}
   ~Expr() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << "(" << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " Expr)";
+    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << " Expr: " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "Expr";}
   virtual std::set<std::string> getIdToResolve();

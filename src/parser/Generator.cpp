@@ -79,6 +79,7 @@ void Generator::visit(FunctionDecl *node){
       } else {
         NameNode->accept(this);
       }
+      Prog += "(";
     }
   }
   // param node should handle parenthesis
@@ -89,17 +90,17 @@ void Generator::visit(FunctionDecl *node){
       // TODO one param is an input
     }
   }
+
+  if (NameNode && selection.count(NameNode) == 1) {
+    Prog += ")";
+  }
   // compound should handle curly braces
   Stmt *body = node->getBody();
   if (body) body->accept(this);
   outputInstrument(node);
 }
 void Generator::visit(CompoundStmt *node){
-  // Braces
-  TokenNode *CompNode = node->getCompNode();
-  if (selection.count(CompNode) == 1) {Prog += "{\n";}
   Visitor::visit(node);
-  if (selection.count(CompNode) == 1) {Prog += "}\n";}
   outputInstrument(node);
 }
 // condition

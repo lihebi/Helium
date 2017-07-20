@@ -22,28 +22,21 @@ using std::pair;
 
 
 
-SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
-  fs::recursive_directory_iterator it(cppfolder), eod;
-  BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
-    if (p.extension() == ".c") {
-      // std::cout << "[SourceManager] " << "parsing " << p.string() << "\n";
-      Parser *parser = new SrcMLParser();
-      ASTContext *ast = parser->parse(p);
-      // Parser *parser = new Parser(p.string());
-      // ASTContext *ast = parser->getASTContext();
-      ast->setSourceManager(this);
-      // ASTs.push_back(ast);
-      // files.push_back(p);
-      File2ASTMap[p] = ast;
-      AST2FileMap[ast] = p;
+void SourceManager::parse(fs::path fileordir) {
+  if (fs::is_directory(fileordir)) {
+    fs::recursive_directory_iterator it(fileordir), eod;
+    BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
+      if (p.extension() == ".c") {
+        parse(p);
+      }
     }
-  }
+  } else if (fs::is_regular(fileordir)) {
+    Parser *parser = new ClangParser();
+    ASTContext *ast = parser->parse(fileordir);
+    ast->setSourceManager(this);
+    File2ASTMap[fileordir] = ast;
+    AST2FileMap[ast] = fileordir;
 
-  // std::map<ASTContext*, TokenVisitor*> AST2TokenVisitorMap;
-  // std::map<ASTContext*, Distributor*> AST2DistributorMap;
-
-  for (auto &m : File2ASTMap) {
-    ASTContext *ast = m.second;
     TokenVisitor *tokenVisitor = new TokenVisitor();
     Distributor *distributor = new Distributor();
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
@@ -52,28 +45,6 @@ SourceManager::SourceManager(fs::path cppfolder) : cppfolder(cppfolder) {
     AST2TokenVisitorMap[ast] = tokenVisitor;
     AST2DistributorMap[ast] = distributor;
   }
-
-  // extract all nodes, and assign ids
-
-  // should not get nodes from ASTContext directly
-  // Instead, use a visitor
-  //
-  // for (ASTContext *ast : ASTs) {
-  //   std::vector<ASTNodeBase*> nodes = ast->getNodes();
-  //   Nodes.insert(Nodes.end(), nodes.begin(), nodes.end());
-  // }
-  // keep the map of node -> ID
-  // for (int i=0;i<Nodes.size();i++) {
-  //   IDs[Nodes[i]] = i;
-  // }
-
-  // for (ASTContext *ast : ASTs) {
-  //   LevelVisitor *levelVisitor = new LevelVisitor();
-  //   TranslationUnitDecl *decl = ast->getTranslationUnitDecl();
-  //   levelVisitor->visit(decl);
-  //   std::map<ASTNodeBase*, int> levels = levelVisitor->getLevels();
-  //   // examine levels
-  // }
 }
 
 void SourceManager::dumpASTs() {
@@ -438,96 +409,6 @@ std::set<ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
 }
 
 
-std::set<ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
-  map<string, set<pair<int,int> > > selection;
-  if (fs::exists(sel_file)) {
-    // this is a list of IDs
-    std::ifstream is;
-    is.open(sel_file.string());
-    if (is.is_open()) {
-      // int line,column;
-      // while (is >> line >> column) {
-      //   selection.insert(std::make_pair(line, column));
-      // }
-      std::string line;
-      std::string file;
-      set<int> sel;
-      // first line must be # filename.c
-
-
-      // anything starts with #file will change the file
-      // anything starts with # will be comment
-      // anything else should starts with two numbers representing line and column, starting from 1
-      
-      while (std::getline(is, line)) {
-        utils::trim(line);
-        if (line.empty()) continue;
-        else if (line[0] == '#') {
-          // control directive
-          std::string first = utils::split(line)[0];
-          if (first == "#file") {
-            file = utils::split(line)[1];
-          }
-        } else {
-          vector<string> v = utils::split(line);
-          assert(!file.empty());
-          // Only first two are used. The third can be any comment
-          if (v.size() >= 2) {
-            int l = stoi(v[0]);
-            int c = stoi(v[1]);
-            selection[file].insert(std::make_pair(l,c));
-          }
-        }
-      }
-    }
-  }
-
-  set<ASTNodeBase*> ret;
-  for (auto sel : selection) {
-    fs::path file = matchFile(sel.first);
-    if (!file.empty()) {
-      ASTContext *ast = File2ASTMap[file];
-      TokenVisitor *tokenVisitor = new TokenVisitor();
-      // Create Token Visitor for that AST
-      TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-      tokenVisitor->visit(unit);
-      // apply and select the tokens based on source range
-      vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
-      map<ASTNodeBase*,int> idmap = tokenVisitor->getIdMap();
-      for (const pair<int,int> &p : sel.second) {
-        int line = p.first;
-        int column = p.second;
-        SourceLocation loc(line, column);
-        // I know this is inefficient
-        for (ASTNodeBase *token : tokens) {
-          SourceLocation begin = token->getBeginLoc();
-          SourceLocation end = token->getEndLoc();
-          // std::cout << loc << " === " << begin << " -- " << end << " ";
-
-          // std::ostringstream os;
-          // Printer printer(os);
-          // token->accept(&printer);
-
-          // std::cout << os.str() << "\n";
-          
-          if (begin <= loc && loc <= end) {
-            // this token is selected
-            // print it out for now
-            // std::cout << "[SourceManager] Found selected token: ";
-            token->dump(std::cout);
-            std::cout << "\n";
-            ret.insert(token);
-          }
-        }
-      }
-    }
-  }
-  // maybe here: get/set the distribution information
-  // std::cout << "Total selected tokens: " << ret.size() << "\n";
-  return ret;
-}
-
-
 void SourceManager::dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
   // dump to os
   // document: array of fileObjs
@@ -571,26 +452,6 @@ void SourceManager::dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ost
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
   doc.Accept(writer);
   os << sb.GetString() << "\n";
-}
-
-
-void SourceManager::dumpSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
-  // dump to os
-  for (auto &m : AST2TokenVisitorMap) {
-    ASTContext *ast = m.first;
-    TokenVisitor *tokenVisitor = m.second;
-    fs::path file = AST2FileMap[ast];
-    // output filename
-    os << "#file " << file.string() << "\n";
-    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
-    for (ASTNodeBase *token : tokens) {
-      if (selection.count(token) == 1) {
-        SourceLocation loc = token->getBeginLoc();
-        os << loc.getLine() << " " << loc.getColumn() << "\n";
-        // << " " << tokenVisitor->getId(token) << "\n";
-      }
-    }
-  }
 }
 
 typedef struct Distribution {
@@ -785,7 +646,8 @@ std::set<ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<ASTNodeBase*>
         sel.insert(func->getParamNode());
         sel.insert(func->getBody());
         CompoundStmt *body = dynamic_cast<CompoundStmt*>(func->getBody());
-        sel.insert(body->getCompNode());
+        sel.insert(body->getLBrace());
+        sel.insert(body->getRBrace());
       }
     }
   }

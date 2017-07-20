@@ -25,8 +25,11 @@ public:
   /**
    * Precondition: p should be the cache/XXX/cpp folder
    */
-  SourceManager(fs::path cppfolder);
+  SourceManager() {}
   ~SourceManager() {}
+
+  void parse(fs::path p);
+  
   void dumpASTs();
 
   /**
@@ -84,27 +87,7 @@ public:
   std::set<ASTNodeBase*> genRandSel(int num);
   std::set<ASTNodeBase*> genRandSelFunc(int num);
   std::set<ASTNodeBase*> genRandSelSameFunc(int num);
-  /**
-   * load selection from file.
-   * The format is:
-   *
-   * #file
-   * line column
-   * line column
-   * TODO change such utility function to static to avoid mis-use
-   */
-  std::set<ASTNodeBase*> loadSelection(fs::path sel_file);
   std::set<ASTNodeBase*> loadJsonSelection(fs::path sel_file);
-  /**
-   * Dump selection into a file, and can be later load.
-   * The dump information is more than the hand written one. It will contain the ID of the token.
-   * The format will be:
-   *
-   * #file
-   * line column ID
-   * line column
-   */
-  void dumpSelection(std::set<ASTNodeBase*> selection, std::ostream &os);
   void dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ostream &os);
   
   void analyzeDistribution(std::set<ASTNodeBase*> selection,

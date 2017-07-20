@@ -46,8 +46,10 @@ string Printer::prettyPrint(string ast) {
  * Printer
  */
 void Printer::pre(ASTNodeBase *node) {
-  oss << "(" << node->getBeginLoc().getLine() << ":" << node->getBeginLoc().getColumn() << " "
-     << node->getNodeName();
+  // oss << "(" << node->getBeginLoc().getLine() << ":" << node->getBeginLoc().getColumn() << " "
+  //     << node->getNodeName();
+  oss << "(";
+  node->dump(oss);
 }
 void Printer::post() {oss << ")";}
 
@@ -123,17 +125,17 @@ void Printer::visit(ReturnStmt *node) {
   post();
 }
 void Printer::visit(Expr *node) {
-  pre(node);
+  oss << "\n"; pre(node);
   Visitor::visit(node);
-  post();
+  post(); oss << "\n";
 }
 void Printer::visit(DeclStmt *node) {
-  pre(node);
+  oss << "\n"; pre(node);
   Visitor::visit(node);
-  post();
+  post(); oss << "\n";
 }
 void Printer::visit(ExprStmt *node) {
-  pre(node);
+  oss << "\n"; pre(node);
   Visitor::visit(node);
-  post();
+  post(); oss << "\n";
 }

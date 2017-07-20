@@ -36,11 +36,12 @@ void Visitor::visit(DeclStmt *decl_stmt) {}
 void Visitor::visit(ExprStmt *expr_stmt) {}
 void Visitor::visit(CompoundStmt *comp_stmt) {
   // token node
-  comp_stmt->getCompNode()->accept(this);
+  comp_stmt->getLBrace()->accept(this);
   std::vector<Stmt*> stmts = comp_stmt->getBody();
   for (Stmt *stmt : stmts) {
     if (stmt) stmt->accept(this);
   }
+  comp_stmt->getRBrace()->accept(this);
 }
 void Visitor::visit(ForStmt *for_stmt) {
   TokenNode *token = for_stmt->getForNode();

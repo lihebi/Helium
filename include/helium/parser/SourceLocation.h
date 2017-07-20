@@ -4,6 +4,8 @@
 #include <ostream>
 #include <istream>
 
+
+
 /**
  * It is passed by value. So the size is pretty critical.
  * But I'm not going to worry about this so much as I would like.
@@ -68,5 +70,18 @@ SourceLocation operator+(SourceLocation s, std::pair<int,int> delta);
 //   SourceLocation Begin;
 //   SourceLocation End;
 // };
+
+class SourceRange {
+public:
+  SourceRange(SourceLocation begin, SourceLocation end) : begin(begin), end(end) {}
+  ~SourceRange() {}
+
+  SourceLocation getBegin() {return begin;}
+  SourceLocation getEnd() {return end;}
+private:
+  SourceLocation begin;
+  SourceLocation end;
+};
+
 
 #endif /* SOURCE_LOCATION_H */
