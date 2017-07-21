@@ -47,18 +47,6 @@ void SourceManager::parse(fs::path fileordir) {
   }
 }
 
-void SourceManager::dumpASTs() {
-  for (auto &m : File2ASTMap) {
-    ASTContext *ast = m.second;
-    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-    std::ostringstream os;
-    Printer printer;
-    unit->accept(&printer);
-    std::cout << printer.getString() << "\n";
-  }
-}
-
-
 /**
  * Match in the File2ASTMap to find the best match
  * TODO test this
@@ -177,66 +165,6 @@ std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
   return ret;
 }
 
-std::string SourceManager::getTokenUUID(ASTNodeBase* node) {
-  ASTContext *ast = node->getASTContext();
-  std::string ret;
-  if (AST2FileMap.count(ast) == 0) {
-    return "";
-  }
-  fs::path file = AST2FileMap[ast];
-  ret += file.string();
-  TokenVisitor *tokenVisitor = AST2TokenVisitorMap[ast];
-  int id = tokenVisitor->getId(node);
-  ret += "_" + std::to_string(id);
-  return ret;
-}
-
-fs::path SourceManager::getTokenFile(ASTNodeBase* node) {
-  ASTContext *ast = node->getASTContext();
-  std::string ret;
-  if (AST2FileMap.count(ast) == 1) {
-    return AST2FileMap[ast];
-  }
-  return fs::path("");
-}
-int SourceManager::getTokenId(ASTNodeBase* node) {
-  ASTContext *ast = node->getASTContext();
-  if (AST2TokenVisitorMap.count(ast) != 0) {
-    TokenVisitor *tokenVisitor = AST2TokenVisitorMap[ast];
-    return tokenVisitor->getId(node);
-  }
-  return -1;
-}
-
-
-
-/**
- * Selection
- */
-
-
-std::set<ASTNodeBase*> SourceManager::generateRandomSelection() {
-  // Here I can enforce some criteria, such as intro-procedure
-  set<ASTNodeBase*> ret;
-  for (auto &m : File2ASTMap) {
-    ASTContext *ast = m.second;
-    TokenVisitor *tokenVisitor = new TokenVisitor();
-    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
-    unit->accept(tokenVisitor);
-    vector<ASTNodeBase*> tokens = tokenVisitor->getTokens();
-    // random select some tokens
-    // vector<ASTNodeBase*> token_vector(tokens.begin(), tokens.end());
-    // first, random get # of tokens
-    // Then, random get tokens
-    int num = utils::rand_int(0, tokens.size());
-    while (ret.size() < num) {
-      int idx = utils::rand_int(0, tokens.size());
-      ret.insert(tokens[idx]);
-    }
-  }
-  return ret;
-}
-
 std::set<ASTNodeBase*> get_rand(std::vector<ASTNodeBase*> nodes, int num) {
   std::set<ASTNodeBase*> ret;
   // return all nodes or simply empty?
@@ -339,7 +267,7 @@ std::set<ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
  * ]
  */
 
-std::set<ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
+std::set<ASTNodeBase*> SourceManager::loadSelection(fs::path sel_file) {
   map<string, set<pair<int, int> > > selection;
   if (fs::exists(sel_file)) {
     rapidjson::Document document;
@@ -409,7 +337,7 @@ std::set<ASTNodeBase*> SourceManager::loadJsonSelection(fs::path sel_file) {
 }
 
 
-void SourceManager::dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
+void SourceManager::dumpSelection(std::set<ASTNodeBase*> selection, std::ostream &os) {
   // dump to os
   // document: array of fileObjs
   rapidjson::Document doc;
@@ -692,19 +620,57 @@ ASTNodeBase *lastNode(std::set<ASTNodeBase*> nodes) {
   return ret;
 }
 
+std::string SourceManager::generateMainC(std::set<ASTNodeBase*> sel) {
+  std::string ret;
+  ret += "#include \"main.h\"\n";
+  ret += "#include \"input.h\"\n";
+  ret += "\n";
+
+  std::set<std::string> entry_funcs;
+
+  for (auto &m : File2ASTMap) {
+    ASTContext *ast = m.second;
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    NewGenerator gen;
+    gen.setSelection(sel);
+    // gen.adjustReturn(true);
+    unit->accept(&gen);
+    std::string prog = gen.getProgram(unit);
+
+    std::set<std::string> funcs = gen.getEntryFuncs();
+    entry_funcs.insert(funcs.begin(), funcs.end());
+    ret += prog;
+  }
+
+  ret += "void helium_entry() {\n";
+  for (std::string func : entry_funcs) {
+    ret += "  " + func + "();\n";
+  }
+  ret += "}\n";
+
+  ret += "int main(int argc, char *argv[]) {\n";
+  ret += "  init_input();\n";
+  // TODO call to functions
+  ret += "  helium_entry();\n";
+  ret += "}\n";
+  return ret;
+}
+
+std::string SourceManager::generateInputH() {
+  std::string ret;
+  ret += FileIOHelper::GetIOCode();
+  ret += "void init_input() {\n";
+  ret += FileIOHelper::GetFilePointersInit();
+  ret += "}\n";
+  return ret;
+}
+
 std::string
 SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
-  // analyze distribution
-  // std::map<ASTContext*, Distributor*> AST2DistributorMap;
-  sel = patchFunctionHeader(sel);
-
   std::string ret;
-  // ret += "#include <stdio.h>\n";
-  // ret += "#include <stdlib.h>\n";
-  // ret += "#include <string.h>\n";
   ret += "#include \"main.h\"\n";
-
   ret += FileIOHelper::GetIOCode();
+
 
   struct IOData {
     int output_var=0;
@@ -1075,7 +1041,7 @@ get_system_includes(IncludeManager *inc_manager,
   return ret;
 }
 
-std::string SourceManager::generateSupport(std::set<ASTNodeBase*> sel,
+std::string SourceManager::generateMainH(std::set<ASTNodeBase*> sel,
                                            SnippetManager *snip_man,
                                            IncludeManager *inc_man,
                                            LibraryManager *lib_man) {
@@ -1156,18 +1122,21 @@ run:
 }
 
 void SourceManager::generate(std::set<ASTNodeBase*> sel,
-                             fs::path dir,
+                             fs::path outdir,
                              SnippetManager *snip_man,
                              IncludeManager *inc_man,
                              LibraryManager *lib_man) {
-  std::string main_c = generateProgram(sel);
-  std::string main_h = generateSupport(sel, snip_man, inc_man, lib_man);
+  // std::string main_c = generateProgram(sel);
+  std::string main_c = generateMainC(sel);
+  std::string input_h = generateInputH();
+  std::string main_h = generateMainH(sel, snip_man, inc_man, lib_man);
   std::string makefile = get_makefile(inc_man, lib_man);
-  if (fs::exists(dir)) fs::remove_all(dir);
-  fs::create_directories(dir);
-  utils::write_file(dir / "main.c", main_c);
-  utils::write_file(dir / "main.h", main_h);
-  utils::write_file(dir / "Makefile", makefile);
+  if (fs::exists(outdir)) fs::remove_all(outdir);
+  fs::create_directories(outdir);
+  utils::write_file(outdir / "main.c", main_c);
+  utils::write_file(outdir / "main.h", main_h);
+  utils::write_file(outdir / "input.h", input_h);
+  utils::write_file(outdir / "Makefile", makefile);
 }
 
 
@@ -1184,3 +1153,33 @@ void SourceManager::dump(std::ostream &os) {
     dist->dump(os);
   }
 }
+
+
+void SourceManager::dumpAST(fs::path outdir, fs::path ext) {
+  if (!fs::exists(outdir)) {
+    fs::create_directories(outdir);
+  }
+  for (auto &m : File2ASTMap) {
+    fs::path file = m.first;
+    ASTContext *ast = m.second;
+    Printer printer;
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&printer);
+    utils::write_file(outdir / file.filename().replace_extension(ext), printer.getString());
+  }
+}
+void SourceManager::dumpAST(fs::path outdir, std::set<ASTNodeBase*> sel, fs::path ext) {
+  if (!fs::exists(outdir)) {
+    fs::create_directories(outdir);
+  }
+  for (auto &m : File2ASTMap) {
+    fs::path file = m.first;
+    ASTContext *ast = m.second;
+    Printer printer;
+    printer.addMark(sel, "lambda ");
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    unit->accept(&printer);
+    utils::write_file(outdir / file.filename().replace_extension(ext), printer.getString());
+  }
+}
+

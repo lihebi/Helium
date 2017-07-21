@@ -49,6 +49,14 @@ void Printer::pre(ASTNodeBase *node) {
   // oss << "(" << node->getBeginLoc().getLine() << ":" << node->getBeginLoc().getColumn() << " "
   //     << node->getNodeName();
   oss << "(";
+  // mark
+  for (auto &mark : marks) {
+    std::set<ASTNodeBase*> nodes = mark.first;
+    std::string text = mark.second;
+    if (nodes.count(node) == 1) {
+      oss << text;
+    }
+  }
   node->dump(oss);
 }
 void Printer::post() {oss << ")";}
@@ -57,7 +65,7 @@ void Printer::post() {oss << ")";}
 void Printer::visit(TokenNode *node) {
   pre(node);
   Visitor::visit(node);
-  post();
+  post();oss<<"\n";
 }
 void Printer::visit(TranslationUnitDecl *node) {
   pre(node);

@@ -93,17 +93,24 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
 
   std::vector<std::string> compile_suc, run_suc;
   for (fs::path sel_file : sels) {
-    std::set<ASTNodeBase*> sel = source_man->loadJsonSelection(sel_file);
+    std::set<ASTNodeBase*> orig_sel = source_man->loadSelection(sel_file);
+    std::set<ASTNodeBase*> patch_sel = orig_sel;
     // source_man->dumpDist(sel, std::cout);
-    sel = source_man->grammarPatch(sel);
+    patch_sel = source_man->grammarPatch(patch_sel);
     // sel = source_man->defUse(sel);
     // I might want to do another grammar patching in case def use breaks it
     // sel = source_man->grammarPatch(sel);
     // Generate into folder and do compilation
     // use the sel filename as the folder
+    patch_sel = source_man->patchFunctionHeader(patch_sel);
     fs::path gen_dir = outdir / sel_file.filename().stem();
-    
-    source_man->generate(sel, gen_dir, snip_manager, inc_manager, lib_manager);
+
+    // generate
+    source_man->generate(patch_sel, gen_dir, snip_manager, inc_manager, lib_manager);
+    // dump AST
+    source_man->dumpAST(gen_dir / "ast", ".lisp");
+    source_man->dumpAST(gen_dir / "ast", orig_sel, ".orig.lisp");
+    source_man->dumpAST(gen_dir / "ast", patch_sel, ".patch.lisp");
     if (do_compile(gen_dir)) {
       // compile success
       compile_suc.push_back(sel_file.filename().string());
@@ -153,7 +160,7 @@ void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
     os.open(file.string().c_str());
     assert(os.is_open());
     selection = source_man->genRandSelFunc(num_token);
-    source_man->dumpJsonSelection(selection, os);
+    source_man->dumpSelection(selection, os);
     os.close();
   }
 }
@@ -297,17 +304,18 @@ int main(int argc, char* argv[]) {
     run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
     exit(0);
   }
-  if (options->Has("codegen")) {
-    fs::path sel = options->GetString("selection");
-    if (!fs::is_regular(sel)) {
-      std::cerr << sel << " should be a regular json file, not a directory" << "\n";
-      exit(1);
-    }
+  // if (options->Has("codegen")) {
+  //   fs::path sel = options->GetString("selection");
+  //   if (!fs::is_regular(sel)) {
+  //     std::cerr << sel << " should be a regular json file, not a directory" << "\n";
+  //     exit(1);
+  //   }
 
-    SourceManager *source_man = new SourceManager();
-    source_man->parse(indir);
-    source_man->loadJsonSelection(sel);
-  }
+  //   SourceManager *source_man = new SourceManager();
+  //   source_man->parse(indir);
+  //   source_man->loadSelection(sel);
+  //   exit(0);
+  // }
   std::cout << "[main] End Of Helium" << "\n";
   return 0;
 }

@@ -30,7 +30,24 @@ public:
 
   void parse(fs::path p);
   
-  void dumpASTs();
+  /**
+   * num: how many nodes to be selected.
+   */
+  std::set<ASTNodeBase*> genRandSel(int num);
+  std::set<ASTNodeBase*> genRandSelFunc(int num);
+  std::set<ASTNodeBase*> genRandSelSameFunc(int num);
+  std::set<ASTNodeBase*> loadSelection(fs::path sel_file);
+  void dumpSelection(std::set<ASTNodeBase*> selection, std::ostream &os);
+  
+  void analyzeDistribution(std::set<ASTNodeBase*> selection,
+                           std::set<ASTNodeBase*> patch,
+                           std::ostream &os);
+
+  void dump(std::ostream &os);
+  std::set<ASTNodeBase*> patchFunctionHeader(std::set<ASTNodeBase*> sel);
+
+  void dumpDist(std::set<ASTNodeBase*> sel, std::ostream &os);
+  std::set<ASTNodeBase*> filterLeaf(std::set<ASTNodeBase*> sel);
 
   /**
    * Perform grammar patch based on this->selection.
@@ -48,11 +65,14 @@ public:
    * These nodes might be in different AST
    */
   std::string generateProgram(std::set<ASTNodeBase*> sel);
+  
+  std::string generateMainC(std::set<ASTNodeBase*> sel);
+  std::string generateInputH();
 
   /**
    * Generate main.h
    */
-  std::string generateSupport(std::set<ASTNodeBase*> sel,
+  std::string generateMainH(std::set<ASTNodeBase*> sel,
                               SnippetManager *snip_manager,
                               IncludeManager *inc_manager,
                               LibraryManager *lib_manager);
@@ -66,39 +86,11 @@ public:
                 LibraryManager *lib_man);
 
   /**
-   * DEPRECATED
-   * Get the UUID of a node.
-   * This will be: filename_ID
-   * If the node is an internal node of AST, the ID will be -1
+   * Dump ast to 
    */
-  std::string getTokenUUID(ASTNodeBase* node);
-  fs::path getTokenFile(ASTNodeBase* node);
-  int getTokenId(ASTNodeBase* node);
+  void dumpAST(fs::path outdir, fs::path ext = ".lisp");
+  void dumpAST(fs::path outdir, std::set<ASTNodeBase*> sel, fs::path ext = ".lisp");
 
-
-  /**
-   * Selection
-   */
-  std::set<ASTNodeBase*> generateRandomSelection();
-
-  /**
-   * num: how many nodes to be selected.
-   */
-  std::set<ASTNodeBase*> genRandSel(int num);
-  std::set<ASTNodeBase*> genRandSelFunc(int num);
-  std::set<ASTNodeBase*> genRandSelSameFunc(int num);
-  std::set<ASTNodeBase*> loadJsonSelection(fs::path sel_file);
-  void dumpJsonSelection(std::set<ASTNodeBase*> selection, std::ostream &os);
-  
-  void analyzeDistribution(std::set<ASTNodeBase*> selection,
-                           std::set<ASTNodeBase*> patch,
-                           std::ostream &os);
-
-  void dump(std::ostream &os);
-  std::set<ASTNodeBase*> patchFunctionHeader(std::set<ASTNodeBase*> sel);
-
-  void dumpDist(std::set<ASTNodeBase*> sel, std::ostream &os);
-  std::set<ASTNodeBase*> filterLeaf(std::set<ASTNodeBase*> sel);
 private:
   /**
    * Match a file in files and return the best match. Empty if no match.
