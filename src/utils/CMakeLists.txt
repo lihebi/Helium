@@ -12,10 +12,10 @@ add_library(HeliumUtils
 
   HeliumOptions.cpp
 
-  Dom.cpp
-  XMLDocReader.cpp
-  XMLNode.cpp
-  XMLNodeHelper.cpp
+  # Dom.cpp
+  # XMLDocReader.cpp
+  # XMLNode.cpp
+  # XMLNodeHelper.cpp
 
   Utils.cpp
   

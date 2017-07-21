@@ -54,6 +54,9 @@ namespace utils {
   std::string indent_string(std::string raw, int indent=1);
   
   std::set<std::string> extract_id_to_resolve(std::string code);
+
+
+  std::string lisp_pretty_print(std::string str);
 }
 
 #endif /* STRING_UTILS_H */

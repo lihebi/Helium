@@ -11,6 +11,7 @@
 
 #include "helium/parser/SourceLocation.h"
 #include "helium/utils/Graph.h"
+#include "helium/utils/StringUtils.h"
 
 class ASTContext;
   
@@ -143,14 +144,12 @@ public:
   virtual void visit(DeclStmt *node);
   virtual void visit(ExprStmt *node);
 
-  std::string prettyPrint(std::string aststr);
-
   void addMark(std::set<ASTNodeBase*> nodes, std::string text) {
     marks.push_back({nodes, text});
   }
 
   std::string getString() {
-    return prettyPrint(oss.str());
+    return utils::lisp_pretty_print(oss.str());
   }
 private:
   void pre(ASTNodeBase *node);
@@ -195,104 +194,6 @@ private:
   void post() {lvl--;}
   std::map<ASTNodeBase*, int> Levels;
   int lvl=0;
-};
-
-class SymbolTable {
-public:
-  SymbolTable() {}
-  ~SymbolTable() {}
-
-  void pushScope() {
-    Stack.push_back({});
-  }
-  void popScope() {
-    Stack.pop_back();
-  }
-
-  /**
-   * id is declared in node
-   */
-  void add(std::string id, ASTNodeBase *node) {
-    newlyAdded.clear();
-    newlyAdded.insert(id);
-    Stack.back()[id] = node;
-  }
-  void add(std::set<std::string> ids, ASTNodeBase *node) {
-    newlyAdded = ids;
-    for (const std::string&id : ids) {
-      add(id, node);
-    }
-  }
-  ASTNodeBase* get(std::string id) {
-    for (int i=Stack.size()-1;i>=0;i--) {
-      if (Stack[i].count(id) == 1) return Stack[i][id];
-    }
-    return nullptr;
-  }
-  std::set<std::string> getNewlyAdded() {return newlyAdded;}
-  /**
-   * get all visible ones
-   */
-  std::map<std::string, ASTNodeBase*> getAll() {
-    std::map<std::string, ASTNodeBase*> ret;
-    for (std::map<std::string, ASTNodeBase*> v : Stack) {
-      for (auto m : v) {
-        ret[m.first] = m.second;
-      }
-    }
-    return ret;
-  }
-private:
-  std::vector<std::map<std::string, ASTNodeBase*> > Stack;
-  // this is a hack
-  // i notice in symboltablebuilder, each node adds exactly once (may be using vars)
-  // so newly added can record the variables the current node defines
-  std::set<std::string> newlyAdded;
-};
-
-/**
- * The symbol table should be easy to access for each node.
- * So I might consider to
- * - create the symbol table right after I create the AST
- * - store the symbol table with the AST nodes
- */
-class SymbolTableBuilder : public Visitor {
-public:
-  SymbolTableBuilder() {}
-  virtual ~SymbolTableBuilder() {}
-  // high level
-  virtual void visit(TokenNode *node);
-  virtual void visit(TranslationUnitDecl *node);
-  virtual void visit(FunctionDecl *node);
-  virtual void visit(CompoundStmt *node);
-  // condition
-  virtual void visit(IfStmt *node);
-  virtual void visit(SwitchStmt *node);
-  virtual void visit(CaseStmt *node);
-  virtual void visit(DefaultStmt *node);
-  // loop
-  virtual void visit(ForStmt *node);
-  virtual void visit(WhileStmt *node);
-  virtual void visit(DoStmt *node);
-  // single
-  virtual void visit(BreakStmt *node);
-  virtual void visit(ContinueStmt *node);
-  virtual void visit(ReturnStmt *node);
-  // expr stmt
-  virtual void visit(Expr *node);
-  virtual void visit(DeclStmt *node);
-  virtual void visit(ExprStmt *node);
-  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > getUse2DefMap() {return Use2DefMap;}
-  void dump(std::ostream &os);
-  std::map<ASTNodeBase*, SymbolTable> getPersistTables() {return PersistTables;}
-private:
-  void insertDefUse(ASTNodeBase *use);
-  // this will be empty after traversal
-  SymbolTable Table;
-  // this is the result
-  std::map<ASTNodeBase*,std::set<ASTNodeBase*> > Use2DefMap;
-  // record table at each node, for later usage
-  std::map<ASTNodeBase*, SymbolTable> PersistTables;
 };
 
 /**
@@ -514,142 +415,6 @@ private:
 
 
 
-
-/**
- * Code Generator
- */
-class Generator : public Visitor {
-public:
-  Generator() {}
-  virtual ~Generator() {}
-  // high level
-  virtual void visit(TokenNode *node);
-  virtual void visit(TranslationUnitDecl *node);
-  virtual void visit(FunctionDecl *node);
-  virtual void visit(CompoundStmt *node);
-  // condition
-  virtual void visit(IfStmt *node);
-  virtual void visit(SwitchStmt *node);
-  virtual void visit(CaseStmt *node);
-  virtual void visit(DefaultStmt *node);
-  // loop
-  virtual void visit(ForStmt *node);
-  virtual void visit(WhileStmt *node);
-  virtual void visit(DoStmt *node);
-  // single
-  virtual void visit(BreakStmt *node);
-  virtual void visit(ContinueStmt *node);
-  virtual void visit(ReturnStmt *node);
-  // expr stmt
-  virtual void visit(Expr *node);
-  virtual void visit(DeclStmt *node);
-  virtual void visit(ExprStmt *node);
-
-
-  void setSelection(std::set<ASTNodeBase*> sel) {
-    selection = sel;
-  }
-
-  void setInputVarNodes(std::set<ASTNodeBase*> nodes) {
-    InputVarNodes = nodes;
-  }
-
-  std::string getProgram() {
-    return Prog;
-  }
-  void adjustReturn(bool b) {
-    AdjustReturn = b;
-  }
-
-  void setOutputInstrument(std::map<std::string, ASTNodeBase*> toinstrument, ASTNodeBase *last, SymbolTable symtbl) {
-    OutputInstrument = toinstrument;
-    OutputPosition = last;
-    OutputPositionSymtbl = symtbl;
-  }
-  void outputInstrument(ASTNodeBase *node);
-  std::vector<int> getIOSummary() {
-    return {sum_output_var, sum_used_output_var, sum_input_var, sum_used_input_var};
-  }
-private:
-  std::string Prog;
-  std::set<ASTNodeBase*> selection;
-  bool AdjustReturn = false;
-  std::set<ASTNodeBase*> InputVarNodes;
-  std::map<std::string, ASTNodeBase*> OutputInstrument;
-  ASTNodeBase *OutputPosition = nullptr;
-  SymbolTable OutputPositionSymtbl;
-  // summary about output instrumentation
-  int sum_output_var=0;
-  int sum_used_output_var=0;
-  // summary about input instrumentation
-  int sum_input_var=0;
-  int sum_used_input_var=0;
-};
-
-
-
-
-
-
-/**
- * Code NewGenerator
- */
-class NewGenerator : public Visitor {
-public:
-  NewGenerator() {}
-  virtual ~NewGenerator() {}
-  // high level
-  virtual void visit(TokenNode *node);
-  virtual void visit(TranslationUnitDecl *node);
-  virtual void visit(FunctionDecl *node);
-  virtual void visit(CompoundStmt *node);
-  // condition
-  virtual void visit(IfStmt *node);
-  virtual void visit(SwitchStmt *node);
-  virtual void visit(CaseStmt *node);
-  virtual void visit(DefaultStmt *node);
-  // loop
-  virtual void visit(ForStmt *node);
-  virtual void visit(WhileStmt *node);
-  virtual void visit(DoStmt *node);
-  // single
-  virtual void visit(BreakStmt *node);
-  virtual void visit(ContinueStmt *node);
-  virtual void visit(ReturnStmt *node);
-  // expr stmt
-  virtual void visit(Expr *node);
-  virtual void visit(DeclStmt *node);
-  virtual void visit(ExprStmt *node);
-
-
-  void setSelection(std::set<ASTNodeBase*> sel) {
-    m_sel = sel;
-  }
-
-  // TODO outer interface
-  std::string getProgram(ASTNodeBase *node) {
-    if (m_Node2ProgMap.count(node) == 1) {
-      return m_Node2ProgMap[node];
-    }
-    return "";
-  }
-
-  // TODO inner interface
-  void addInnerProg(ASTNodeBase *node, std::string prog) {
-    m_Node2ProgMap[node] = prog;
-  }
-  std::string getInnerProg(ASTNodeBase *node) {
-    if (m_Node2ProgMap.count(node) == 1) {
-      return m_Node2ProgMap[node];
-    }
-    return "";
-  }
-  std::set<std::string> getEntryFuncs() {return m_entry_funcs;}
-private:
-  std::set<ASTNodeBase*> m_sel;
-  std::map<ASTNodeBase*,std::string> m_Node2ProgMap;
-  std::set<std::string> m_entry_funcs;
-};
 
 
 

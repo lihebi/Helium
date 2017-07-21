@@ -44,6 +44,86 @@ TranslationUnitDecl* ClangParser::parseTranslationUnitDecl
   return myunit;
 }
 
+/**
+ * TODO NOW
+ */
+std::set<clang::VarDecl*> get_referred_var_decl(clang::Expr *expr) {
+  std::set<clang::VarDecl*> ret;
+  if (clang::DeclRefExpr *ref = clang::dyn_cast<clang::DeclRefExpr>(expr)) {
+    // this is final
+    clang::ValueDecl *decl = ref->getDecl();
+    if (clang::VarDecl *var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      ret.insert(var_decl);
+    }
+  } else if (clang::UnaryOperator *un = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    clang::Expr *sub = un->getSubExpr();
+    std::set<clang::VarDecl*> tmp = get_referred_var_decl(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::BinaryOperator *bi = clang::dyn_cast<clang::BinaryOperator>(expr)) {
+    clang::Expr *lhs = bi->getLHS();
+    std::set<clang::VarDecl*> tmp = get_referred_var_decl(lhs);
+    ret.insert(tmp.begin(), tmp.end());
+    clang::Expr *rhs = bi->getRHS();
+    tmp = get_referred_var_decl(rhs);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::CallExpr *call = clang::dyn_cast<clang::CallExpr>(expr)) {
+    for (clang::CallExpr::arg_iterator it=call->arg_begin();it!=call->arg_end();++it) {
+      clang::Expr *arg = *it;
+      std::set<clang::VarDecl*> tmp = get_referred_var_decl(arg);
+      ret.insert(tmp.begin(), tmp.end());
+    }
+  } else if (clang::CastExpr *cast = clang::dyn_cast<clang::CastExpr>(expr)) {
+    clang::Expr *sub = cast->getSubExpr();
+    std::set<clang::VarDecl*> tmp = get_referred_var_decl(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::ParenExpr *paren = clang::dyn_cast<clang::ParenExpr>(expr)) {
+    clang::Expr *sub = paren->getSubExpr();
+    std::set<clang::VarDecl*> tmp = get_referred_var_decl(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::MemberExpr *mem = clang::dyn_cast<clang::MemberExpr>(expr)) {
+    clang::Expr *base = mem->getBase();
+    std::set<clang::VarDecl*> tmp = get_referred_var_decl(base);
+    ret.insert(tmp.begin(), tmp.end());
+  } else {
+    // TODO not supported
+  }
+  return ret;
+}
+
+std::set<std::string> get_used_vars(clang::DeclStmt *decl_stmt) {
+  std::set<std::string> ret;
+  for (clang::DeclStmt::decl_iterator it=decl_stmt->decl_begin();it!=decl_stmt->decl_end();++it) {
+    clang::Decl *decl = *it;
+    // I'm interested in VarDecl
+    if (clang::VarDecl *var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      if (var_decl->hasInit()) {
+        clang::Expr *init = var_decl->getInit();
+        std::set<clang::VarDecl*> used = get_referred_var_decl(init);
+        // store names
+        for (clang::VarDecl *var : used) {
+          std::string name = var->getNameAsString();
+          ret.insert(name);
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+std::set<std::string> get_defined_vars(clang::DeclStmt *decl_stmt) {
+  std::set<std::string> ret;
+  for (clang::DeclStmt::decl_iterator it=decl_stmt->decl_begin();it!=decl_stmt->decl_end();++it) {
+    clang::Decl *decl = *it;
+    // I'm interested in VarDecl
+    if (clang::VarDecl *var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      std::string name = var_decl->getNameAsString();
+      // add this var to this node
+      ret.insert(name);
+    }
+  }
+  return ret;
+}
+
 DeclStmt* ClangParser::parseDeclStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::DeclStmt *decl_stmt,
@@ -51,6 +131,10 @@ DeclStmt* ClangParser::parseDeclStmt
   clang::SourceRange range = decl_stmt->getSourceRange();
   std::string mytext = rewriter.getRewrittenText(range);
   DeclStmt *ret = new DeclStmt(myctx, mytext, convert_clang_loc(ctx, decl_stmt->getSourceRange()));
+  std::set<std::string> used = get_used_vars(decl_stmt);
+  std::set<std::string> defined = get_defined_vars(decl_stmt);
+  ret->addUsedVar(used);
+  ret->addDefinedVar(defined);
   return ret;
 }
 FunctionDecl *ClangParser::parseFunctionDecl
@@ -73,17 +157,20 @@ FunctionDecl *ClangParser::parseFunctionDecl
   // FIXME this should have both () and ,
   TokenNode *ParamNode = nullptr;
   if (func->param_size() != 0) {
+    std::set<std::string> defined_vars;
     clang::SourceLocation param_begin = func->getParamDecl(0)->getLocStart();
     clang::SourceLocation param_end = func->getParamDecl(func->param_size()-1)->getLocEnd();
     for (clang::FunctionDecl::param_iterator it=func->param_begin();it!=func->param_end();++it) {
       clang::ParmVarDecl *param = *it;
       // param_text += rewriter.getRewrittenText(param->getSourceRange());
       params.push_back(rewriter.getRewrittenText(param->getSourceRange()));
+      defined_vars.insert(param->getNameAsString());
     }
     std::string param_text = boost::algorithm::join(params, ", ");
     ParamNode = new TokenNode(myctx, param_text,
                               convert_clang_loc(ctx, param_begin),
                               convert_clang_loc(ctx, param_end));
+    ParamNode->addDefinedVar(defined_vars);
   }
 
   FunctionDecl *ret = new FunctionDecl(myctx, func->getName().str(), ReturnTypeNode, NameNode, ParamNode, mycomp,
@@ -267,7 +354,7 @@ ForStmt *ClangParser::parseForStmt
   // FIXME expr or stmt?
   // Stmt *myinit = parseStmt(ctx, rewriter, init, myctx);
   // Expr *myinit = nullptr;
-  Expr *myinit = parseStmtAsExpr(ctx, rewriter, init, myctx);
+  Expr *myinit = parseForInit(ctx, rewriter, init, myctx);
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
   Expr *myinc = parseExpr(ctx, rewriter, inc, myctx);
   Stmt *mybody = parseStmt(ctx, rewriter, body, myctx);
@@ -301,6 +388,12 @@ Expr *ClangParser::parseExpr
   Expr *ret = new Expr(myctx, text,
                        convert_clang_loc(ctx, expr->getLocStart()),
                        convert_clang_loc(ctx, expr->getLocEnd()));
+  // used var
+  std::set<clang::VarDecl*> decls = get_referred_var_decl(expr);
+  for (clang::VarDecl *decl : decls) {
+    std::string name = decl->getNameAsString();
+    ret->addUsedVar(name);
+  }
   return ret;
 }
 ExprStmt *ClangParser::parseExprStmt
@@ -312,19 +405,30 @@ ExprStmt *ClangParser::parseExprStmt
   ExprStmt *ret = new ExprStmt(myctx, text,
                        convert_clang_loc(ctx, expr->getLocStart()),
                        convert_clang_loc(ctx, expr->getLocEnd()));
+  // used var
+  std::set<clang::VarDecl*> decls = get_referred_var_decl(expr);
+  for (clang::VarDecl *decl : decls) {
+    std::string name = decl->getNameAsString();
+    ret->addUsedVar(name);
+  }
   return ret;
 }
 /**
  * This is for "for init", as it should be expr, but clang parse it as Stmt
  */
-Expr *ClangParser::parseStmtAsExpr
+Expr *ClangParser::parseForInit
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
- clang::Stmt *expr,
+ clang::Stmt *init,
  ASTContext *myctx) {
-  clang::SourceRange range = expr->getSourceRange();
+  clang::SourceRange range = init->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
   Expr *ret = new Expr(myctx, text,
                        convert_clang_loc(ctx, range));
+  // get symbol
+  if (clang::DeclStmt *decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
+    ret->addUsedVar(get_used_vars(decl_stmt));
+    ret->addDefinedVar(get_defined_vars(decl_stmt));
+  }
   return ret;
 }
 

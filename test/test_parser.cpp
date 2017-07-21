@@ -117,7 +117,7 @@ void dummy()  {
 //   }
 // }
 
-TEST_F(VisitorTest, LevelVisitorTest) {
+TEST_F(VisitorTest, DISABLED_LevelVisitorTest) {
   {
     LevelVisitor visitor;
     Matcher matcher;
@@ -161,7 +161,7 @@ TEST_F(VisitorTest, LevelVisitorTest) {
 //   }
 // }
 
-TEST_F(VisitorTest, ParentIndexerTest) {
+TEST_F(VisitorTest, DISABLED_ParentIndexerTest) {
   {
     ParentIndexer indexer;
     Matcher matcher;
@@ -198,7 +198,7 @@ TEST_F(VisitorTest, ParentIndexerTest) {
   }
 }
 
-TEST_F(VisitorTest, GrammarPatcherTest) {
+TEST_F(VisitorTest, DISABLED_GrammarPatcherTest) {
   // Program 1
   // -------------------
   // int foo() {
@@ -704,6 +704,7 @@ TEST_F(VisitorTest, GrammarPatcherTest) {
   }
 }
 
+#if 0
 TEST(SymbolTableTest, DeclStmtTest) {
   const char *program = R"prefix(
 int foo() {
@@ -922,6 +923,8 @@ int foo() {
   EXPECT_EQ(u2d[for_inc].count(decl_i), 0);
   EXPECT_EQ(u2d[for_inc].count(for_init), 1);
 }
+
+#endif
 
 // TEST_F(VisitorTest, DistributorTest) {
 // }

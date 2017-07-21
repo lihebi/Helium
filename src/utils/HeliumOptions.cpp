@@ -41,6 +41,7 @@ HeliumOptions::HeliumOptions() {
     ("dump-cfg", "dump cfg")
     ("cfg-no-decl", "if set, no decl node will be on CFG")
     ("dump-ast", "dump ast")
+    ("dump-symbol-table", "")
     // ("system-info", "show system info")
     // ("discover-header", "discover header used in the benchmark on current system.")
     // ("check-header", "check header in project but not exists on current system or conf")

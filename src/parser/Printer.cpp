@@ -9,39 +9,6 @@ using std::string;
 using std::map;
 using std::set;
 
-
-
-
-
-string Printer::prettyPrint(string ast) {
-  // join line if ) is on a single line
-  vector<string> lines = utils::split(ast, '\n');
-  vector<string> ret;
-  string tmp;
-  for (string line : lines) {
-    utils::trim(line);
-    if (line.size() == 1 && line[0] == ')') {
-      tmp += ')';
-    } else if (line.empty()) {
-      continue;
-    } else {
-      ret.push_back(tmp);
-      tmp = line;
-    }
-  }
-  ret.push_back(tmp);
-  string retstr;
-  // indent
-  int indent = 0;
-  for (string line : ret) {
-    int open = std::count(line.begin(), line.end(), '(');
-    int close = std::count(line.begin(), line.end(), ')');
-    retstr += string(indent*2, ' ') + line + "\n";
-    indent = indent + open - close;
-  }
-  return retstr;
-}
-
 /**
  * Printer
  */
@@ -58,6 +25,7 @@ void Printer::pre(ASTNodeBase *node) {
     }
   }
   node->dump(oss);
+  oss << " " << (void*)node;
 }
 void Printer::post() {oss << ")";}
 

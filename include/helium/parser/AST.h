@@ -35,6 +35,15 @@ class ASTNodeBase;
  * @{
  */
 
+class ASTSymbolTableEntry {
+public:
+private:
+};
+class ASTSymbolTable {
+public:
+private:
+};
+
 /**
  * You can get TranslationUnitDecl from this
  * This also contains the source manager
@@ -86,14 +95,18 @@ public:
   ASTContext *getASTContext() {return Ctx;}
   SourceLocation getBeginLoc() {return BeginLoc;}
   SourceLocation getEndLoc() {return EndLoc;}
-  virtual void dump(std::ostream &os) = 0;
+  virtual void dump(std::ostream &os) {
+    os << getNodeName()
+       << " " << BeginLoc.getLine() << ":" << BeginLoc.getColumn();
+  }
   virtual std::string getNodeName() = 0;
-  std::set<std::string> getUsedVars() {return UsedVars;}
-  void addUsedVars(std::string var) {UsedVars.insert(var);}
-  void addUsedVars(std::set<std::string> var) {UsedVars.insert(var.begin(), var.end());}
 
-  void setVars(std::set<std::string> vars) {this->vars = vars;}
-  std::set<std::string> getVars() {return vars;}
+  void addUsedVar(std::string var) {m_used_vars.insert(var);}
+  void addUsedVar(std::set<std::string> vars) {m_used_vars.insert(vars.begin(), vars.end());}
+  std::set<std::string> getUsedVars() {return m_used_vars;}
+  void addDefinedVar(std::string var) {m_defined_vars.insert(var);}
+  void addDefinedVar(std::set<std::string> vars) {m_defined_vars.insert(vars.begin(), vars.end());}
+  std::set<std::string> getDefinedVars() {return m_defined_vars;}
 
   void addFullVar(std::string name, std::string type) {
     fullVars[name] = type;
@@ -106,12 +119,11 @@ protected:
   ASTContext *Ctx = nullptr;
   SourceLocation BeginLoc;
   SourceLocation EndLoc;
-  std::set<std::string> UsedVars;
-
-  // vars declared in this node
-  std::set<std::string> vars;
   // name to type map
   std::map<std::string, std::string> fullVars;
+  // def-use
+  std::set<std::string> m_defined_vars;
+  std::set<std::string> m_used_vars;
 };
 
 class Decl : public ASTNodeBase {
@@ -142,8 +154,8 @@ public:
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " TokenNode: " << "\"" << getText() << "\"";
+    ASTNodeBase::dump(os);
+    os << " " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {
     return "TokenNode";
@@ -165,10 +177,6 @@ public:
   std::vector<ASTNodeBase*> getDecls() {return decls;}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
-  }
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "TranslationUnitDecl";
   }
   virtual std::string getNodeName() {return "TranslationUnitDecl";}
 private:
@@ -192,8 +200,8 @@ public:
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "DeclStmt " << "\"" << getText() << "\"";
+    ASTNodeBase::dump(os);
+    os << " " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "DeclStmt";}
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
@@ -220,8 +228,8 @@ public:
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "ExprStmt " << "\"" << getText() << "\"";
+    ASTNodeBase::dump(os);
+    os << " " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "ExprStmt";}
   virtual std::set<std::string> getIdToResolve();
@@ -247,10 +255,6 @@ public:
 
   TokenNode *getLBrace() {return m_lbrace;}
   TokenNode *getRBrace() {return m_rbrace;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "CompStmt";
-  }
   virtual std::string getNodeName() {return "CompoundStmt";}
 private:
   // signature node. Even if compound statement do not have a
@@ -284,10 +288,6 @@ public:
   TokenNode *getReturnTypeNode() {return ReturnTypeNode;}
   TokenNode *getNameNode() {return NameNode;}
   TokenNode *getParamNode() {return ParamNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "FunctionDecl";
-  }
   virtual std::string getNodeName() {return "FunctionDecl";}
 
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
@@ -326,10 +326,6 @@ public:
     visitor->visit(this);
   }
   TokenNode *getForNode() {return ForNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "ForStmt";
-  }
   virtual std::string getNodeName() {return "ForStmt";}
 
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
@@ -361,10 +357,6 @@ public:
     visitor->visit(this);
   }
   TokenNode *getWhileNode() {return WhileNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "WhileStmt";
-  }
   virtual std::string getNodeName() {return "WhileStmt";}
 private:
   Expr *Cond;
@@ -388,10 +380,6 @@ public:
   }
   TokenNode *getDoNode() {return DoNode;}
   TokenNode *getWhileNode() {return WhileNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << "DoStmt";
-  }
   virtual std::string getNodeName() {return "DoStmt";}
 private:
   Expr *Cond;
@@ -408,10 +396,6 @@ public:
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " BreakStmt";
-  }
   virtual std::string getNodeName() {return "BreakStmt";}
   virtual bool isLeaf() {return true;}
 };
@@ -422,10 +406,6 @@ public:
   ~ContinueStmt() {}
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
-  }
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " ContinueStmt";
   }
   virtual std::string getNodeName() {return "ContinueStmt";}
   virtual bool isLeaf() {return true;}
@@ -444,10 +424,6 @@ public:
   }
   Expr *getValue() {return Value;}
   TokenNode *getReturnNode() {return ReturnNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " ReturnStmt";
-  }
   virtual std::string getNodeName() {return "ReturnStmt";}
 private:
   TokenNode *ReturnNode = nullptr;
@@ -481,10 +457,6 @@ public:
   }
   TokenNode *getIfNode() {return IfNode;}
   TokenNode *getElseNode() {return ElseNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " IfStmt";
-  }
   virtual std::string getNodeName() {return "IfStmt";}
 private:
   Expr *cond = nullptr;
@@ -513,10 +485,6 @@ public:
     visitor->visit(this);
   }
   TokenNode *getSwitchNode() {return SwitchNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " SwitchStmt";
-  }
   virtual std::string getNodeName() {return "SwitchStmt";}
 private:
   Expr *Cond = nullptr;
@@ -565,10 +533,6 @@ public:
   }
   TokenNode *getCaseNode() {return CaseNode;}
   Expr *getCond() {return Cond;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " CaseStmt";
-  }
   virtual std::string getNodeName() {return "CaseStmt";}
 private:
   Expr *Cond = nullptr;
@@ -588,10 +552,6 @@ public:
     visitor->visit(this);
   }
   TokenNode *getDefaultNode() {return DefaultNode;}
-  virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " DefaultStmt";
-  }
   virtual std::string getNodeName() {return "DefaultStmt";}
 private:
   TokenNode *DefaultNode = nullptr;
@@ -613,8 +573,8 @@ public:
   }
   std::string getText() {return Text;}
   virtual void dump(std::ostream &os) {
-    os << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
-       << " Expr: " << "\"" << getText() << "\"";
+    ASTNodeBase::dump(os);
+    os << " " << "\"" << getText() << "\"";
   }
   virtual std::string getNodeName() {return "Expr";}
   virtual std::set<std::string> getIdToResolve();

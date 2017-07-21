@@ -24,6 +24,8 @@
 #include "helium/utils/FSUtils.h"
 #include "helium/utils/Dot.h"
 
+#include "helium/parser/SymbolTable.h"
+
 
 #include <gtest/gtest.h>
 #include <sqlite3.h>
@@ -97,7 +99,7 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     std::set<ASTNodeBase*> patch_sel = orig_sel;
     // source_man->dumpDist(sel, std::cout);
     patch_sel = source_man->grammarPatch(patch_sel);
-    // sel = source_man->defUse(sel);
+    // patch_sel = source_man->defUse(patch_sel);
     // I might want to do another grammar patching in case def use breaks it
     // sel = source_man->grammarPatch(sel);
     // Generate into folder and do compilation
@@ -208,7 +210,7 @@ int main(int argc, char* argv[]) {
     fs::create_directories(outdir);
     
     std::string file(indir.string());
-    Parser *parser = new SrcMLParser();
+    Parser *parser = new ClangParser();
     ASTContext *ast = parser->parse(file);
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
     CFGBuilder builder;
@@ -248,6 +250,17 @@ int main(int argc, char* argv[]) {
     std::cout << output << "\n";
     // ofs.close();
     
+    exit(0);
+  }
+
+  if (options->Has("dump-symbol-table")) {
+    Parser *parser = new ClangParser();
+    ASTContext *ast = parser->parse(indir);
+    TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    SymbolTableBuilder builder;
+    unit->accept(&builder);
+    SymbolTable *table = builder.getSymbolTable();
+    table->dump(std::cout);
     exit(0);
   }
   if (options->Has("preprocess")) {

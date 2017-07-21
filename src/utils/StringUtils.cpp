@@ -251,5 +251,33 @@ namespace utils {
     }
     return ss;
   }
-  
+
+  std::string lisp_pretty_print(std::string str) {
+    // join line if ) is on a single line
+    std::vector<std::string> lines = utils::split(str, '\n');
+    std::vector<std::string> retvec;
+    std::string tmp;
+    for (std::string line : lines) {
+      utils::trim(line);
+      if (line.size() == 1 && line[0] == ')') {
+        tmp += ')';
+      } else if (line.empty()) {
+        continue;
+      } else {
+        retvec.push_back(tmp);
+        tmp = line;
+      }
+    }
+    retvec.push_back(tmp);
+    std::string ret;
+    // indent
+    int indent = 0;
+    for (std::string line : retvec) {
+      int open = std::count(line.begin(), line.end(), '(');
+      int close = std::count(line.begin(), line.end(), ')');
+      ret += std::string(indent*2, ' ') + line + "\n";
+      indent = indent + open - close;
+    }
+    return ret;
+  }  
 }

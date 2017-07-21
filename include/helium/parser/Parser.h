@@ -34,6 +34,23 @@ public:
   virtual ASTContext* parse(fs::path file) = 0;
 };
 
+/**
+ * With Clang Pointers
+ * - Use: From ASTNodeBase* to set of VarDecl
+ * - Def: from ASTNodeBase* to set of VarDecl
+ * - Def-rev: From VarDecl* to ASTNodeBase*
+ * Without clang:
+ * - Def: ASTNodeBase* to set of name
+ * - Use: ASTNodeBase* to pairs of <ASTNodeBase*, name>
+ * Long Lasting General Purpose Symbol Table:
+ * - A tree structure
+ * - 
+ */
+class ClangSymbolTable {
+public:
+private:
+};
+
 class ClangParser : public Parser {
 public:
   ClangParser() {}
@@ -102,9 +119,9 @@ public:
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
    clang::Expr *expr,
    ASTContext *myctx);
-  static Expr *parseStmtAsExpr
+  static Expr *parseForInit
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
-   clang::Stmt *expr,
+   clang::Stmt *init,
    ASTContext *myctx);
   static BreakStmt *parseBreakStmt
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
@@ -116,6 +133,8 @@ public:
    ASTContext *myctx);
 };
 
+
+#if 0
 /**
  * \ingroup parser
  * \brief Parser for SrcML.
@@ -150,6 +169,6 @@ private:
   void match(XMLNode node, std::string tag);
 };
 
-
+#endif
 
 #endif /* PARSER_H */

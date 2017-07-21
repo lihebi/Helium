@@ -1,4 +1,5 @@
 #include "helium/parser/Visitor.h"
+#include "helium/parser/NewGenerator.h"
 #include "helium/parser/AST.h"
 #include "helium/parser/SourceManager.h"
 #include "helium/utils/StringUtils.h"

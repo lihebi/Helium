@@ -9,6 +9,8 @@
 #include "helium/type/Snippet.h"
 
 #include "helium/type/IOHelper.h"
+#include "helium/parser/SymbolTable.h"
+#include "helium/parser/NewGenerator.h"
 
 #include <regex>
 
@@ -86,6 +88,8 @@ std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
 }
 
 
+// TODO
+#if 0
 std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
   std::map<ASTNodeBase*,std::set<ASTNodeBase*> > use2def;
 
@@ -164,6 +168,8 @@ std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
   // }
   return ret;
 }
+
+#endif
 
 std::set<ASTNodeBase*> get_rand(std::vector<ASTNodeBase*> nodes, int num) {
   std::set<ASTNodeBase*> ret;
@@ -665,6 +671,7 @@ std::string SourceManager::generateInputH() {
   return ret;
 }
 
+#if 0
 std::string
 SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
   std::string ret;
@@ -697,8 +704,6 @@ SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
       // 3. get the alive ones at the last node of sel
       // FIXME make sure this exists
       SymbolTable symbol_table = PersistTables[last];
-      // std::set<std::string> symbols = symbol_table.getNewlyAdded();
-      // newly added is used to get the really used vars from the "input/output var nodes"
       std::set<std::string> usedvars;
       for (auto *node : sel) {
         std::set<std::string> vars = node->getUsedVars();
@@ -770,6 +775,8 @@ SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
   //           << iodata.used_output_var << " / " << iodata.output_var << "\n";
   return ret;
 }
+
+#endif
 
 
 

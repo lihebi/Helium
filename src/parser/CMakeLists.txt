@@ -1,7 +1,7 @@
 add_library(HeliumParser
   AST.cpp
   # Parser.cpp
-  SrcMLParser.cpp
+  # SrcMLParser.cpp
   ClangParser.cpp
   SourceManager.cpp
   SourceLocation.cpp
@@ -11,13 +11,13 @@ add_library(HeliumParser
   Visitor.cpp
   CFGBuilder.cpp
   Distributor.cpp
-  Generator.cpp
+  # Generator.cpp
   NewGenerator.cpp
   GrammarPatcher.cpp
   LevelVisitor.cpp
   ParentIndexer.cpp
   Printer.cpp
-  SymbolTableBuilder.cpp
+  SymbolTable.cpp
   TokenVisitor.cpp
   )
 target_link_libraries(HeliumParser HeliumUtils HeliumType)

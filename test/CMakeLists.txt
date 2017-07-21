@@ -1,5 +1,5 @@
 add_executable(heliumtest
-  test_parser.cpp
+  # test_parser.cpp
   test_generator.cpp
   test_graph.cpp
 )

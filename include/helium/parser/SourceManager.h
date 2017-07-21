@@ -64,7 +64,7 @@ public:
    * Generate program based on selection of nodes.
    * These nodes might be in different AST
    */
-  std::string generateProgram(std::set<ASTNodeBase*> sel);
+  // std::string generateProgram(std::set<ASTNodeBase*> sel);
   
   std::string generateMainC(std::set<ASTNodeBase*> sel);
   std::string generateInputH();
@@ -125,9 +125,6 @@ private:
 
   std::set<ASTNodeBase*> InputVarNodes;
   std::set<ASTNodeBase*> OutputVarNodes;
-
-
-  std::map<ASTNodeBase*, SymbolTable> PersistTables;
   
   // std::vector<ASTNodeBase*> Nodes;
   // std::map<ASTNodeBase*,int> IDs;

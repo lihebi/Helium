@@ -66,12 +66,12 @@ DeclStmt *SrcMLParser::ParseDeclStmt(ASTContext *ctx, XMLNode decl) {
     params.insert(name);
     ret->addFullVar(name, type);
   }
-  ret->setVars(params);
+  ret->addDefinedVar(params);
   // ret->addUsedVars(get_var_ids(decl));
   // ret->addUsedVars(get_used_names(decl));
   // FIXME It is very hard to get the used variables. I need a precise parser
   // Now I'm using everything
-  ret->addUsedVars(utils::extract_id_to_resolve(get_text(decl)));
+  ret->addUsedVar(utils::extract_id_to_resolve(get_text(decl)));
   return ret;
 }
 
@@ -146,7 +146,7 @@ FunctionDecl *SrcMLParser::ParseFunctionDecl(ASTContext *ctx, XMLNode node) {
     std::string name = decl_get_name(param);
     vars.insert(name);
   }
-  ret->setVars(vars);
+  ret->addDefinedVar(vars);
   
   return ret;
 }
@@ -246,7 +246,7 @@ Stmt *SrcMLParser::ParseExprStmt(ASTContext *ctx, XMLNode node) {
   Stmt *ret = new ExprStmt(ctx, text, BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
+  ret->addUsedVar(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 
@@ -438,7 +438,7 @@ ForStmt *SrcMLParser::ParseForStmt(ASTContext *ctx, XMLNode node) {
   }
   // I should set the declaration of vars preciesly to for init expr
   // ret->setVars(vars);
-  init->setVars(vars);
+  init->addDefinedVar(vars);
 
   
   Expr *cond = ParseExprWithoutSemicolon(ctx, node.child("control").child("condition"));
@@ -529,7 +529,7 @@ Expr *SrcMLParser::ParseExpr(ASTContext *ctx, XMLNode node) {
   Expr *ret = new Expr(ctx, get_text(node), BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
+  ret->addUsedVar(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 Expr *SrcMLParser::ParseExprWithoutSemicolon(ASTContext *ctx, XMLNode node) {
@@ -545,7 +545,7 @@ Expr *SrcMLParser::ParseExprWithoutSemicolon(ASTContext *ctx, XMLNode node) {
   Expr *ret = new Expr(ctx, text, BeginLoc, EndLoc);
   // ret->addUsedVars(get_var_ids(node));
   // ret->addUsedVars(get_used_names(node));
-  ret->addUsedVars(utils::extract_id_to_resolve(get_text(node)));
+  ret->addUsedVar(utils::extract_id_to_resolve(get_text(node)));
   return ret;
 }
 
