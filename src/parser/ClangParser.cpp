@@ -402,6 +402,9 @@ ExprStmt *ClangParser::parseExprStmt
  ASTContext *myctx) {
   clang::SourceRange range = expr->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
+  utils::trim(text);
+  assert(text.back() != ';');
+  text.push_back(';');
   ExprStmt *ret = new ExprStmt(myctx, text,
                        convert_clang_loc(ctx, expr->getLocStart()),
                        convert_clang_loc(ctx, expr->getLocEnd()));
@@ -422,6 +425,9 @@ Expr *ClangParser::parseForInit
  ASTContext *myctx) {
   clang::SourceRange range = init->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
+  utils::trim(text);
+  assert(text.back() == ';');
+  text.pop_back();
   Expr *ret = new Expr(myctx, text,
                        convert_clang_loc(ctx, range));
   // get symbol
@@ -527,6 +533,7 @@ ASTContext *ClangParser::parse(fs::path file) {
   std::cout << "clang parser pasing " << file << "\n";
   // ASTContext *ctx = new ASTContext(file.string());
   ASTContext *ctx = create_by_action(file);
+  ctx->createSymbolTable();
   return ctx;
 }
 

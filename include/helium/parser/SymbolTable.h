@@ -15,6 +15,10 @@ public:
     if (m.count(name) == 1) return m[name];
     return nullptr;
   }
+  ASTNodeBase *getRecursive(std::string name) {
+    if (get(name)) return get(name);
+    return parent->getRecursive(name);
+  }
   std::vector<SymbolTableEntry*> getChildren() {return children;}
   void addChild(SymbolTableEntry *entry) {
     children.push_back(entry);

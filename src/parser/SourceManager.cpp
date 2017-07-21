@@ -88,6 +88,33 @@ std::set<ASTNodeBase*> SourceManager::grammarPatch(std::set<ASTNodeBase*> sel) {
 }
 
 
+
+std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
+  std::set<ASTNodeBase*> ret(sel.begin(), sel.end());
+  std::set<ASTNodeBase*> done;
+  std::set<ASTNodeBase*> worklist(sel.begin(), sel.end());
+  while (!worklist.empty()) {
+    ASTNodeBase *node = *worklist.begin();
+    worklist.erase(node);
+    if (done.count(node) == 1) continue;
+    done.insert(node);
+    ASTContext *ast = node->getASTContext();
+    SymbolTable *symtbl = ast->getSymbolTable();
+    SymbolTableEntry *entry = symtbl->getEntry(node);
+    if (entry) {
+      std::set<std::string> used_vars = node->getUsedVars();
+      for (std::string var : used_vars) {
+        ASTNodeBase *decl_node = entry->getRecursive(var);
+        if (decl_node) {
+          ret.insert(decl_node);
+          worklist.insert(decl_node);
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 // TODO
 #if 0
 std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {

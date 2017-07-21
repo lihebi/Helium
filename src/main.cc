@@ -99,9 +99,9 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     std::set<ASTNodeBase*> patch_sel = orig_sel;
     // source_man->dumpDist(sel, std::cout);
     patch_sel = source_man->grammarPatch(patch_sel);
-    // patch_sel = source_man->defUse(patch_sel);
+    patch_sel = source_man->defUse(patch_sel);
     // I might want to do another grammar patching in case def use breaks it
-    // sel = source_man->grammarPatch(sel);
+    patch_sel = source_man->grammarPatch(patch_sel);
     // Generate into folder and do compilation
     // use the sel filename as the folder
     patch_sel = source_man->patchFunctionHeader(patch_sel);

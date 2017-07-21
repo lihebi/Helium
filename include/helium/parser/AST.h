@@ -35,14 +35,7 @@ class ASTNodeBase;
  * @{
  */
 
-class ASTSymbolTableEntry {
-public:
-private:
-};
-class ASTSymbolTable {
-public:
-private:
-};
+class SymbolTable;
 
 /**
  * You can get TranslationUnitDecl from this
@@ -62,6 +55,9 @@ public:
   SourceManager *getSourceManager() {return Manager;}
   std::vector<ASTNodeBase*> getNodes() {return Nodes;}
   std::string getFileName() {return Filename;}
+
+  void createSymbolTable();
+  SymbolTable *getSymbolTable() {return m_symtbl;}
 private:
   std::string Filename;
   TranslationUnitDecl *m_unit = nullptr;
@@ -71,6 +67,7 @@ private:
   // int level=-1;
   // root will have level 0
   // level will increase
+  SymbolTable *m_symtbl = nullptr;
 };
 
 

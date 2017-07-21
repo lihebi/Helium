@@ -18,7 +18,7 @@ using std::set;
 void NewGenerator::visit(TokenNode *node){
   Visitor::visit(node);
   if (m_sel.count(node) == 1) {
-    addInnerProg(node, node->getText());
+    addInnerProg(node, " " + node->getText() + " ");
   }
 }
 void NewGenerator::visit(TranslationUnitDecl *node){
