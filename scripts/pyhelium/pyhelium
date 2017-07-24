@@ -14,9 +14,48 @@ import pprint
 import json
 
 from iclones_process import create_iclones_selection
-from preprocess import unzip, preprocess, create_selection
+# from preprocess import unzip, preprocess, create_selection
 import shutil
 
+def create_selection(indir, outdir):
+    """
+    Create random selection for all cache folder
+    """
+    for item in os.listdir(indir):
+        print ('creating selection for ' + os.path.join(indir, item) + ' ..')
+        benchmark=os.path.join(indir, item)
+        outputdir=os.path.join(outdir, item)
+        if os.path.isdir(benchmark):
+            cmd = 'helium --create-selection --sel-num 100 --sel-tok 20 '\
+                  + benchmark + ' -o ' + outputdir
+            print ("\t==>", cmd)
+            complete = subprocess.run(cmd, shell=True)
+            if (complete.returncode != 0):
+                print("\tFailed")
+def preprocess(indir, outdir):
+    """
+    2. create include.json
+    3. create snippets.json
+    """
+    if os.path.exists(outdir): shutil.rmtree(outdir)
+    os.mkdir(outdir)
+    for item in os.listdir(indir):
+        print ('preprocessing for ' + os.path.join(indir, item) + ' ..')
+        benchmark = os.path.join(indir, item)
+        # outputdir = os.path.join(outdir, item)
+        # print('creating output dir', outputdir)
+        os.mkdir(os.path.join(outdir, item))
+        includejson = os.path.join(outdir, item, 'include.json')
+        snippetjson = os.path.join(outdir, item, 'snippets.json')
+        cmd = 'helium --create-include-dep ' + benchmark\
+              + ' -o ' + includejson
+        print ("\t==>", cmd)
+        subprocess.run(cmd, shell=True)
+        cmd = 'helium --create-snippet ' + benchmark\
+              + ' --include-dep ' + includejson\
+              + ' -o ' + snippetjson
+        print ("\t==>", cmd)
+        subprocess.run(cmd, shell=True)
 def run_helium(indir, seldir, outdir):
     if os.path.exists(outdir): shutil.rmtree(outdir)
     os.mkdir(outdir)
@@ -32,7 +71,11 @@ def run_helium(indir, seldir, outdir):
               ' --snippet ' + os.path.join(bench, 'snippets.json') +\
               ' --include-dep ' + os.path.join(bench, 'include.json') +\
               ' -o ' + os.path.join(outdir, benchname)
-        subprocess.run(cmd, shell=True)
+        print("\t==>", cmd)
+        complete = subprocess.run(cmd, shell=True)
+        if (complete.returncode != 0):
+            print("\tFailed")
+        
 def analyze_buildrate(indir, outdir):
     """
     analyze buildrate and output sorted
@@ -56,9 +99,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pyhelium -- Helium Python Scripting System')
 
     parser.add_argument('--unzip', action='store_true')
-    parser.add_argument('--preprocess', action='store_true')
     parser.add_argument('--create-selection', action='store_true')
     parser.add_argument('--create-iclones-selection', action='store_true')
+    parser.add_argument('--preprocess', action='store_true')
 
     parser.add_argument('--run-helium', action='store_true',
                         help='give as input the preprocessed folder')

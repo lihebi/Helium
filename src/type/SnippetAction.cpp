@@ -31,14 +31,11 @@ public:
     clang::FunctionDecl *def = func_decl->getDefinition();
     std::string name = func_decl->getNameInfo().getName().getAsString();
     // llvm::errs() << "visiting func " << name << "\n";
-    // clang::SourceRange range = func_decl->getSourceRange();
-    // clang::SourceLocation begin = range.getBegin();
-    // clang::SourceLocation end = range.getEnd();
     clang::SourceLocation begin = func_decl->getLocStart();
     clang::SourceLocation end = func_decl->getLocEnd();
+    if (!Context->getSourceManager().isInMainFile(begin)) return true;
     // I would also extract the declaration
     // TESTME body is empty, then does it have a body?
-    // TESTME the start include { or not?
     // TESTME it includes function prototype or not?
     Snippet *s = nullptr;
     if (def == func_decl) {
@@ -48,14 +45,13 @@ public:
                                   convertLocation(Context, end),
                                   convertLocation(Context, body_begin));
       snippets.push_back(s);
-      return true;
     } else {
       s = new FunctionDeclSnippet(name, Filename,
                                       convertLocation(Context, begin),
                                       convertLocation(Context, end));
       snippets.push_back(s);
-      return true;
     }
+    return true;
   }
   // bool WalkUpFromFunctionDecl(clang::FunctionDecl *func) {
   //   std::string name = func->getNameInfo().getName().getAsString();
@@ -87,6 +83,7 @@ public:
     // clang::SourceLocation end = range.getEnd();
     clang::SourceLocation begin = var_decl->getLocStart();
     clang::SourceLocation end = var_decl->getLocEnd();
+    if (!Context->getSourceManager().isInMainFile(begin)) return true;
     // clang::SourceLocation loc = var_decl->getLocation();
       
     Snippet *s = new VarSnippet(name, Filename,
@@ -102,6 +99,7 @@ public:
     // clang::SourceLocation end = range.getEnd();
     clang::SourceLocation begin = decl->getLocStart();
     clang::SourceLocation end = decl->getLocEnd();
+    if (!Context->getSourceManager().isInMainFile(begin)) return true;
     Snippet *s = new TypedefSnippet(name, Filename,
                                             convertLocation(Context, begin),
                                             convertLocation(Context, end));
@@ -117,6 +115,7 @@ public:
       // clang::SourceLocation end = range.getEnd();
       clang::SourceLocation begin = decl->getLocStart();
       clang::SourceLocation end = decl->getLocEnd();
+      if (!Context->getSourceManager().isInMainFile(begin)) return true;
       EnumSnippet *s = new EnumSnippet(name, Filename,
                                                convertLocation(Context, begin),
                                                convertLocation(Context, end));
@@ -141,6 +140,7 @@ public:
     // clang::SourceLocation end = range.getEnd();
     clang::SourceLocation begin = decl->getLocStart();
     clang::SourceLocation end = decl->getLocEnd();
+    if (!Context->getSourceManager().isInMainFile(begin)) return true;
     // name can be empty, this is an anonymous record. It must have a typedef or var to enclose it.
     Snippet *s = nullptr;
     if (def == decl) {

@@ -153,6 +153,8 @@ FunctionDecl *ClangParser::parseFunctionDecl
  clang::FunctionDecl *func,
  ASTContext *myctx) {
   clang::Stmt *stmt = func->getBody();
+  // this does not have a function body
+  if (!stmt) return nullptr;
   // this should be a compound stmt
   assert(clang::dyn_cast<clang::CompoundStmt>(stmt));
   clang::CompoundStmt *comp = clang::dyn_cast<clang::CompoundStmt>(stmt);
@@ -245,7 +247,7 @@ Stmt *ClangParser::parseStmt
     ret = parseExprStmt(ctx, rewriter, expr, myctx);
   } else {
     std::string name = stmt->getStmtClassName();
-    std::cerr << "Stmt of kind " << name << " not supported." << "\n";
+    // std::cerr << "Stmt of kind " << name << " not supported." << "\n";
   }
   return ret;
 };
@@ -399,6 +401,7 @@ Expr *ClangParser::parseExpr
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::Expr *expr,
  ASTContext *myctx) {
+  if (!expr) return nullptr;
   clang::SourceRange range = expr->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
   Expr *ret = new Expr(myctx, text,
@@ -439,11 +442,15 @@ Expr *ClangParser::parseForInit
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::Stmt *init,
  ASTContext *myctx) {
+  if (!init) return nullptr;
   clang::SourceRange range = init->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
   utils::trim(text);
-  assert(text.back() == ';');
-  text.pop_back();
+  // std::cout << text << "\n";
+  // assert(text.back() == ';');
+  if (text.back() == ';') {
+    text.pop_back();
+  }
   Expr *ret = new Expr(myctx, text,
                        convert_clang_loc(ctx, range));
   // get symbol
@@ -548,7 +555,7 @@ void create_by_build(fs::path file) {
 
 
 ASTContext *ClangParser::parse(fs::path file) {
-  std::cout << "clang parser pasing " << file << "\n";
+  // std::cout << "clang parser pasing " << file << "\n";
   // ASTContext *ctx = new ASTContext(file.string());
   ASTContext *ctx = create_by_action(file);
   ctx->createSymbolTable();

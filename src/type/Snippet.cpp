@@ -120,20 +120,24 @@ std::string read_file_for_code(fs::path file, SourceLocation begin, SourceLocati
   std::string ret;
   if (is.is_open()) {
     std::string line;
-    while(getline(is, line)) {
-      l++;
-      if (l < l1 || l > l2) {
-      } else if (l>l1 && l < l2) {
-        ret += line + "\n";
-      } else if (l==l1 && l == l2) {
-        ret += line.substr(c1-1, c2+1 - c1);
-      } else if (l==l2) {
-        ret += line.substr(0, c2);
-      } else if (l==l1) {
-        ret += line.substr(c1-1) + "\n";
-      } else {
-        break;
+    try {
+      while(getline(is, line)) {
+        l++;
+        if (l < l1 || l > l2) {
+        } else if (l>l1 && l < l2) {
+          ret += line + "\n";
+        } else if (l==l1 && l == l2) {
+          ret += line.substr(c1-1, c2+1 - c1);
+        } else if (l==l2) {
+          ret += line.substr(0, c2);
+        } else if (l==l1) {
+          ret += line.substr(c1-1) + "\n";
+        } else {
+          break;
+        }
       }
+    } catch (std::out_of_range e) {
+      std::cerr << "Cannot get code." << "\n";
     }
     is.close();
   }
