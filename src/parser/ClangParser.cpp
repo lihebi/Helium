@@ -245,6 +245,8 @@ Stmt *ClangParser::parseStmt
     ret = parseReturnStmt(ctx, rewriter, ret_stmt, myctx);
   } else if (clang::Expr *expr = clang::dyn_cast<clang::Expr>(stmt)){
     ret = parseExprStmt(ctx, rewriter, expr, myctx);
+  } else if (clang::NullStmt *null_stmt = clang::dyn_cast<clang::NullStmt>(stmt)) {
+    ret = parseNullStmt(ctx, rewriter, null_stmt, myctx);
   } else {
     std::string name = stmt->getStmtClassName();
     // std::cerr << "Stmt of kind " << name << " not supported." << "\n";
@@ -435,6 +437,17 @@ ExprStmt *ClangParser::parseExprStmt
   }
   return ret;
 }
+
+ExprStmt *ClangParser::parseNullStmt
+(clang::ASTContext *ctx, clang::Rewriter &rewriter,
+ clang::NullStmt *null_stmt,
+ ASTContext *myctx) {
+  ExprStmt *ret = new ExprStmt(myctx, "",
+                               convert_clang_loc(ctx, null_stmt->getLocStart()),
+                               convert_clang_loc(ctx, null_stmt->getLocEnd()));
+  return ret;
+}
+
 /**
  * This is for "for init", as it should be expr, but clang parse it as Stmt
  */
@@ -484,13 +497,13 @@ ContinueStmt *ClangParser::parseContinueStmt
 
 class ParserConsumer : public clang::ASTConsumer {
 public:
-  explicit ParserConsumer(clang::ASTContext *Context, clang::Rewriter &rewriter, ASTContext **retctx)
-    : rewriter(rewriter), retctx(retctx) {}
+  explicit ParserConsumer(clang::ASTContext *Context, clang::Rewriter &rewriter, ASTContext **retctx, llvm::StringRef InFile)
+    : rewriter(rewriter), retctx(retctx), InFile(InFile) {}
 
   virtual void HandleTranslationUnit(clang::ASTContext &Context) {
     // Then I don't need source code at all
     clang::TranslationUnitDecl *unit = Context.getTranslationUnitDecl();
-    ASTContext *myctx = new ASTContext("dummy-filename.c");
+    ASTContext *myctx = new ASTContext(InFile.str());
     TranslationUnitDecl *myunit = ClangParser::parseTranslationUnitDecl(&Context, rewriter, unit, myctx);
     myctx->setTranslationUnitDecl(myunit);
     if (!retctx) {
@@ -502,6 +515,7 @@ public:
 private:
   clang::Rewriter &rewriter;
   ASTContext **retctx=nullptr;
+  llvm::StringRef InFile;
 };
 
 class ParserAction : public clang::ASTFrontendAction {
@@ -514,7 +528,7 @@ public:
     setCompilerInstance(&Compiler);
     // return consumer
     return std::unique_ptr<clang::ASTConsumer>
-      (new ParserConsumer(&Compiler.getASTContext(), rewriter, &retctx));
+      (new ParserConsumer(&Compiler.getASTContext(), rewriter, &retctx, InFile));
   }
   ASTContext *getMyASTContext() {
     return retctx;

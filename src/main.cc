@@ -95,6 +95,7 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
 
   std::vector<std::string> compile_suc, run_suc;
   for (fs::path sel_file : sels) {
+    std::cout << "." << std::flush;
     std::set<ASTNodeBase*> orig_sel = source_man->loadSelection(sel_file);
     std::set<ASTNodeBase*> patch_sel = orig_sel;
     // source_man->dumpDist(sel, std::cout);

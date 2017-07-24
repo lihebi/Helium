@@ -238,7 +238,7 @@ void GrammarPatcher::visit(FunctionDecl *node) {
   TokenNode *NameNode = node->getNameNode();
   assert(NameNode);
   TokenNode *ParamNode = node->getParamNode();
-  assert(ParamNode);
+  // assert(ParamNode);
   Stmt *body = node->getBody();
   assert(body);
   // body is special.
@@ -254,7 +254,9 @@ void GrammarPatcher::visit(FunctionDecl *node) {
     // no selection data is passed in. Treat as no selection.
     Patch.insert(ReturnTypeNode);
     Patch.insert(NameNode);
-    Patch.insert(ParamNode);
+    if (ParamNode) {
+      Patch.insert(ParamNode);
+    }
     Patch.insert(body);
 
     // this will ensure to capture the compstmt

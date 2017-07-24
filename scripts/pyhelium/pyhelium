@@ -56,7 +56,12 @@ def preprocess(indir, outdir):
               + ' -o ' + snippetjson
         print ("\t==>", cmd)
         subprocess.run(cmd, shell=True)
-def run_helium(indir, seldir, outdir):
+
+
+
+
+        
+def run_helium(indir, jsondir, seldir, outdir):
     if os.path.exists(outdir): shutil.rmtree(outdir)
     os.mkdir(outdir)
     for benchname in os.listdir(indir):
@@ -64,12 +69,14 @@ def run_helium(indir, seldir, outdir):
         bench = os.path.join(indir, benchname)
         # sel = os.path.join(seldir, 'by-bench', item)
         sel = os.path.join(seldir, benchname)
+        includejson = os.path.join(jsondir, benchname, "include.json")
+        snippetjson = os.path.join(jsondir, benchname, "snippets.json")
         if not os.path.exists(sel):
             print (sel + ' not exists, skipped')
             continue
         cmd = 'helium --run ' + bench + ' --selection ' + sel +\
-              ' --snippet ' + os.path.join(bench, 'snippets.json') +\
-              ' --include-dep ' + os.path.join(bench, 'include.json') +\
+              ' --snippet ' + snippetjson +\
+              ' --include-dep ' + includejson +\
               ' -o ' + os.path.join(outdir, benchname)
         print("\t==>", cmd)
         complete = subprocess.run(cmd, shell=True)
@@ -106,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--run-helium', action='store_true',
                         help='give as input the preprocessed folder')
     parser.add_argument('-s', '--selection', help='selection files')
+    parser.add_argument('-j', '--jsonfiles', help='json file folder')
 
     parser.add_argument('--analyze-buildrate', action='store_true')
 
@@ -134,7 +142,7 @@ if __name__ == '__main__':
         if not args.selection:
             print('need to provide selection file or folder')
             exit(1)
-        run_helium(args.input, args.selection, args.output)
+        run_helium(args.input, args.jsonfiles, args.selection, args.output)
         # collect build rate information for all of the benchmarks
     elif args.analyze_buildrate:
         analyze_buildrate(args.input, args.output)

@@ -604,7 +604,7 @@ std::set<ASTNodeBase*> SourceManager::patchFunctionHeader(std::set<ASTNodeBase*>
         sel.insert(func);
         sel.insert(func->getReturnTypeNode());
         sel.insert(func->getNameNode());
-        sel.insert(func->getParamNode());
+        if (func->getParamNode()) sel.insert(func->getParamNode());
         sel.insert(func->getBody());
         CompoundStmt *body = dynamic_cast<CompoundStmt*>(func->getBody());
         sel.insert(body->getLBrace());

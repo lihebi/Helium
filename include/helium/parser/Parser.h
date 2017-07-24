@@ -131,6 +131,10 @@ public:
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
    clang::ContinueStmt *cont_stmt,
    ASTContext *myctx);
+  static ExprStmt *parseNullStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::NullStmt *null_stmt,
+   ASTContext *myctx);
 };
 
 
