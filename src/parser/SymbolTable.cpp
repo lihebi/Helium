@@ -106,7 +106,8 @@ void SymbolTableBuilder::visit(ExprStmt *node) {
 void SymbolTableBuilder::process(ASTNodeBase *node) {
   std::set<std::string> defined_vars = node->getDefinedVars();
   for (std::string var : defined_vars) {
-    tbl->add(var, node);
+    std::string type = node->getDefinedVarType(var); 
+    tbl->add(var, type, node);
   }
   tbl->bindNode(node);
 }
@@ -115,8 +116,9 @@ void SymbolTableEntry::dump(std::ostream &os) {
   os << "(lambda " << (void*)this << "\n";
   for (auto &mi : m) {
     std::string name = mi.first;
-    ASTNodeBase *node = mi.second;
-    os << "(" << name << " " << (void*)node << ")\n";
+    std::string type = mi.second.first;
+    ASTNodeBase *node = mi.second.second;
+    os << "(" << name << " " << type << " " << (void*)node << ")\n";
   }
   for (SymbolTableEntry *child : children) {
     child->dump(os);

@@ -110,15 +110,24 @@ std::set<std::string> get_used_vars(clang::DeclStmt *decl_stmt) {
   return ret;
 }
 
-std::set<std::string> get_defined_vars(clang::DeclStmt *decl_stmt) {
-  std::set<std::string> ret;
+typedef struct {
+  std::string name;
+  std::string type;
+} PlainVar;
+
+std::vector<PlainVar> get_defined_vars(clang::DeclStmt *decl_stmt) {
+  std::vector<PlainVar> ret;
   for (clang::DeclStmt::decl_iterator it=decl_stmt->decl_begin();it!=decl_stmt->decl_end();++it) {
     clang::Decl *decl = *it;
     // I'm interested in VarDecl
     if (clang::VarDecl *var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
       std::string name = var_decl->getNameAsString();
+      std::string type = var_decl->getType().getCanonicalType().getAsString();
       // add this var to this node
-      ret.insert(name);
+      PlainVar var;
+      var.name = name;
+      var.type = type;
+      ret.push_back(var);
     }
   }
   return ret;
@@ -132,9 +141,11 @@ DeclStmt* ClangParser::parseDeclStmt
   std::string mytext = rewriter.getRewrittenText(range);
   DeclStmt *ret = new DeclStmt(myctx, mytext, convert_clang_loc(ctx, decl_stmt->getSourceRange()));
   std::set<std::string> used = get_used_vars(decl_stmt);
-  std::set<std::string> defined = get_defined_vars(decl_stmt);
+  std::vector<PlainVar> defined = get_defined_vars(decl_stmt);
   ret->addUsedVar(used);
-  ret->addDefinedVar(defined);
+  for (PlainVar var : defined) {
+    ret->addDefinedVar(var.name, var.type);
+  }
   return ret;
 }
 FunctionDecl *ClangParser::parseFunctionDecl
@@ -157,20 +168,25 @@ FunctionDecl *ClangParser::parseFunctionDecl
   // FIXME this should have both () and ,
   TokenNode *ParamNode = nullptr;
   if (func->param_size() != 0) {
-    std::set<std::string> defined_vars;
+    std::vector<PlainVar> defined_vars;
     clang::SourceLocation param_begin = func->getParamDecl(0)->getLocStart();
     clang::SourceLocation param_end = func->getParamDecl(func->param_size()-1)->getLocEnd();
     for (clang::FunctionDecl::param_iterator it=func->param_begin();it!=func->param_end();++it) {
       clang::ParmVarDecl *param = *it;
       // param_text += rewriter.getRewrittenText(param->getSourceRange());
       params.push_back(rewriter.getRewrittenText(param->getSourceRange()));
-      defined_vars.insert(param->getNameAsString());
+      PlainVar var;
+      var.name = param->getNameAsString();
+      var.type = param->getType().getCanonicalType().getAsString();
+      defined_vars.push_back(var);
     }
     std::string param_text = boost::algorithm::join(params, ", ");
     ParamNode = new TokenNode(myctx, param_text,
                               convert_clang_loc(ctx, param_begin),
                               convert_clang_loc(ctx, param_end));
-    ParamNode->addDefinedVar(defined_vars);
+    for (PlainVar var : defined_vars) {
+      ParamNode->addDefinedVar(var.name, var.type);
+    }
   }
 
   FunctionDecl *ret = new FunctionDecl(myctx, func->getName().str(), ReturnTypeNode, NameNode, ParamNode, mycomp,
@@ -433,7 +449,9 @@ Expr *ClangParser::parseForInit
   // get symbol
   if (clang::DeclStmt *decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
     ret->addUsedVar(get_used_vars(decl_stmt));
-    ret->addDefinedVar(get_defined_vars(decl_stmt));
+    for (PlainVar var : get_defined_vars(decl_stmt)) {
+      ret->addDefinedVar(var.name, var.type);
+    }
   }
   return ret;
 }

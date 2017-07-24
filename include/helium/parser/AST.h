@@ -101,14 +101,20 @@ public:
   void addUsedVar(std::string var) {m_used_vars.insert(var);}
   void addUsedVar(std::set<std::string> vars) {m_used_vars.insert(vars.begin(), vars.end());}
   std::set<std::string> getUsedVars() {return m_used_vars;}
-  void addDefinedVar(std::string var) {m_defined_vars.insert(var);}
-  void addDefinedVar(std::set<std::string> vars) {m_defined_vars.insert(vars.begin(), vars.end());}
-  std::set<std::string> getDefinedVars() {return m_defined_vars;}
-
-  void addFullVar(std::string name, std::string type) {
-    fullVars[name] = type;
+  void addDefinedVar(std::string var, std::string type) {
+    m_defined_vars.insert(var);
+    name2type[var] = type;
   }
-  std::map<std::string, std::string> getFullVars() {return fullVars;}
+  std::set<std::string> getDefinedVars() {return m_defined_vars;}
+  std::string getDefinedVarType(std::string name) {
+    if (name2type.count(name) == 1) return name2type[name];
+    return "";
+  }
+
+  // void addFullVar(std::string name, std::string type) {
+  //   fullVars[name] = type;
+  // }
+  // std::map<std::string, std::string> getFullVars() {return fullVars;}
     
   virtual std::set<std::string> getIdToResolve() {return {};}
   virtual bool isLeaf() {return false;}
@@ -121,6 +127,7 @@ protected:
   // def-use
   std::set<std::string> m_defined_vars;
   std::set<std::string> m_used_vars;
+  std::map<std::string, std::string> name2type;
 };
 
 class Decl : public ASTNodeBase {

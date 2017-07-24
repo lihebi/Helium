@@ -8,16 +8,48 @@ public:
   SymbolTableEntry(SymbolTableEntry *parent) : parent(parent) {}
   ~SymbolTableEntry() {}
   SymbolTableEntry *getParent() {return parent;}
-  void add(std::string name, ASTNodeBase *node) {
-    m[name] = node;
+  void add(std::string name, std::string type, ASTNodeBase *node) {
+    m[name] = {type, node};
   }
-  ASTNodeBase *get(std::string name) {
-    if (m.count(name) == 1) return m[name];
+  ASTNodeBase *getNode(std::string name) {
+    if (m.count(name) == 1) return m[name].second;
     return nullptr;
   }
-  ASTNodeBase *getRecursive(std::string name) {
-    if (get(name)) return get(name);
-    return parent->getRecursive(name);
+  ASTNodeBase *getNodeRecursive(std::string name) {
+    if (m.count(name) == 1) return m[name].second;
+    if (parent) {
+      return parent->getNodeRecursive(name);
+    }
+    return nullptr;
+  }
+  std::string getType(std::string name) {
+    if (m.count(name) == 1) return m[name].first;
+    return "";
+  }
+  std::string getTypeRecursive(std::string name) {
+    if (m.count(name) == 1) return m[name].first;
+    if (parent) {
+      return parent->getTypeRecursive(name);
+    }
+    return "";
+  }
+  std::set<std::string> getAllVars() {
+    std::set<std::string> ret;
+    for (auto &mi : m) {
+      ret.insert(mi.first);
+    }
+    return ret;
+  }
+  std::set<std::string> getAllVarsRecursive() {
+    std::set<std::string> ret;
+    for (auto &mi : m) {
+      ret.insert(mi.first);
+    }
+    if (parent) {
+      std::set<std::string> par = parent->getAllVarsRecursive();
+      ret.insert(par.begin(), par.end());
+    }
+    return ret;
   }
   std::vector<SymbolTableEntry*> getChildren() {return children;}
   void addChild(SymbolTableEntry *entry) {
@@ -27,7 +59,7 @@ public:
 private:
   SymbolTableEntry *parent = nullptr;
   std::vector<SymbolTableEntry*> children;
-  std::map<std::string, ASTNodeBase*> m;
+  std::map<std::string, std::pair<std::string, ASTNodeBase*>> m;
 };
 
 class SymbolTable {
@@ -48,17 +80,8 @@ public:
   }
   SymbolTableEntry *getCurrent() {return current;}
 
-  void add(std::string name, ASTNodeBase *node) {
-    current->add(name, node);
-  }
-  ASTNodeBase* get(std::string name) {
-    SymbolTableEntry *entry = current;
-    while (entry) {
-      ASTNodeBase *node = entry->get(name);
-      if (node) return node;
-      entry = entry->getParent();
-    }
-    return nullptr;
+  void add(std::string name, std::string type, ASTNodeBase *node) {
+    current->add(name, type, node);
   }
   void bindNode(ASTNodeBase *node) {
     node2entry[node] = current;
@@ -70,18 +93,6 @@ public:
     return nullptr;
   }
   void dump(std::ostream &os);
-  /**
-   * get all visible ones
-   */
-  // std::map<std::string, ASTNodeBase*> getAll() {
-  //   std::map<std::string, ASTNodeBase*> ret;
-  //   for (std::map<std::string, ASTNodeBase*> v : Stack) {
-  //     for (auto m : v) {
-  //       ret[m.first] = m.second;
-  //     }
-  //   }
-  //   return ret;
-  // }
 private:
   std::map<ASTNodeBase*, SymbolTableEntry*> node2entry;
   SymbolTableEntry *current = nullptr;

@@ -688,4 +688,14 @@ private:
   std::set<CFGNode*> return_nodes;
 };
 
+
+/**
+ * Select which DeclStmt, ForInit, ParamVar is going to be
+ * initialized.
+ * Criteria:
+ * - used without definition
+ */
+class InputSelector : Visitor {
+};
+
 #endif /* VISITOR_H */

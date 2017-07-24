@@ -104,7 +104,7 @@ std::set<ASTNodeBase*> SourceManager::defUse(std::set<ASTNodeBase*> sel) {
     if (entry) {
       std::set<std::string> used_vars = node->getUsedVars();
       for (std::string var : used_vars) {
-        ASTNodeBase *decl_node = entry->getRecursive(var);
+        ASTNodeBase *decl_node = entry->getNodeRecursive(var);
         if (decl_node) {
           ret.insert(decl_node);
           worklist.insert(decl_node);
@@ -664,9 +664,13 @@ std::string SourceManager::generateMainC(std::set<ASTNodeBase*> sel) {
   for (auto &m : File2ASTMap) {
     ASTContext *ast = m.second;
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
+    Instrumentor instru;
+    instru.setSelection(sel);
+    unit->accept(&instru);
     NewGenerator gen;
     gen.setSelection(sel);
-    // gen.adjustReturn(true);
+    gen.setSpecPre(instru.getSpecPre());
+    gen.setSpecPost(instru.getSpecPost());
     unit->accept(&gen);
     std::string prog = gen.getProgram(unit);
 
