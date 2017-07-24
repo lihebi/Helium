@@ -10,7 +10,7 @@
 
 #include "helium/type/IOHelper.h"
 #include "helium/parser/SymbolTable.h"
-#include "helium/parser/NewGenerator.h"
+#include "helium/parser/Generator.h"
 
 #include <regex>
 
@@ -667,7 +667,7 @@ std::string SourceManager::generateMainC(std::set<ASTNodeBase*> sel) {
     Instrumentor instru;
     instru.setSelection(sel);
     unit->accept(&instru);
-    NewGenerator gen;
+    Generator gen;
     gen.setSelection(sel);
     gen.setSpecPre(instru.getSpecPre());
     gen.setSpecPost(instru.getSpecPost());

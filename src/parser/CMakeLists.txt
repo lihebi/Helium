@@ -11,8 +11,7 @@ add_library(HeliumParser
   Visitor.cpp
   CFGBuilder.cpp
   Distributor.cpp
-  # Generator.cpp
-  NewGenerator.cpp
+  Generator.cpp
   GrammarPatcher.cpp
   LevelVisitor.cpp
   ParentIndexer.cpp
