@@ -26,7 +26,7 @@ def create_selection(indir, outdir):
         benchmark=os.path.join(indir, item)
         outputdir=os.path.join(outdir, item)
         if os.path.isdir(benchmark):
-            cmd = 'helium --create-selection --sel-num 100 --sel-tok 20 '\
+            cmd = 'helium --create-selection --sel-num 20 --sel-tok 10 '\
                   + benchmark + ' -o ' + outputdir
             print ("\t==>", cmd)
             complete = subprocess.run(cmd, shell=True)

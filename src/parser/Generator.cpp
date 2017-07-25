@@ -13,59 +13,16 @@ using std::vector;
 using std::string;
 using std::map;
 using std::set;
-ASTNodeBase* last_node(std::set<ASTNodeBase*> nodes) {
-  ASTNodeBase* ret = nullptr;
-  for (auto *node : nodes) {
-    if (!ret) ret=node;
-    else {
-      // should not be compound stmt, because that would make a wrong output position
-      if (dynamic_cast<CompoundStmt*>(node)) continue;
-      SourceLocation loc = node->getEndLoc();
-      SourceLocation retloc = ret->getEndLoc();
-      if (retloc < loc) {
-        ret = node;
-      }
-    }
-  }
-  return ret;
-}
-
-static std::string get_input_code(ASTNodeBase* node) {
-  std::string ret;
-  std::set<std::string> vars = node->getDefinedVars();
-  for (std::string var : vars) {
-    std::string type = node->getDefinedVarType(var);
-    Type *t = TypeFactory::CreateType(type);
-    if (t && dynamic_cast<PrimitiveType*>(t)) {
-      ret += t->GetInputCode(var) + "\n";
-    }
-  }
-  return ret;
-}
-
-std::string get_output_code(ASTNodeBase *output_node, std::set<ASTNodeBase*> sel) {
-  SymbolTable *symtbl = output_node->getASTContext()->getSymbolTable();
-  std::string ret;
-  if (symtbl) {
-    SymbolTableEntry *entry = symtbl->getEntry(output_node);
-    std::set<std::string> vars = entry->getAllVarsRecursive();
-    for (std::string var : vars) {
-      std::string type = entry->getTypeRecursive(var);
-      ASTNodeBase *node = entry->getNodeRecursive(var);
-      if (sel.count(node) == 1) {
-        Type *t = TypeFactory::CreateType(type);
-        if (t && dynamic_cast<PrimitiveType*>(t)) {
-          ret += t->GetOutputCode(var);
-        }
-      }
-    }
-  }
-  return ret;
-}
 
 void Generator::setSelection(std::set<ASTNodeBase*> sel) {
   m_sel = sel;
   // m_spec = get_instrument_spec(sel);
+}
+
+std::string get_comment(ASTNodeBase* node) {
+  std::ostringstream oss;
+  node->dump(oss);
+  return "/* " + oss.str() + " */";
 }
 
 // high level
@@ -73,9 +30,11 @@ void Generator::visit(TokenNode *node){
   Visitor::visit(node);
   if (m_sel.count(node) == 1) {
     std::string prog;
+
     prog = m_spec_pre[node];
     prog += " " + node->getText() + " ";
     prog += m_spec_post[node];
+    // prog = get_comment(node) + prog;
     addInnerProg(node, prog);
   }
 }
@@ -107,10 +66,14 @@ void Generator::visit(FunctionDecl *node){
   if (!ret_prog.empty() && !name_prog.empty() && !param_prog.empty()) {
     // function header is selected
     // record the function name. This function should be called in helium_entry
+
+    std::string func_name = NameNode->getText();
+    if (func_name == "main") name_prog = "helium_main";
+    
     prog += ret_prog + " " + name_prog + "(" + param_prog + ")";
     prog += body_prog;
     // create a helium_entry_<func>() function
-    std::string entry_func_name = "helium_entry_" + NameNode->getText();
+    std::string entry_func_name = "helium_entry_" + func_name;
     prog += "void " + entry_func_name + "() {\n";
     // TODO call the function with parameter, no need to instantize
     prog += "  // TODO call function " + NameNode->getText() + " with properly initialized arguments\n";
@@ -120,13 +83,22 @@ void Generator::visit(FunctionDecl *node){
   } else if (!body_prog.empty()) {
     // function header is not selected
     // create a helium_entry_dummy_<func>() functions
-    std::string entry_func_name = "helium_entry_dummy_" + NameNode->getText();
+    std::string func_name = NameNode->getText();
+    std::string entry_func_name = "helium_entry_dummy_" + func_name;
     prog += "void " + entry_func_name + "() {\n";
     // remove return in body_prog
     utils::replace(body_prog, "return", "");
     prog += body_prog;
     prog += "}\n";
     m_entry_funcs.insert(entry_func_name);
+  }
+  std::string comment;
+  std::ostringstream oss;
+  node->dump(oss);
+  std::string filename = node->getASTContext()->getFileName();
+  comment += "// " + filename + " " + oss.str() + "\n";
+  if (!prog.empty()) {
+    prog = comment + prog;
   }
   prog += m_spec_post[node];
   addInnerProg(node, prog);
@@ -343,7 +315,7 @@ void Generator::visit(ReturnStmt *node){
   std::string prog;
   prog += m_spec_pre[node];
   if (!ret_node_prog.empty()) {
-    prog += ret_node_prog + " " + ret_value_prog + "\n";
+    prog += ret_node_prog + " " + ret_value_prog + ";\n";
   }
   // FIXME adjust return
   // FIXME select only value
@@ -392,9 +364,84 @@ void Generator::visit(ExprStmt *node){
  * Instrumentor
  */
 
+std::set<ASTNodeBase*> leaf_nodes(std::set<ASTNodeBase*> nodes) {
+  std::set<ASTNodeBase*> ret;
+  for (ASTNodeBase *node : nodes) {
+    if (node->isLeaf()) ret.insert(node);
+  }
+  return ret;
+}
+
+ASTNodeBase* last_node(std::set<ASTNodeBase*> nodes) {
+  ASTNodeBase* ret = nullptr;
+  nodes = leaf_nodes(nodes);
+  // must be leaf
+  for (auto *node : nodes) {
+    if (!ret) ret=node;
+    else {
+      SourceLocation loc = node->getEndLoc();
+      SourceLocation retloc = ret->getEndLoc();
+      if (retloc < loc) {
+        ret = node;
+      }
+    }
+  }
+  return ret;
+}
+
+ASTNodeBase* last_node_in_func(std::set<ASTNodeBase*> nodes, FunctionDecl *func) {
+  // get all nodes in func
+  std::vector<ASTNodeBase*> children = func->getChildrenRecursive();
+  std::set<ASTNodeBase*> tmp;
+  for (ASTNodeBase *child : children) {
+    if (nodes.count(child) == 1) {
+      tmp.insert(child);
+    }
+  }
+  return last_node(tmp);
+}
+
+
+static std::string get_input_code(ASTNodeBase* node) {
+  std::string ret;
+  std::set<std::string> vars = node->getDefinedVars();
+  for (std::string var : vars) {
+    std::string type = node->getDefinedVarType(var);
+    Type *t = TypeFactory::CreateType(type);
+    if (t && dynamic_cast<PrimitiveType*>(t)) {
+      ret += "\n" + t->GetInputCode(var) + "\n";
+    }
+  }
+  return ret;
+}
+
+std::string get_output_code(ASTNodeBase *output_node, std::set<ASTNodeBase*> sel) {
+  SymbolTable *symtbl = output_node->getASTContext()->getSymbolTable();
+  std::string ret;
+  if (symtbl) {
+    SymbolTableEntry *entry = symtbl->getEntry(output_node);
+    std::set<std::string> vars = entry->getAllVarsRecursive();
+    for (std::string var : vars) {
+      std::string type = entry->getTypeRecursive(var);
+      ASTNodeBase *node = entry->getNodeRecursive(var);
+      if (sel.count(node) == 1) {
+        Type *t = TypeFactory::CreateType(type);
+        if (t && dynamic_cast<PrimitiveType*>(t)) {
+          ret += "\n" + t->GetOutputCode(var) + "\n";
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+
 void Instrumentor::pre(ASTNodeBase*node) {
   if (m_last == node) {
-    m_spec_post[node] += get_output_code(node, m_sel);
+    std::ostringstream oss;
+    node->dump(oss);
+    
+    m_spec_post[node] += "\n// code by last\n//" + oss.str() + "\n" + get_output_code(node, m_sel);
   }
 }
 
@@ -425,22 +472,20 @@ void Instrumentor::visit(FunctionDecl *node) {
     }
   }
   // output
+  Stmt *body = node->getBody();
+  CompoundStmt *comp_stmt = dynamic_cast<CompoundStmt*>(body);
+  assert(comp_stmt);
+  TokenNode *rbrace = comp_stmt->getRBrace();
   if (m_sel.count(node) == 1) {
     // output should be at the end of the functions
-    Stmt *body = node->getBody();
-    CompoundStmt *comp_stmt = dynamic_cast<CompoundStmt*>(body);
-    assert(comp_stmt);
-    TokenNode *rbrace = comp_stmt->getRBrace();
     // get all variables
     std::string code = get_output_code(rbrace, m_sel);
-    m_spec_pre[rbrace] += code;
+    m_spec_pre[rbrace] += "\n// output at the end of function\n" + code;
   } else {
-    // output should be the last of the nodes
-    // m_last = nullptr;
-    // TODO this should be set for each functiondecl
-    m_last = last_node(m_sel);
+    m_last = last_node_in_func(m_sel, node);
   }
   Visitor::visit(node);
+  m_last = nullptr;
   
 }
 void Instrumentor::visit(CompoundStmt *node) {

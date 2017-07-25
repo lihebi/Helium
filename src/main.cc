@@ -162,7 +162,8 @@ void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
     std::ofstream os;
     os.open(file.string().c_str());
     assert(os.is_open());
-    selection = source_man->genRandSelFunc(num_token);
+    // selection = source_man->genRandSelFunc(num_token);
+    selection = source_man->genRandSelSameFunc(num_token);
     source_man->dumpSelection(selection, os);
     os.close();
   }

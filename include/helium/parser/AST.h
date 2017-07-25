@@ -115,6 +115,21 @@ public:
   //   fullVars[name] = type;
   // }
   // std::map<std::string, std::string> getFullVars() {return fullVars;}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    return {};
+  }
+  virtual std::vector<ASTNodeBase*> getChildrenRecursive() {
+    std::vector<ASTNodeBase*> ret;
+    for (ASTNodeBase *node : getChildren()) {
+      // assert(node);
+      if (node) {
+        ret.push_back(node);
+        std::vector<ASTNodeBase*> tmp = node->getChildrenRecursive();
+        ret.insert(ret.end(), tmp.begin(), tmp.end());
+      }
+    }
+    return ret;
+  }
     
   virtual std::set<std::string> getIdToResolve() {return {};}
   virtual bool isLeaf() {return false;}
@@ -129,6 +144,34 @@ protected:
   std::set<std::string> m_used_vars;
   std::map<std::string, std::string> name2type;
 };
+
+
+/**
+ * Exprs
+ */
+
+class Expr : public ASTNodeBase {
+public:
+  Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
+    : ASTNodeBase(ctx, begin, end), Text(text) {}
+  Expr(ASTContext *ctx, std::string text, SourceRange range)
+    : ASTNodeBase(ctx, range), Text(text) {}
+  ~Expr() {}
+  virtual void accept(Visitor *visitor) {
+    visitor->visit(this);
+  }
+  std::string getText() {return Text;}
+  virtual void dump(std::ostream &os) {
+    ASTNodeBase::dump(os);
+    os << " " << "\"" << getText() << "\"";
+  }
+  virtual std::string getNodeName() {return "Expr";}
+  virtual std::set<std::string> getIdToResolve();
+  virtual bool isLeaf() {return true;}
+private:
+  std::string Text;
+};
+
 
 class Decl : public ASTNodeBase {
 public:
@@ -183,6 +226,9 @@ public:
     visitor->visit(this);
   }
   virtual std::string getNodeName() {return "TranslationUnitDecl";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    return decls;
+  }
 private:
   std::vector<ASTNodeBase*> decls;
 };
@@ -256,6 +302,13 @@ public:
   virtual void accept(Visitor *visitor) {
     visitor->visit(this);
   }
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(m_lbrace);
+    ret.insert(ret.end(), stmts.begin(), stmts.end());
+    ret.push_back(m_rbrace);
+    return ret;
+  }
 
   TokenNode *getLBrace() {return m_lbrace;}
   TokenNode *getRBrace() {return m_rbrace;}
@@ -293,6 +346,14 @@ public:
   TokenNode *getNameNode() {return NameNode;}
   TokenNode *getParamNode() {return ParamNode;}
   virtual std::string getNodeName() {return "FunctionDecl";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(ReturnTypeNode);
+    ret.push_back(NameNode);
+    if (ParamNode) ret.push_back(ParamNode);
+    ret.push_back(body);
+    return ret;
+  }
 
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
   // std::set<std::string> getVars() {return vars;}
@@ -332,6 +393,16 @@ public:
   TokenNode *getForNode() {return ForNode;}
   virtual std::string getNodeName() {return "ForStmt";}
 
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(ForNode);
+    ret.push_back(Init);
+    ret.push_back(Cond);
+    ret.push_back(Inc);
+    ret.push_back(Body);
+    return ret;
+  }
+
   // void setVars(std::set<std::string> vars) {this->vars = vars;}
   // std::set<std::string> getVars() {return vars;}
 private:
@@ -362,6 +433,13 @@ public:
   }
   TokenNode *getWhileNode() {return WhileNode;}
   virtual std::string getNodeName() {return "WhileStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(Cond);
+    ret.push_back(WhileNode);
+    ret.push_back(Body);
+    return ret;
+  }
 private:
   Expr *Cond;
   Stmt *Body;
@@ -385,6 +463,14 @@ public:
   TokenNode *getDoNode() {return DoNode;}
   TokenNode *getWhileNode() {return WhileNode;}
   virtual std::string getNodeName() {return "DoStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(DoNode);
+    ret.push_back(Cond);
+    ret.push_back(Body);
+    ret.push_back(WhileNode);
+    return ret;
+  }
 private:
   Expr *Cond;
   Stmt *Body;
@@ -429,6 +515,12 @@ public:
   Expr *getValue() {return Value;}
   TokenNode *getReturnNode() {return ReturnNode;}
   virtual std::string getNodeName() {return "ReturnStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(ReturnNode);
+    ret.push_back(Value);
+    return ret;
+  }
 private:
   TokenNode *ReturnNode = nullptr;
   Expr *Value = nullptr;
@@ -462,12 +554,40 @@ public:
   TokenNode *getIfNode() {return IfNode;}
   TokenNode *getElseNode() {return ElseNode;}
   virtual std::string getNodeName() {return "IfStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(IfNode);
+    ret.push_back(cond);
+    ret.push_back(thenstmt);
+    ret.push_back(ElseNode);
+    ret.push_back(elsestmt);
+    return ret;
+  }
 private:
   Expr *cond = nullptr;
   Stmt *thenstmt = nullptr;
   Stmt *elsestmt = nullptr;
   TokenNode *IfNode = nullptr;
   TokenNode *ElseNode = nullptr;
+};
+
+/**
+ * Base class for CaseStmt and DefaultStmt
+ */
+class SwitchCase : public Stmt {
+public:
+  SwitchCase(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
+  SwitchCase(ASTContext *ctx, SourceRange range) : Stmt(ctx, range) {}
+  ~SwitchCase() {}
+  void Add(Stmt *stmt) {assert(stmt); Body.push_back(stmt);}
+  std::vector<Stmt*> getBody() {return Body;}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.insert(ret.end(), Body.begin(), Body.end());
+    return ret;
+  }
+protected:
+  std::vector<Stmt*> Body;
 };
 
 class SwitchStmt : public Stmt {
@@ -490,25 +610,19 @@ public:
   }
   TokenNode *getSwitchNode() {return SwitchNode;}
   virtual std::string getNodeName() {return "SwitchStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret;
+    ret.push_back(SwitchNode);
+    ret.push_back(Cond);
+    ret.insert(ret.end(), Cases.begin(), Cases.end());
+    return ret;
+  }
 private:
   Expr *Cond = nullptr;
   std::vector<SwitchCase*> Cases;
   TokenNode *SwitchNode = nullptr;
 };
 
-/**
- * Base class for CaseStmt and DefaultStmt
- */
-class SwitchCase : public Stmt {
-public:
-  SwitchCase(ASTContext *ctx, SourceLocation begin, SourceLocation end) : Stmt(ctx, begin, end) {}
-  SwitchCase(ASTContext *ctx, SourceRange range) : Stmt(ctx, range) {}
-  ~SwitchCase() {}
-  void Add(Stmt *stmt) {assert(stmt); Body.push_back(stmt);}
-  std::vector<Stmt*> getBody() {return Body;}
-protected:
-  std::vector<Stmt*> Body;
-};
 
 /**
  * This is tricky. The grammar says:
@@ -538,6 +652,12 @@ public:
   TokenNode *getCaseNode() {return CaseNode;}
   Expr *getCond() {return Cond;}
   virtual std::string getNodeName() {return "CaseStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret = SwitchCase::getChildren();
+    ret.insert(ret.begin(), Cond);
+    ret.insert(ret.begin(), CaseNode);
+    return ret;
+  }
 private:
   Expr *Cond = nullptr;
   TokenNode *CaseNode = nullptr;
@@ -557,34 +677,13 @@ public:
   }
   TokenNode *getDefaultNode() {return DefaultNode;}
   virtual std::string getNodeName() {return "DefaultStmt";}
+  virtual std::vector<ASTNodeBase*> getChildren() {
+    std::vector<ASTNodeBase*> ret = SwitchCase::getChildren();
+    ret.insert(ret.begin(), DefaultNode);
+    return ret;
+  }
 private:
   TokenNode *DefaultNode = nullptr;
-};
-
-/**
- * Exprs
- */
-
-class Expr : public ASTNodeBase {
-public:
-  Expr(ASTContext *ctx, std::string text, SourceLocation begin, SourceLocation end)
-    : ASTNodeBase(ctx, begin, end), Text(text) {}
-  Expr(ASTContext *ctx, std::string text, SourceRange range)
-    : ASTNodeBase(ctx, range), Text(text) {}
-  ~Expr() {}
-  virtual void accept(Visitor *visitor) {
-    visitor->visit(this);
-  }
-  std::string getText() {return Text;}
-  virtual void dump(std::ostream &os) {
-    ASTNodeBase::dump(os);
-    os << " " << "\"" << getText() << "\"";
-  }
-  virtual std::string getNodeName() {return "Expr";}
-  virtual std::set<std::string> getIdToResolve();
-  virtual bool isLeaf() {return true;}
-private:
-  std::string Text;
 };
 
 /** @}*/
