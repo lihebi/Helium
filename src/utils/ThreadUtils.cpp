@@ -28,10 +28,10 @@
  * @param [out] argv NULL terminated array
  */
 
-static int split_cmd(const char *scon, char** &argv) {
+static int split_cmd(const char *scon, int size, char** &argv) {
   char *s = strdup(scon);
   char *tok = strtok(s, " ");
-  argv = (char**)malloc(10*sizeof(char*));
+  argv = (char**)malloc(size*sizeof(char*));
   int argc = 0;
   while (tok) {
     argv[argc] = (char*)malloc(strlen(tok)+1);
@@ -75,7 +75,7 @@ void ThreadExecutor::child(int p0[2], int p1[2], int p2[2]) {
   // prepare the command
   char **argv = NULL;
   // the argv is malloc-ed, but anyway the process will exit, it will be released
-  split_cmd(cmd.c_str(), argv);
+  split_cmd(cmd.c_str(), std::count(cmd.begin(), cmd.end(), ' '), argv);
   execvp(argv[0], argv);
   perror(cmd.c_str());
   exit(1);
