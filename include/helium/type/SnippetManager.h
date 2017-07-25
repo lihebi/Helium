@@ -56,10 +56,13 @@ public:
   bool checkValid(std::string &reason);
   
   int size() {return m_snippets.size();}
+
+  fs::path getJsonFile() {return m_jsonfile;}
 private:
   // sorted
   std::vector<Snippet*> m_snippets;
   std::map<std::string, std::vector<Snippet*> > m_key2snippets;
+  fs::path m_jsonfile;
 };
 
 

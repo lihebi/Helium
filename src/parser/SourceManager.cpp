@@ -811,32 +811,38 @@ SourceManager::generateProgram(std::set<ASTNodeBase*> sel) {
 
 
 
-static std::set<Snippet*>
-get_snippets(std::set<ASTNodeBase*> sel,
-             SnippetManager *snip_man) {
-  std::set<Snippet*> ret;
-  // get keys
+
+static std::set<std::string> get_keys_to_resolve(std::set<ASTNodeBase*> sel) {
   std::set<std::string> keys;
   for (auto *node : sel) {
     assert(node);
     std::set<std::string> v = node->getIdToResolve();
     keys.insert(v.begin(), v.end());
   }
+  return keys;
+}
+
+static std::set<Snippet*> get_snippets(std::set<std::string> keys, SnippetManager *snip_man) {
+  std::set<Snippet*> ret;
   // query snippets
   for (std::string key : keys) {
     std::vector<Snippet*> ss = snip_man->getAll(key);
     ret.insert(ss.begin(), ss.end());
   }
+  return ret;
+}
+
+static std::set<Snippet*> get_snippets_with_dep(std::set<Snippet*> snippets, SnippetManager *snip_man) {
   // get dep and outer
   std::set<Snippet*> back;
   // FIXME infinite loop
-  while (back != ret) {
-    back = ret;
+  while (back != snippets) {
+    back = snippets;
     // std::cout << "[SourceManager] all dep and outer infinite loop ..\n";
-    ret = snip_man->getAllDeps(ret);
-    ret = snip_man->replaceNonOuters(ret);
+    snippets = snip_man->getAllDeps(snippets);
+    snippets = snip_man->replaceNonOuters(snippets);
   }
-  return ret;
+  return snippets;
 }
 
 /**
@@ -1089,10 +1095,44 @@ std::string SourceManager::generateMainH(std::set<ASTNodeBase*> sel,
     ret += "#include <" + inc + ">\n";
   }
 
-  sel = patchFunctionHeader(sel);
+  // sel = patchFunctionHeader(sel);
+
+  // put some comments into the file
+  // - snippets.json file used
+  // - names to resolve
+  //   - TODO resolved
+  //   - TODO not resolved
+  // - IDs of the snippets used
+  // - IDs of the snippets in dependence
+
+  ret += "// Snippet file used: " + snip_man->getJsonFile().string() + "\n";
+  
   
   // get the snippets
-  std::set<Snippet*> snippets = get_snippets(sel, snip_man);
+  std::set<std::string> keys = get_keys_to_resolve(sel);
+  ret += "// names to resolve:\n";
+  ret += "// ";
+  for (std::string key : keys) {
+    ret += key + " ";
+  }
+  ret += "\n";
+
+  std::set<Snippet*> snippets = get_snippets(keys, snip_man);
+  ret += "// snippet directly used:\n";
+  ret += "// ";
+  for (Snippet *s : snippets) {
+    ret += std::to_string(s->getId()) + " ";
+  }
+  ret += "\n";
+  
+  snippets = get_snippets_with_dep(snippets, snip_man);
+  ret += "// snippet with dep:\n";
+  ret += "// ";
+  for (Snippet *s : snippets) {
+    ret += std::to_string(s->getId()) + " ";
+  }
+  ret += "\n";
+  
   snippets = remove_dup(snippets);
   // sort the snippets
   std::vector<Snippet*> sorted_snippets = snip_man->sort(snippets);

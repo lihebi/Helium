@@ -163,6 +163,7 @@ void SnippetManager::dump(std::ofstream &os) {
 }
 
 void SnippetManager::load(fs::path jsonfile) {
+  m_jsonfile = fs::canonical(jsonfile);
   rapidjson::Document document;
   std::ifstream ifs(jsonfile.string());
   rapidjson::IStreamWrapper isw(ifs);
