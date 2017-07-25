@@ -34,7 +34,9 @@ TranslationUnitDecl* ClangParser::parseTranslationUnitDecl
       // functiondecl for strcpy as implicit used function
       if (clang::FunctionDecl *func = dynamic_cast<clang::FunctionDecl*>(child)) {
         FunctionDecl *myfunc = parseFunctionDecl(ctx, rewriter, func, myctx);
-        decls.push_back(myfunc);
+        if (myfunc) {
+          decls.push_back(myfunc);
+        }
       }
     }
   }
@@ -152,6 +154,7 @@ FunctionDecl *ClangParser::parseFunctionDecl
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::FunctionDecl *func,
  ASTContext *myctx) {
+  if (!func->isThisDeclarationADefinition()) return nullptr;
   clang::Stmt *stmt = func->getBody();
   // this does not have a function body
   if (!stmt) return nullptr;
