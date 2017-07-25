@@ -1,5 +1,6 @@
 #include "helium/parser/Parser.h"
 #include "helium/utils/FSUtils.h"
+#include "clang/Lex/Preprocessor.h"
 
 static SourceLocation convert_clang_loc(clang::ASTContext *ctx, clang::SourceLocation loc) {
   clang::FullSourceLoc full = ctx->getFullLoc(loc);
@@ -253,6 +254,9 @@ Stmt *ClangParser::parseStmt
   } else {
     std::string name = stmt->getStmtClassName();
     // std::cerr << "Stmt of kind " << name << " not supported." << "\n";
+    // goto is fine
+    // but FIXME label?
+    ret = parseDummyStmt(ctx, rewriter, stmt, myctx);
   }
   return ret;
 };
@@ -325,8 +329,11 @@ CaseStmt *ClangParser::parseCaseStmt
  clang::CaseStmt *case_stmt,
  ASTContext *myctx) {
   // FIXME cond?? rhs?
-  clang::Expr *expr = case_stmt->getRHS();
+  clang::Expr *expr = case_stmt->getLHS();
+  // std::cout << expr << "\n";
   Expr *myexpr = parseExpr(ctx, rewriter, expr, myctx);
+  // std::cout << myexpr->getText() << "\n";
+  assert(myexpr);
   CaseStmt *ret = new CaseStmt(myctx, myexpr,
                                new TokenNode(myctx, "case", convert_clang_loc(ctx, case_stmt->getCaseLoc(), "case")),
                                convert_clang_loc(ctx, case_stmt->getLocStart()),
@@ -450,6 +457,13 @@ ExprStmt *ClangParser::parseNullStmt
                                convert_clang_loc(ctx, null_stmt->getLocEnd()));
   return ret;
 }
+ExprStmt *ClangParser::parseDummyStmt
+(clang::ASTContext *ctx, clang::Rewriter &rewriter, clang::Stmt *stmt, ASTContext *myctx) {
+  ExprStmt *ret = new ExprStmt(myctx, "",
+                               convert_clang_loc(ctx, stmt->getLocStart()),
+                               convert_clang_loc(ctx, stmt->getLocEnd()));
+  return ret;
+}
 
 /**
  * This is for "for init", as it should be expr, but clang parse it as Stmt
@@ -528,7 +542,6 @@ public:
     // suppress compiler diagnostics
     Compiler.getDiagnostics().setClient(new clang::IgnoringDiagConsumer());
     rewriter.setSourceMgr(Compiler.getSourceManager(), Compiler.getLangOpts());
-    setCompilerInstance(&Compiler);
     // return consumer
     return std::unique_ptr<clang::ASTConsumer>
       (new ParserConsumer(&Compiler.getASTContext(), rewriter, &retctx, InFile));

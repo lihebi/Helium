@@ -45,23 +45,41 @@ def preprocess(indir, outdir):
         # outputdir = os.path.join(outdir, item)
         # print('creating output dir', outputdir)
         os.mkdir(os.path.join(outdir, item))
+        prepdir = os.path.join(outdir, item)
         includejson = os.path.join(outdir, item, 'include.json')
         snippetjson = os.path.join(outdir, item, 'snippets.json')
+        
+        cmd = 'helium --preprocess ' + benchmark + ' -o ' + prepdir
+        print ("\t==>", cmd)
+        completed = subprocess.run(cmd, shell=True)
+        if completed.returncode is not 0:
+            print("Failed")
+        
         cmd = 'helium --create-include-dep ' + benchmark\
               + ' -o ' + includejson
         print ("\t==>", cmd)
-        subprocess.run(cmd, shell=True)
+        completed = subprocess.run(cmd, shell=True)
+        if completed.returncode is not 0:
+            print("Failed")
+            
         cmd = 'helium --create-snippet ' + benchmark\
               + ' --include-dep ' + includejson\
               + ' -o ' + snippetjson
         print ("\t==>", cmd)
-        subprocess.run(cmd, shell=True)
+        completed = subprocess.run(cmd, shell=True)
+        if completed.returncode is not 0:
+            print("Failed")
 
 
 
 
         
-def run_helium(indir, jsondir, seldir, outdir):
+def run_helium(indir, seldir, outdir):
+    """
+    indir: prep folder
+    seldir: seldir folder
+    outdir: gen folder
+    """
     if os.path.exists(outdir): shutil.rmtree(outdir)
     os.mkdir(outdir)
     for benchname in os.listdir(indir):
@@ -69,8 +87,10 @@ def run_helium(indir, jsondir, seldir, outdir):
         bench = os.path.join(indir, benchname)
         # sel = os.path.join(seldir, 'by-bench', item)
         sel = os.path.join(seldir, benchname)
-        includejson = os.path.join(jsondir, benchname, "include.json")
-        snippetjson = os.path.join(jsondir, benchname, "snippets.json")
+        # includejson = os.path.join(jsondir, benchname, "include.json")
+        # snippetjson = os.path.join(jsondir, benchname, "snippets.json")
+        includejson = os.path.join(bench, "include.json")
+        snippetjson = os.path.join(bench, "snippets.json")
         if not os.path.exists(sel):
             print (sel + ' not exists, skipped')
             continue
@@ -113,7 +133,6 @@ if __name__ == '__main__':
     parser.add_argument('--run-helium', action='store_true',
                         help='give as input the preprocessed folder')
     parser.add_argument('-s', '--selection', help='selection files')
-    parser.add_argument('-j', '--jsonfiles', help='json file folder')
 
     parser.add_argument('--analyze-buildrate', action='store_true')
 
@@ -142,7 +161,7 @@ if __name__ == '__main__':
         if not args.selection:
             print('need to provide selection file or folder')
             exit(1)
-        run_helium(args.input, args.jsonfiles, args.selection, args.output)
+        run_helium(args.input, args.selection, args.output)
         # collect build rate information for all of the benchmarks
     elif args.analyze_buildrate:
         analyze_buildrate(args.input, args.output)

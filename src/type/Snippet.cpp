@@ -172,6 +172,10 @@ std::string read_file_for_code_until_semicolon(fs::path file, SourceLocation beg
   return ret;
 }
 
+void MacroSnippet::readCode() {
+  Code = read_file_for_code(File, Begin, End);
+  Code = "#define " + Code;
+}
 void FunctionSnippet::readCode() {
   Code = read_file_for_code(File, Begin, End);
 }

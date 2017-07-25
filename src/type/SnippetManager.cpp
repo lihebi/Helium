@@ -180,6 +180,7 @@ void SnippetManager::load(fs::path jsonfile) {
     else if (kind == "EnumSnippet") s = new EnumSnippet();
     else if (kind == "FunctionDeclSnippet") s = new FunctionDeclSnippet();
     else if (kind == "RecordDeclSnippet") s = new RecordDeclSnippet();
+    else if (kind == "MacroSnippet") s = new MacroSnippet();
     else {assert(false);}
 
     s->loadJson(v);

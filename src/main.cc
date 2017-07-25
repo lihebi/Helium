@@ -319,6 +319,13 @@ int main(int argc, char* argv[]) {
     run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
     exit(0);
   }
+  if (options->Has("hebi")) {
+    std::cout << "Using experiment setting" << "\n";
+    // std::cout << "Testing macro definition" << "\n";
+    // Parser *parser = new ClangParser();
+    // ASTContext *ast = parser->parse(indir);
+    exit(0);
+  }
   // if (options->Has("codegen")) {
   //   fs::path sel = options->GetString("selection");
   //   if (!fs::is_regular(sel)) {

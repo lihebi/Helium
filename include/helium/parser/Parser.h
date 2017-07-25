@@ -135,6 +135,9 @@ public:
   (clang::ASTContext *ctx, clang::Rewriter &rewriter,
    clang::NullStmt *null_stmt,
    ASTContext *myctx);
+  static ExprStmt *parseDummyStmt
+  (clang::ASTContext *ctx, clang::Rewriter &rewriter,
+   clang::Stmt *stmt, ASTContext *myctx);
 };
 
 

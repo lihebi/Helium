@@ -5,6 +5,12 @@
 
 #include "helium/type/Snippet.h"
 
+#include <iostream>
+
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Lex/Preprocessor.h"
+#include "clang/Rewrite/Core/Rewriter.h"
+
 static std::vector<Snippet*> snippets;
 
 
@@ -166,15 +172,53 @@ private:
 };
 
 
+void parse_macro(clang::ASTContext &Context, clang::CompilerInstance &compiler, clang::Rewriter &rewriter) {
+  // process macros here
+  clang::SourceManager &sourceManager = Context.getSourceManager();
+  const clang::FileEntry *entry = sourceManager.getFileEntryForID(sourceManager.getMainFileID());
+  std::string filename = entry->getName();
+    
+  clang::Preprocessor &prep = compiler.getPreprocessor();
+  for (auto it=prep.macro_begin(false), itend=prep.macro_end(false);it!=itend;++it) {
+    const clang::IdentifierInfo *idinfo = (*it).first;
+    clang::MacroInfo *macroinfo = prep.getMacroInfo(idinfo);
+    // TESTME #define hello(x) world(x)
+    // What is the name? hello?
+    if (idinfo && macroinfo) {
+      std::string macroname = idinfo->getName();
+      clang::SourceLocation start = macroinfo->getDefinitionLoc();
+      clang::SourceLocation end = macroinfo->getDefinitionEndLoc();
+      clang::SourceRange range(start, end);
+      if (Context.getSourceManager().isWrittenInMainFile(start)) {
+        std::string text = rewriter.getRewrittenText(range);
+        // std::cout << "Got Macro: " << macroname << "\n";
+        // std::cout << text << "\n";
+        Snippet *s = new MacroSnippet(macroname, filename,
+                                      convertLocation(&Context, start),
+                                      convertLocation(&Context, end));
+        snippets.push_back(s);
+      }
+    }
+  }
+}
+
 class SnippetConsumer : public clang::ASTConsumer {
 public:
-  explicit SnippetConsumer(clang::ASTContext *Context)
-    : Visitor(Context) {}
+  explicit SnippetConsumer(clang::ASTContext *Context,
+                           clang::CompilerInstance &compiler,
+                           clang::Rewriter &rewriter)
+    : Visitor(Context), compiler(compiler), rewriter(rewriter) {}
   virtual void HandleTranslationUnit(clang::ASTContext &Context) {
+    // parsing macro here still has problems:
+    // 1. If there are multiple ones, i don't know how to choose
+    // 2. clang does not always give me the correct end location
+    // parse_macro(Context, compiler, rewriter);
     Visitor.TraverseDecl(Context.getTranslationUnitDecl());
   }
 private:
   SnippetVisitor Visitor;
+  clang::CompilerInstance &compiler;
+  clang::Rewriter &rewriter;
 };
 
 class SnippetAction : public clang::ASTFrontendAction {
@@ -183,9 +227,12 @@ public:
   CreateASTConsumer(clang::CompilerInstance &Compiler, llvm::StringRef InFile) {
     // suppress compiler diagnostics
     Compiler.getDiagnostics().setClient(new clang::IgnoringDiagConsumer());
+    rewriter.setSourceMgr(Compiler.getSourceManager(), Compiler.getLangOpts());
     return std::unique_ptr<clang::ASTConsumer>
-      (new SnippetConsumer(&Compiler.getASTContext()));
+      (new SnippetConsumer(&Compiler.getASTContext(), Compiler, rewriter));
   }
+private:
+  clang::Rewriter rewriter;
 };
 
 std::vector<Snippet*> clang_parse_file_for_snippets(fs::path file) {

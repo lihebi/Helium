@@ -150,6 +150,24 @@ protected:
   std::set<Snippet*> Outers;
 };
 
+class MacroSnippet : public Snippet {
+public:
+  MacroSnippet() {}
+  MacroSnippet(std::string name, std::string file, SourceLocation begin, SourceLocation end)
+    : Snippet(name, file, begin, end) {}
+  virtual ~MacroSnippet() {}
+  virtual std::string getSnippetName() {return "MacroSnippet";}
+  virtual void readCode();
+  virtual rapidjson::Value saveJson(rapidjson::Document::AllocatorType &allocator) {
+    rapidjson::Value v = Snippet::saveJson(allocator);
+    v.AddMember("kind", "MacroSnippet", allocator);
+    return v;
+  }
+  virtual void loadJson(rapidjson::Value &v) {
+    Snippet::loadJson(v);
+  }
+};
+
 /**
  * Function
  */
