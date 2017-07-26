@@ -31,8 +31,8 @@ public:
     for (std::string lib : libs) {
       std::smatch match;
       if (std::regex_match(lib, match, libreg)) {
-        std::string name = match[1].str();
-        m_libs.insert("-l" + m_name);
+        std::string libname = match[1].str();
+        m_libs.insert("-l" + libname);
       }
     }
   }
