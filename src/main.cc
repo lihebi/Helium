@@ -42,6 +42,8 @@ using std::set;
 using std::map;
 using std::pair;
 
+bool verbose_mode = false;
+
 
 /**
  * Do compilation in dir
@@ -91,11 +93,16 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
   SourceManager *source_man = new SourceManager();
   source_man->parse(indir);
   std::vector<fs::path> sels = get_selections(selection);
-  std::cout << "[main] Running on " << sels.size() << " selections .." << "\n";
+  if (verbose_mode) {
+    std::cout << "[main] Running on " << sels.size() << " selections .." << "\n";
+  }
 
   std::vector<std::string> compile_suc, run_suc;
   for (fs::path sel_file : sels) {
     std::cout << "." << std::flush;
+    if (verbose_mode) {
+      std::cout << "Sel file: " << sel_file << "\n";
+    }
     std::set<ASTNodeBase*> orig_sel = source_man->loadSelection(sel_file);
     std::set<ASTNodeBase*> patch_sel = orig_sel;
     // source_man->dumpDist(sel, std::cout);
@@ -119,6 +126,7 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
       compile_suc.push_back(sel_file.filename().string());
       
       std::string run_cmd = gen_dir.string() + "/a.out";
+      // this might produce double free, and gives the ugly list
       ThreadExecutor exe(run_cmd);
       exe.setTimeoutSec(0.2);
       exe.run();
@@ -200,6 +208,10 @@ int main(int argc, char* argv[]) {
   fs::path indir = options->GetString("target");
   // absolute path
   indir = fs::canonical(indir);
+
+  if (options->Has("verbose")) {
+    verbose_mode = true;
+  }
 
 
   if (options->Has("dump-cfg")) {
