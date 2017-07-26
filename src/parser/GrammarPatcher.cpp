@@ -289,6 +289,13 @@ void GrammarPatcher::visit(CompoundStmt *node) {
     Patch.insert(lbrace);
     Patch.insert(rbrace);
   }
+
+  if (Selection.count(lbrace) == 1) {
+    Patch.insert(rbrace);
+  }
+  if (Selection.count(rbrace) == 1) {
+    Patch.insert(lbrace);
+  }
 }
 // condition
 void GrammarPatcher::visit(IfStmt *node) {
