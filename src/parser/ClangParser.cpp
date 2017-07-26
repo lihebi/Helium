@@ -87,6 +87,17 @@ std::set<clang::VarDecl*> get_referred_var_decl(clang::Expr *expr) {
     clang::Expr *base = mem->getBase();
     std::set<clang::VarDecl*> tmp = get_referred_var_decl(base);
     ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::ConditionalOperator *cond_expr = clang::dyn_cast<clang::ConditionalOperator>(expr)) {
+    clang::Expr *cond = cond_expr->getCond();
+    clang::Expr *t = cond_expr->getTrueExpr();
+    clang::Expr *f = cond_expr->getFalseExpr();
+    std::set<clang::VarDecl*> tmp;
+    tmp = get_referred_var_decl(cond);
+    ret.insert(tmp.begin(), tmp.end());
+    tmp = get_referred_var_decl(t);
+    ret.insert(tmp.begin(), tmp.end());
+    tmp = get_referred_var_decl(f);
+    ret.insert(tmp.begin(), tmp.end());
   } else {
     // TODO not supported
   }
@@ -282,6 +293,11 @@ IfStmt *ClangParser::parseIfStmt
  ASTContext *myctx) {
   clang::Expr *cond = if_stmt->getCond();
   Expr *mycond = parseExpr(ctx, rewriter, cond, myctx);
+  // this expr might be empty, when
+  // it is a function call
+  // the function is inside a header file
+  // the #include is needed for clang to parse it
+  // otherwise it will be a OpaqueValueExpr, which does not have a valid sloc
   clang::Stmt *then_stmt = if_stmt->getThen();
   clang::Stmt *else_stmt = if_stmt->getElse();
   Stmt *mythen = parseStmt(ctx, rewriter, then_stmt, myctx);
@@ -416,6 +432,34 @@ Expr *ClangParser::parseExpr
   if (!expr) return nullptr;
   clang::SourceRange range = expr->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
+  // std::cout << text << "\n";
+  // expr->getLocStart().dump(ctx->getSourceManager());
+  // expr->getLocEnd().dump(ctx->getSourceManager());
+  // adding includes does solve half of the opaque value
+  #if 0
+  if (clang::OpaqueValueExpr *poa_expr = clang::dyn_cast<clang::OpaqueValueExpr>(expr)) {
+    // std::cout << "opaque: " << text << " "
+    //           << convert_clang_loc(ctx, poa_expr->getLocStart()) << " "
+    //           << convert_clang_loc(ctx, poa_expr->getLocEnd()) << "\n";
+    // clang::Expr *src_expr = poa_expr->getSourceExpr();
+    // These does not output anything
+    // poa_expr->getExprLoc().dump(ctx->getSourceManager());
+    // poa_expr->getLocation().dump(ctx->getSourceManager());
+    // poa_expr->getLocStart().dump(ctx->getSourceManager());
+    // poa_expr->getLocEnd().dump(ctx->getSourceManager());
+
+    // if (src_expr) {
+    //   std::cout << "exists" << "\n";
+    //   src_expr->dump();
+    //   // src_expr->getLocStart();
+    //   src_expr->getLocStart().dump(ctx->getSourceManager());
+    //   src_expr->getLocEnd().dump(ctx->getSourceManager());
+    // } else {
+    //   std::cout << "non exists" << "\n";
+    // }
+  }
+  #endif
+  // expr->dump();
   Expr *ret = new Expr(myctx, text,
                        convert_clang_loc(ctx, expr->getLocStart()),
                        convert_clang_loc(ctx, expr->getLocEnd()));
