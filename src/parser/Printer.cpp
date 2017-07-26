@@ -26,6 +26,10 @@ void Printer::pre(ASTNodeBase *node) {
   }
   node->dump(oss);
   oss << " " << (void*)node;
+  oss << " use: ";
+  for (std::string var : node->getUsedVars()) {
+    oss << var << " ";
+  }
 }
 void Printer::post() {oss << ")";}
 
