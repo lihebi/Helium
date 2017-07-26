@@ -4,6 +4,8 @@
 #include "helium/utils/StringUtils.h"
 #include "helium/utils/ThreadUtils.h"
 
+#include <boost/algorithm/string/join.hpp>
+
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -188,6 +190,8 @@ static void post_copy(fs::path dir) {
   BOOST_FOREACH (fs::path const & p, std::make_pair(it, eod)) {
     if (is_regular_file(p)) {
       if (p.extension() == ".c" || p.extension() == ".h") {
+        // includes
+        std::vector<std::string> includes;
         fs::path from(p);
         fs::path to(p.string() + ".helium");
         std::ifstream ifs(from.string());
@@ -202,12 +206,21 @@ static void post_copy(fs::path dir) {
           } else {
             ofs << line << "\n";
           }
+          // get includes
+          if (line.find("#include") != std::string::npos
+              && line.find("<") != std::string::npos) {
+            includes.push_back(line);
+          }
         }
         ifs.close();
         ofs.close();
         fs::remove(from);
         fs::copy_file(to, from);
         fs::remove(to);
+        // dump it into a file
+        fs::path inc_file = from;
+        inc_file.replace_extension(".inc");
+        utils::write_file(inc_file, boost::algorithm::join(includes, "\n"));
       }
     }
   }
@@ -235,33 +248,40 @@ static void post_cpp(fs::path dir) {
   fs::recursive_directory_iterator it(dir), eod;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (fs::is_regular_file(p)) {
-      std::ifstream is;
-      is.open(p.string());
-      std::string code;
-      if (is.is_open()) {
-        std::string line;
-        std::string output;
-        bool b = false;
-        while(getline(is, line)) {
-          if (!line.empty() && line[0] == '#') {
-            // this might be a line marker
-            vector<string> v = utils::split(line);
-            if (v.size() < 3) continue;
-            string filename = v[2];
-            if (filename.empty() || filename[0] != '"' || filename.back() != '"') continue;
-            filename = filename.substr(1);
-            filename.pop_back();
-            if (filename == p.string()) b=true;
-            else b=false;
-          } else {
-            if (b) {
-              output += line + "\n";
+      if (p.extension() == ".c" || p.extension() == ".h"){
+        fs::path inc_file = p;
+        inc_file.replace_extension(".inc");
+        std::ifstream is;
+        is.open(p.string());
+        std::string code;
+        if (is.is_open()) {
+          std::string line;
+          std::string output;
+          if (fs::exists(inc_file)) {
+            output += "#include \"" + inc_file.filename().string() + "\"\n";
+          }
+          bool b = false;
+          while(getline(is, line)) {
+            if (!line.empty() && line[0] == '#') {
+              // this might be a line marker
+              vector<string> v = utils::split(line);
+              if (v.size() < 3) continue;
+              string filename = v[2];
+              if (filename.empty() || filename[0] != '"' || filename.back() != '"') continue;
+              filename = filename.substr(1);
+              filename.pop_back();
+              if (filename == p.string()) b=true;
+              else b=false;
+            } else {
+              if (b) {
+                output += line + "\n";
+              }
             }
           }
+          is.close();
+          // output to the same file
+          utils::write_file(p.string(), output);
         }
-        is.close();
-        // output to the same file
-        utils::write_file(p.string(), output);
       }
     }
   }
@@ -272,11 +292,13 @@ static void cpp(fs::path dir) {
   fs::recursive_directory_iterator it(dir), eod;
   BOOST_FOREACH(fs::path const &p, std::make_pair(it, eod)) {
     if (fs::is_regular_file(p)) {
-      std::string cmd = cpp_cmd + " " + p.string();
-      ThreadExecutor exe(cmd);
-      exe.run();
-      std::string output = exe.getStdOut();
-      utils::write_file(p, output);
+      if (p.extension() ==".c" || p.extension() == ".h") {
+        std::string cmd = cpp_cmd + " " + p.string();
+        ThreadExecutor exe(cmd);
+        exe.run();
+        std::string output = exe.getStdOut();
+        utils::write_file(p, output);
+      }
     }
   }
 }
@@ -289,9 +311,14 @@ static void cpp(fs::path dir) {
 void preprocess(fs::path indir, fs::path outdir) {
   if (fs::exists(outdir)) fs::remove_all(outdir);
   fs::create_directories(outdir);
-  
+
   copy_src_files(indir, outdir);
   post_copy(outdir);
+  // extract all the include<> information
+  // (this does not take the conditional compilation into consideration)
+  // std::map<fs::path, std::vector<std::string> > includes = get_includes();
   cpp(outdir);
   post_cpp(outdir);
+  // add them back to the beginning
+  // reapply_includes(outdir, includes);
 }
