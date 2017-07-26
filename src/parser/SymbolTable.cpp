@@ -123,7 +123,7 @@ void SymbolTableEntry::dump(std::ostream &os) {
   for (SymbolTableEntry *child : children) {
     child->dump(os);
   }
-  os << ")";
+  os << ")\n";
 }
 
 void SymbolTable::dump(std::ostream &os) {
