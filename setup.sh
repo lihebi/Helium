@@ -32,6 +32,7 @@ echo 'export PATH=$HELIUM_HOME/scripts/pyhelium:$PATH' >> $HOME/.bashrc
 echo 'export PATH=$HELIUM_HOME/lib/RCFReader:$HELIUM_HOME/lib/iclones:$PATH' >> $HOME/.bashrc
 echo 'export PATH=$HELIUM_HOME/build/bin:$PATH' >> $HOME/.bashrc
 echo 'export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_scope=0' >> $HOME/.bashrc
+echo 'export LIBC_FATAL_STDERR_=1' >> $HOME/.bashrc
 
 echo "## ========== End of Helium Configuration" >> $HOME/.bashrc
 
