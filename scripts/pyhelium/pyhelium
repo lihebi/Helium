@@ -41,7 +41,7 @@ def create_selection(indir, outdir):
         if os.path.isdir(benchmark):
             cmd = 'helium --create-selection --sel-num 10 --sel-tok 10 '\
                   + benchmark + ' -o ' + outputdir
-            print ("\t==>", cmd)
+            print ("==>", cmd)
             if run_process_with_timeout(cmd, 1.0) == 0:
                 profile[item]['sel-suc'] = True
             else:
@@ -56,19 +56,19 @@ def preprocess_one(indir, outdir):
     timeout = 1.0
 
     cmd = 'helium --preprocess ' + indir + ' -o ' + outdir
-    print ("\t==>", cmd)
+    print ("==>", cmd)
     if run_process_with_timeout(cmd, timeout):
         profile['prep-suc'] = False
         return profile
 
     cmd = 'helium --create-include-dep ' + indir + ' -o ' + includejson
-    print ("\t==>", cmd)
+    print ("==>", cmd)
     if run_process_with_timeout(cmd, timeout):
         profile['prep-suc'] = False
         return profile
 
     cmd = 'helium --create-snippet ' + outdir + ' --include-dep ' + includejson + ' -o ' + snippetjson
-    print ("\t==>", cmd)
+    print ("==>", cmd)
     if run_process_with_timeout(cmd, timeout):
         profile['prep-suc'] = False
         return profile
@@ -109,7 +109,7 @@ def run_one(bench, sel, outdir):
           ' --snippet ' + snippetjson +\
           ' --include-dep ' + includejson +\
           ' -o ' + outdir
-    print("\t==>", cmd)
+    print("==>", cmd)
     t1 = time.time()
     if run_process_with_timeout(cmd, 10) == 0:
         profile['run-suc'] = True
@@ -172,8 +172,14 @@ def get_good_benches(profile):
         obj = profile[name]
         if 'prep-suc' in obj and obj['prep-suc'] == False: continue
         if 'sel-suc' in obj and obj['sel-suc'] == False: continue
+        if 'run-suc' in obj and obj['run-suc'] == False: continue
+        if 'ana-suc' in obj and obj['ana-suc'] == False: continue
+        if 'br' in obj and obj['br'] < 90: continue
         ret.add(name)
     print ('Number of good benches: ', len(ret), 'out of', len(profile))
+    # for name in ret:
+    #     print(name, profile[name]['br'], end=',')
+    # print('')
     return ret
 
 #
@@ -184,7 +190,7 @@ def get_good_benches(profile):
 # {'bench111': {'time': 1.32, bt: 87, prep: true}
 # }
         
-def analyze_buildrate(indir, outdir):
+def analyze_buildrate(indir):
     """
     analyze buildrate and output sorted
     """
@@ -195,6 +201,10 @@ def analyze_buildrate(indir, outdir):
         # print ('benchmark: ' + bench)
         benchdir = os.path.join(indir, bench)
         sels = os.listdir(benchdir)
+        if len(sels) == 0:
+            profile[bench]['ana-suc'] = False
+            continue
+        profile[bench]['ana-suc'] = True
         suc = []
         for sel in sels:
             if os.path.exists(os.path.join(benchdir, sel, 'a.out')):
@@ -253,8 +263,7 @@ if __name__ == '__main__':
         assert(args.selection)
         run_helium(args.input, args.selection, args.output)
     elif args.analyze_buildrate:
-        assert(args.output)
-        analyze_buildrate(args.input, args.output)
+        analyze_buildrate(args.input)
     elif args.hebi:
         profile = load_profile()
         get_good_benches(profile)
