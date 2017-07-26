@@ -120,7 +120,8 @@ Type *TypeFactory::CreateType(std::string str) {
         num = stoi(numstr);
       } catch (std::exception e) {
         // helium_log_warning("Exception in TypeFactory::CreateType: " + std::string(e.what()));
-        std::cerr << "Array size not a number: "  << std::string(e.what()) << ". Using magic number 10.\n";
+        // FIXME
+        // std::cerr << "Array size not a number: "  << std::string(e.what()) << ". Using magic number 10.\n";
       }
       type = new ArrayType(str, num);
       return type;
