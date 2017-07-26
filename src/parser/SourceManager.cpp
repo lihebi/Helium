@@ -1244,6 +1244,11 @@ void SourceManager::dumpAST(fs::path outdir, fs::path ext) {
     TranslationUnitDecl *unit = ast->getTranslationUnitDecl();
     unit->accept(&printer);
     utils::write_file(outdir / file.filename().replace_extension(ext), printer.getString());
+    // also going to dump symbol table
+    SymbolTable *symtbl = ast->getSymbolTable();
+    std::ostringstream oss;
+    symtbl->dump(oss);
+    utils::write_file(outdir / file.filename().replace_extension(".symtbl.lisp"), oss.str());
   }
 }
 void SourceManager::dumpAST(fs::path outdir, std::set<ASTNodeBase*> sel, fs::path ext) {
