@@ -146,7 +146,13 @@ void Generator::visit(IfStmt *node){
   if (!if_node_prog.empty()) {
     // I'm adding these parenthesis back because
     // if () char a; will not compile
+    prog += get_comment(node);
+    // adding a new line before if
+    prog += "\n";
     prog += if_node_prog + "(" + cond_prog + ")" + then_prog + else_node_prog + else_prog;
+  } else {
+    // if "if" node is not selected, still need to go into
+    prog += then_prog + else_prog;
   }
   prog += m_spec_post[node];
   addInnerProg(node, prog);
@@ -195,6 +201,10 @@ void Generator::visit(CaseStmt *node){
     prog += body_prog;
   }
   prog += m_spec_post[node];
+  // adding a new line after each case
+  if (!prog.empty()) {
+    prog += "\n";
+  }
   addInnerProg(node, prog);
 }
 void Generator::visit(DefaultStmt *node){
@@ -315,6 +325,7 @@ void Generator::visit(ReturnStmt *node){
   std::string prog;
   prog += m_spec_pre[node];
   if (!ret_node_prog.empty()) {
+    prog += get_comment(node);
     prog += ret_node_prog + " " + ret_value_prog + ";\n";
   }
   // FIXME adjust return
@@ -335,7 +346,7 @@ void Generator::visit(DeclStmt *node){
     // TODO add input code
     std::string prog;
     prog += m_spec_pre[node];
-    prog += node->getText();
+    prog += node->getText() + "\n";
     prog += m_spec_post[node];
     addInnerProg(node, prog);
   }
