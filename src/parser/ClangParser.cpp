@@ -147,6 +147,73 @@ std::vector<PlainVar> get_defined_vars(clang::DeclStmt *decl_stmt) {
   return ret;
 }
 
+std::set<std::string> get_callees(clang::Expr *expr) {
+  std::set<std::string> ret;
+  if (clang::DeclRefExpr *ref = clang::dyn_cast<clang::DeclRefExpr>(expr)) {
+  } else if (clang::UnaryOperator *un = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    clang::Expr *sub = un->getSubExpr();
+    std::set<std::string> tmp = get_callees(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::BinaryOperator *bi = clang::dyn_cast<clang::BinaryOperator>(expr)) {
+    clang::Expr *lhs = bi->getLHS();
+    std::set<std::string> tmp = get_callees(lhs);
+    ret.insert(tmp.begin(), tmp.end());
+    clang::Expr *rhs = bi->getRHS();
+    tmp = get_callees(rhs);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::CallExpr *call = clang::dyn_cast<clang::CallExpr>(expr)) {
+    // add callee
+    std::string callee = clang::dyn_cast<clang::NamedDecl>(call->getCalleeDecl())->getNameAsString();
+    ret.insert(callee);
+    for (clang::CallExpr::arg_iterator it=call->arg_begin();it!=call->arg_end();++it) {
+      clang::Expr *arg = *it;
+      std::set<std::string> tmp = get_callees(arg);
+      ret.insert(tmp.begin(), tmp.end());
+    }
+  } else if (clang::CastExpr *cast = clang::dyn_cast<clang::CastExpr>(expr)) {
+    clang::Expr *sub = cast->getSubExpr();
+    std::set<std::string> tmp = get_callees(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::ParenExpr *paren = clang::dyn_cast<clang::ParenExpr>(expr)) {
+    clang::Expr *sub = paren->getSubExpr();
+    std::set<std::string> tmp = get_callees(sub);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::MemberExpr *mem = clang::dyn_cast<clang::MemberExpr>(expr)) {
+    clang::Expr *base = mem->getBase();
+    std::set<std::string> tmp = get_callees(base);
+    ret.insert(tmp.begin(), tmp.end());
+  } else if (clang::ConditionalOperator *cond_expr = clang::dyn_cast<clang::ConditionalOperator>(expr)) {
+    clang::Expr *cond = cond_expr->getCond();
+    clang::Expr *t = cond_expr->getTrueExpr();
+    clang::Expr *f = cond_expr->getFalseExpr();
+    std::set<std::string> tmp;
+    tmp = get_callees(cond);
+    ret.insert(tmp.begin(), tmp.end());
+    tmp = get_callees(t);
+    ret.insert(tmp.begin(), tmp.end());
+    tmp = get_callees(f);
+    ret.insert(tmp.begin(), tmp.end());
+  } else {
+    // TODO not supported
+  }
+  return ret;
+}
+
+std::set<std::string> get_callees_for_declstmt(clang::DeclStmt *decl_stmt) {
+  std::set<std::string> ret;
+  for (auto it=decl_stmt->decl_begin();it!=decl_stmt->decl_end();++it) {
+    clang::Decl *decl = *it;
+    if (clang::VarDecl *vardecl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      if (vardecl->hasInit()) {
+        clang::Expr *expr = vardecl->getInit();
+        std::set<std::string> tmp = get_callees(expr);
+        ret.insert(tmp.begin(), tmp.end());
+      }
+    }
+  }
+  return ret;
+}
+
 DeclStmt* ClangParser::parseDeclStmt
 (clang::ASTContext *ctx, clang::Rewriter &rewriter,
  clang::DeclStmt *decl_stmt,
@@ -160,6 +227,8 @@ DeclStmt* ClangParser::parseDeclStmt
   for (PlainVar var : defined) {
     ret->addDefinedVar(var.name, var.type);
   }
+  // callee
+  ret->addCallee(get_callees_for_declstmt(decl_stmt));
   return ret;
 }
 FunctionDecl *ClangParser::parseFunctionDecl
@@ -469,6 +538,8 @@ Expr *ClangParser::parseExpr
     std::string name = decl->getNameAsString();
     ret->addUsedVar(name);
   }
+  // callee
+  ret->addCallee(get_callees(expr));
   return ret;
 }
 ExprStmt *ClangParser::parseExprStmt
@@ -489,6 +560,8 @@ ExprStmt *ClangParser::parseExprStmt
     std::string name = decl->getNameAsString();
     ret->addUsedVar(name);
   }
+  // callee
+  ret->addCallee(get_callees(expr));
   return ret;
 }
 
@@ -533,6 +606,13 @@ Expr *ClangParser::parseForInit
     for (PlainVar var : get_defined_vars(decl_stmt)) {
       ret->addDefinedVar(var.name, var.type);
     }
+  }
+  // callee
+  // it should be a declstmt, or a expr
+  if (clang::DeclStmt *decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
+    ret->addCallee(get_callees_for_declstmt(decl_stmt));
+  } else if (clang::Expr *expr = clang::dyn_cast<clang::Expr>(init)) {
+    ret->addCallee(get_callees(expr));
   }
   return ret;
 }

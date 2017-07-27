@@ -88,6 +88,13 @@ namespace hebigraph {
         Vertex2Node[vertex] = x;
       }
     }
+    std::set<T> getAllNodes() {
+      std::set<T> ret;
+      for (auto &m : Node2Vertex) {
+        ret.insert(m.first);
+      }
+      return ret;
+    }
     void removeNode(T x) {
       if (Node2Vertex.count(x) == 1) {
         remove_vertex(Node2Vertex[x], g);

@@ -241,6 +241,24 @@ int main(int argc, char* argv[]) {
     std::string dot = cfg->getDotString();
     utils::write_file(outdir / "whole.dot", dot);
     dot2png(outdir / "whole.dot", outdir / "whole.png");
+
+    // cfg by functions
+    std::vector<CFG*> cfgs;
+    for (auto &m : builder.getFuncCFGs()) {
+      std::string name = m.first;
+      CFG *cfg = m.second;
+      cfgs.push_back(cfg);
+      std::string dot = cfg->getDotString();
+      utils::write_file(outdir / (name + ".dot"), dot);
+      dot2png(outdir / (name + ".dot"), outdir / (name + ".png"));
+    }
+
+    // getting icfg
+    CFG *icfg = create_icfg(cfgs);
+    dot = icfg->getDotString();
+    utils::write_file(outdir / "icfg.dot", dot);
+    dot2png(outdir / "icfg.dot", outdir / "icfg.png");
+    
     exit(0);
   }
 

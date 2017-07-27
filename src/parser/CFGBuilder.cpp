@@ -45,6 +45,7 @@ void CFGBuilder::visit(FunctionDecl *node) {
   CFGNode *func_node = new CFGNode(node);
   CFGNode *func_out = new CFGNode("func-out");
   cfg->addNode(func_node);
+  cfg->addFunc(func_node, node->getName());
   cfg->addNode(func_out);
   CFG *inner = getInnerCFG(node->getBody());
   if (!inner) {
@@ -61,7 +62,10 @@ void CFGBuilder::visit(FunctionDecl *node) {
     }
   }
   addInnerCFG(node, cfg);
+  addFuncCFG(node->getName(), cfg);
 }
+
+
 void CFGBuilder::visit(CompoundStmt *node) {
   pre(node);
   Visitor::visit(node);
@@ -93,6 +97,10 @@ void CFGBuilder::visit(IfStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *if_node = new CFGNode(node);
   CFGNode *if_out = new CFGNode("if-out");
+  // callee
+  Expr *cond = node->getCond();
+  if_node->addCallee(cond->getCallees());
+  // add nodes
   cfg->addNode(if_node);
   cfg->addNode(if_out);
   // then (must have)
@@ -131,6 +139,7 @@ void CFGBuilder::visit(SwitchStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *switch_node = new CFGNode(node);
   CFGNode *switch_out = new CFGNode("switch-out");
+  switch_node->addCallee(node->getCond()->getCallees());
   cfg->addNode(switch_node);
   cfg->addNode(switch_out);
   
@@ -224,6 +233,9 @@ void CFGBuilder::visit(ForStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *loop_node = new CFGNode(node);
   CFGNode *loop_out = new CFGNode("loop-out");
+  loop_node->addCallee(node->getInit()->getCallees());
+  loop_node->addCallee(node->getCond()->getCallees());
+  loop_node->addCallee(node->getInc()->getCallees());
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -256,6 +268,7 @@ void CFGBuilder::visit(WhileStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *loop_node = new CFGNode(node);
   CFGNode *loop_out = new CFGNode("loop-out");
+  loop_node->addCallee(node->getCond()->getCallees());
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -287,6 +300,7 @@ void CFGBuilder::visit(DoStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *loop_node = new CFGNode(node);
   CFGNode *loop_out = new CFGNode("loop-out");
+  loop_node->addCallee(node->getCond()->getCallees());
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -338,6 +352,7 @@ void CFGBuilder::visit(ReturnStmt *node) {
   Visitor::visit(node);
   CFG *cfg = new CFG();
   CFGNode *return_node = new CFGNode(node);
+  return_node->addCallee(node->getValue()->getCallees());
   cfg->addNode(return_node);
   cfg->addIn(return_node);
   // cfg->addOut(return_node);
@@ -359,6 +374,7 @@ void CFGBuilder::visit(DeclStmt *node) {
   }
   CFG *cfg = new CFG();
   CFGNode *cfgnode = new CFGNode(node);
+  cfgnode->addCallee(node->getCallees());
   cfg->addNode(cfgnode);
   cfg->addIn(cfgnode);
   cfg->addOut(cfgnode);
@@ -369,6 +385,7 @@ void CFGBuilder::visit(ExprStmt *node) {
   Visitor::visit(node);
   CFG *cfg = new CFG();
   CFGNode *cfgnode = new CFGNode(node);
+  cfgnode->addCallee(node->getCallees());
   cfg->addNode(cfgnode);
   cfg->addIn(cfgnode);
   cfg->addOut(cfgnode);
@@ -398,4 +415,33 @@ std::string CFG::getGgxString() {
   return graph.getGgxString
     ([](CFGNode *node)->std::string
      {return node->getLabel();});
+}
+
+
+CFG *create_icfg(std::vector<CFG*> cfgs) {
+  // get all function nodes, build a function map
+  std::map<std::string, CFGNode*> name2cfgnode;
+  CFG *ret = new CFG();
+  for (CFG *cfg : cfgs) {
+    ret->graph.merge(cfg->graph);
+    for (auto &m :cfg->getFuncs()) {
+      CFGNode *node = m.first;
+      std::string name = m.second;
+      name2cfgnode[name] = node;
+      // std::cout << name << "\n";
+    }
+  }
+  // std::cout << name2cfgnode.size() << "\n";
+  // for all nodes, connect its callees
+  for (CFG *cfg : cfgs) {
+    for (CFGNode *node : cfg->getAllNodes()) {
+      for (std::string callee : node->getCallees()) {
+        if (name2cfgnode.count(callee) == 1) {
+          // std::cout << "Adding edge" << "\n";
+          ret->graph.addEdge(node, name2cfgnode[callee], "Call");
+        }
+      }
+    }
+  }
+  return ret;
 }

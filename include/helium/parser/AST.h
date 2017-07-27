@@ -133,6 +133,16 @@ public:
     
   virtual std::set<std::string> getIdToResolve() {return {};}
   virtual bool isLeaf() {return false;}
+
+  std::set<std::string> getCallees() {
+    return m_callees;
+  }
+  void addCallee(std::string name) {
+    m_callees.insert(name);
+  }
+  void addCallee(std::set<std::string> names) {
+    m_callees.insert(names.begin(), names.end());
+  }
 protected:
   ASTContext *Ctx = nullptr;
   SourceLocation BeginLoc;
@@ -143,6 +153,7 @@ protected:
   std::set<std::string> m_defined_vars;
   std::set<std::string> m_used_vars;
   std::map<std::string, std::string> name2type;
+  std::set<std::string> m_callees;
 };
 
 

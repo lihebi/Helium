@@ -517,8 +517,18 @@ public:
   }
   ~CFGNode() {}
   std::string getLabel();
+  std::set<std::string> getCallees() {
+    return callees;
+  }
+  void addCallee(std::string name) {
+    callees.insert(name);
+  }
+  void addCallee(std::set<std::string> names) {
+    callees.insert(names.begin(), names.end());
+  }
 private:
   ASTNodeBase *astnode=nullptr;
+  std::set<std::string> callees;
   std::string dummy;
 };
 class CFG {
@@ -602,6 +612,15 @@ public:
   void clearOut(CFGNode *node) {
     outs.clear();
   }
+  void addFunc(CFGNode *node, std::string name) {
+    funcs[node] = name;
+  }
+  std::map<CFGNode*, std::string> getFuncs() {
+    return funcs;
+  }
+  std::set<CFGNode*> getAllNodes() {
+    return graph.getAllNodes();
+  }
   // friend class CFGBuilder;
   // friend is not working, probably due to namespace
   // i'm making the fields public for the time
@@ -609,6 +628,7 @@ public:
   std::set<CFGNode*> ins;
   std::set<CFGNode*> outs;
 private:
+  std::map<CFGNode*, std::string> funcs;
 };
 
 typedef enum _CFGBuilderOption {
@@ -656,6 +676,16 @@ public:
     return nullptr;
   }
 
+  /**
+   * get CFGs orderred by functions
+   */
+  std::map<std::string, CFG*> getFuncCFGs() {
+    return m_func_cfgs;
+  }
+  void addFuncCFG(std::string name, CFG *cfg) {
+    m_func_cfgs[name] = cfg;
+  }
+
   CFG* getInnerCFG(ASTNodeBase* node) {
     assert(node);
     // assert(Node2CFG.count(node) == 1);
@@ -686,7 +716,10 @@ private:
   std::set<CFGNode*> break_nodes;
   std::set<CFGNode*> continue_nodes;
   std::set<CFGNode*> return_nodes;
+  std::map<std::string, CFG*> m_func_cfgs;
 };
+
+CFG *create_icfg(std::vector<CFG*> cfgs);
 
 
 /**
