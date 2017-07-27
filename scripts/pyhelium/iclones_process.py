@@ -127,26 +127,23 @@ def iclone_result_to_pairs(iclone_result_file, output_dir):
 def run_iclones(indir, outdir):
     cmd = 'iclones -language c++ -outformat rcf -input '\
           + indir + ' -output ' + outdir
+    print('==>', cmd)
     subprocess.run(cmd, shell=True)
 def run_rcfreader(indir, outdir):
     cmd = 'rcfreader ' + indir + ' > ' + outdir
+    print('==>', cmd)
     subprocess.run(cmd, shell=True)
-def run_parse_result(indir, outdir):
-    result_file = indir
-    output_dir = outdir
-    if (os.path.exists(output_dir)):
-        shutil.rmtree(output_dir)
-    os.mkdir(output_dir)
-    iclone_result_to_selection(result_file, output_dir)
-    iclone_result_to_pairs(result_file, output_dir)
+def run_parse_result(result_file, outdir):
+    iclone_result_to_selection(result_file, outdir)
+    iclone_result_to_pairs(result_file, outdir)
 def create_iclones_selection(indir, outdir):
     if os.path.exists(outdir): shutil.rmtree(outdir)
-    os.makedir(outdir);
+    os.mkdir(outdir);
     rcffile = os.path.join(outdir, 'iclones.rcf')
     resultfile = os.path.join(outdir, 'iclones-result.txt')
-    run_iclones(args.input, rcffile)
+    run_iclones(indir, rcffile)
     run_rcfreader(rcffile, resultfile)
-    run_parse_result(resultfile, args.output)
+    run_parse_result(resultfile, outdir)
 
 if __name__ == '__main__':
     # simply call --run-all and parse

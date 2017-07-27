@@ -140,7 +140,9 @@ def run_helium(indir, seldir, outdir):
             sel = os.path.join(seldir, benchname)
             out = os.path.join(outdir, benchname)
             p = run_one(bench, sel, out)
-            profile[benchname].update(p)
+            if p:
+                profile[benchname].update(p)
+                pass
             pass
         pass
     dump_profile(profile)
