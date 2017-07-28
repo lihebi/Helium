@@ -149,6 +149,13 @@ void Generator::visit(IfStmt *node){
     prog += get_comment(node);
     // adding a new line before if
     prog += "\n";
+    if (cond_prog.empty()) {
+      // this is bad, clang gives opaque value expr because it cannot fully verify it
+      // manually add true to it
+      // this should improve build rate a lot
+      // but consider this as a serious bug FIXME
+      cond_prog = "true";
+    }
     prog += if_node_prog + "(" + cond_prog + ")" + then_prog + else_node_prog + else_prog;
   } else {
     // if "if" node is not selected, still need to go into
