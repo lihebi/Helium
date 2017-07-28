@@ -268,7 +268,7 @@ std::set<ASTNodeBase*> SourceManager::genRandSelSameFunc(int num) {
   functions = tmp;
   // get the function to use
   if (functions.size() == 0) return {};
-  int func_idx = utils::rand_int(0, functions.size()-1);
+  int func_idx = utils::rand_int(0, functions.size());
   ASTNodeBase *func = functions[func_idx];
   // get tokens
   TokenVisitor visitor;
@@ -686,7 +686,7 @@ std::string SourceManager::generateMainC(std::set<ASTNodeBase*> sel) {
   ret += "}\n";
 
   ret += "int main(int argc, char *argv[]) {\n";
-  ret += "  init_input();\n";
+  ret += "  init_input(argc, argv);\n";
   // TODO call to functions
   ret += "  helium_entry();\n";
   ret += "}\n";
@@ -694,12 +694,12 @@ std::string SourceManager::generateMainC(std::set<ASTNodeBase*> sel) {
 }
 
 std::string SourceManager::generateInputH() {
-  std::string ret;
-  ret += FileIOHelper::GetIOCode();
-  ret += "void init_input() {\n";
-  ret += FileIOHelper::GetFilePointersInit();
-  ret += "}\n";
-  return ret;
+  // read from HELIUM_HOME/data/input.inc
+  const char *helium_home_str = getenv("HELIUM_HOME");
+  fs::path helium_home(helium_home_str);
+  fs::path input_inc = helium_home / "data" / "input.inc";
+  assert(fs::exists(input_inc));
+  return utils::read_file(input_inc);
 }
 
 #if 0
@@ -1199,22 +1199,34 @@ run:
   return ret;
 }
 
+std::string get_testsh(fs::path input_value_dir) {
+  std::string ret;
+  ret += "./a.out " + input_value_dir.string() + " 0 " + "0-output.txt\n";
+  ret += "./a.out " + input_value_dir.string() + " 10 " + "10-output.txt\n";
+  ret += "./a.out " + input_value_dir.string() + " 20 " + "20-output.txt\n";
+  ret += "./a.out " + input_value_dir.string() + " 30 " + "30-output.txt\n";
+  return ret;
+}
+
 void SourceManager::generate(std::set<ASTNodeBase*> sel,
                              fs::path outdir,
                              SnippetManager *snip_man,
                              IncludeManager *inc_man,
-                             LibraryManager *lib_man) {
+                             LibraryManager *lib_man,
+                             fs::path input_value_dir) {
   // std::string main_c = generateProgram(sel);
   std::string main_c = generateMainC(sel);
   std::string input_h = generateInputH();
   std::string main_h = generateMainH(sel, snip_man, inc_man, lib_man);
   std::string makefile = get_makefile(inc_man, lib_man);
+  std::string testsh = get_testsh(input_value_dir);
   if (fs::exists(outdir)) fs::remove_all(outdir);
   fs::create_directories(outdir);
   utils::write_file(outdir / "main.c", main_c);
   utils::write_file(outdir / "main.h", main_h);
   utils::write_file(outdir / "input.h", input_h);
   utils::write_file(outdir / "Makefile", makefile);
+  utils::write_file(outdir / "test.sh", testsh);
 }
 
 

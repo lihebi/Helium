@@ -2,6 +2,9 @@
 #include "helium/utils/FSUtils.h"
 #include "clang/Lex/Preprocessor.h"
 
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "llvm/Support/CommandLine.h"
+
 static SourceLocation convert_clang_loc(clang::ASTContext *ctx, clang::SourceLocation loc) {
   clang::FullSourceLoc full = ctx->getFullLoc(loc);
   SourceLocation ret(full.getSpellingLineNumber(), full.getSpellingColumnNumber());
@@ -688,6 +691,73 @@ ASTContext* create_by_action(fs::path file) {
   return ctx;
 }
 
+static llvm::cl::OptionCategory MyToolCategory("mytool options");
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Option/OptTable.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/TargetSelect.h"
+
+/**
+ * For some reason, I cannot get the compiler find stdbool.h But
+ * clang-check can find. That's very wired.  So i'm not going to worry
+ * about that because what clang gives me is always the valid parts.
+ * (maybe sometime empty, like if() bugs)
+ */
+ASTContext *create_by_tool_action(fs::path file) {
+  llvm::sys::PrintStackTraceOnErrorSignal("dummy");
+
+  // Initialize targets for clang module support.
+  llvm::InitializeAllTargets();
+  llvm::InitializeAllTargetMCs();
+  llvm::InitializeAllAsmPrinters();
+  llvm::InitializeAllAsmParsers();
+
+  std::vector<std::string> Sources;
+  int argc = 2;
+  const char *argv[2];
+  argv[0] = "tool";
+  // argv[1] = "-I/usr/lib/gcc/x86_64-pc-linux-gnu/7.1.1/include/";
+  argv[1] = file.string().c_str();
+  Sources.push_back(file.string());
+  clang::tooling::CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
+  clang::tooling::ClangTool Tool(OptionsParser.getCompilations(), OptionsParser.getSourcePathList());
+
+  // Clear adjusters because -fsyntax-only is inserted by the default chain.
+  Tool.clearArgumentsAdjusters();
+  Tool.appendArgumentsAdjuster(clang::tooling::getClangStripOutputAdjuster());
+
+  // Running the analyzer requires --analyze. Other modes can work with the
+  // -fsyntax-only option.
+  Tool.appendArgumentsAdjuster(getInsertArgumentAdjuster(
+      "-fsyntax-only", clang::tooling::ArgumentInsertPosition::BEGIN));
+  
+  // Tool.setDiagnosticConsumer(new clang::IgnoringDiagConsumer());
+  std::vector<std::unique_ptr<clang::ASTUnit> > ASTUnits;
+
+  std::cout << "going to run tool" << "\n";
+  Tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
+  // should set diagnostic before this
+  std::cout << "Going to build AST" << "\n";
+  Tool.buildASTs(ASTUnits);
+  std::cout << ASTUnits.size() << "\n";
+  assert(ASTUnits.size() == 1);
+
+  ASTContext *ret;
+  for (std::unique_ptr<clang::ASTUnit> &astunit : ASTUnits) {
+    clang::Rewriter rewriter;
+    clang::ASTContext &ast = astunit->getASTContext();
+    clang::TranslationUnitDecl *unit = ast.getTranslationUnitDecl();
+    ASTContext *myctx = new ASTContext("dummy");
+    rewriter.setSourceMgr(ast.getSourceManager(), ast.getLangOpts());
+    TranslationUnitDecl *myunit = ClangParser::parseTranslationUnitDecl(&ast, rewriter, unit, myctx);
+    myctx->setTranslationUnitDecl(myunit);
+    ret = myctx;
+  }
+  return ret;
+}
+
 // Unused
 void create_by_build(fs::path file) {
   std::string code = utils::read_file(file);
@@ -712,6 +782,7 @@ ASTContext *ClangParser::parse(fs::path file) {
   // std::cout << "clang parser pasing " << file << "\n";
   // ASTContext *ctx = new ASTContext(file.string());
   ASTContext *ctx = create_by_action(file);
+  // ASTContext *ctx = create_by_tool_action(file);
   ctx->createSymbolTable();
   return ctx;
 }

@@ -24,8 +24,17 @@ def run_process_with_timeout(cmd, timeout):
         if completed.returncode is not 0:
             return 1
     except subprocess.TimeoutExpired:
+        # print('timeout')
         return 1
     return 0
+
+def run_process(cmd):
+    completed = subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL, timeout=timeout)
+    if completed.returncode is not 0:
+        return 1
+    return 0
+
+
 
 def create_selection(indir, outdir):
     """
@@ -184,6 +193,12 @@ def get_good_benches(profile):
     # print('')
     return ret
 
+
+
+# iclones experiment
+
+
+
 #
 # Running profile
 # this should be sorted
@@ -268,4 +283,9 @@ if __name__ == '__main__':
         analyze_buildrate(args.input)
     elif args.hebi:
         profile = load_profile()
-        get_good_benches(profile)
+        good_benches = get_good_benches(profile)
+        for bench in good_benches:
+            print(bench)
+            print(profile[bench]['br-suc'])
+            print(profile[bench]['br-fail'])
+            print(profile[bench]['br'])

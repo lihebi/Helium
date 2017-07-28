@@ -83,7 +83,8 @@ public:
   void generate(std::set<ASTNodeBase*> sel, fs::path dir,
                 SnippetManager *snip_man,
                 IncludeManager *inc_man,
-                LibraryManager *lib_man);
+                LibraryManager *lib_man,
+                fs::path input_value_dir);
 
   /**
    * Dump ast to 

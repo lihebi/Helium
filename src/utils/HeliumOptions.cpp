@@ -65,6 +65,7 @@ HeliumOptions::HeliumOptions() {
    */
   po::options_description config_options("Config");
   config_options.add_options()
+    ("input-value-dir", po::value<std::string>(), "input value dir containing int.txt, char.txt, bool.txt")
     ("cc", po::value<std::string>(), "c compiler used for compiling generated code")
     ("poi-file", po::value<std::string>(), "POI csv file")
 

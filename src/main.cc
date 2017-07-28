@@ -87,7 +87,8 @@ std::vector<fs::path> get_selections(fs::path selection) {
 void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
                       SnippetManager *snip_manager,
                       IncludeManager *inc_manager,
-                      LibraryManager *lib_manager) {
+                      LibraryManager *lib_manager,
+                      HeliumOptions *options) {
   if (fs::exists(outdir)) fs::remove_all(outdir);
   fs::create_directories(outdir);
   SourceManager *source_man = new SourceManager();
@@ -98,6 +99,7 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
   }
 
   std::vector<std::string> compile_suc, run_suc;
+  std::cout << "[" << sels.size() << "] " << std::flush;
   for (fs::path sel_file : sels) {
     std::cout << "." << std::flush;
     if (verbose_mode) {
@@ -116,7 +118,30 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     fs::path gen_dir = outdir / sel_file.filename().stem();
 
     // generate
-    source_man->generate(patch_sel, gen_dir, snip_manager, inc_manager, lib_manager);
+    fs::path input_value_dir = utils::escape_tide(options->GetString("input-value-dir"));
+    // std::cout << input_value_dir << "\n";
+    if (!fs::exists(input_value_dir)) {
+      // create
+      fs::create_directories(input_value_dir);
+      // FIXME read numbers circly
+      std::string inttxt;
+      for (int i=0;i<100;i++) inttxt += std::to_string(utils::rand_int(-100, 100)) + " ";
+      utils::write_file(input_value_dir / "int.txt", inttxt);
+      // char
+      std::string chartxt;
+      for (int i=0;i<100;i++) chartxt += std::to_string(utils::rand_char()) + " ";
+      utils::write_file(input_value_dir / "char.txt", chartxt);
+      // bool
+      std::string booltxt;
+      for (int i=0;i<100;i++) booltxt += std::to_string(utils::rand_int(0, 2)) + " ";
+      utils::write_file(input_value_dir / "bool.txt", booltxt);
+    }
+    assert(fs::exists(input_value_dir));
+    assert(fs::exists(input_value_dir / "int.txt"));
+    assert(fs::exists(input_value_dir / "char.txt"));
+    assert(fs::exists(input_value_dir / "bool.txt"));
+    
+    source_man->generate(patch_sel, gen_dir, snip_manager, inc_manager, lib_manager, input_value_dir);
     // dump AST
     source_man->dumpAST(gen_dir / "ast", ".lisp");
     source_man->dumpAST(gen_dir / "ast", orig_sel, ".orig.lisp");
@@ -124,9 +149,12 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
     if (do_compile(gen_dir)) {
       // compile success
       compile_suc.push_back(sel_file.filename().string());
-      
-      std::string run_cmd = gen_dir.string() + "/a.out";
-      // this might produce double free, and gives the ugly list
+
+      // using makc -C /gen/path test will run the test command in the directory
+
+      // check whether the input value dir exists
+      // this check should be done much earlier
+      std::string run_cmd = "make -C " + gen_dir.string() + " test";
       ThreadExecutor exe(run_cmd);
       exe.setTimeoutSec(0.2);
       exe.run();
@@ -346,7 +374,7 @@ int main(int argc, char* argv[]) {
       // 2. resolve sym link
       lib_manager->parse(fs::canonical(utils::escape_tide(vi)));
     }
-    run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager);
+    run_on_selection(indir, outdir, selection, snip_manager, inc_manager, lib_manager, options);
     exit(0);
   }
   if (options->Has("hebi")) {
