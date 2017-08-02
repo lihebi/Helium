@@ -18,6 +18,12 @@ from iclones_process import create_iclones_selection
 # from preprocess import unzip, preprocess, create_selection
 import shutil
 
+def run_process(cmd):
+    completed = subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL)
+    if completed.returncode is not 0:
+        return 1
+    return 0
+    
 def run_process_with_timeout(cmd, timeout):
     try:
         completed = subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL, timeout=timeout)
@@ -42,9 +48,13 @@ def create_selection(indir, outdir):
     """
     profile = load_profile()
     good_benches = get_good_benches(profile)
+    total = len(good_benches)
+    idx = 0
     for item in os.listdir(indir):
         if item not in good_benches: continue
-        print ('creating selection for ' + os.path.join(indir, item) + ' ..')
+        idx+=1
+        print ('[',idx, '/', total,']', end=' -- ')
+        # print ('creating selection for ' + os.path.join(indir, item) + ' ..')
         benchmark=os.path.join(indir, item)
         outputdir=os.path.join(outdir, item)
         if os.path.isdir(benchmark):
@@ -96,9 +106,12 @@ def preprocess(indir, outdir):
     os.mkdir(outdir)
     profile = load_profile()
     good_benches = get_good_benches(profile)
+    total = len(good_benches)
+    idx = 0
     for name in os.listdir(indir):
         if name not in good_benches: continue
-        # print ('preprocessing for ' + os.path.join(indir, item) + ' ..')
+        idx += 1
+        print ('[',idx, '/', total,']', end=' -- ')
         bench = os.path.join(indir, name)
         prepdir = os.path.join(outdir, name)
         os.mkdir(prepdir)
@@ -120,7 +133,8 @@ def run_one(bench, sel, outdir):
           ' -o ' + outdir
     print("==>", cmd)
     t1 = time.time()
-    if run_process_with_timeout(cmd, 10) == 0:
+    # if run_process_with_timeout(cmd, 10) == 0:
+    if run_process(cmd) == 0:
         profile['run-suc'] = True
     else:
         profile['run-suc'] = False
@@ -185,7 +199,7 @@ def get_good_benches(profile):
         if 'sel-suc' in obj and obj['sel-suc'] == False: continue
         if 'run-suc' in obj and obj['run-suc'] == False: continue
         if 'ana-suc' in obj and obj['ana-suc'] == False: continue
-        if 'br' in obj and obj['br'] < 90: continue
+        if 'br' in obj and obj['br'] < 50: continue
         ret.add(name)
     print ('Number of good benches: ', len(ret), 'out of', len(profile))
     # for name in ret:
@@ -233,6 +247,66 @@ def analyze_buildrate(indir):
         profile[bench]['br'] = len(suc)/len(sels)*100
     dump_profile(profile)
 
+
+
+import re
+def get_token_size(lispfile):
+    # selected tokens are marked with lambda
+    # if after the lambda, the first paren is close paren, it is a leaf, a.k.a. a token
+    # count them
+    with open(lispfile) as f:
+        # use regular expression to match this
+        content = f.read()
+        pattern = re.compile('lambda[^(]*\)')
+        # FIXME I might want to remove the effect of 0:0 nodes caused by clang opaque expr
+        # pattern = re.compile('lambda')
+        return len(pattern.findall(content))
+
+def analyze_token_size(indir):
+    profile = load_profile()
+    good_benches = get_good_benches(profile)
+    num = 0
+    noneed = 0
+    total_orig_ct = 0
+    total_patch_ct = 0
+    for bench in os.listdir(indir):
+        if bench not in good_benches: continue
+        benchdir = os.path.join(indir, bench)
+        for sel in os.listdir(benchdir):
+            seldir = os.path.join(benchdir, sel)
+            astdir = os.path.join(seldir, 'ast')
+            # inside this dir, there will be a AST file for each of the .c files
+            # foo.lisp, foo.orig.lisp, foo.patch.lisp
+            # so scan all of them, and get the leaf node selected in .orig.lisp (orig) and .patch.lisp (patch)
+            # report avg(orig) and avg(patch)
+            
+            # FIXME only count the successfully built ones
+            aout = os.path.join(seldir, 'a.out')
+            if not os.path.exists(aout): continue
+            
+            orig_ct = 0
+            patch_ct = 0
+            for f in os.listdir(astdir):
+                f = os.path.join(astdir, f)
+                if f.endswith('.orig.lisp'):
+                    orig_ct += get_token_size(f)
+                elif f.endswith('.patch.lisp'):
+                    patch_ct += get_token_size(f)
+            if orig_ct != 0:
+                if orig_ct == patch_ct: noneed+=1
+                total_orig_ct += orig_ct
+                total_patch_ct += patch_ct
+                num+=1
+    print('total orig: ', total_orig_ct)
+    print('total patch: ', total_patch_ct)
+    print('noneed: ', noneed)
+    print('num: ', num)
+    if num != 0:
+        print('avg(orig): ', total_orig_ct / num)
+        print('avg(patch): ', total_patch_ct / num)
+            
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pyhelium -- Helium Python Scripting System')
 
@@ -247,6 +321,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--selection', help='selection files')
 
     parser.add_argument('--analyze-buildrate', action='store_true')
+    parser.add_argument('--analyze-token-size', action='store_true')
     parser.add_argument('--hebi', action='store_true')
 
     # general arguments
@@ -281,6 +356,8 @@ if __name__ == '__main__':
         run_helium(args.input, args.selection, args.output)
     elif args.analyze_buildrate:
         analyze_buildrate(args.input)
+    elif args.analyze_token_size:
+        analyze_token_size(args.input)
     elif args.hebi:
         profile = load_profile()
         good_benches = get_good_benches(profile)

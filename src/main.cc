@@ -182,7 +182,19 @@ void run_on_selection(fs::path indir, fs::path outdir, fs::path selection,
   }
 }
 
-
+static std::set<ASTNodeBase*> remove_invalid_loc_tokens(std::set<ASTNodeBase*> tokens) {
+  std::set<ASTNodeBase*> ret;
+  for (ASTNodeBase *token : tokens) {
+    if (token->getBeginLoc().getLine() == 0
+        && token->getBeginLoc().getColumn() == 0
+        && token->getEndLoc().getLine() == 0
+        && token->getEndLoc().getColumn() == 0) {
+      continue;
+    }
+    ret.insert(token);
+  }
+  return ret;
+}
 
 /**
  * Create selection. Output to outdir, one per json file.
@@ -200,6 +212,10 @@ void create_selection(fs::path indir, fs::path outdir, int num, int num_token) {
     assert(os.is_open());
     // selection = source_man->genRandSelFunc(num_token);
     selection = source_man->genRandSelSameFunc(num_token);
+    
+    // remove tokens with 0:0 source location
+    selection = remove_invalid_loc_tokens(selection);
+    
     source_man->dumpSelection(selection, os);
     os.close();
   }
@@ -279,6 +295,8 @@ int main(int argc, char* argv[]) {
       std::string dot = cfg->getDotString();
       utils::write_file(outdir / (name + ".dot"), dot);
       dot2png(outdir / (name + ".dot"), outdir / (name + ".png"));
+      std::string ggx = cfg->getGgxString();
+      utils::write_file(outdir / (name + ".ggx"), ggx);
     }
 
     // getting icfg
@@ -286,6 +304,8 @@ int main(int argc, char* argv[]) {
     dot = icfg->getDotString();
     utils::write_file(outdir / "icfg.dot", dot);
     dot2png(outdir / "icfg.dot", outdir / "icfg.png");
+    ggx = icfg->getGgxString();
+    utils::write_file(outdir / "icfg.ggx", ggx);
     
     exit(0);
   }
