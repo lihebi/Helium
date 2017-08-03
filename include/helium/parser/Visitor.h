@@ -526,6 +526,7 @@ public:
   void addCallee(std::set<std::string> names) {
     callees.insert(names.begin(), names.end());
   }
+  ASTNodeBase *getASTNode() {return astnode;}
 private:
   ASTNodeBase *astnode=nullptr;
   std::set<std::string> callees;
@@ -544,6 +545,18 @@ public:
     for (CFGNode *node : nodes) {
       graph.addNode(node);
     }
+  }
+  std::set<CFGNode*> getHead() {
+    return ins;
+  }
+  std::set<CFGNode*> getTail() {
+    return outs;
+  }
+  std::set<CFGNode*> getPredecessor(CFGNode *node) {
+    return graph.getPredecessor(node);
+  }
+  std::set<CFGNode*> getSuccessor(CFGNode *node) {
+    return graph.getSuccessor(node);
   }
   /**
    * Merge

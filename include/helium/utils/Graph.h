@@ -78,6 +78,27 @@ namespace hebigraph {
       }
     }
 
+    std::set<T> getPredecessor(T node) {
+      std::set<T> ret;
+      for (auto &m : Node2Vertex) {
+        T from = m.first;
+        if (hasEdge(from, node)) {
+          ret.insert(from);
+        }
+      }
+      return ret;
+    }
+    std::set<T> getSuccessor(T node) {
+      std::set<T> ret;
+      for (auto &m : Node2Vertex) {
+        T to = m.first;
+        if (hasEdge(node, to)) {
+          ret.insert(to);
+        }
+      }
+      return ret;
+    }
+
     bool hasNode(T x) {
       return Node2Vertex.count(x) == 1;
     }
