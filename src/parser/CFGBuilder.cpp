@@ -233,9 +233,9 @@ void CFGBuilder::visit(ForStmt *node) {
   CFG *cfg = new CFG();
   CFGNode *loop_node = new CFGNode(node);
   CFGNode *loop_out = new CFGNode("loop-out");
-  loop_node->addCallee(node->getInit()->getCallees());
-  loop_node->addCallee(node->getCond()->getCallees());
-  loop_node->addCallee(node->getInc()->getCallees());
+  if (node->getInit()) loop_node->addCallee(node->getInit()->getCallees());
+  if (node->getCond()) loop_node->addCallee(node->getCond()->getCallees());
+  if (node->getInc()) loop_node->addCallee(node->getInc()->getCallees());
   cfg->addNode(loop_node);
   cfg->addNode(loop_out);
 
@@ -352,7 +352,7 @@ void CFGBuilder::visit(ReturnStmt *node) {
   Visitor::visit(node);
   CFG *cfg = new CFG();
   CFGNode *return_node = new CFGNode(node);
-  return_node->addCallee(node->getValue()->getCallees());
+  if (node->getValue()) return_node->addCallee(node->getValue()->getCallees());
   cfg->addNode(return_node);
   cfg->addIn(return_node);
   // cfg->addOut(return_node);
