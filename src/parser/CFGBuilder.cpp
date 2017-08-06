@@ -409,8 +409,18 @@ std::string CFGNode::getLabel() {
 
 std::string CFG::getDotString() {
   return graph.getDotString
-    ([](CFGNode *node)->std::string
-     {return node->getLabel();});
+    ([=](CFGNode *node)->std::string
+     {
+       std::string ret;
+       if (this->ins.count(node) == 1) {
+         ret += "IN: ";
+       }
+       if (this->outs.count(node) == 1) {
+         ret += "OUT: ";
+       }
+       ret += node->getLabel();
+       return ret;
+     });
 }
 
 std::string CFG::getGgxString() {

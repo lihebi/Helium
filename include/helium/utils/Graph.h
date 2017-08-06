@@ -231,8 +231,8 @@ namespace hebigraph {
     /**
      * visualize by exporting to graph
      */
-    std::string getDotString(std::string (*labelFunc)(T));
-    std::string getGgxString(std::string (*labelFunc)(T));
+    std::string getDotString(std::function<std::string (T)> labelFunc);
+    std::string getGgxString(std::function<std::string (T)> labelFunc);
 
     void merge(Graph<T> &rhs);
   private:

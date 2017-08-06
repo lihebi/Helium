@@ -5,7 +5,10 @@
 #include "helium/utils/FSUtils.h"
 
 namespace hebigraph {
-  template <typename T> std::string Graph<T>::getDotString(std::string (*labelFunc)(T)) {
+  template <typename T> std::string Graph<T>::getDotString(
+                                                           std::function<std::string (T)> labelFunc
+                                                           // std::string (*labelFunc)(T)
+                                                           ) {
     // std::cout << "Getting dot string" << "\n";
 
     DotGraph dotgraph;
@@ -42,7 +45,7 @@ namespace hebigraph {
     return dotstring;
   }
 
-  template <typename T> std::string Graph<T>::getGgxString(std::string (*labelFunc)(T)) {
+  template <typename T> std::string Graph<T>::getGgxString(std::function<std::string (T)> labelFunc) {
     AggGraph agg;
     std::map<T, int> IDs;
     int ID=0;
