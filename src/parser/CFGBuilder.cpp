@@ -433,6 +433,11 @@ CFG *create_icfg(std::vector<CFG*> cfgs) {
       // std::cout << name << "\n";
     }
   }
+  // in and out
+  for (CFG *cfg : cfgs) {
+    ret->ins.insert(cfg->ins.begin(), cfg->ins.end());
+    ret->outs.insert(cfg->outs.begin(), cfg->outs.end());
+  }
   // std::cout << name2cfgnode.size() << "\n";
   // for all nodes, connect its callees
   for (CFG *cfg : cfgs) {
@@ -441,6 +446,8 @@ CFG *create_icfg(std::vector<CFG*> cfgs) {
         if (name2cfgnode.count(callee) == 1) {
           // std::cout << "Adding edge" << "\n";
           ret->graph.addEdge(node, name2cfgnode[callee], "Call");
+          ret->outs.erase(node);
+          ret->ins.erase(name2cfgnode[callee]);
         }
       }
     }
