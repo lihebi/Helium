@@ -61,6 +61,8 @@ void CFGBuilder::visit(FunctionDecl *node) {
       cfg->addEdge(node, func_out);
     }
   }
+  cfg->ins.insert(func_node);
+  cfg->outs.insert(func_out);
   addInnerCFG(node, cfg);
   addFuncCFG(node->getName(), cfg);
 }
