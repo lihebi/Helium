@@ -504,7 +504,18 @@ Expr *ClangParser::parseExpr
   if (!expr) return nullptr;
   clang::SourceRange range = expr->getSourceRange();
   std::string text = rewriter.getRewrittenText(range);
-  // std::cout << text << "\n";
+  // fixing include file error
+  // TODO fix the line number inconsistent (should only occur when using macro)
+  // TODO consider use printPretty to replace all rewriter
+
+  // expr->dumpPretty(*ctx);
+  std::string s;
+  llvm::raw_string_ostream rss(s);
+  expr->printPretty(rss, nullptr, clang::PrintingPolicy(ctx->getLangOpts()));
+  // CAUTAION: need to "flush" to update s
+  rss.flush();
+  text = s;
+
   // expr->getLocStart().dump(ctx->getSourceManager());
   // expr->getLocEnd().dump(ctx->getSourceManager());
   // adding includes does solve half of the opaque value
@@ -720,6 +731,10 @@ ASTContext *create_by_tool_action(fs::path file) {
   argv[0] = "tool";
   // argv[1] = "-I/usr/lib/gcc/x86_64-pc-linux-gnu/7.1.1/include/";
   argv[1] = file.string().c_str();
+  // argv[2] = "--";
+  // argv[2] = "-I/usr/include/linux";
+  // argv[3] = "-I/usr/lib/clang/5.0.0/include";
+  // argv[3] = "-I/usr/include";
   Sources.push_back(file.string());
   clang::tooling::CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
   clang::tooling::ClangTool Tool(OptionsParser.getCompilations(), OptionsParser.getSourcePathList());
