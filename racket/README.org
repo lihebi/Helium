@@ -6,8 +6,10 @@ Now I'd better use Clang instead of a racket parser because
 
 * TODOs
 ** TODO snippet manager
-** TODO library manager
-** TODO include manager
+** CANCELED library manager
+   CLOSED: [2017-10-19 Thu 10:37]
+** CANCELED include manager
+   CLOSED: [2017-10-19 Thu 10:45]
 ** TODO source manager
 - manage multiple files (i.e. multiple ASTs)
 ** TODO symbol table
