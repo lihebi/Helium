@@ -1,0 +1,83 @@
+#+TITLE: Document
+
+Now I'd better use Clang instead of a racket parser because
+- c-utils does not do error recovery
+- I don't want to use a parser generator
+
+* TODOs
+** TODO snippet manager
+** TODO library manager
+** TODO include manager
+** TODO source manager
+- manage multiple files (i.e. multiple ASTs)
+** TODO symbol table
+- defuse analysis
+- from clang: for each AST ndoe
+  - definedvar
+  - usedvar
+** TODO selection loading
+** TODO CFG building
+** TODO grammar patch
+** TODO code generation
+** TODO test case generation
+- Type
+** TODO test running
+** TODO transfer function analyzing
+
+
+* Format of AST dump
+
+#+BEGIN_SRC racket
+  '(TranslationUnitDecl
+    (loc (1 0))
+    (decls ((DeclStmt (content "int a;"))
+            (FunctionDecl (loc (1 . 3))
+                          (return "int")
+                          (name "foo")
+                          (params "int a, int b")
+                          (body (compound)))
+            (FucntionDecl))))
+#+END_SRC
+
+Now for all the subtypes (omitting location for now)
+
+#+BEGIN_SRC racket
+  (expr (loc x y) (str "content"))
+  (token (str "for"))
+  (decl:trans-unit  (decls (decl ...)))
+  (decl:function (ret "int")
+                 (name "foo")
+                 (params "int a,int b")
+                 (body stmt))
+
+  (stmt:decl (str "content"))
+  (stmt:expr (str "content"))
+  (stmt:compound (stmts stmt ...))
+  (stmt:for (init expr) (test expr) (incr expr) (body stmt))
+  (stmt:while (test expr) (body stmt))
+  (stmt:do (test expr) (body stmt))
+  (stmt:break)
+  (stmt:continue)
+  (stmt:return [(value expr)])
+  (stmt:if (test expr) (cons stmt) (alt stmt))
+  (stmt:switch (test expr) (cases case ...))
+  (stmt:case (test expr) (body stmt))
+  (stmt:default (body stmt))
+#+END_SRC
+
+
+** Using structure print format
+this is not good because when using substructure, the print format is
+pretty complicate
+
+#+BEGIN_SRC C
+int foo() {
+  int a=1;
+  return a+1;
+}
+void bar() {
+  return;
+}
+#+END_SRC
+
+
