@@ -5,11 +5,14 @@ Now I'd better use Clang instead of a racket parser because
 - I don't want to use a parser generator
 
 * TODOs
-** TODO snippet manager
+** DONE snippet manager
+   CLOSED: [2017-10-19 Thu 14:06]
 ** CANCELED library manager
    CLOSED: [2017-10-19 Thu 10:37]
 ** CANCELED include manager
    CLOSED: [2017-10-19 Thu 10:45]
+
+
 ** TODO source manager
 - manage multiple files (i.e. multiple ASTs)
 ** TODO symbol table

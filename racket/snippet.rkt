@@ -1,14 +1,16 @@
 #lang racket
 
+
+
 ;; snippet manager
 
 ;; use helium --create-snippet to create json file
 ;; Use this module to load from the json file
 
 ;; should support:
-;; TODO use key to retrieve snippets
-;; TODO recursively get all dependent snippets
-;; TODO extract code from flie
+;; DONE use key to retrieve snippets
+;; DONE recursively get all dependent snippets
+;; DONE extract code from flie
 ;; DONE add deps and outers
 ;; DONE add ID index
 ;; DONE add key to a hash map
@@ -25,6 +27,9 @@
 (struct record-decl-snip snip ())
 (struct enum-snip snip (fields))
 (struct func-decl-snip snip ())
+
+
+
 
 
 (define (get-loc jexp)
@@ -85,9 +90,75 @@
               [key (get-keys snip)])
     (values key snip)))
 
+
+
+(define (set-add-list st lst)
+  (if (null? lst) st
+      (set-add-list (set-add st (car lst)) (cdr lst))))
+
+;; worklist and done should be two sets
+;; return the done sets in the end
+(define (get-all-dep worklist done id-index)
+  (if (set-empty? worklist)
+      done
+      (let ([item (set-first worklist)])
+        (let ([newdeps (for/list ([dep (snip-deps (set-first worklist))]
+                                  #:when (let ([dep-obj (hash-ref id-index dep)])
+                                           (and (not (set-member? worklist dep-obj))
+                                                (not (set-member? done dep-obj)))))
+                         (hash-ref id-index dep))])
+          (get-all-dep (set-add-list (set-rest worklist) newdeps) (set-add done item) id-index)))))
+
+
+
+(define (read-file-for-code snip)
+  (call-with-input-file (snip-file snip)
+    (lambda (file)
+      ;; (displayln (format "using ~a" file))
+      (let ([begin-loc (snip-begin-loc snip)]
+            [end-loc (snip-end-loc snip)])
+        ;; (displayln (format "range: ~a ~a" begin-loc end-loc))
+        (string-join
+         (for/list ([i (in-naturals 1)]
+                    #:break (> i (car end-loc)))
+           (let ([line (read-line file)])
+             ;; (displayln line)
+             (cond
+              [(< i (car begin-loc)) ""]
+              [(= i (car begin-loc)) (substring line (sub1 (cadr begin-loc)))]
+              [(< i (car end-loc)) line]
+              [(= i (car end-loc)) (substring line 0 (cadr end-loc))]
+              [else ""]))) "\n")))))
+
+
+;; (define (read-file-for-code-until-semicolon snip))
+
+;; (get-all-dep (set (hash-ref id-index 6)) (set) id-index)
+
+
+;; (set-add-list (set 1 2 3 4) '(5 6 7))
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Testing code
+;; not putting in (module+ test) because geiser seems not able to run through it
+
+
 (define test-filename
   (expand-user-path
    "~/tmp/snippets.json"))
+(define id-index (create-id-index (load-snippet-json test-filename)))
+(read-file-for-code (hash-ref id-index 3))
+(for ([(key value) id-index])
+  (displayln key)
+  (read-file-for-code value))
+
+
 
 ;; (string->jsexpr
 ;;  (file->string
