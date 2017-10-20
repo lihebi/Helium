@@ -94,7 +94,8 @@ public:
   SourceLocation getEndLoc() {return EndLoc;}
   virtual void dump(std::ostream &os) {
     os << getNodeName()
-       << " " << BeginLoc.getLine() << ":" << BeginLoc.getColumn();
+       << " " << BeginLoc.getLine() << ":" << BeginLoc.getColumn()
+       << ":" << EndLoc.getLine() << ":" << EndLoc.getColumn();
   }
   virtual std::string getNodeName() = 0;
 
