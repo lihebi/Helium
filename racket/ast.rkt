@@ -1,16 +1,13 @@
 #lang racket
 (provide
  ;; folder -> ASTs
- create-file->ast-map
+ create-file2ast
  ;; .c|.h -> AST
- create-ast-for-file
- ;; sel.json -> file->sel-map
- load-file->sel-map
- ;; file->ast file->sel => (set tokens)
- load-sel
+ ;; create-ast-for-file
  get-tokens
  token-node->string
- pretty-print-ast)
+ pretty-print-ast
+ node-loc)
 
 (require json)
 (require racket/path)
@@ -257,19 +254,24 @@
 (define (pretty-print-ast ast)
   (print-hier (travel ast)))
 
-(define (create-file->ast-map path)
+(define (create-file2ast path)
   "Create AST for a folder of .c and .h code"
   ;; parse a preprocessed c file folder
   ;; for each file, run Helium to dump AST
   ;; create an AST for it
   ;; create a map of filename to AST
-  (for/hash ([dir (in-directory path)]
-             ;; not a directory
-             #:when (and (file-exists? dir)
-                         (let ([ext (bytes->string/locale (path-get-extension dir))])
-                           (or (string=? ext ".c")
-                               (string=? ext ".h")))))
-    (values (path->string dir) (create-ast-for-file dir))))
+  (cond
+    [(file-exists? path) (hash path (create-ast-for-file path))]
+    [(directory-exists? path)
+     (for/hash ([dir (in-directory path)]
+                ;; not a directory
+                #:when (and (file-exists? dir)
+                            (let ([ext (bytes->string/locale
+                                        (path-get-extension dir))])
+                              (or (string=? ext ".c")
+                                  (string=? ext ".h")))))
+       (values (path->string dir) (create-ast-for-file dir)))]
+    [else (error "Path invalid" path)]))
 
 ;; (eq? (string->path "hello") (string->path "hello"))
 
@@ -280,59 +282,14 @@
       (open-input-string
        (with-output-to-string (lambda () (system helium-cmd))))))))
 
-
-(define (load-file->sel-map sel-file)
-  (let ([jobj (read-json (open-input-file sel-file))])
-    (for/hash ([item jobj])
-      (values (hash-ref item 'file)
-              ;; this is a list
-              (hash-ref item 'sel)))))
-
-(define (load-sel-single ast sels)
-  (filter-not null?
-              (let ([tokens (get-tokens ast)])
-                (for*/list ([t tokens]
-                            [s sels])
-                  (let ([loc (list (hash-ref s 'line)
-                                   (hash-ref s 'col))])
-                    (if (is-this-token? t loc) t null))))))
-
-(define (load-sel file->ast-map file->sel-map)
-  "return a set of selected tokens"
-  (list->set
-   (filter-not
-    null?
-    ;; flatten the inner list
-    (flatten
-     (for/list ([(key value) (in-hash file->ast-map)])
-       (if (hash-has-key? file->sel-map key)
-           (load-sel-single value (hash-ref file->sel-map key))
-           null))))))
-
-
-
-
-
-
-(define (loc<= lhs rhs)
-  (cond
-   [(< (car lhs) (car rhs)) #t]
-   [(> (car lhs) (car rhs)) #f]
-   [(<= (cadr lhs) (cadr rhs)) #t]
-   [else #f]))
-
-(define (is-this-token? token loc)
-  (let ([begin-loc (drop-right (node-loc token) 2)]
-        [end-loc (drop (node-loc token) 2)])
-    (and (loc<= begin-loc loc)
-         (loc<= loc end-loc))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TEST
 ;; (define myast (create-ast-for-file "/home/hebi/github/benchmark/craft/grammar/a.c"))
 ;; (pretty-print-ast myast)
 
 ;; (define file->sel-map (load-file->sel-map "/home/hebi/tmp/sel/0.json"))
-;; (define file->ast-map (create-file->ast-map "/home/hebi/github/benchmark/craft/prep"))
+;; (define file->ast-map (create-file2ast "/home/hebi/github/benchmark/craft/prep"))
 ;; (define sel-set (load-sel file->ast-map file->sel-map))
 ;; (describe-node myast)
+
+;; (create-file2ast "/home/hebi/github/benchmark/craft/snippet")
