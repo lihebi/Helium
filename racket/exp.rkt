@@ -1,6 +1,7 @@
 #lang racket
 
 (require "ast.rkt")
+(require "sel.rkt")
 (require "patch.rkt")
 
 
@@ -29,8 +30,8 @@
 ;;           (open-input-file "/home/hebi/tmp/sel/0.json"))
 
 
-(define file->sel-map (load-file->sel-map "/home/hebi/tmp/sel/0.json"))
-(define file->ast-map (create-file->ast-map "/home/hebi/github/benchmark/craft/prep"))
-(define sel-set (load-sel file->ast-map file->sel-map))
+(define file2ast
+  (create-file2ast "/home/hebi/github/benchmark/craft/prep"))
+(create-rand-file2sel file2ast 1)
 
 ;; (patch file->ast-map sel-set)

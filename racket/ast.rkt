@@ -1,9 +1,8 @@
 #lang racket
 (provide
  ;; folder -> ASTs
- create-file2ast
  ;; .c|.h -> AST
- ;; create-ast-for-file
+ create-ast-for-file
  get-tokens
  token-node->string
  pretty-print-ast
@@ -253,27 +252,6 @@
 
 (define (pretty-print-ast ast)
   (print-hier (travel ast)))
-
-(define (create-file2ast path)
-  "Create AST for a folder of .c and .h code"
-  ;; parse a preprocessed c file folder
-  ;; for each file, run Helium to dump AST
-  ;; create an AST for it
-  ;; create a map of filename to AST
-  (cond
-    [(file-exists? path) (hash path (create-ast-for-file path))]
-    [(directory-exists? path)
-     (for/hash ([dir (in-directory path)]
-                ;; not a directory
-                #:when (and (file-exists? dir)
-                            (let ([ext (bytes->string/locale
-                                        (path-get-extension dir))])
-                              (or (string=? ext ".c")
-                                  (string=? ext ".h")))))
-       (values (path->string dir) (create-ast-for-file dir)))]
-    [else (error "Path invalid" path)]))
-
-;; (eq? (string->path "hello") (string->path "hello"))
 
 (define (create-ast-for-file path)
   (let ([helium-cmd (format "helium --dump-ast ~a" path)])
