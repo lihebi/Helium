@@ -12,22 +12,30 @@ Now I'd better use Clang instead of a racket parser because
 ** CANCELED include manager
    CLOSED: [2017-10-19 Thu 10:45]
 
+** DONE create AST from file
+   CLOSED: [2017-10-20 Fri 15:56]
+** DONE load selection
+   CLOSED: [2017-10-20 Fri 15:56]
 
-** TODO source manager
+** DONE source manager
+   CLOSED: [2017-10-20 Fri 15:56]
 - manage multiple files (i.e. multiple ASTs)
+** DONE code generation
+   CLOSED: [2017-10-20 Fri 19:18]
+** STARTED grammar patch
+** TODO test case generation
+- Type
+** TODO test running
 ** TODO symbol table
 - defuse analysis
 - from clang: for each AST ndoe
   - definedvar
   - usedvar
-** TODO selection loading
 ** TODO CFG building
-** TODO grammar patch
-** TODO code generation
-** TODO test case generation
-- Type
-** TODO test running
 ** TODO transfer function analyzing
+
+* Not Emergent TODOs
+** TODO FIXME switch inverse order
 
 
 * Format of AST dump
