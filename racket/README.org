@@ -34,7 +34,11 @@ void bar(void *x, void *y) { int i = bar(x, y); }
 The bug seems to be the pop-lexer-declarator should not be invoked
 when encountering a =,=.
 
-** TODO replace parser with c-utils
+** STARTED replace parser with c-utils (newast.rkt)
+- 
+** STARTED make the following benchmark work (parse.rkt)
+- three buffer overflow benchmark
+- find and grep
 
 * TODOs
 ** DONE snippet manager

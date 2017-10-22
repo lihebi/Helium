@@ -26,12 +26,15 @@
                     (symbol->string (id:var-name node))]
     ;; TYPE
     [(type:pointer? node) (debug "type:pointer")
-                          "*"]
+                          (string-append
+                           "*"
+                           ;; TODO base
+                           (gen (type:pointer-qualifiers node)))]
     [(type:struct? node) (debug "type:struct")
                          (string-append
                           "struct "
                           (gen (type:struct-tag node)))]
-    [(type:primitive? node) "TODO"]
+    [(type:primitive? node) "TODO type:primitive?"]
     ;; DECL
     [(decl:typedef? node) (debug "decl:typedef")
                           (string-append
@@ -42,6 +45,15 @@
                             (map gen (decl:typedef-declarators node))
                             ",")
                            ";")]
+    [(decl:vars? node) (string-append
+                        (gen (decl:vars-storage-class node))
+                        " "
+                        (gen (decl:vars-type node))
+                        " "
+                        (string-join
+                         (map gen (decl:vars-declarators))
+                         ","))]
+    [(decl:formal? node)]
     [(decl:declarator? node) (debug "decl:declarator")
                              (string-append
                               (gen (decl:declarator-type node))
@@ -49,11 +61,14 @@
                               (gen (decl:declarator-id node))
                               ;; TODO init
                               )]
-    [(decl:function? node) "TODO"]
-    [else (debug node) (print node) (error "debug here")]))
+    [(decl:function? node) "TODO decl:function?" node]
+    [else (debug node) (pretty-print node) (error "debug here")]))
 
 (gen (car (parse-program "typedef struct XXX *aaa, DDD;")))
 
 (gen (car (parse-program
            (string->path
             "/home/hebi/github/benchmark/craft/grammar/a.c"))))
+
+
+(parse-program "const int * const a;")
