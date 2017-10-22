@@ -4,6 +4,17 @@ Now I'd better use Clang instead of a racket parser because
 - c-utils does not do error recovery
 - I don't want to use a parser generator
 
+* Stack 1
+** Use c-utils
+*** TODO treat all errors as typedef and recover
+*** TODO macros?? preprocessing??
+*** TODO multiple function bug (use single function only)
+
+#+BEGIN_SRC C
+void foo(void *x, void *y) { int i = foo(x, y); }
+void bar(void *x, void *y) { int i = bar(x, y); }
+#+END_SRC
+
 * TODOs
 ** DONE snippet manager
    CLOSED: [2017-10-19 Thu 14:06]
