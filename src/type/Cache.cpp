@@ -220,7 +220,7 @@ static void post_copy(fs::path dir) {
         // dump it into a file
         fs::path inc_file = from;
         inc_file.replace_extension(".inc");
-        utils::write_file(inc_file, boost::algorithm::join(includes, "\n"));
+        utils::append_file(inc_file, boost::algorithm::join(includes, "\n"));
       }
     }
   }
@@ -257,9 +257,10 @@ static void post_cpp(fs::path dir) {
         if (is.is_open()) {
           std::string line;
           std::string output;
-          if (fs::exists(inc_file)) {
-            output += "#include \"" + inc_file.filename().string() + "\"\n";
-          }
+          // include the .inc file
+          // if (fs::exists(inc_file)) {
+          //   output += "#include \"" + inc_file.filename().string() + "\"\n";
+          // }
           bool b = false;
           while(getline(is, line)) {
             if (!line.empty() && line[0] == '#') {
