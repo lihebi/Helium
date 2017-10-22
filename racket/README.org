@@ -6,14 +6,35 @@ Now I'd better use Clang instead of a racket parser because
 
 * Stack 1
 ** Use c-utils
-*** TODO treat all errors as typedef and recover
-*** TODO macros?? preprocessing??
-*** TODO multiple function bug (use single function only)
+*** DONE treat all errors as typedef and recover
+    CLOSED: [2017-10-22 Sun 12:32]
+It is not possible to do this.
+
+#+BEGIN_SRC C
+int a = (mytypedef*)xx;
+#+END_SRC
+
+This is not a "maybe miss a typedef" error, but a un-expected ) error,
+because mytypedef may be a variable.
+
+The solution is to extract all possible typedefs (only typedefs, no
+need "struct xxx"). This is fairly easy.
+
+*** DONE macros?? preprocessing??
+    CLOSED: [2017-10-22 Sun 12:32]
+I'm going to use C preprocessor.
+*** DONE multiple function bug (use single function only)
+    CLOSED: [2017-10-22 Sun 14:29]
 
 #+BEGIN_SRC C
 void foo(void *x, void *y) { int i = foo(x, y); }
 void bar(void *x, void *y) { int i = bar(x, y); }
 #+END_SRC
+
+The bug seems to be the pop-lexer-declarator should not be invoked
+when encountering a =,=.
+
+** TODO replace parser with c-utils
 
 * TODOs
 ** DONE snippet manager
