@@ -130,3 +130,10 @@ void bar() {
 #+END_SRC
 
 
+
+* Unix
+To check default include path:
+#+BEGIN_EXAMPLE
+cpp -v /dev/null -o /dev/null
+clang -x c -v -E /dev/null
+#+END_EXAMPLE
