@@ -81,6 +81,40 @@ namespace hebigraph {
     // return agg_filename;
     return aggstring;
   }
+
+  template <typename T> std::string Graph<T>::getGrsString(std::function<std::string (T)> labelFunc) {
+    AggGraph agg;
+    std::map<T, int> IDs;
+    int ID=0;
+    {
+      VertexIter begin,end;
+      boost::tie(begin, end) = vertices(g);
+      for (VertexIter it=begin;it!=end;++it) {
+        Vertex v = *it;
+        T t = Vertex2Node[v];
+        std::string label = labelFunc(t);
+        agg.addNode(std::to_string(ID), label);
+        IDs[t]=ID;
+        ID++;
+      }
+    }
+    {
+      EdgeIter begin,end;
+      boost::tie(begin, end) = edges(g);
+      for (EdgeIter it=begin;it!=end;++it) {
+        Edge e = *it;
+        Vertex src = source(e, g);
+        Vertex dst = target(e, g);
+        T srcT = Vertex2Node[src];
+        T dstT = Vertex2Node[dst];
+        std::string label = get(edge_label_t(), g, e);
+        agg.addEdge(std::to_string(IDs[srcT]), std::to_string(IDs[dstT]), label);
+      }
+    }
+    // GRS
+    std::string aggstring = agg.dump_grs();
+    return aggstring;
+  }
   
 
   template <typename T> void Graph<T>::merge(Graph<T> &rhs) {

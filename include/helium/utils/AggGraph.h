@@ -58,6 +58,7 @@ public:
   void addEdge(std::string from, std::string to, std::string label="");
   void fillGraphNode(pugi::xml_node graph_node);
   std::string dump();
+  std::string dump_grs();
 private:
   std::map<std::string, AggNode*> Id2Node;
   std::set<AggNode*> Nodes;

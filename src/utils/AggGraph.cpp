@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+using std::string;
+
 using namespace pugi;
 
 void AggGraph::addNode(std::string id, std::string label) {
@@ -96,6 +98,22 @@ void AggGraph::fillGraphNode(xml_node graph_node) {
     node.append_child(pugi::node_pcdata).set_value(aggedge->label.c_str());
     ID++;
   }
+}
+
+std::string AggGraph::dump_grs() {
+  string ret;
+  for (AggNode *aggnode : Nodes) {
+    string id = "s" + aggnode->id;
+    string type = NodeTypeName[aggnode->type].substr(3);
+    ret += "new " + id + ":" + type + "\n";
+  }
+  for (AggEdge *aggedge : Edges) {
+    string source = "s" + aggedge->from->id;
+    string target = "s" + aggedge->to->id;
+    string type=EdgeTypeName[aggedge->type].substr(3);
+    ret += "new " + source + "-:" + type + "->" + target + "\n";
+  }
+  return ret;
 }
 
 std::string AggGraph::dump() {

@@ -607,6 +607,7 @@ public:
   }
   std::string getDotString();
   std::string getGgxString();
+  std::string getGrsString();
 
   /**
    * I still need to set in and out manually because, return xx; a=b;

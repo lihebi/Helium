@@ -428,6 +428,11 @@ std::string CFG::getGgxString() {
     ([](CFGNode *node)->std::string
      {return node->getLabel();});
 }
+std::string CFG::getGrsString() {
+  return graph.getGrsString
+    ([](CFGNode *node)->std::string
+     {return node->getLabel();});
+}
 
 
 CFG *create_icfg(std::vector<CFG*> cfgs) {

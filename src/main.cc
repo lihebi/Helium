@@ -282,6 +282,8 @@ int main(int argc, char* argv[]) {
 
     std::string ggx = cfg->getGgxString();
     utils::write_file(outdir / "whole.ggx", ggx);
+    std::string grs = cfg->getGrsString();
+    utils::write_file(outdir / "whole.ggx", grs);
     std::string dot = cfg->getDotString();
     utils::write_file(outdir / "whole.dot", dot);
     dot2png(outdir / "whole.dot", outdir / "whole.png");
@@ -297,6 +299,8 @@ int main(int argc, char* argv[]) {
       dot2png(outdir / (name + ".dot"), outdir / (name + ".png"));
       std::string ggx = cfg->getGgxString();
       utils::write_file(outdir / (name + ".ggx"), ggx);
+      std::string grs = cfg->getGrsString();
+      utils::write_file(outdir / (name + ".grs"), grs);
     }
 
     // getting icfg
@@ -306,6 +310,8 @@ int main(int argc, char* argv[]) {
     dot2png(outdir / "icfg.dot", outdir / "icfg.png");
     ggx = icfg->getGgxString();
     utils::write_file(outdir / "icfg.ggx", ggx);
+    grs = icfg->getGrsString();
+    utils::write_file(outdir / "icfg.grs", grs);
     
     exit(0);
   }

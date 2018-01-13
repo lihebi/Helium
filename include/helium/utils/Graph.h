@@ -233,6 +233,7 @@ namespace hebigraph {
      */
     std::string getDotString(std::function<std::string (T)> labelFunc);
     std::string getGgxString(std::function<std::string (T)> labelFunc);
+    std::string getGrsString(std::function<std::string (T)> labelFunc);
 
     void merge(Graph<T> &rhs);
   private:
