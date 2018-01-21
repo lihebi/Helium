@@ -303,13 +303,22 @@ int main(int argc, char* argv[]) {
       utils::write_file(outdir / (name + ".grs"), grs);
     }
 
+    CFG *orig_icfg = create_icfg(cfgs);
+    dot = orig_icfg->getDotString();
+    utils::write_file(outdir / "orig_icfg.dot", dot);
+    dot2png(outdir / "orig_icfg.dot", outdir / "orig_icfg.png");
+    
+    
     // getting icfg
-    CFG *icfg = create_icfg(cfgs);
+    CFG *icfg = create_icfg(cfgs, true);
+
     dot = icfg->getDotString();
     utils::write_file(outdir / "icfg.dot", dot);
     dot2png(outdir / "icfg.dot", outdir / "icfg.png");
+
     ggx = icfg->getGgxString();
     utils::write_file(outdir / "icfg.ggx", ggx);
+
     grs = icfg->getGrsString();
     utils::write_file(outdir / "icfg.grs", grs);
     

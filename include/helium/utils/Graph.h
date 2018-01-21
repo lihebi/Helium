@@ -21,9 +21,35 @@ namespace hebigraph {
     typedef edge_property_tag kind;
   };
   typedef property<edge_label_t, std::string> EdgeLabelProperty;
-
-  typedef adjacency_list<vecS, vecS, bidirectionalS, no_property, EdgeLabelProperty> GraphType;
+  struct vertex_label_t {
+    typedef vertex_property_tag kind;
+  };
+  typedef property<vertex_label_t, std::string> VertexLabelProperty;
+  // typedef property<vertex_distance_t, std::string> VertexLabelProperty;
+  // typedef std::map<vertex_desc, size_t> IndexMap;
+  // IndexMap mapIndex;
   
+
+  // this is super ... shit. To use listS instead of vecS, I have to
+  // add this weired thing for vertex property
+  typedef adjacency_list_traits<listS, listS, 
+                                directedS>::vertex_descriptor vertex_descriptor;
+  typedef  property<vertex_index_t, int, 
+    property<vertex_name_t, char,
+    property<vertex_distance_t, int,
+             property<vertex_predecessor_t, vertex_descriptor> > > > VP;
+  // typedef adjacency_list<listS, listS, bidirectionalS,
+  //                        VertexLabelProperty, EdgeLabelProperty> GraphType;
+  typedef adjacency_list<listS, listS, bidirectionalS,
+                         VP, EdgeLabelProperty> GraphType;
+
+  // typedef adjacency_list < listS, listS, directedS,
+  //                          property<vertex_index_t, int, 
+  //   property<vertex_name_t, char,
+  //   property<vertex_distance_t, int,
+  //            property<vertex_predecessor_t, vertex_descriptor> > > >, 
+  //   property<edge_weight_t, int> > graph_t;
+
   typedef graph_traits<GraphType>::vertex_descriptor Vertex;
   typedef graph_traits<GraphType>::edge_descriptor Edge;
   typedef graph_traits<GraphType>::vertex_iterator VertexIter;
@@ -130,41 +156,8 @@ namespace hebigraph {
      * 2. connect in to out, omit all labels
      * 3. remove node and in and out edges
      */
-    void removeNodeGentle(T x) {
-      if (hasNode(x)) {
-        EdgeIter begin,end;
-        boost::tie(begin, end) = edges(g);
-        std::set<Vertex> outset;
-        std::set<Vertex> inset;
-        for (EdgeIter it=begin;it!=end;++it) {
-          Edge e = *it;
-          if (Node2Vertex[x] == source(e, g)) {
-            outset.insert(target(e, g));
-          }
-          if (Node2Vertex[x] == target(e, g)) {
-            inset.insert(source(e, g));
-          }
-        }
-        // connect
-        for (Vertex in : inset) {
-          for (Vertex out : outset) {
-            // addEdge(in, out);
-            add_edge(in, out, g);
-          }
-        }
-        // remove edge
-        for (Vertex in : inset) {
-          remove_edge(in, Node2Vertex[x], g);
-        }
-        for (Vertex out : outset) {
-          remove_edge(Node2Vertex[x], out, g);
-        }
-        // remove node
-        remove_vertex(Node2Vertex[x], g);
-        Vertex2Node.erase(Node2Vertex[x]);
-        Node2Vertex.erase(x);
-      }
-    }
+    void removeNodeGentle(T x, std::string label="");
+    void removeCallsite(T x);
 
     void removeOutEdge(T x) {
       if (Node2Vertex.count(x) == 1) {

@@ -10,7 +10,6 @@ namespace hebigraph {
                                                            // std::string (*labelFunc)(T)
                                                            ) {
     // std::cout << "Getting dot string" << "\n";
-
     DotGraph dotgraph;
     std::map<T, int> IDs;
     int ID=0;
@@ -165,8 +164,111 @@ namespace hebigraph {
   //   }
   //   return ret;
   // }
-  
 
+  template <typename T> void Graph<T>::removeNodeGentle(T x, std::string label) {
+    if (hasNode(x)) {
+      EdgeIter begin,end;
+      boost::tie(begin, end) = edges(g);
+      std::set<Vertex> outset;
+      std::set<Vertex> inset;
+      for (EdgeIter it=begin;it!=end;++it) {
+        Edge e = *it;
+        if (Node2Vertex[x] == source(e, g)) {
+          outset.insert(target(e, g));
+        }
+        if (Node2Vertex[x] == target(e, g)) {
+          inset.insert(source(e, g));
+        }
+      }
+      // connect
+      for (Vertex in : inset) {
+        for (Vertex out : outset) {
+          // addEdge(in, out);
+          Edge e = add_edge(in, out, g).first;
+          put(edge_label_t(), g, e, label);
+          // add_edge(in, out, g);
+        }
+      }
+      // remove edge
+      for (Vertex in : inset) {
+        remove_edge(in, Node2Vertex[x], g);
+      }
+      for (Vertex out : outset) {
+        remove_edge(Node2Vertex[x], out, g);
+      }
+      // remove node
+      Vertex v = Node2Vertex[x];
+      Vertex2Node.erase(v);
+      Node2Vertex.erase(x);
+      // CAUTION remove_vertex will invalidate some iterators, cause bug
+      remove_vertex(v, g);
+    }
+  }
+
+  template <typename T> void Graph<T>::removeCallsite(T x) {
+    if (hasNode(x)) {
+      EdgeIter begin,end;
+      boost::tie(begin, end) = edges(g);
+      std::set<Vertex> outset;
+      std::set<Vertex> inset;
+      std::set<Vertex> outset_inner;
+      std::set<Vertex> inset_inner;
+      for (EdgeIter it=begin;it!=end;++it) {
+        Edge e = *it;
+        std::string label = get(edge_label_t(), g, e);
+        if (Node2Vertex[x] == source(e, g)) {
+          if (label == "Call") {
+            outset_inner.insert(target(e, g));
+          } else {
+            outset.insert(target(e, g));
+          }
+        }
+        if (Node2Vertex[x] == target(e, g)) {
+          if (label == "Return") {
+            inset_inner.insert(source(e, g));
+          } else {
+            inset.insert(source(e, g));
+          }
+        }
+      }
+      // connect
+      for (Vertex in : inset) {
+        for (Vertex out : outset_inner) {
+          // addEdge(in, out);
+          // add_edge(in, out, g);
+          Edge e = add_edge(in, out, g).first;
+          put(edge_label_t(), g, e, "enter");
+        }
+      }
+      for (Vertex in : inset_inner) {
+        for (Vertex out : outset) {
+          Edge e = add_edge(in, out, g).first;
+          put(edge_label_t(), g, e, "leave");
+          // add_edge(in, out, g);
+        }
+      }
+      // remove edge
+      for (Vertex in : inset) {
+        remove_edge(in, Node2Vertex[x], g);
+      }
+      for (Vertex in : inset_inner) {
+        remove_edge(in, Node2Vertex[x], g);
+      }
+      for (Vertex out : outset) {
+        remove_edge(Node2Vertex[x], out, g);
+      }
+      for (Vertex out : outset_inner) {
+        remove_edge(Node2Vertex[x], out, g);
+      }
+      // remove node
+      Vertex v = Node2Vertex[x];
+      Vertex2Node.erase(v);
+      Node2Vertex.erase(x);
+      // CAUTION remove_vertex will invalidate some iterators, cause bug
+      remove_vertex(v, g);
+    }
+  }
+  
   
   template class hebigraph::Graph<CFGNode*>;
 }

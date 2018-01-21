@@ -414,6 +414,7 @@ std::string CFG::getDotString() {
   return graph.getDotString
     ([=](CFGNode *node)->std::string
      {
+       if (!node) return "NULL";
        std::string ret;
        if (this->ins.count(node) == 1) {
          ret += "IN: ";
@@ -429,25 +430,39 @@ std::string CFG::getDotString() {
 std::string CFG::getGgxString() {
   return graph.getGgxString
     ([](CFGNode *node)->std::string
-     {return node->getLabel();});
+     {
+       if (!node) return "NULL";
+       return node->getLabel();
+     });
 }
 std::string CFG::getGrsString() {
   return graph.getGrsString
     ([](CFGNode *node)->std::string
-     {return node->getLabel();});
+     {
+       if (!node) return "NULL";
+       return node->getLabel();
+     });
 }
 
 
-CFG *create_icfg(std::vector<CFG*> cfgs) {
+/**
+ * Precondition: cfgs are functions
+ */
+CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
   // get all function nodes, build a function map
-  std::map<std::string, CFGNode*> name2cfgnode;
+  std::map<std::string, CFGNode*> name2funcin;
+  std::map<std::string, CFGNode*> name2funcout;
   CFG *ret = new CFG();
   for (CFG *cfg : cfgs) {
     ret->graph.merge(cfg->graph);
     for (auto &m :cfg->getFuncs()) {
       CFGNode *node = m.first;
       std::string name = m.second;
-      name2cfgnode[name] = node;
+      assert(cfg->ins.size() == 1);
+      assert(*cfg->ins.begin() == node);
+      assert(cfg->outs.size() == 1);
+      name2funcin[name] = node;
+      name2funcout[name] = *cfg->outs.begin();
       // std::cout << name << "\n";
     }
   }
@@ -456,19 +471,42 @@ CFG *create_icfg(std::vector<CFG*> cfgs) {
     ret->ins.insert(cfg->ins.begin(), cfg->ins.end());
     ret->outs.insert(cfg->outs.begin(), cfg->outs.end());
   }
+
+
+  std::set<CFGNode*> callsites;
   // std::cout << name2cfgnode.size() << "\n";
   // for all nodes, connect its callees
   for (CFG *cfg : cfgs) {
     for (CFGNode *node : cfg->getAllNodes()) {
       for (std::string callee : node->getCallees()) {
-        if (name2cfgnode.count(callee) == 1) {
+        if (name2funcin.count(callee) == 1) {
           // std::cout << "Adding edge" << "\n";
-          ret->graph.addEdge(node, name2cfgnode[callee], "Call");
-          ret->outs.erase(node);
-          ret->ins.erase(name2cfgnode[callee]);
+
+          // I need to remove edge before
+          // remove edge after
+          
+          ret->graph.addEdge(node, name2funcin[callee], "Call");
+          ret->graph.addEdge(name2funcout[callee], node, "Return");
+          callsites.insert(node);
+          // ret->outs.erase(node);
+          // ret->ins.erase(name2cfgnode[callee]);
         }
       }
     }
   }
+
+  if (mutate) {
+    for (CFGNode *in : ret->ins) {
+      ret->graph.removeNodeGentle(in, "Call");
+    }
+    for (CFGNode *out : ret->outs) {
+      ret->graph.removeNodeGentle(out, "Return");
+    }
+    for (CFGNode *callsite : callsites) {
+      ret->graph.removeCallsite(callsite);
+    }
+  }
+  ret->ins.clear();
+  ret->outs.clear();
   return ret;
 }

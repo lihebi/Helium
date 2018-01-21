@@ -733,7 +733,7 @@ private:
   std::map<std::string, CFG*> m_func_cfgs;
 };
 
-CFG *create_icfg(std::vector<CFG*> cfgs);
+CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate=false);
 
 
 /**
