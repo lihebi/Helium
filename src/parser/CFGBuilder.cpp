@@ -60,7 +60,10 @@ void CFGBuilder::visit(FunctionDecl *node) {
       // cfg->removeOutEdge(node);
       cfg->addEdge(node, func_out);
     }
+    // clear return node
+    return_nodes.clear();
   }
+  
   cfg->ins.insert(func_node);
   cfg->outs.insert(func_out);
   addInnerCFG(node, cfg);
