@@ -445,6 +445,35 @@ std::string CFG::getGrsString() {
 }
 
 
+typedef std::map<std::string, std::set<std::string> > CallGraph;
+bool has_cyclic_callgraph(const CallGraph &cg) {
+
+  hebigraph::Graph<std::string> g;
+  
+  for (auto m : cg) {
+    std::string caller = m.first;
+    std::set<std::string> callees = m.second;
+    g.addNode(caller);
+    for (std::string callee : callees) {
+      g.addNode(callee);
+      g.addEdge(caller, callee);
+    }
+    // if (cyclic_helper(cg, caller, std::set<std::string>())) return true;
+  }
+  return g.hasCycle();
+}
+
+// bool cyclic_helper(const CallGraph &cg, std::string caller, std::set<std::string> done) {
+//   std::set<std::string> callees = CallGraph[name];
+//   for (std::string callee : callees) {
+//     if (done.count(callee) == 1) return true;
+//     done.insert(callee);
+//     cyclic_helper()
+//   }
+//   return false;
+// }
+
+
 /**
  * Precondition: cfgs are functions
  */
@@ -452,6 +481,10 @@ CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
   // get all function nodes, build a function map
   std::map<std::string, CFGNode*> name2funcin;
   std::map<std::string, CFGNode*> name2funcout;
+
+  std::map<CFG*, std::string> cfg2name;
+  std::map<std::string, std::set<std::string> > callgraph;
+  
   CFG *ret = new CFG();
   for (CFG *cfg : cfgs) {
     ret->graph.merge(cfg->graph);
@@ -464,6 +497,9 @@ CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
       name2funcin[name] = node;
       name2funcout[name] = *cfg->outs.begin();
       // std::cout << name << "\n";
+      // call graph cyclic detection
+      cfg2name[cfg] = name;
+      callgraph[name] = std::set<std::string>();
     }
   }
   // in and out
@@ -477,8 +513,13 @@ CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
   // std::cout << name2cfgnode.size() << "\n";
   // for all nodes, connect its callees
   for (CFG *cfg : cfgs) {
+    std::string caller = cfg2name[cfg];
     for (CFGNode *node : cfg->getAllNodes()) {
-      for (std::string callee : node->getCallees()) {
+      std::set<std::string> callees = node->getCallees();
+      if (callees.size() > 1) {
+        std::cerr << "Warning: multiple calls in one statement" << "\n";
+      }
+      for (std::string callee : callees) {
         if (name2funcin.count(callee) == 1) {
           // std::cout << "Adding edge" << "\n";
 
@@ -490,9 +531,16 @@ CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
           callsites.insert(node);
           // ret->outs.erase(node);
           // ret->ins.erase(name2cfgnode[callee]);
+
+          callgraph[caller].insert(callee);
         }
       }
     }
+  }
+
+  // detect cyclic callgraph
+  if (has_cyclic_callgraph(callgraph)) {
+    std::cerr << "Warning: Has recursive calls" << "\n";
   }
 
   if (mutate) {
@@ -510,3 +558,5 @@ CFG *create_icfg(std::vector<CFG*> cfgs, bool mutate) {
   ret->outs.clear();
   return ret;
 }
+
+
