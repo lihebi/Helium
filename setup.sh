@@ -2,15 +2,16 @@
 
 
 if [ -d $HOME/.helium.d ]; then
-    echo "$HOME/.helium.d exist. Remove to continue."
+    # echo "$HOME/.helium.d exist. Remove to continue."
+    rm -r $HOME/.helium.d
     exit 1
 fi
 
 # check if the helium configuration is already there
-if [[ -n `cat $HOME/.bashrc | grep "Helium Configuration"` ]]; then
-    echo "Configuration already exists in current ~/.bashrc. Remove it to continue."
-    exit 1
-fi
+# if [[ -n `cat $HOME/.bashrc | grep "Helium Configuration"` ]]; then
+#     echo "Configuration already exists in current ~/.bashrc. Remove it to continue."
+#     exit 1
+# fi
 
 mkdir -p $HOME/.helium.d
 
