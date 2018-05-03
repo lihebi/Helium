@@ -702,6 +702,40 @@ ASTContext* create_by_action(fs::path file) {
   return ctx;
 }
 
+
+ASTContext *ClangParser::parse(fs::path file) {
+  // std::cout << "clang parser pasing " << file << "\n";
+  // ASTContext *ctx = new ASTContext(file.string());
+  ASTContext *ctx = create_by_action(file);
+  // ASTContext *ctx = create_by_tool_action(file);
+  ctx->createSymbolTable();
+  return ctx;
+}
+
+#if 0
+void create_by_test(fs::path file) {
+  CompilerInstance compiler;
+  DiagnosticOptions options;
+  compiler.createDisagnostics();
+  CompilerInvocation *invocation = new CompilerInvocation;
+  CompilerInvocation::CreateFromArgs(*invocation, NULL, NULL, compiler.getDiagnostics());
+  compiler.setInvocation(invocation);
+  std::shared_ptr<clang::TargetOptions> pto = std::make_shared<clang::TargetOptions>();
+  pto->Triple = llvm::sys::getDefaultTargetTriple();
+  TargetInfo *pti = TargetInfo::CreateTargetInfo(compiler.getDiagnostics(), pto);
+  compiler.setTarget(pti);
+  compiler.createFileManager();
+  compiler.createSourceManager(compiler.getFileManager());
+  HeaderSearchOptions &headerSearchOptions = compiler.getHeaderSearchOpts();
+
+  LangOptions langOpts;
+  langOpts.GNUMode = 1;
+  invocation->setLangDefaults(langOpts);
+  compiler.createPreprocessor(clang::TU_Complete);
+  compiler.getPreprocessorOpts().UsePredefines = false;
+  compiler.createASTContext();
+}
+
 static llvm::cl::OptionCategory MyToolCategory("mytool options");
 
 #include "llvm/ADT/STLExtras.h"
@@ -793,36 +827,4 @@ void create_by_build(fs::path file) {
 // }
 
 
-ASTContext *ClangParser::parse(fs::path file) {
-  // std::cout << "clang parser pasing " << file << "\n";
-  // ASTContext *ctx = new ASTContext(file.string());
-  ASTContext *ctx = create_by_action(file);
-  // ASTContext *ctx = create_by_tool_action(file);
-  ctx->createSymbolTable();
-  return ctx;
-}
-
-#if 0
-void create_by_test(fs::path file) {
-  CompilerInstance compiler;
-  DiagnosticOptions options;
-  compiler.createDisagnostics();
-  CompilerInvocation *invocation = new CompilerInvocation;
-  CompilerInvocation::CreateFromArgs(*invocation, NULL, NULL, compiler.getDiagnostics());
-  compiler.setInvocation(invocation);
-  std::shared_ptr<clang::TargetOptions> pto = std::make_shared<clang::TargetOptions>();
-  pto->Triple = llvm::sys::getDefaultTargetTriple();
-  TargetInfo *pti = TargetInfo::CreateTargetInfo(compiler.getDiagnostics(), pto);
-  compiler.setTarget(pti);
-  compiler.createFileManager();
-  compiler.createSourceManager(compiler.getFileManager());
-  HeaderSearchOptions &headerSearchOptions = compiler.getHeaderSearchOpts();
-
-  LangOptions langOpts;
-  langOpts.GNUMode = 1;
-  invocation->setLangDefaults(langOpts);
-  compiler.createPreprocessor(clang::TU_Complete);
-  compiler.getPreprocessorOpts().UsePredefines = false;
-  compiler.createASTContext();
-}
 #endif

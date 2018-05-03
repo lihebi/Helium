@@ -50,6 +50,13 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 # link_directories(${LLVM_LIBRARY_DIRS})
 set(LLVM_LINK_COMPONENTS support)
+# Find the libraries that correspond to the LLVM components that we
+# wish to use
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
+# Link against LLVM libraries
+link_libraries(${llvm_libs})
+
 
 ## Setting Clang
 # this is required
@@ -63,7 +70,7 @@ find_package(Clang REQUIRED CONFIG)
 # add_compile_options(-fno-rtti)
 
 # link these by default
-link_libraries(clang clangTooling clangFrontend clangFrontendTool)
+link_libraries(clang clangTooling clangFrontend clangFrontendTool clangAST clangBasic clangLex clangRewrite)
 
 
 
