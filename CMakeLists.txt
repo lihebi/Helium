@@ -48,14 +48,8 @@ find_package(LLVM REQUIRED CONFIG)
 # message(STATUS "LLVM library: ${LLVM_LIBRARY_DIRS}")
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
-# link_directories(${LLVM_LIBRARY_DIRS})
-set(LLVM_LINK_COMPONENTS support)
-# Find the libraries that correspond to the LLVM components that we
-# wish to use
-llvm_map_components_to_libnames(llvm_libs support core irreader)
 
-# Link against LLVM libraries
-link_libraries(${llvm_libs})
+link_libraries(LLVM)
 
 
 ## Setting Clang
