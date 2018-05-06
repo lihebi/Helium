@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT=$(readlink -f "$0")
+DIR=$(dirname "$SCRIPT")
 
 if [ -d $HOME/.helium.d ]; then
     # echo "$HOME/.helium.d exist. Remove to continue."
@@ -15,15 +17,15 @@ fi
 
 mkdir -p $HOME/.helium.d
 
-ln -sf `pwd`/helium.conf $HOME/.helium.d/helium.conf
-ln -sf `pwd`/etc $HOME/.helium.d/
+ln -sf $DIR/helium.conf $HOME/.helium.d/helium.conf
+ln -sf $DIR/etc $HOME/.helium.d/
 
 
 # add load to ~/.bashrc
 echo "" >> $HOME/.bashrc
 echo "## ========== Helium Configuration" >> $HOME/.bashrc
 echo "" >> $HOME/.bahsrc
-echo "export HELIUM_HOME=$(pwd)" >> $HOME/.bashrc
+echo "export HELIUM_HOME=$(DIR)" >> $HOME/.bashrc
 
 
 echo 'export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH' >> $HOME/.bashrc
