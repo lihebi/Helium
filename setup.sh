@@ -25,7 +25,7 @@ ln -sf $DIR/etc $HOME/.helium.d/
 echo "" >> $HOME/.bashrc
 echo "## ========== Helium Configuration" >> $HOME/.bashrc
 echo "" >> $HOME/.bahsrc
-echo "export HELIUM_HOME=$(DIR)" >> $HOME/.bashrc
+echo "export HELIUM_HOME=$DIR" >> $HOME/.bashrc
 
 
 echo 'export PATH=$HELIUM_HOME/bin:$HELIUM_HOME/scripts:$PATH' >> $HOME/.bashrc
